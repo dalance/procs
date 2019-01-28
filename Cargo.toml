@@ -1,0 +1,30 @@
+[package]
+name = "procs"
+version = "0.1.0"
+authors = ["dalance@gmail.com"]
+repository = "https://github.com/dalance/procs"
+keywords = ["process"]
+categories = ["command-line-utilities"]
+license = "MIT"
+readme = "README.md"
+description = ""
+edition = "2018"
+
+[dependencies]
+console     = "*"
+chrono      = "*"
+failure     = "*"
+lazy_static = "1.0.0"
+libc        = "*"
+page_size   = "*"
+procfs      = "*"
+users       = "*"
+structopt   = "0.2.14"
+unbytify    = "*"
+
+[package.metadata.release]
+dev-version-ext            = "pre"
+pre-release-commit-message = "Prepare to v{{version}}"
+pro-release-commit-message = "Start next development iteration v{{version}}"
+tag-message                = "Bump version to {{version}}"
+tag-prefix                 = "v"
