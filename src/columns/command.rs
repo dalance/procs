@@ -5,7 +5,6 @@ use std::collections::HashMap;
 use std::time::Duration;
 
 pub struct Command {
-    pub visible: bool,
     header: String,
     unit: String,
     contents: HashMap<i32, String>,
@@ -18,7 +17,6 @@ impl Command {
         let header = String::from("Command");
         let unit = String::from("");
         Command {
-            visible: true,
             contents: HashMap::new(),
             max_width: cmp::max(header.len(), unit.len()),
             header: header,
@@ -62,9 +60,7 @@ impl Column for Command {
     }
 
     fn display(&self, pid: i32) -> Option<String> {
-        if !self.visible() {
-            Some(String::from(""))
-        } else if let Some(content) = self.contents().get(&pid) {
+        if let Some(content) = self.contents().get(&pid) {
             let mut ret = format!(
                 "{}{}",
                 content,

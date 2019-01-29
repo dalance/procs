@@ -5,7 +5,6 @@ use std::collections::HashMap;
 use std::time::Duration;
 
 pub struct Pid {
-    pub visible: bool,
     header: String,
     unit: String,
     contents: HashMap<i32, String>,
@@ -17,7 +16,6 @@ impl Pid {
         let header = String::from("PID");
         let unit = String::from("");
         Pid {
-            visible: true,
             contents: HashMap::new(),
             max_width: cmp::max(header.len(), unit.len()),
             header: header,

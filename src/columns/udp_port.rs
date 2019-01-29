@@ -5,7 +5,6 @@ use std::collections::HashMap;
 use std::time::Duration;
 
 pub struct UdpPort {
-    pub visible: bool,
     header: String,
     unit: String,
     contents: HashMap<i32, String>,
@@ -18,7 +17,6 @@ impl UdpPort {
         let header = String::from("UDP");
         let unit = String::from("");
         UdpPort {
-            visible: true,
             contents: HashMap::new(),
             max_width: cmp::max(header.len(), unit.len()),
             header: header,

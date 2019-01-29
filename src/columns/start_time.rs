@@ -5,7 +5,6 @@ use std::collections::HashMap;
 use std::time::Duration;
 
 pub struct StartTime {
-    pub visible: bool,
     header: String,
     unit: String,
     contents: HashMap<i32, String>,
@@ -17,7 +16,6 @@ impl StartTime {
         let header = String::from("Start");
         let unit = String::from("");
         StartTime {
-            visible: true,
             contents: HashMap::new(),
             max_width: cmp::max(header.len(), unit.len()),
             header: header,

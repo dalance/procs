@@ -5,7 +5,6 @@ use std::collections::HashMap;
 use std::time::Duration;
 
 pub struct TcpPort {
-    pub visible: bool,
     header: String,
     unit: String,
     contents: HashMap<i32, String>,
@@ -18,7 +17,6 @@ impl TcpPort {
         let header = String::from("TCP");
         let unit = String::from("");
         TcpPort {
-            visible: true,
             contents: HashMap::new(),
             max_width: cmp::max(header.len(), unit.len()),
             header: header,

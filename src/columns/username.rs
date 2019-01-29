@@ -5,7 +5,6 @@ use std::collections::HashMap;
 use std::time::Duration;
 
 pub struct Username {
-    pub visible: bool,
     header: String,
     unit: String,
     contents: HashMap<i32, String>,
@@ -18,7 +17,6 @@ impl Username {
         let header = String::from("User");
         let unit = String::from("");
         Username {
-            visible: true,
             contents: HashMap::new(),
             max_width: cmp::max(header.len(), unit.len()),
             header: header,
@@ -50,9 +48,7 @@ impl Column for Username {
     }
 
     fn display(&self, pid: i32) -> Option<String> {
-        if !self.visible() {
-            Some(String::from(""))
-        } else if let Some(content) = self.contents().get(&pid) {
+        if let Some(content) = self.contents().get(&pid) {
             let mut ret = format!(
                 "{}{}",
                 content,

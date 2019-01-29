@@ -1,3 +1,4 @@
+use crate::Util;
 use procfs::{Io, ProcResult, Process};
 use std::collections::HashMap;
 use std::time::Duration;
@@ -12,8 +13,6 @@ pub trait Column {
         interval: &Duration,
     ) -> ();
 
-    fn visible(&self) -> bool;
-
     fn header(&self) -> &str;
 
     fn unit(&self) -> &str;
@@ -23,41 +22,16 @@ pub trait Column {
     fn max_width(&self) -> usize;
 
     fn display_header(&self) -> String {
-        if !self.visible() {
-            String::from("")
-        } else {
-            let ret = format!(
-                "{}{}",
-                self.header(),
-                " ".repeat(self.max_width() - self.header().len())
-            );
-            ret
-        }
+        Util::expand(self.header(), self.max_width())
     }
 
     fn display_unit(&self) -> String {
-        if !self.visible() {
-            String::from("")
-        } else {
-            let ret = format!(
-                "{}{}",
-                self.unit(),
-                " ".repeat(self.max_width() - self.unit().len())
-            );
-            ret
-        }
+        Util::expand(self.unit(), self.max_width())
     }
 
     fn display(&self, pid: i32) -> Option<String> {
-        if !self.visible() {
-            Some(String::from(""))
-        } else if let Some(content) = self.contents().get(&pid) {
-            let ret = format!(
-                "{}{}",
-                content,
-                " ".repeat(self.max_width() - content.len())
-            );
-            Some(ret)
+        if let Some(content) = self.contents().get(&pid) {
+            Some(Util::expand(content, self.max_width()))
         } else {
             None
         }
@@ -83,9 +57,6 @@ pub trait Column {
 #[macro_export]
 macro_rules! column_default {
     () => {
-       fn visible(&self) -> bool {
-           self.visible
-       }
        fn header(&self) -> &str {
            &self.header
        }

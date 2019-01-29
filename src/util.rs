@@ -49,4 +49,9 @@ impl Util {
         }
         masked
     }
+
+    pub fn expand(x: &str, len: usize) -> String {
+        let ret = format!("{}{}", x, " ".repeat(len - x.len()));
+        ret
+    }
 }
