@@ -12,6 +12,10 @@
 - Keyword search over multi-column
 - Some additional information (ex. TCP/UDP port, Read/Write throughput) which are not suportted by `ps`
 
+## Platform
+
+Linux is supported only.
+
 ## Installation
 
 ### Download binary

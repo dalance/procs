@@ -2,7 +2,6 @@ language: rust
 
 os:
 - linux
-- osx
 
 before_script:
 - if [[ $TRAVIS_OS_NAME == "linux" ]]; then rustup target add x86_64-unknown-linux-musl; fi
@@ -12,7 +11,6 @@ before_script:
 script:
 - make test
 - if [[ $TRAVIS_OS_NAME == "linux" ]]; then make release_lnx; fi
-- if [[ $TRAVIS_OS_NAME == "osx"   ]]; then make release_mac; fi
 
 after_success: |
     if [[ $TRAVIS_OS_NAME == "linux" ]]; then
