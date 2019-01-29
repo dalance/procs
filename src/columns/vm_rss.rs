@@ -14,7 +14,7 @@ pub struct VmRSS {
 
 impl VmRSS {
     pub fn new() -> Self {
-        let header = String::from("RSS");
+        let header = String::from("RSS[bytes]");
         VmRSS {
             visible: true,
             contents: HashMap::new(),

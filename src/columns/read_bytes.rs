@@ -13,7 +13,7 @@ pub struct ReadBytes {
 
 impl ReadBytes {
     pub fn new() -> Self {
-        let header = String::from("Read");
+        let header = String::from("Read[B/s]");
         ReadBytes {
             visible: true,
             contents: HashMap::new(),

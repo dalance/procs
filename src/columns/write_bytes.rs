@@ -13,7 +13,7 @@ pub struct WriteBytes {
 
 impl WriteBytes {
     pub fn new() -> Self {
-        let header = String::from("Write");
+        let header = String::from("Write[B/s]");
         WriteBytes {
             visible: true,
             contents: HashMap::new(),

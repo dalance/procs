@@ -13,7 +13,7 @@ pub struct VmSize {
 
 impl VmSize {
     pub fn new() -> Self {
-        let header = String::from("VSZ");
+        let header = String::from("VSZ[bytes]");
         VmSize {
             visible: true,
             contents: HashMap::new(),
