@@ -1,12 +1,8 @@
 use crate::{column_default, Column};
-use failure::Error;
 use procfs::{Io, ProcResult, Process};
 use std::cmp;
 use std::collections::HashMap;
-
-// ---------------------------------------------------------------------------------------------------------------------
-// Command
-// ---------------------------------------------------------------------------------------------------------------------
+use std::time::Duration;
 
 pub struct Command {
     pub visible: bool,
@@ -30,11 +26,13 @@ impl Command {
 impl Column for Command {
     fn add(
         &mut self,
-        proc: &Process,
+        curr_proc: &Process,
         _prev_proc: &Process,
+        _curr_io: &ProcResult<Io>,
         _prev_io: &ProcResult<Io>,
-    ) -> Result<(), Error> {
-        let content = if let Ok(cmd) = &proc.cmdline() {
+        _interval: &Duration,
+    ) -> () {
+        let content = if let Ok(cmd) = &curr_proc.cmdline() {
             if cmd.len() != 0 {
                 let mut cmd = cmd
                     .iter()
@@ -47,16 +45,15 @@ impl Column for Command {
                 cmd.pop();
                 cmd
             } else {
-                proc.stat.comm.clone()
+                curr_proc.stat.comm.clone()
             }
         } else {
-            proc.stat.comm.clone()
+            curr_proc.stat.comm.clone()
         };
 
         self.max_width = cmp::max(content.len(), self.max_width);
 
-        self.contents.insert(proc.pid(), String::from(content));
-        Ok(())
+        self.contents.insert(curr_proc.pid(), String::from(content));
     }
 
     column_default!();

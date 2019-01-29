@@ -1,12 +1,8 @@
 use crate::{column_default, Column};
-use failure::Error;
 use procfs::{Io, ProcResult, Process};
 use std::cmp;
 use std::collections::HashMap;
-
-// ---------------------------------------------------------------------------------------------------------------------
-// VwRSS
-// ---------------------------------------------------------------------------------------------------------------------
+use std::time::Duration;
 
 pub struct VmRSS {
     pub visible: bool,
@@ -32,17 +28,18 @@ impl VmRSS {
 impl Column for VmRSS {
     fn add(
         &mut self,
-        proc: &Process,
+        curr_proc: &Process,
         _prev_proc: &Process,
+        _curr_io: &ProcResult<Io>,
         _prev_io: &ProcResult<Io>,
-    ) -> Result<(), Error> {
-        let (size, unit) = unbytify::bytify(proc.stat.rss as u64 * self.page_size);
+        _interval: &Duration,
+    ) -> () {
+        let (size, unit) = unbytify::bytify(curr_proc.stat.rss as u64 * self.page_size);
         let content = format!("{}{}", size, unit.replace("i", "").replace("B", ""));
 
         self.max_width = cmp::max(content.len(), self.max_width);
 
-        self.contents.insert(proc.pid(), String::from(content));
-        Ok(())
+        self.contents.insert(curr_proc.pid(), String::from(content));
     }
 
     column_default!();

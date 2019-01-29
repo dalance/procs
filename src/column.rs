@@ -1,14 +1,16 @@
-use failure::Error;
 use procfs::{Io, ProcResult, Process};
 use std::collections::HashMap;
+use std::time::Duration;
 
 pub trait Column {
     fn add(
         &mut self,
-        proc: &Process,
+        curr_proc: &Process,
         prev_proc: &Process,
+        curr_io: &ProcResult<Io>,
         prev_io: &ProcResult<Io>,
-    ) -> Result<(), Error>;
+        interval: &Duration,
+    ) -> ();
 
     fn visible(&self) -> bool;
 

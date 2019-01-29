@@ -7,7 +7,7 @@ use console::{Style, StyledObject, Term};
 use lazy_static::lazy_static;
 use procfs::Process;
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use structopt::{clap, StructOpt};
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -63,7 +63,6 @@ fn style_bytes(x: String) -> StyledObject<String> {
 // ---------------------------------------------------------------------------------------------------------------------
 
 static INTERVAL_BY_MS: u64 = 100;
-static RATIO_TO_SECOND: u64 = 1000 / INTERVAL_BY_MS;
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Main
@@ -90,29 +89,34 @@ fn main() {
 
     for proc in procfs::all_processes() {
         let io = proc.io();
-        base_procs.push((proc.pid(), proc, io));
+        let time = Instant::now();
+        base_procs.push((proc.pid(), proc, io, time));
     }
 
     thread::sleep(Duration::from_millis(INTERVAL_BY_MS));
 
     let mut pids = Vec::new();
-    for (pid, prev, io) in base_procs {
-        let proc = if let Ok(proc) = Process::new(pid) {
+    for (pid, prev_proc, prev_io, prev_time) in base_procs {
+        let curr_proc = if let Ok(proc) = Process::new(pid) {
             proc
         } else {
-            prev.clone()
+            prev_proc.clone()
         };
-        let _ = col_username.add(&proc, &prev, &io);
-        let _ = col_pid.add(&proc, &prev, &io);
-        let _ = col_vmsize.add(&proc, &prev, &io);
-        let _ = col_vmrss.add(&proc, &prev, &io);
-        let _ = col_state.add(&proc, &prev, &io);
-        let _ = col_command.add(&proc, &prev, &io);
-        let _ = col_starttime.add(&proc, &prev, &io);
-        let _ = col_tcpport.add(&proc, &prev, &io);
-        let _ = col_readbytes.add(&proc, &prev, &io);
-        let _ = col_writebytes.add(&proc, &prev, &io);
-        pids.push(proc.pid());
+        let curr_io = curr_proc.io();
+        let curr_time = Instant::now();
+        let interval = curr_time - prev_time;
+
+        let _ = col_username.add(&curr_proc, &prev_proc, &curr_io, &prev_io, &interval);
+        let _ = col_pid.add(&curr_proc, &prev_proc, &curr_io, &prev_io, &interval);
+        let _ = col_vmsize.add(&curr_proc, &prev_proc, &curr_io, &prev_io, &interval);
+        let _ = col_vmrss.add(&curr_proc, &prev_proc, &curr_io, &prev_io, &interval);
+        let _ = col_state.add(&curr_proc, &prev_proc, &curr_io, &prev_io, &interval);
+        let _ = col_command.add(&curr_proc, &prev_proc, &curr_io, &prev_io, &interval);
+        let _ = col_starttime.add(&curr_proc, &prev_proc, &curr_io, &prev_io, &interval);
+        let _ = col_tcpport.add(&curr_proc, &prev_proc, &curr_io, &prev_io, &interval);
+        let _ = col_readbytes.add(&curr_proc, &prev_proc, &curr_io, &prev_io, &interval);
+        let _ = col_writebytes.add(&curr_proc, &prev_proc, &curr_io, &prev_io, &interval);
+        pids.push(pid);
     }
 
     let row = format!(

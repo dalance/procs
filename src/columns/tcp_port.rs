@@ -1,12 +1,8 @@
 use crate::{column_default, Column};
-use failure::Error;
 use procfs::{FDTarget, Io, ProcResult, Process, TcpNetEntry, TcpState};
 use std::cmp;
 use std::collections::HashMap;
-
-// ---------------------------------------------------------------------------------------------------------------------
-// TcpPort
-// ---------------------------------------------------------------------------------------------------------------------
+use std::time::Duration;
 
 pub struct TcpPort {
     pub visible: bool,
@@ -32,12 +28,14 @@ impl TcpPort {
 impl Column for TcpPort {
     fn add(
         &mut self,
-        proc: &Process,
+        curr_proc: &Process,
         _prev_proc: &Process,
+        _curr_io: &ProcResult<Io>,
         _prev_io: &ProcResult<Io>,
-    ) -> Result<(), Error> {
+        _interval: &Duration,
+    ) -> () {
         let mut socks = Vec::new();
-        if let Ok(fds) = proc.fd() {
+        if let Ok(fds) = curr_proc.fd() {
             for fd in fds {
                 match fd.target {
                     FDTarget::Socket(x) => socks.push(x),
@@ -58,8 +56,7 @@ impl Column for TcpPort {
 
         self.max_width = cmp::max(content.len(), self.max_width);
 
-        self.contents.insert(proc.pid(), String::from(content));
-        Ok(())
+        self.contents.insert(curr_proc.pid(), String::from(content));
     }
 
     column_default!();

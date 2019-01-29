@@ -1,8 +1,8 @@
 use crate::{column_default, Column};
-use failure::Error;
 use procfs::{Io, ProcResult, Process};
 use std::cmp;
 use std::collections::HashMap;
+use std::time::Duration;
 
 pub struct Username {
     pub visible: bool,
@@ -26,21 +26,22 @@ impl Username {
 impl Column for Username {
     fn add(
         &mut self,
-        proc: &Process,
+        curr_proc: &Process,
         _prev_proc: &Process,
+        _curr_io: &ProcResult<Io>,
         _prev_io: &ProcResult<Io>,
-    ) -> Result<(), Error> {
-        let user = users::get_user_by_uid(proc.owner);
+        _interval: &Duration,
+    ) -> () {
+        let user = users::get_user_by_uid(curr_proc.owner);
         let content = if let Some(user) = user {
             format!("{}", user.name().to_string_lossy())
         } else {
-            format!("{}", proc.owner)
+            format!("{}", curr_proc.owner)
         };
 
         self.max_width = cmp::max(content.len(), self.max_width);
 
-        self.contents.insert(proc.pid(), String::from(content));
-        Ok(())
+        self.contents.insert(curr_proc.pid(), String::from(content));
     }
 
     column_default!();

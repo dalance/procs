@@ -1,14 +1,10 @@
 use crate::{column_default, Column};
-use chrono::{DateTime, Duration, Local};
-use failure::Error;
+use chrono::{DateTime, Local};
 use libc::_SC_CLK_TCK;
 use procfs::{Io, ProcResult, Process};
 use std::cmp;
 use std::collections::HashMap;
-
-// ---------------------------------------------------------------------------------------------------------------------
-// StartTime
-// ---------------------------------------------------------------------------------------------------------------------
+use std::time::Duration;
 
 pub struct StartTime {
     pub visible: bool,
@@ -36,11 +32,13 @@ impl StartTime {
 impl Column for StartTime {
     fn add(
         &mut self,
-        proc: &Process,
+        curr_proc: &Process,
         _prev_proc: &Process,
+        _curr_io: &ProcResult<Io>,
         _prev_io: &ProcResult<Io>,
-    ) -> Result<(), Error> {
-        let start_time = Duration::seconds(proc.stat.starttime / self.sc_clk_tck);
+        _interval: &Duration,
+    ) -> () {
+        let start_time = chrono::Duration::seconds(curr_proc.stat.starttime / self.sc_clk_tck);
         let start_time = self
             .boot_time
             .checked_add_signed(start_time)
@@ -49,8 +47,7 @@ impl Column for StartTime {
 
         self.max_width = cmp::max(content.len(), self.max_width);
 
-        self.contents.insert(proc.pid(), String::from(content));
-        Ok(())
+        self.contents.insert(curr_proc.pid(), String::from(content));
     }
 
     column_default!();
