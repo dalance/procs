@@ -11,14 +11,17 @@ description = "A modern replacement for ps"
 edition = "2018"
 
 [dependencies]
-console     = "*"
-chrono      = "*"
-failure     = "*"
-lazy_static = "1.0.0"
-procfs      = { git = "https://github.com/dalance/procfs", branch = "add_udp" }
-users       = "*"
+console     = "0.7.5"
+chrono      = "0.4.6"
+failure     = "0.1.5"
+lazy_static = "1.2.0"
+procfs      = "0.4.2"
+users       = "0.8.1"
 structopt   = "0.2.14"
-unbytify    = "*"
+unbytify    = "0.2.0"
+
+[patch.crates-io]
+procfs = { git = "https://github.com/dalance/procfs", branch = "add_udp" }
 
 [package.metadata.release]
 dev-version-ext            = "pre"
