@@ -10,7 +10,7 @@
 
 - Output by the colored and human-readable format
 - Keyword search over multi-column
-- Some additional information (ex. TCP/UDP port, Read/Write throughput) which are not suportted by `ps`
+- Some additional information (ex. TCP/UDP port, Read/Write throughput) which are not supported by `ps`
 
 ## Platform
 
@@ -50,6 +50,7 @@ $ procs zsh --mask
 ![procs_zsh](https://user-images.githubusercontent.com/4331004/51904402-e827cb00-2401-11e9-8a9c-45159686080d.png)
 
 If an integer number is used as the keyword, it is matched to `PID`, `TCP`, `UDP` by default.
+Integer is treated as exact match, and other keyword is treated as partial match.
 
 ```console
 $ procs 6000 60000 60001 --mask
