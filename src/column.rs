@@ -47,6 +47,22 @@ pub trait Column {
             None
         }
     }
+
+    fn find(&self, pid: i32, keyword: &str) -> bool {
+        if let Some(content) = self.contents().get(&pid) {
+            content.find(keyword).is_some()
+        } else {
+            false
+        }
+    }
+
+    fn find_exact(&self, pid: i32, keyword: &str) -> bool {
+        if let Some(content) = self.contents().get(&pid) {
+            content == keyword
+        } else {
+            false
+        }
+    }
 }
 
 #[macro_export]

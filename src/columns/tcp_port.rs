@@ -59,5 +59,20 @@ impl Column for TcpPort {
         self.contents.insert(curr_proc.pid(), String::from(content));
     }
 
+    fn find_exact(&self, pid: i32, keyword: &str) -> bool {
+        if let Some(content) = self.contents().get(&pid) {
+            let content = content.replace("[", "").replace("]", "");
+            let content = content.split(",");
+            for c in content {
+                if c == keyword {
+                    return true;
+                }
+            }
+            false
+        } else {
+            false
+        }
+    }
+
     column_default!();
 }
