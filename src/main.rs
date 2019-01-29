@@ -1,16 +1,16 @@
 mod column;
 mod columns;
-mod find;
+mod util;
 
 use column::Column;
 use columns::*;
 use console::{Style, StyledObject, Term};
-use find::{Finder, KeywordClass};
 use lazy_static::lazy_static;
 use procfs::Process;
 use std::thread;
 use std::time::{Duration, Instant};
 use structopt::{clap, StructOpt};
+use util::{KeywordClass, Util};
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Opt
@@ -30,6 +30,10 @@ pub struct Opt {
     /// Interval to calculate throughput
     #[structopt(long = "interval", default_value = "100", value_name = "ms")]
     pub interval: u64,
+
+    /// Mask sensitive information
+    #[structopt(long = "mask")]
+    pub mask: bool,
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -91,7 +95,7 @@ fn main() {
     let term = Term::stdout();
     let (_term_h, term_w) = term.size();
 
-    let mut col_command = Command::new();
+    let mut col_command = Command::new(opt.mask);
     let mut col_pid = Pid::new();
     let mut col_readbytes = ReadBytes::new();
     let mut col_starttime = StartTime::new();
@@ -101,7 +105,7 @@ fn main() {
     let mut col_udpport = UdpPort::new();
     let mut col_usagecpu = UsageCPU::new();
     let mut col_usagemem = UsageMem::new();
-    let mut col_username = Username::new();
+    let mut col_username = Username::new(opt.mask);
     let mut col_vmrss = VmRSS::new();
     let mut col_vmsize = VmSize::new();
     let mut col_writebytes = WriteBytes::new();
@@ -196,7 +200,7 @@ fn main() {
     let mut keyword_other = Vec::new();
 
     for k in &opt.keyword {
-        match Finder::keyword_class(k) {
+        match Util::classify(k) {
             KeywordClass::Integer => keyword_integer.push(k),
             KeywordClass::Other => keyword_other.push(k),
         }
@@ -205,8 +209,8 @@ fn main() {
     for pid in pids {
         let mut visible = true;
         if !opt.keyword.is_empty() {
-            visible = Finder::find(list_find.as_slice(), pid, &keyword_other);
-            visible |= Finder::find_exact(list_find_exact.as_slice(), pid, &keyword_integer);
+            visible = Util::find(list_find.as_slice(), pid, &keyword_other);
+            visible |= Util::find_exact(list_find_exact.as_slice(), pid, &keyword_integer);
         }
 
         if visible {

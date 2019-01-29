@@ -1,4 +1,4 @@
-use crate::{column_default, Column};
+use crate::{column_default, Column, Util};
 use procfs::{Io, ProcResult, Process};
 use std::cmp;
 use std::collections::HashMap;
@@ -10,10 +10,11 @@ pub struct Username {
     unit: String,
     contents: HashMap<i32, String>,
     max_width: usize,
+    mask: bool,
 }
 
 impl Username {
-    pub fn new() -> Self {
+    pub fn new(mask: bool) -> Self {
         let header = String::from("User");
         let unit = String::from("");
         Username {
@@ -22,6 +23,7 @@ impl Username {
             max_width: cmp::max(header.len(), unit.len()),
             header: header,
             unit: unit,
+            mask: mask,
         }
     }
 }
@@ -45,6 +47,24 @@ impl Column for Username {
         self.max_width = cmp::max(content.len(), self.max_width);
 
         self.contents.insert(curr_proc.pid(), String::from(content));
+    }
+
+    fn display(&self, pid: i32) -> Option<String> {
+        if !self.visible() {
+            Some(String::from(""))
+        } else if let Some(content) = self.contents().get(&pid) {
+            let mut ret = format!(
+                "{}{}",
+                content,
+                " ".repeat(self.max_width() - content.len())
+            );
+            if self.mask {
+                ret = Util::mask(&ret);
+            }
+            Some(ret)
+        } else {
+            None
+        }
     }
 
     column_default!();
