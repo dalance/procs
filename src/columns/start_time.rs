@@ -7,6 +7,7 @@ use std::time::Duration;
 pub struct StartTime {
     pub visible: bool,
     header: String,
+    unit: String,
     contents: HashMap<i32, String>,
     max_width: usize,
 }
@@ -14,11 +15,13 @@ pub struct StartTime {
 impl StartTime {
     pub fn new() -> Self {
         let header = String::from("Start");
+        let unit = String::from("");
         StartTime {
             visible: true,
             contents: HashMap::new(),
-            max_width: header.len(),
+            max_width: cmp::max(header.len(), unit.len()),
             header: header,
+            unit: unit,
         }
     }
 }

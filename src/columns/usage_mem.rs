@@ -7,6 +7,7 @@ use std::time::Duration;
 pub struct UsageMem {
     pub visible: bool,
     header: String,
+    unit: String,
     contents: HashMap<i32, String>,
     max_width: usize,
     mem_total: u64,
@@ -15,11 +16,13 @@ pub struct UsageMem {
 impl UsageMem {
     pub fn new() -> Self {
         let header = String::from("MEM");
+        let unit = String::from("[%]");
         UsageMem {
             visible: true,
             contents: HashMap::new(),
-            max_width: header.len(),
+            max_width: cmp::max(header.len(), unit.len()),
             header: header,
+            unit: unit,
             mem_total: procfs::meminfo().unwrap().mem_total,
         }
     }
@@ -29,13 +32,13 @@ impl Column for UsageMem {
     fn add(
         &mut self,
         curr_proc: &Process,
-        prev_proc: &Process,
+        _prev_proc: &Process,
         _curr_io: &ProcResult<Io>,
         _prev_io: &ProcResult<Io>,
-        interval: &Duration,
+        _interval: &Duration,
     ) -> () {
         let usage = curr_proc.stat.rss_bytes();
-        let content = format!("{:.1}%", usage as f64 * 100.0 / self.mem_total as f64);
+        let content = format!("{:.1}", usage as f64 * 100.0 / self.mem_total as f64);
 
         self.max_width = cmp::max(content.len(), self.max_width);
 

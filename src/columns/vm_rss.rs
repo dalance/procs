@@ -7,18 +7,21 @@ use std::time::Duration;
 pub struct VmRSS {
     pub visible: bool,
     header: String,
+    unit: String,
     contents: HashMap<i32, String>,
     max_width: usize,
 }
 
 impl VmRSS {
     pub fn new() -> Self {
-        let header = String::from("RSS[bytes]");
+        let header = String::from("RSS");
+        let unit = String::from("[bytes]");
         VmRSS {
             visible: true,
             contents: HashMap::new(),
-            max_width: header.len(),
+            max_width: cmp::max(header.len(), unit.len()),
             header: header,
+            unit: unit,
         }
     }
 }

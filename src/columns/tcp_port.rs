@@ -7,6 +7,7 @@ use std::time::Duration;
 pub struct TcpPort {
     pub visible: bool,
     header: String,
+    unit: String,
     contents: HashMap<i32, String>,
     max_width: usize,
     tcp_entry: Vec<TcpNetEntry>,
@@ -15,11 +16,13 @@ pub struct TcpPort {
 impl TcpPort {
     pub fn new() -> Self {
         let header = String::from("TCP");
+        let unit = String::from("");
         TcpPort {
             visible: true,
             contents: HashMap::new(),
-            max_width: header.len(),
+            max_width: cmp::max(header.len(), unit.len()),
             header: header,
+            unit: unit,
             tcp_entry: procfs::tcp().unwrap(),
         }
     }

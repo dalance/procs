@@ -16,6 +16,8 @@ pub trait Column {
 
     fn header(&self) -> &str;
 
+    fn unit(&self) -> &str;
+
     fn contents(&self) -> &HashMap<i32, String>;
 
     fn max_width(&self) -> usize;
@@ -28,6 +30,19 @@ pub trait Column {
                 "{}{}",
                 self.header(),
                 " ".repeat(self.max_width() - self.header().len())
+            );
+            ret
+        }
+    }
+
+    fn display_unit(&self) -> String {
+        if !self.visible() {
+            String::from("")
+        } else {
+            let ret = format!(
+                "{}{}",
+                self.unit(),
+                " ".repeat(self.max_width() - self.unit().len())
             );
             ret
         }
@@ -73,6 +88,9 @@ macro_rules! column_default {
        }
        fn header(&self) -> &str {
            &self.header
+       }
+       fn unit(&self) -> &str {
+           &self.unit
        }
        fn contents(&self) -> &HashMap<i32, String> {
            &self.contents

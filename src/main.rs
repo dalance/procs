@@ -69,7 +69,7 @@ fn style_by_unit(x: String) -> StyledObject<String> {
 }
 
 fn style_by_percentage(x: String) -> StyledObject<String> {
-    let value: f64 = x.replace("%", "").parse().unwrap_or(0.0);
+    let value: f64 = x.parse().unwrap_or(0.0);
     if value > 75.0 {
         red.apply_to(x)
     } else if value > 50.0 {
@@ -152,14 +152,34 @@ fn main() {
         white.apply_to(col_usagemem.display_header()),
         white.apply_to(col_vmsize.display_header()),
         white.apply_to(col_vmrss.display_header()),
-        white.apply_to(col_state.display_header()),
         white.apply_to(col_tty.display_header()),
+        white.apply_to(col_state.display_header()),
         white.apply_to(col_starttime.display_header()),
         white.apply_to(col_tcpport.display_header()),
         white.apply_to(col_udpport.display_header()),
         white.apply_to(col_readbytes.display_header()),
         white.apply_to(col_writebytes.display_header()),
         white.apply_to(col_command.display_header()),
+    );
+    let row = console::truncate_str(&row, term_w as usize, "");
+    println!("{}", row);
+
+    let row = format!(
+        "{} {} {} {} {} {} {} {} {} {} {} {} {} {}",
+        white.apply_to(col_pid.display_unit()),
+        white.apply_to(col_username.display_unit()),
+        white.apply_to(col_usagecpu.display_unit()),
+        white.apply_to(col_usagemem.display_unit()),
+        white.apply_to(col_vmsize.display_unit()),
+        white.apply_to(col_vmrss.display_unit()),
+        white.apply_to(col_tty.display_unit()),
+        white.apply_to(col_state.display_unit()),
+        white.apply_to(col_starttime.display_unit()),
+        white.apply_to(col_tcpport.display_unit()),
+        white.apply_to(col_udpport.display_unit()),
+        white.apply_to(col_readbytes.display_unit()),
+        white.apply_to(col_writebytes.display_unit()),
+        white.apply_to(col_command.display_unit()),
     );
     let row = console::truncate_str(&row, term_w as usize, "");
     println!("{}", row);
@@ -198,8 +218,8 @@ fn main() {
                 style_by_percentage(col_usagemem.display(pid).unwrap()),
                 style_by_unit(col_vmsize.display(pid).unwrap()),
                 style_by_unit(col_vmrss.display(pid).unwrap()),
-                style_by_state(col_state.display(pid).unwrap()),
                 white.apply_to(col_tty.display(pid).unwrap()),
+                style_by_state(col_state.display(pid).unwrap()),
                 magenta.apply_to(col_starttime.display(pid).unwrap()),
                 cyan.apply_to(col_tcpport.display(pid).unwrap()),
                 cyan.apply_to(col_udpport.display(pid).unwrap()),

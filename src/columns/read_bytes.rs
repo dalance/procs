@@ -7,18 +7,21 @@ use std::time::Duration;
 pub struct ReadBytes {
     pub visible: bool,
     header: String,
+    unit: String,
     contents: HashMap<i32, String>,
     max_width: usize,
 }
 
 impl ReadBytes {
     pub fn new() -> Self {
-        let header = String::from("Read[B/s]");
+        let header = String::from("Read");
+        let unit = String::from("[B/s]");
         ReadBytes {
             visible: true,
             contents: HashMap::new(),
-            max_width: header.len(),
+            max_width: cmp::max(header.len(), unit.len()),
             header: header,
+            unit: unit,
         }
     }
 }

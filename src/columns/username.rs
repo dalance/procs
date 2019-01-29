@@ -7,6 +7,7 @@ use std::time::Duration;
 pub struct Username {
     pub visible: bool,
     header: String,
+    unit: String,
     contents: HashMap<i32, String>,
     max_width: usize,
 }
@@ -14,11 +15,13 @@ pub struct Username {
 impl Username {
     pub fn new() -> Self {
         let header = String::from("User");
+        let unit = String::from("");
         Username {
             visible: true,
             contents: HashMap::new(),
-            max_width: header.len(),
+            max_width: cmp::max(header.len(), unit.len()),
             header: header,
+            unit: unit,
         }
     }
 }

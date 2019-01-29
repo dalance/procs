@@ -7,18 +7,21 @@ use std::time::Duration;
 pub struct VmSize {
     pub visible: bool,
     header: String,
+    unit: String,
     contents: HashMap<i32, String>,
     max_width: usize,
 }
 
 impl VmSize {
     pub fn new() -> Self {
-        let header = String::from("VSZ[bytes]");
+        let header = String::from("VSZ");
+        let unit = String::from("[bytes]");
         VmSize {
             visible: true,
             contents: HashMap::new(),
-            max_width: header.len(),
+            max_width: cmp::max(header.len(), unit.len()),
             header: header,
+            unit: unit,
         }
     }
 }
