@@ -1,6 +1,5 @@
 use crate::{column_default, Column};
 use chrono::{DateTime, Local};
-use libc::_SC_CLK_TCK;
 use procfs::{Io, ProcResult, Process};
 use std::cmp;
 use std::collections::HashMap;
@@ -12,7 +11,6 @@ pub struct StartTime {
     contents: HashMap<i32, String>,
     max_width: usize,
     boot_time: DateTime<Local>,
-    sc_clk_tck: i64,
 }
 
 impl StartTime {
@@ -24,7 +22,6 @@ impl StartTime {
             max_width: header.len(),
             header: header,
             boot_time: procfs::boot_time().unwrap(),
-            sc_clk_tck: unsafe { libc::sysconf(_SC_CLK_TCK) },
         }
     }
 }
@@ -38,7 +35,9 @@ impl Column for StartTime {
         _prev_io: &ProcResult<Io>,
         _interval: &Duration,
     ) -> () {
-        let start_time = chrono::Duration::seconds(curr_proc.stat.starttime / self.sc_clk_tck);
+        let start_time = chrono::Duration::seconds(
+            curr_proc.stat.starttime / procfs::ticks_per_second().unwrap_or(100),
+        );
         let start_time = self
             .boot_time
             .checked_add_signed(start_time)
