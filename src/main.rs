@@ -46,7 +46,7 @@ lazy_static! {
     static ref white: Style = Style::new().white().bold();
 }
 
-fn style_state(x: String) -> StyledObject<String> {
+fn style_by_state(x: String) -> StyledObject<String> {
     match x {
         ref x if x.starts_with('D') => red.apply_to(x.to_string()),
         ref x if x.starts_with('R') => green.apply_to(x.to_string()),
@@ -57,7 +57,7 @@ fn style_state(x: String) -> StyledObject<String> {
     }
 }
 
-fn style_bytes(x: String) -> StyledObject<String> {
+fn style_by_unit(x: String) -> StyledObject<String> {
     match x {
         ref x if x.contains('K') => blue.apply_to(x.to_string()),
         ref x if x.contains('M') => green.apply_to(x.to_string()),
@@ -68,11 +68,18 @@ fn style_bytes(x: String) -> StyledObject<String> {
     }
 }
 
-// ---------------------------------------------------------------------------------------------------------------------
-// Static
-// ---------------------------------------------------------------------------------------------------------------------
-
-static INTERVAL_BY_MS: u64 = 100;
+fn style_by_percentage(x: String) -> StyledObject<String> {
+    let value: f64 = x.replace("%", "").parse().unwrap_or(0.0);
+    if value > 75.0 {
+        red.apply_to(x)
+    } else if value > 50.0 {
+        yellow.apply_to(x)
+    } else if value > 25.0 {
+        green.apply_to(x)
+    } else {
+        blue.apply_to(x)
+    }
+}
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Main
@@ -86,6 +93,7 @@ fn main() {
 
     let mut col_username = Username::new();
     let mut col_pid = Pid::new();
+    let mut col_usagecpu = UsageCPU::new();
     let mut col_vmsize = VmSize::new();
     let mut col_vmrss = VmRSS::new();
     let mut col_state = State::new();
