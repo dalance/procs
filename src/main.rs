@@ -82,6 +82,7 @@ fn main() {
     let mut col_command = Command::new();
     let mut col_starttime = StartTime::new();
     let mut col_tcpport = TcpPort::new();
+    let mut col_udpport = UdpPort::new();
     let mut col_readbytes = ReadBytes::new();
     let mut col_writebytes = WriteBytes::new();
 
