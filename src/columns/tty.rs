@@ -4,17 +4,17 @@ use std::cmp;
 use std::collections::HashMap;
 use std::time::Duration;
 
-pub struct VmRSS {
+pub struct Tty {
     pub visible: bool,
     header: String,
     contents: HashMap<i32, String>,
     max_width: usize,
 }
 
-impl VmRSS {
+impl Tty {
     pub fn new() -> Self {
-        let header = String::from("RSS[bytes]");
-        VmRSS {
+        let header = String::from("TTY");
+        Tty {
             visible: true,
             contents: HashMap::new(),
             max_width: header.len(),
@@ -23,7 +23,7 @@ impl VmRSS {
     }
 }
 
-impl Column for VmRSS {
+impl Column for Tty {
     fn add(
         &mut self,
         curr_proc: &Process,
@@ -32,8 +32,12 @@ impl Column for VmRSS {
         _prev_io: &ProcResult<Io>,
         _interval: &Duration,
     ) -> () {
-        let (size, unit) = unbytify::bytify(curr_proc.stat.rss_bytes() as u64);
-        let content = format!("{}{}", size, unit.replace("i", "").replace("B", ""));
+        let (major, minor) = curr_proc.stat.tty_nr();
+        let content = if major == 136 {
+            format!("pts/{}", minor)
+        } else {
+            String::from("")
+        };
 
         self.max_width = cmp::max(content.len(), self.max_width);
 
