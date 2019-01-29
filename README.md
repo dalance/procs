@@ -34,21 +34,16 @@ cargo install procs
 
 Type `procs` only. It shows the information of all processes.
 
-```
-> procs
-```
+![procs](https://user-images.githubusercontent.com/4331004/51904370-d5ad9180-2401-11e9-837c-ae4859c8fa82.png)
 
 If you add any keyword as argument, it is matched to `USER` or `Command` by default.
+( `--mask` option is used to mask `USER`/`Command` information, actually not required )
 
-```
-> procs dalance  // show the processes of user dalance
-```
+![procs_zsh](https://user-images.githubusercontent.com/4331004/51904402-e827cb00-2401-11e9-8a9c-45159686080d.png)
 
 If an integer number is used as the keyword, it is matched to `PID`, `TCP`, `UDP` by default.
 
-```
-> procs 6000  // show the process of pid=6000 or TCP/UDP port=6000
-```
+![procs_port](https://user-images.githubusercontent.com/4331004/51904423-f5dd5080-2401-11e9-8d02-756e33a9b7bc.png)
 
 ### Configuration
 
