@@ -16,8 +16,7 @@ chrono      = "*"
 failure     = "*"
 lazy_static = "1.0.0"
 page_size   = "*"
-#procfs      = "*"
-procfs      = { path = "../procfs" }
+procfs      = { git = "https://github.com/dalance/procfs", branch = "add_udp" }
 users       = "*"
 structopt   = "0.2.14"
 unbytify    = "*"
