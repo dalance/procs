@@ -7,7 +7,7 @@ keywords = ["process"]
 categories = ["command-line-utilities"]
 license = "MIT"
 readme = "README.md"
-description = ""
+description = "A modern replacement for ps"
 edition = "2018"
 
 [dependencies]

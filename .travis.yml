@@ -1,0 +1,37 @@
+language: rust
+
+os:
+- linux
+- osx
+
+before_script:
+- if [[ $TRAVIS_OS_NAME == "linux" ]]; then rustup target add x86_64-unknown-linux-musl; fi
+- if [[ $TRAVIS_OS_NAME == "linux" ]]; then sudo apt-get -qq update; fi
+- if [[ $TRAVIS_OS_NAME == "linux" ]]; then sudo apt-get -qq install musl-tools libssl-dev; fi
+
+script:
+- make test
+- if [[ $TRAVIS_OS_NAME == "linux" ]]; then make release_lnx; fi
+- if [[ $TRAVIS_OS_NAME == "osx"   ]]; then make release_mac; fi
+
+after_success: |
+    if [[ $TRAVIS_OS_NAME == "linux" ]]; then
+        rustup install nightly
+        RUSTFLAGS="--cfg procmacro2_semver_exempt" cargo +nightly install cargo-tarpaulin
+        # Uncomment the following line for coveralls.io
+        # cargo tarpaulin --ciserver travis-ci --coveralls $TRAVIS_JOB_ID
+
+        cargo +nightly tarpaulin --out Xml -- --test-threads=1
+        bash <(curl -s https://codecov.io/bash)
+    fi
+
+deploy:
+  provider: releases
+  api_key:
+    secure: J8ZaGuXLewkTBovNeBy5kmEqo50X97onOoe6JKP1oSjhYvVErVGFpUfmySJDo9ILk+uKIaUlz4bCSDL7LZ869dIsh7Vlegkis6BABFlKg9qaxM1IjfB4KIJbJksBdX63sdEcN9FGw4C2L4koNf1SijUZhWp9YErdrMJtDADdx+qa7Bpq4AU9vqORxbuA85h1VQxy5MvQtE03Q9KaqE4zlkWqcHIRnXQrP0jCsM/qLTQ8008Nm4g1BVRuFjwtKwNrPeeZSdV7n9jz1MyaL0WV+gQvXtjVId4Zvn+vQnjgxX4Ln5xR+5MeDUpphTQ+YnfBVx78SmE9Y50zaXvPXeaqQYbESGrNhiR+0Hy1DeZvQ40ilgOQc1nJbDjhBs2/TG/meZGAeFJbnarHwbSz5akhqpbe7eIVhGls3m1EjjRMw1XbKoGo0sh/VTxQ2lwD7KfgmWOZvqWe4YKVnuPR3ZM5Ri97r3ozYBc849qEQZRom2l8najcSkp6KLRmXjg2SKfH28IwoP+9b1UwQWsbhQtawX6n2uWFiFgK3zH417VkpeqhUG4Ywne+ZqVvtzEeXDBQU+ef+lkq0v5jQjIvwb4WpttCWqtzfEm4620Lx0og/zcFSc20BjNdKj9mm4bmkDpNKHsyDB+jAR0r86N/G4f6qsCVTwyITlIWbj+lc4d5p8Q=
+  file: procs*.zip
+  file_glob: true
+  skip_cleanup: true
+  on:
+    repo: dalance/procs
+    tags: true
