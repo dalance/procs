@@ -1,9 +1,4 @@
 use crate::{column_default, Column};
-#[cfg(not(udp))]
-use procfs::TcpNetEntry as UdpNetEntry;
-#[cfg(not(udp))]
-use procfs::{FDTarget, Io, ProcResult, Process};
-#[cfg(udp)]
 use procfs::{FDTarget, Io, ProcResult, Process, UdpNetEntry};
 use std::cmp;
 use std::collections::HashMap;
@@ -26,9 +21,6 @@ impl UdpPort {
             max_width: cmp::max(header.len(), unit.len()),
             header: header,
             unit: unit,
-            #[cfg(not(udp))]
-            udp_entry: procfs::tcp().unwrap(),
-            #[cfg(udp)]
             udp_entry: procfs::udp().unwrap(),
         }
     }
