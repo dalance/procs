@@ -38,25 +38,25 @@ Type `procs` only. It shows the information of all processes.
 $ procs
 ```
 
-![procs](https://user-images.githubusercontent.com/4331004/51904370-d5ad9180-2401-11e9-837c-ae4859c8fa82.png)
+![procs](https://user-images.githubusercontent.com/4331004/51976289-9f3a4a00-24c7-11e9-8573-8f746ccf1ed4.png)
 
 If you add any keyword as argument, it is matched to `USER` or `Command` by default.
-( `--mask` option is used to mask `USER`/`Command` information, actually not required )
 
 ```console
-$ procs zsh --mask
+$ procs zsh
 ```
 
-![procs_zsh](https://user-images.githubusercontent.com/4331004/51904402-e827cb00-2401-11e9-8a9c-45159686080d.png)
+![procs_zsh](https://user-images.githubusercontent.com/4331004/51976319-b24d1a00-24c7-11e9-8060-09e71d18e5ec.png)
 
 If a numeric is used as the keyword, it is matched to `PID`, `TCP`, `UDP` by default.
 Numeric is treated as exact match, and non-numeric is treated as partial match by default.
 
 ```console
-$ procs 6000 60000 60001 --mask
+$ procs 6000 60000 60001 16723
 ```
 
-![procs_port](https://user-images.githubusercontent.com/4331004/51904423-f5dd5080-2401-11e9-8d02-756e33a9b7bc.png)
+![procs_port](https://user-images.githubusercontent.com/4331004/51976347-c09b3600-24c7-11e9-8d40-2c437efbd5e1.png)
+
 
 ## Configuration
 
