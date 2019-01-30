@@ -5,10 +5,12 @@ mod util;
 use column::Column;
 use columns::*;
 use console::{Style, StyledObject, Term};
-use failure::Error;
+use failure::{Error, ResultExt};
 use lazy_static::lazy_static;
 use procfs::Process;
 use serde_derive::{Deserialize, Serialize};
+use std::fs;
+use std::io::Read;
 use std::thread;
 use std::time::{Duration, Instant};
 use structopt::{clap, StructOpt};
@@ -437,13 +439,33 @@ fn main() {
 fn run() -> Result<(), Error> {
     let opt = Opt::from_args();
 
-    let config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
-
     if opt.config {
+        let config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
         let toml = toml::to_string(&config)?;
         println!("{}", toml);
         return Ok(());
     }
+
+    let cfg_path = match dirs::home_dir() {
+        Some(mut path) => {
+            path.push(".procs.toml");
+            if path.exists() {
+                Some(path)
+            } else {
+                None
+            }
+        }
+        None => None,
+    };
+
+    let config: Config = if let Some(path) = cfg_path {
+        let mut f = fs::File::open(&path).context(format!("failed to open file ({:?})", path))?;
+        let mut s = String::new();
+        let _ = f.read_to_string(&mut s);
+        toml::from_str(&s).context(format!("failed to parse toml ({:?})", path))?
+    } else {
+        toml::from_str(CONFIG_DEFAULT).unwrap()
+    };
 
     let mut cols = Vec::new();
 
