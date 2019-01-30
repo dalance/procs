@@ -4,18 +4,18 @@ use std::cmp;
 use std::collections::HashMap;
 use std::time::Duration;
 
-pub struct UsageCPU {
+pub struct UsageCpu {
     header: String,
     unit: String,
     contents: HashMap<i32, String>,
     max_width: usize,
 }
 
-impl UsageCPU {
+impl UsageCpu {
     pub fn new() -> Self {
         let header = String::from("CPU");
         let unit = String::from("[%]");
-        UsageCPU {
+        UsageCpu {
             contents: HashMap::new(),
             max_width: cmp::max(header.len(), unit.len()),
             header: header,
@@ -24,7 +24,7 @@ impl UsageCPU {
     }
 }
 
-impl Column for UsageCPU {
+impl Column for UsageCpu {
     fn add(
         &mut self,
         curr_proc: &Process,

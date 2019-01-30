@@ -4,18 +4,18 @@ use std::cmp;
 use std::collections::HashMap;
 use std::time::Duration;
 
-pub struct VmRss {
+pub struct Separator {
     header: String,
     unit: String,
     contents: HashMap<i32, String>,
     max_width: usize,
 }
 
-impl VmRss {
+impl Separator {
     pub fn new() -> Self {
-        let header = String::from("RSS");
-        let unit = String::from("[bytes]");
-        VmRss {
+        let header = String::from("|");
+        let unit = String::from("|");
+        Separator {
             contents: HashMap::new(),
             max_width: cmp::max(header.len(), unit.len()),
             header: header,
@@ -24,7 +24,7 @@ impl VmRss {
     }
 }
 
-impl Column for VmRss {
+impl Column for Separator {
     fn add(
         &mut self,
         curr_proc: &Process,
@@ -33,8 +33,7 @@ impl Column for VmRss {
         _prev_io: &ProcResult<Io>,
         _interval: &Duration,
     ) -> () {
-        let (size, unit) = unbytify::bytify(curr_proc.stat.rss_bytes() as u64);
-        let content = format!("{}{}", size, unit.replace("i", "").replace("B", ""));
+        let content = format!("|");
 
         self.max_width = cmp::max(content.len(), self.max_width);
 

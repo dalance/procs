@@ -1,21 +1,21 @@
-use crate::{column_default, Column};
+use crate::{column_default, Column, Util};
 use procfs::{Io, ProcResult, Process};
 use std::cmp;
 use std::collections::HashMap;
 use std::time::Duration;
 
-pub struct VmRss {
+pub struct CpuTime {
     header: String,
     unit: String,
     contents: HashMap<i32, String>,
     max_width: usize,
 }
 
-impl VmRss {
+impl CpuTime {
     pub fn new() -> Self {
-        let header = String::from("RSS");
-        let unit = String::from("[bytes]");
-        VmRss {
+        let header = String::from("CPU Time");
+        let unit = String::from("");
+        CpuTime {
             contents: HashMap::new(),
             max_width: cmp::max(header.len(), unit.len()),
             header: header,
@@ -24,7 +24,7 @@ impl VmRss {
     }
 }
 
-impl Column for VmRss {
+impl Column for CpuTime {
     fn add(
         &mut self,
         curr_proc: &Process,
@@ -33,8 +33,10 @@ impl Column for VmRss {
         _prev_io: &ProcResult<Io>,
         _interval: &Duration,
     ) -> () {
-        let (size, unit) = unbytify::bytify(curr_proc.stat.rss_bytes() as u64);
-        let content = format!("{}{}", size, unit.replace("i", "").replace("B", ""));
+        let time_sec = (curr_proc.stat.utime + curr_proc.stat.stime)
+            / procfs::ticks_per_second().unwrap_or(100) as u64;
+
+        let content = format!("{}", Util::parse_time(time_sec));
 
         self.max_width = cmp::max(content.len(), self.max_width);
 

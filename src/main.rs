@@ -5,8 +5,10 @@ mod util;
 use column::Column;
 use columns::*;
 use console::{Style, StyledObject, Term};
+use failure::Error;
 use lazy_static::lazy_static;
 use procfs::Process;
+use serde_derive::{Deserialize, Serialize};
 use std::thread;
 use std::time::{Duration, Instant};
 use structopt::{clap, StructOpt};
@@ -34,6 +36,290 @@ pub struct Opt {
     /// Mask sensitive information
     #[structopt(long = "mask")]
     pub mask: bool,
+
+    /// Generate configuration sample file
+    #[structopt(long = "config")]
+    pub config: bool,
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Config
+// ---------------------------------------------------------------------------------------------------------------------
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Config {
+    pub columns: Vec<ConfigColumn>,
+    pub style: ConfigStyle,
+    pub search: ConfigSearch,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub enum ConfigColor {
+    BrightRed,
+    BrightGreen,
+    BrightYellow,
+    BrightBlue,
+    BrightMagenta,
+    BrightCyan,
+    BrightWhite,
+    Red,
+    Green,
+    Yellow,
+    Blue,
+    Magenta,
+    Cyan,
+    White,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub enum ConfigColumnKind {
+    Command,
+    CpuTime,
+    Pid,
+    ReadBytes,
+    Separator,
+    StartTime,
+    State,
+    TcpPort,
+    Tty,
+    UdpPort,
+    UsageCpu,
+    UsageMem,
+    Username,
+    VmRss,
+    VmSize,
+    WriteBytes,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub enum ConfigColumnStyle {
+    BrightRed,
+    BrightGreen,
+    BrightYellow,
+    BrightBlue,
+    BrightMagenta,
+    BrightCyan,
+    BrightWhite,
+    Red,
+    Green,
+    Yellow,
+    Blue,
+    Magenta,
+    Cyan,
+    White,
+    ByPercentage,
+    ByState,
+    ByUnit,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ConfigColumn {
+    pub kind: ConfigColumnKind,
+    pub style: ConfigColumnStyle,
+    pub numeric_search: bool,
+    pub nonnumeric_search: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ConfigStyle {
+    pub header: ConfigColor,
+    pub unit: ConfigColor,
+    pub by_percentage: ConfigStyleByPercentage,
+    pub by_state: ConfigStyleByState,
+    pub by_unit: ConfigStyleByUnit,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ConfigStyleByPercentage {
+    pub color_000: ConfigColor,
+    pub color_025: ConfigColor,
+    pub color_050: ConfigColor,
+    pub color_075: ConfigColor,
+    pub color_100: ConfigColor,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ConfigStyleByUnit {
+    pub color_k: ConfigColor,
+    pub color_m: ConfigColor,
+    pub color_g: ConfigColor,
+    pub color_t: ConfigColor,
+    pub color_p: ConfigColor,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ConfigStyleByState {
+    pub color_d: ConfigColor,
+    pub color_r: ConfigColor,
+    pub color_s: ConfigColor,
+    pub color_t: ConfigColor,
+    pub color_z: ConfigColor,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ConfigSearch {
+    pub numeric_search: ConfigSearchKind,
+    pub nonnumeric_search: ConfigSearchKind,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub enum ConfigSearchKind {
+    Exact,
+    Partial,
+}
+
+static CONFIG_DEFAULT: &'static str = r#"
+[[columns]]
+kind = "Pid"
+style = "BrightYellow"
+numeric_search = true
+nonnumeric_search = false
+[[columns]]
+kind = "Username"
+style = "BrightGreen"
+numeric_search = false
+nonnumeric_search = true
+[[columns]]
+kind = "Separator"
+style = "White"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "State"
+style = "ByState"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "Tty"
+style = "BrightWhite"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "UsageCpu"
+style = "ByPercentage"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "UsageMem"
+style = "ByPercentage"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "VmSize"
+style = "ByUnit"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "VmRss"
+style = "ByUnit"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "TcpPort"
+style = "BrightCyan"
+numeric_search = true
+nonnumeric_search = false
+[[columns]]
+kind = "UdpPort"
+style = "BrightCyan"
+numeric_search = true
+nonnumeric_search = false
+[[columns]]
+kind = "ReadBytes"
+style = "ByUnit"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "WriteBytes"
+style = "ByUnit"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "Separator"
+style = "White"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "CpuTime"
+style = "BrightCyan"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "StartTime"
+style = "BrightMagenta"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "Separator"
+style = "White"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "Command"
+style = "BrightWhite"
+numeric_search = false
+nonnumeric_search = true
+
+[style]
+header = "BrightWhite"
+unit = "BrightWhite"
+
+[style.by_percentage]
+color_000 = "BrightBlue"
+color_025 = "BrightGreen"
+color_050 = "BrightYellow"
+color_075 = "BrightRed"
+color_100 = "BrightRed"
+
+[style.by_unit]
+color_k = "BrightBlue"
+color_m = "BrightGreen"
+color_g = "BrightYellow"
+color_t = "BrightRed"
+color_p = "BrightRed"
+
+[style.by_state]
+color_d = "BrightRed"
+color_r = "BrightGreen"
+color_s = "BrightBlue"
+color_t = "BrightCyan"
+color_z = "BrightMagenta"
+
+[search]
+numeric_search = "Exact"
+nonnumeric_search = "Partial"
+"#;
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Column
+// ---------------------------------------------------------------------------------------------------------------------
+
+struct ColumnInfo {
+    column: Box<dyn Column>,
+    style: ConfigColumnStyle,
+    nonnumeric_search: bool,
+    numeric_search: bool,
+}
+
+fn gen_column(kind: ConfigColumnKind, mask: bool) -> Box<dyn Column> {
+    match kind {
+        ConfigColumnKind::Command => Box::new(Command::new(mask)),
+        ConfigColumnKind::CpuTime => Box::new(CpuTime::new()),
+        ConfigColumnKind::Pid => Box::new(Pid::new()),
+        ConfigColumnKind::ReadBytes => Box::new(ReadBytes::new()),
+        ConfigColumnKind::Separator => Box::new(Separator::new()),
+        ConfigColumnKind::StartTime => Box::new(StartTime::new()),
+        ConfigColumnKind::State => Box::new(State::new()),
+        ConfigColumnKind::TcpPort => Box::new(TcpPort::new()),
+        ConfigColumnKind::Tty => Box::new(Tty::new()),
+        ConfigColumnKind::UdpPort => Box::new(UdpPort::new()),
+        ConfigColumnKind::UsageCpu => Box::new(UsageCpu::new()),
+        ConfigColumnKind::UsageMem => Box::new(UsageMem::new()),
+        ConfigColumnKind::Username => Box::new(Username::new(mask)),
+        ConfigColumnKind::VmRss => Box::new(VmRss::new()),
+        ConfigColumnKind::VmSize => Box::new(VmSize::new()),
+        ConfigColumnKind::WriteBytes => Box::new(WriteBytes::new()),
+    }
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -41,47 +327,97 @@ pub struct Opt {
 // ---------------------------------------------------------------------------------------------------------------------
 
 lazy_static! {
-    static ref red: Style = Style::new().red().bold();
-    static ref green: Style = Style::new().green().bold();
-    static ref yellow: Style = Style::new().yellow().bold();
-    static ref blue: Style = Style::new().blue().bold();
-    static ref magenta: Style = Style::new().magenta().bold();
-    static ref cyan: Style = Style::new().cyan().bold();
-    static ref white: Style = Style::new().white().bold();
+    static ref bright_red: Style = Style::new().red().bold();
+    static ref bright_green: Style = Style::new().green().bold();
+    static ref bright_yellow: Style = Style::new().yellow().bold();
+    static ref bright_blue: Style = Style::new().blue().bold();
+    static ref bright_magenta: Style = Style::new().magenta().bold();
+    static ref bright_cyan: Style = Style::new().cyan().bold();
+    static ref bright_white: Style = Style::new().white().bold();
+    static ref red: Style = Style::new().red();
+    static ref green: Style = Style::new().green();
+    static ref yellow: Style = Style::new().yellow();
+    static ref blue: Style = Style::new().blue();
+    static ref magenta: Style = Style::new().magenta();
+    static ref cyan: Style = Style::new().cyan();
+    static ref white: Style = Style::new().white();
 }
 
-fn style_by_state(x: String) -> StyledObject<String> {
+fn apply_style_by_state(x: String, s: &ConfigStyle) -> StyledObject<String> {
     match x {
-        ref x if x.starts_with('D') => red.apply_to(x.to_string()),
-        ref x if x.starts_with('R') => green.apply_to(x.to_string()),
-        ref x if x.starts_with('S') => blue.apply_to(x.to_string()),
-        ref x if x.starts_with('T') => cyan.apply_to(x.to_string()),
-        ref x if x.starts_with('Z') => magenta.apply_to(x.to_string()),
-        _ => white.apply_to(x),
+        ref x if x.starts_with('D') => apply_color(x.to_string(), &s.by_state.color_d),
+        ref x if x.starts_with('R') => apply_color(x.to_string(), &s.by_state.color_r),
+        ref x if x.starts_with('S') => apply_color(x.to_string(), &s.by_state.color_s),
+        ref x if x.starts_with('T') => apply_color(x.to_string(), &s.by_state.color_t),
+        ref x if x.starts_with('Z') => apply_color(x.to_string(), &s.by_state.color_z),
+        _ => bright_white.apply_to(x),
     }
 }
 
-fn style_by_unit(x: String) -> StyledObject<String> {
+fn apply_style_by_unit(x: String, s: &ConfigStyle) -> StyledObject<String> {
     match x {
-        ref x if x.contains('K') => blue.apply_to(x.to_string()),
-        ref x if x.contains('M') => green.apply_to(x.to_string()),
-        ref x if x.contains('G') => yellow.apply_to(x.to_string()),
-        ref x if x.contains('T') => red.apply_to(x.to_string()),
-        ref x if x.contains('P') => red.apply_to(x.to_string()),
-        _ => blue.apply_to(x),
+        ref x if x.contains('K') => apply_color(x.to_string(), &s.by_unit.color_k),
+        ref x if x.contains('M') => apply_color(x.to_string(), &s.by_unit.color_m),
+        ref x if x.contains('G') => apply_color(x.to_string(), &s.by_unit.color_g),
+        ref x if x.contains('T') => apply_color(x.to_string(), &s.by_unit.color_t),
+        ref x if x.contains('P') => apply_color(x.to_string(), &s.by_unit.color_p),
+        _ => bright_blue.apply_to(x),
     }
 }
 
-fn style_by_percentage(x: String) -> StyledObject<String> {
+fn apply_style_by_percentage(x: String, s: &ConfigStyle) -> StyledObject<String> {
     let value: f64 = x.parse().unwrap_or(0.0);
-    if value > 75.0 {
-        red.apply_to(x)
+    if value > 100.0 {
+        apply_color(x, &s.by_percentage.color_100)
+    } else if value > 75.0 {
+        apply_color(x, &s.by_percentage.color_075)
     } else if value > 50.0 {
-        yellow.apply_to(x)
+        apply_color(x, &s.by_percentage.color_050)
     } else if value > 25.0 {
-        green.apply_to(x)
+        apply_color(x, &s.by_percentage.color_025)
     } else {
-        blue.apply_to(x)
+        apply_color(x, &s.by_percentage.color_000)
+    }
+}
+
+fn apply_color(x: String, c: &ConfigColor) -> StyledObject<String> {
+    match c {
+        ConfigColor::BrightRed => bright_red.apply_to(x),
+        ConfigColor::BrightGreen => bright_green.apply_to(x),
+        ConfigColor::BrightYellow => bright_yellow.apply_to(x),
+        ConfigColor::BrightBlue => bright_blue.apply_to(x),
+        ConfigColor::BrightMagenta => bright_magenta.apply_to(x),
+        ConfigColor::BrightCyan => bright_cyan.apply_to(x),
+        ConfigColor::BrightWhite => bright_white.apply_to(x),
+        ConfigColor::Red => red.apply_to(x),
+        ConfigColor::Green => green.apply_to(x),
+        ConfigColor::Yellow => yellow.apply_to(x),
+        ConfigColor::Blue => blue.apply_to(x),
+        ConfigColor::Magenta => magenta.apply_to(x),
+        ConfigColor::Cyan => cyan.apply_to(x),
+        ConfigColor::White => white.apply_to(x),
+    }
+}
+
+fn apply_style(x: String, cs: &ConfigColumnStyle, s: &ConfigStyle) -> StyledObject<String> {
+    match cs {
+        ConfigColumnStyle::BrightRed => apply_color(x, &ConfigColor::BrightRed),
+        ConfigColumnStyle::BrightGreen => apply_color(x, &ConfigColor::BrightGreen),
+        ConfigColumnStyle::BrightYellow => apply_color(x, &ConfigColor::BrightYellow),
+        ConfigColumnStyle::BrightBlue => apply_color(x, &ConfigColor::BrightBlue),
+        ConfigColumnStyle::BrightMagenta => apply_color(x, &ConfigColor::BrightMagenta),
+        ConfigColumnStyle::BrightCyan => apply_color(x, &ConfigColor::BrightCyan),
+        ConfigColumnStyle::BrightWhite => apply_color(x, &ConfigColor::BrightWhite),
+        ConfigColumnStyle::Red => apply_color(x, &ConfigColor::Red),
+        ConfigColumnStyle::Green => apply_color(x, &ConfigColor::Green),
+        ConfigColumnStyle::Yellow => apply_color(x, &ConfigColor::Yellow),
+        ConfigColumnStyle::Blue => apply_color(x, &ConfigColor::Blue),
+        ConfigColumnStyle::Magenta => apply_color(x, &ConfigColor::Magenta),
+        ConfigColumnStyle::Cyan => apply_color(x, &ConfigColor::Cyan),
+        ConfigColumnStyle::White => apply_color(x, &ConfigColor::White),
+        ConfigColumnStyle::ByPercentage => apply_style_by_percentage(x, s),
+        ConfigColumnStyle::ByState => apply_style_by_state(x, s),
+        ConfigColumnStyle::ByUnit => apply_style_by_unit(x, s),
     }
 }
 
@@ -90,25 +426,38 @@ fn style_by_percentage(x: String) -> StyledObject<String> {
 // ---------------------------------------------------------------------------------------------------------------------
 
 fn main() {
+    match run() {
+        Err(x) => {
+            println!("{}", x);
+        }
+        _ => (),
+    }
+}
+
+fn run() -> Result<(), Error> {
     let opt = Opt::from_args();
+
+    let config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
+
+    if opt.config {
+        let toml = toml::to_string(&config)?;
+        println!("{}", toml);
+        return Ok(());
+    }
+
+    let mut cols = Vec::new();
+
+    for c in config.columns {
+        cols.push(ColumnInfo {
+            column: gen_column(c.kind, opt.mask),
+            style: c.style,
+            nonnumeric_search: c.nonnumeric_search,
+            numeric_search: c.numeric_search,
+        });
+    }
 
     let term = Term::stdout();
     let (_term_h, term_w) = term.size();
-
-    let mut col_command = Command::new(opt.mask);
-    let mut col_pid = Pid::new();
-    let mut col_readbytes = ReadBytes::new();
-    let mut col_starttime = StartTime::new();
-    let mut col_state = State::new();
-    let mut col_tcpport = TcpPort::new();
-    let mut col_tty = Tty::new();
-    let mut col_udpport = UdpPort::new();
-    let mut col_usagecpu = UsageCPU::new();
-    let mut col_usagemem = UsageMem::new();
-    let mut col_username = Username::new(opt.mask);
-    let mut col_vmrss = VmRSS::new();
-    let mut col_vmsize = VmSize::new();
-    let mut col_writebytes = WriteBytes::new();
 
     let mut base_procs = Vec::new();
 
@@ -131,109 +480,88 @@ fn main() {
         let curr_time = Instant::now();
         let interval = curr_time - prev_time;
 
-        let _ = col_command.add(&curr_proc, &prev_proc, &curr_io, &prev_io, &interval);
-        let _ = col_pid.add(&curr_proc, &prev_proc, &curr_io, &prev_io, &interval);
-        let _ = col_readbytes.add(&curr_proc, &prev_proc, &curr_io, &prev_io, &interval);
-        let _ = col_starttime.add(&curr_proc, &prev_proc, &curr_io, &prev_io, &interval);
-        let _ = col_state.add(&curr_proc, &prev_proc, &curr_io, &prev_io, &interval);
-        let _ = col_tcpport.add(&curr_proc, &prev_proc, &curr_io, &prev_io, &interval);
-        let _ = col_tty.add(&curr_proc, &prev_proc, &curr_io, &prev_io, &interval);
-        let _ = col_udpport.add(&curr_proc, &prev_proc, &curr_io, &prev_io, &interval);
-        let _ = col_usagecpu.add(&curr_proc, &prev_proc, &curr_io, &prev_io, &interval);
-        let _ = col_usagemem.add(&curr_proc, &prev_proc, &curr_io, &prev_io, &interval);
-        let _ = col_username.add(&curr_proc, &prev_proc, &curr_io, &prev_io, &interval);
-        let _ = col_vmrss.add(&curr_proc, &prev_proc, &curr_io, &prev_io, &interval);
-        let _ = col_vmsize.add(&curr_proc, &prev_proc, &curr_io, &prev_io, &interval);
-        let _ = col_writebytes.add(&curr_proc, &prev_proc, &curr_io, &prev_io, &interval);
+        for c in &mut cols {
+            c.column
+                .add(&curr_proc, &prev_proc, &curr_io, &prev_io, &interval);
+        }
+
         pids.push(pid);
     }
 
-    let row = format!(
-        "{} {} {} {} {} {} {} {} {} {} {} {} {} {}",
-        white.apply_to(col_pid.display_header()),
-        white.apply_to(col_username.display_header()),
-        white.apply_to(col_usagecpu.display_header()),
-        white.apply_to(col_usagemem.display_header()),
-        white.apply_to(col_vmsize.display_header()),
-        white.apply_to(col_vmrss.display_header()),
-        white.apply_to(col_tty.display_header()),
-        white.apply_to(col_state.display_header()),
-        white.apply_to(col_starttime.display_header()),
-        white.apply_to(col_tcpport.display_header()),
-        white.apply_to(col_udpport.display_header()),
-        white.apply_to(col_readbytes.display_header()),
-        white.apply_to(col_writebytes.display_header()),
-        white.apply_to(col_command.display_header()),
-    );
-    let row = console::truncate_str(&row, term_w as usize, "");
-    println!("{}", row);
+    let mut row = String::from("");
+    for c in &cols {
+        row = format!(
+            "{} {}",
+            row,
+            apply_color(c.column.display_header(), &config.style.header)
+        );
+    }
+    println!("{}", console::truncate_str(&row, term_w as usize, ""));
 
-    let row = format!(
-        "{} {} {} {} {} {} {} {} {} {} {} {} {} {}",
-        white.apply_to(col_pid.display_unit()),
-        white.apply_to(col_username.display_unit()),
-        white.apply_to(col_usagecpu.display_unit()),
-        white.apply_to(col_usagemem.display_unit()),
-        white.apply_to(col_vmsize.display_unit()),
-        white.apply_to(col_vmrss.display_unit()),
-        white.apply_to(col_tty.display_unit()),
-        white.apply_to(col_state.display_unit()),
-        white.apply_to(col_starttime.display_unit()),
-        white.apply_to(col_tcpport.display_unit()),
-        white.apply_to(col_udpport.display_unit()),
-        white.apply_to(col_readbytes.display_unit()),
-        white.apply_to(col_writebytes.display_unit()),
-        white.apply_to(col_command.display_unit()),
-    );
-    let row = console::truncate_str(&row, term_w as usize, "");
-    println!("{}", row);
+    let mut row = String::from("");
+    for c in &cols {
+        row = format!(
+            "{} {}",
+            row,
+            apply_color(c.column.display_unit(), &config.style.unit)
+        );
+    }
+    println!("{}", console::truncate_str(&row, term_w as usize, ""));
 
-    let list_find = vec![&col_username as &Column, &col_command as &Column];
+    let mut cols_nonnumeric = Vec::new();
+    let mut cols_numeric = Vec::new();
+    for c in &cols {
+        if c.nonnumeric_search {
+            cols_nonnumeric.push(&c.column);
+        }
+        if c.numeric_search {
+            cols_numeric.push(&c.column);
+        }
+    }
 
-    let list_find_exact = vec![
-        &col_pid as &Column,
-        &col_tcpport as &Column,
-        &col_udpport as &Column,
-    ];
-
-    let mut keyword_integer = Vec::new();
-    let mut keyword_other = Vec::new();
+    let mut keyword_nonnumeric = Vec::new();
+    let mut keyword_numeric = Vec::new();
 
     for k in &opt.keyword {
         match Util::classify(k) {
-            KeywordClass::Integer => keyword_integer.push(k),
-            KeywordClass::Other => keyword_other.push(k),
+            KeywordClass::Numeric => keyword_numeric.push(k),
+            KeywordClass::NonNumeric => keyword_nonnumeric.push(k),
         }
     }
 
     for pid in pids {
         let mut visible = true;
         if !opt.keyword.is_empty() {
-            visible = Util::find(list_find.as_slice(), pid, &keyword_other);
-            visible |= Util::find_exact(list_find_exact.as_slice(), pid, &keyword_integer);
+            visible = match config.search.nonnumeric_search {
+                ConfigSearchKind::Partial => {
+                    Util::find_partial(cols_nonnumeric.as_slice(), pid, &keyword_nonnumeric)
+                }
+                ConfigSearchKind::Exact => {
+                    Util::find_exact(cols_nonnumeric.as_slice(), pid, &keyword_nonnumeric)
+                }
+            };
+            visible |= match config.search.numeric_search {
+                ConfigSearchKind::Partial => {
+                    Util::find_partial(cols_numeric.as_slice(), pid, &keyword_numeric)
+                }
+                ConfigSearchKind::Exact => {
+                    Util::find_exact(cols_numeric.as_slice(), pid, &keyword_numeric)
+                }
+            };
         }
 
         if visible {
-            let row = format!(
-                "{} {} {} {} {} {} {} {} {} {} {} {} {} {}",
-                yellow.apply_to(col_pid.display(pid).unwrap()),
-                green.apply_to(col_username.display(pid).unwrap()),
-                style_by_percentage(col_usagecpu.display(pid).unwrap()),
-                style_by_percentage(col_usagemem.display(pid).unwrap()),
-                style_by_unit(col_vmsize.display(pid).unwrap()),
-                style_by_unit(col_vmrss.display(pid).unwrap()),
-                white.apply_to(col_tty.display(pid).unwrap()),
-                style_by_state(col_state.display(pid).unwrap()),
-                magenta.apply_to(col_starttime.display(pid).unwrap()),
-                cyan.apply_to(col_tcpport.display(pid).unwrap()),
-                cyan.apply_to(col_udpport.display(pid).unwrap()),
-                style_by_unit(col_readbytes.display(pid).unwrap()),
-                style_by_unit(col_writebytes.display(pid).unwrap()),
-                white.apply_to(col_command.display(pid).unwrap()),
-                //stat.utime,
-            );
-            let row = console::truncate_str(&row, term_w as usize, "");
-            println!("{}", row);
+            let mut row = String::from("");
+            for c in &cols {
+                row = format!(
+                    "{} {}",
+                    row,
+                    apply_style(c.column.display(pid).unwrap(), &c.style, &config.style)
+                );
+            }
+            println!("{}", console::truncate_str(&row, term_w as usize, ""));
         }
     }
+
+    Ok(())
 }
