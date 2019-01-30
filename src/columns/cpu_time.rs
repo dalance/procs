@@ -1,4 +1,4 @@
-use crate::{column_default, Column, Util};
+use crate::{column_default, util, Column};
 use procfs::{Io, ProcResult, Process};
 use std::cmp;
 use std::collections::HashMap;
@@ -36,7 +36,7 @@ impl Column for CpuTime {
         let time_sec = (curr_proc.stat.utime + curr_proc.stat.stime)
             / procfs::ticks_per_second().unwrap_or(100) as u64;
 
-        let content = format!("{}", Util::parse_time(time_sec));
+        let content = format!("{}", util::parse_time(time_sec));
 
         self.max_width = cmp::max(content.len(), self.max_width);
 

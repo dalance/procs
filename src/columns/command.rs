@@ -1,4 +1,4 @@
-use crate::{column_default, Column, Util};
+use crate::{column_default, util, Column};
 use procfs::{Io, ProcResult, Process};
 use std::cmp;
 use std::collections::HashMap;
@@ -68,7 +68,7 @@ impl Column for Command {
                 " ".repeat(self.max_width() - content.len())
             );
             if self.mask {
-                ret = Util::mask(&ret);
+                ret = util::mask(&ret);
             }
             Some(ret)
         } else {

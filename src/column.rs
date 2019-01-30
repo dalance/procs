@@ -1,4 +1,4 @@
-use crate::Util;
+use crate::util;
 use procfs::{Io, ProcResult, Process};
 use std::collections::HashMap;
 use std::time::Duration;
@@ -22,16 +22,16 @@ pub trait Column {
     fn max_width(&self) -> usize;
 
     fn display_header(&self) -> String {
-        Util::expand(self.header(), self.max_width())
+        util::expand(self.header(), self.max_width())
     }
 
     fn display_unit(&self) -> String {
-        Util::expand(self.unit(), self.max_width())
+        util::expand(self.unit(), self.max_width())
     }
 
     fn display(&self, pid: i32) -> Option<String> {
         if let Some(content) = self.contents().get(&pid) {
-            Some(Util::expand(content, self.max_width()))
+            Some(util::expand(content, self.max_width()))
         } else {
             None
         }

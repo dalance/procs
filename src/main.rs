@@ -14,7 +14,7 @@ use std::io::Read;
 use std::thread;
 use std::time::{Duration, Instant};
 use structopt::{clap, StructOpt};
-use util::{KeywordClass, Util};
+use util::KeywordClass;
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Opt
@@ -48,14 +48,14 @@ pub struct Opt {
 // Config
 // ---------------------------------------------------------------------------------------------------------------------
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Config {
     pub columns: Vec<ConfigColumn>,
     pub style: ConfigStyle,
     pub search: ConfigSearch,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ConfigColor {
     BrightRed,
     BrightGreen,
@@ -73,7 +73,7 @@ pub enum ConfigColor {
     White,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ConfigColumnKind {
     Command,
     CpuTime,
@@ -93,7 +93,7 @@ pub enum ConfigColumnKind {
     WriteBytes,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ConfigColumnStyle {
     BrightRed,
     BrightGreen,
@@ -114,7 +114,7 @@ pub enum ConfigColumnStyle {
     ByUnit,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ConfigColumn {
     pub kind: ConfigColumnKind,
     pub style: ConfigColumnStyle,
@@ -122,7 +122,7 @@ pub struct ConfigColumn {
     pub nonnumeric_search: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ConfigStyle {
     pub header: ConfigColor,
     pub unit: ConfigColor,
@@ -131,7 +131,7 @@ pub struct ConfigStyle {
     pub by_unit: ConfigStyleByUnit,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ConfigStyleByPercentage {
     pub color_000: ConfigColor,
     pub color_025: ConfigColor,
@@ -140,7 +140,7 @@ pub struct ConfigStyleByPercentage {
     pub color_100: ConfigColor,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ConfigStyleByUnit {
     pub color_k: ConfigColor,
     pub color_m: ConfigColor,
@@ -149,7 +149,7 @@ pub struct ConfigStyleByUnit {
     pub color_p: ConfigColor,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ConfigStyleByState {
     pub color_d: ConfigColor,
     pub color_r: ConfigColor,
@@ -158,13 +158,13 @@ pub struct ConfigStyleByState {
     pub color_z: ConfigColor,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ConfigSearch {
     pub numeric_search: ConfigSearchKind,
     pub nonnumeric_search: ConfigSearchKind,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ConfigSearchKind {
     Exact,
     Partial,
@@ -430,22 +430,13 @@ fn apply_style(x: String, cs: &ConfigColumnStyle, s: &ConfigStyle) -> StyledObje
 fn main() {
     match run() {
         Err(x) => {
-            println!("{}", x);
+            eprintln!("{}", x);
         }
         _ => (),
     }
 }
 
-fn run() -> Result<(), Error> {
-    let opt = Opt::from_args();
-
-    if opt.config {
-        let config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
-        let toml = toml::to_string(&config)?;
-        println!("{}", toml);
-        return Ok(());
-    }
-
+fn get_config() -> Result<Config, Error> {
     let cfg_path = match dirs::home_dir() {
         Some(mut path) => {
             path.push(".procs.toml");
@@ -467,20 +458,10 @@ fn run() -> Result<(), Error> {
         toml::from_str(CONFIG_DEFAULT).unwrap()
     };
 
-    let mut cols = Vec::new();
+    Ok(config)
+}
 
-    for c in config.columns {
-        cols.push(ColumnInfo {
-            column: gen_column(c.kind, opt.mask),
-            style: c.style,
-            nonnumeric_search: c.nonnumeric_search,
-            numeric_search: c.numeric_search,
-        });
-    }
-
-    let term = Term::stdout();
-    let (_term_h, term_w) = term.size();
-
+fn collect_proc(cols: &mut Vec<ColumnInfo>, opt: &Opt) -> Vec<i32> {
     let mut base_procs = Vec::new();
 
     for proc in procfs::all_processes() {
@@ -502,7 +483,7 @@ fn run() -> Result<(), Error> {
         let curr_time = Instant::now();
         let interval = curr_time - prev_time;
 
-        for c in &mut cols {
+        for c in cols.iter_mut() {
             c.column
                 .add(&curr_proc, &prev_proc, &curr_io, &prev_io, &interval);
         }
@@ -510,25 +491,83 @@ fn run() -> Result<(), Error> {
         pids.push(pid);
     }
 
+    pids
+}
+
+fn display_header(max_width: usize, cols: &Vec<ColumnInfo>, config: &Config) -> () {
     let mut row = String::from("");
-    for c in &cols {
+    for c in cols.iter() {
         row = format!(
             "{} {}",
             row,
             apply_color(c.column.display_header(), &config.style.header)
         );
     }
-    println!("{}", console::truncate_str(&row, term_w as usize, ""));
+    row = row.trim_end().to_string();
+    row = console::truncate_str(&row, max_width, "").to_string();
+    println!("{}", row);
+}
 
+fn display_unit(max_width: usize, cols: &Vec<ColumnInfo>, config: &Config) -> () {
     let mut row = String::from("");
-    for c in &cols {
+    for c in cols.iter() {
         row = format!(
             "{} {}",
             row,
             apply_color(c.column.display_unit(), &config.style.unit)
         );
     }
-    println!("{}", console::truncate_str(&row, term_w as usize, ""));
+    row = row.trim_end().to_string();
+    row = console::truncate_str(&row, max_width, "").to_string();
+    println!("{}", row);
+}
+
+fn display_item(pid: i32, max_width: usize, cols: &Vec<ColumnInfo>, config: &Config) -> () {
+    let mut row = String::from("");
+    for c in cols.iter() {
+        row = format!(
+            "{} {}",
+            row,
+            apply_style(c.column.display(pid).unwrap(), &c.style, &config.style)
+        );
+    }
+    row = row.trim_end().to_string();
+    row = console::truncate_str(&row, max_width, "").to_string();
+    println!("{}", row);
+}
+
+fn run() -> Result<(), Error> {
+    let opt = Opt::from_args();
+
+    if opt.config {
+        let config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
+        let toml = toml::to_string(&config)?;
+        println!("{}", toml);
+        return Ok(());
+    }
+
+    let config = get_config()?;
+
+    let mut cols = Vec::new();
+    for c in &config.columns {
+        cols.push(ColumnInfo {
+            column: gen_column(c.kind.clone(), opt.mask),
+            style: c.style.clone(),
+            nonnumeric_search: c.nonnumeric_search,
+            numeric_search: c.numeric_search,
+        });
+    }
+
+    let term = Term::stdout();
+    let (_term_h, mut term_w) = term.size();
+    if !console::user_attended() {
+        term_w = std::u16::MAX;
+    }
+
+    let pids = collect_proc(&mut cols, &opt);
+
+    display_header(term_w as usize, &cols, &config);
+    display_unit(term_w as usize, &cols, &config);
 
     let mut cols_nonnumeric = Vec::new();
     let mut cols_numeric = Vec::new();
@@ -545,7 +584,7 @@ fn run() -> Result<(), Error> {
     let mut keyword_numeric = Vec::new();
 
     for k in &opt.keyword {
-        match Util::classify(k) {
+        match util::classify(k) {
             KeywordClass::Numeric => keyword_numeric.push(k),
             KeywordClass::NonNumeric => keyword_nonnumeric.push(k),
         }
@@ -556,32 +595,24 @@ fn run() -> Result<(), Error> {
         if !opt.keyword.is_empty() {
             visible = match config.search.nonnumeric_search {
                 ConfigSearchKind::Partial => {
-                    Util::find_partial(cols_nonnumeric.as_slice(), pid, &keyword_nonnumeric)
+                    util::find_partial(cols_nonnumeric.as_slice(), pid, &keyword_nonnumeric)
                 }
                 ConfigSearchKind::Exact => {
-                    Util::find_exact(cols_nonnumeric.as_slice(), pid, &keyword_nonnumeric)
+                    util::find_exact(cols_nonnumeric.as_slice(), pid, &keyword_nonnumeric)
                 }
             };
             visible |= match config.search.numeric_search {
                 ConfigSearchKind::Partial => {
-                    Util::find_partial(cols_numeric.as_slice(), pid, &keyword_numeric)
+                    util::find_partial(cols_numeric.as_slice(), pid, &keyword_numeric)
                 }
                 ConfigSearchKind::Exact => {
-                    Util::find_exact(cols_numeric.as_slice(), pid, &keyword_numeric)
+                    util::find_exact(cols_numeric.as_slice(), pid, &keyword_numeric)
                 }
             };
         }
 
         if visible {
-            let mut row = String::from("");
-            for c in &cols {
-                row = format!(
-                    "{} {}",
-                    row,
-                    apply_style(c.column.display(pid).unwrap(), &c.style, &config.style)
-                );
-            }
-            println!("{}", console::truncate_str(&row, term_w as usize, ""));
+            display_item(pid, term_w as usize, &cols, &config);
         }
     }
 
