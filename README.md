@@ -93,6 +93,7 @@ color_r = "BrightGreen"
 color_s = "BrightBlue"
 color_t = "BrightCyan"
 color_z = "BrightMagenta"
+color_x = "BrightWhite"
 
 [style.by_unit]
 color_k = "BrightBlue"
@@ -100,6 +101,7 @@ color_m = "BrightGreen"
 color_g = "BrightYellow"
 color_t = "BrightRed"
 color_p = "BrightRed"
+color_x = "BrightBlue"
 
 [search]
 numeric_search = "Exact"

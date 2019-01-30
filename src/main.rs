@@ -143,6 +143,7 @@ pub struct ConfigStyleByUnit {
     pub color_g: ConfigColor,
     pub color_t: ConfigColor,
     pub color_p: ConfigColor,
+    pub color_x: ConfigColor,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -152,6 +153,7 @@ pub struct ConfigStyleByState {
     pub color_s: ConfigColor,
     pub color_t: ConfigColor,
     pub color_z: ConfigColor,
+    pub color_x: ConfigColor,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -269,19 +271,21 @@ color_050 = "BrightYellow"
 color_075 = "BrightRed"
 color_100 = "BrightRed"
 
-[style.by_unit]
-color_k = "BrightBlue"
-color_m = "BrightGreen"
-color_g = "BrightYellow"
-color_t = "BrightRed"
-color_p = "BrightRed"
-
 [style.by_state]
 color_d = "BrightRed"
 color_r = "BrightGreen"
 color_s = "BrightBlue"
 color_t = "BrightCyan"
 color_z = "BrightMagenta"
+color_x = "BrightWhite"
+
+[style.by_unit]
+color_k = "BrightBlue"
+color_m = "BrightGreen"
+color_g = "BrightYellow"
+color_t = "BrightRed"
+color_p = "BrightRed"
+color_x = "BrightBlue"
 
 [search]
 numeric_search = "Exact"
@@ -348,7 +352,7 @@ fn apply_style_by_state(x: String, s: &ConfigStyle) -> StyledObject<String> {
         ref x if x.starts_with('S') => apply_color(x.to_string(), &s.by_state.color_s),
         ref x if x.starts_with('T') => apply_color(x.to_string(), &s.by_state.color_t),
         ref x if x.starts_with('Z') => apply_color(x.to_string(), &s.by_state.color_z),
-        _ => bright_white.apply_to(x),
+        _ => apply_color(x.to_string(), &s.by_state.color_x),
     }
 }
 
@@ -359,7 +363,7 @@ fn apply_style_by_unit(x: String, s: &ConfigStyle) -> StyledObject<String> {
         ref x if x.contains('G') => apply_color(x.to_string(), &s.by_unit.color_g),
         ref x if x.contains('T') => apply_color(x.to_string(), &s.by_unit.color_t),
         ref x if x.contains('P') => apply_color(x.to_string(), &s.by_unit.color_p),
-        _ => bright_blue.apply_to(x),
+        _ => apply_color(x.to_string(), &s.by_unit.color_x),
     }
 }
 
