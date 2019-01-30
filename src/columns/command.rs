@@ -1,4 +1,4 @@
-use crate::{column_default, util, Column};
+use crate::{column_default, Column};
 use procfs::{Io, ProcResult, Process};
 use std::cmp;
 use std::collections::HashMap;
@@ -9,11 +9,10 @@ pub struct Command {
     unit: String,
     contents: HashMap<i32, String>,
     max_width: usize,
-    mask: bool,
 }
 
 impl Command {
-    pub fn new(mask: bool) -> Self {
+    pub fn new() -> Self {
         let header = String::from("Command");
         let unit = String::from("");
         Command {
@@ -21,7 +20,6 @@ impl Command {
             max_width: cmp::max(header.len(), unit.len()),
             header: header,
             unit: unit,
-            mask: mask,
         }
     }
 }
@@ -58,22 +56,6 @@ impl Column for Command {
         self.max_width = cmp::max(content.len(), self.max_width);
 
         self.contents.insert(curr_proc.pid(), String::from(content));
-    }
-
-    fn display(&self, pid: i32) -> Option<String> {
-        if let Some(content) = self.contents().get(&pid) {
-            let mut ret = format!(
-                "{}{}",
-                content,
-                " ".repeat(self.max_width() - content.len())
-            );
-            if self.mask {
-                ret = util::mask(&ret);
-            }
-            Some(ret)
-        } else {
-            None
-        }
     }
 
     column_default!();

@@ -35,18 +35,6 @@ pub fn classify(keyword: &str) -> KeywordClass {
     }
 }
 
-pub fn mask(x: &str) -> String {
-    let mut masked = String::from("");
-    for c in x.chars() {
-        if c != ' ' {
-            masked.push('*')
-        } else {
-            masked.push(' ')
-        }
-    }
-    masked
-}
-
 pub fn expand(x: &str, len: usize) -> String {
     let ret = format!("{}{}", x, " ".repeat(len - x.len()));
     ret

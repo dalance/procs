@@ -35,10 +35,6 @@ pub struct Opt {
     #[structopt(long = "interval", default_value = "100", value_name = "ms")]
     pub interval: u64,
 
-    /// Mask sensitive information
-    #[structopt(long = "mask")]
-    pub mask: bool,
-
     /// Generate configuration sample file
     #[structopt(long = "config")]
     pub config: bool,
@@ -303,9 +299,9 @@ struct ColumnInfo {
     numeric_search: bool,
 }
 
-fn gen_column(kind: ConfigColumnKind, mask: bool) -> Box<dyn Column> {
+fn gen_column(kind: ConfigColumnKind) -> Box<dyn Column> {
     match kind {
-        ConfigColumnKind::Command => Box::new(Command::new(mask)),
+        ConfigColumnKind::Command => Box::new(Command::new()),
         ConfigColumnKind::CpuTime => Box::new(CpuTime::new()),
         ConfigColumnKind::Pid => Box::new(Pid::new()),
         ConfigColumnKind::ReadBytes => Box::new(ReadBytes::new()),
@@ -317,7 +313,7 @@ fn gen_column(kind: ConfigColumnKind, mask: bool) -> Box<dyn Column> {
         ConfigColumnKind::UdpPort => Box::new(UdpPort::new()),
         ConfigColumnKind::UsageCpu => Box::new(UsageCpu::new()),
         ConfigColumnKind::UsageMem => Box::new(UsageMem::new()),
-        ConfigColumnKind::Username => Box::new(Username::new(mask)),
+        ConfigColumnKind::Username => Box::new(Username::new()),
         ConfigColumnKind::VmRss => Box::new(VmRss::new()),
         ConfigColumnKind::VmSize => Box::new(VmSize::new()),
         ConfigColumnKind::WriteBytes => Box::new(WriteBytes::new()),
@@ -551,7 +547,7 @@ fn run() -> Result<(), Error> {
     let mut cols = Vec::new();
     for c in &config.columns {
         cols.push(ColumnInfo {
-            column: gen_column(c.kind.clone(), opt.mask),
+            column: gen_column(c.kind.clone()),
             style: c.style.clone(),
             nonnumeric_search: c.nonnumeric_search,
             numeric_search: c.numeric_search,
