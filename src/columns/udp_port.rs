@@ -34,13 +34,12 @@ impl Column for UdpPort {
         _curr_io: &ProcResult<Io>,
         _prev_io: &ProcResult<Io>,
         _interval: &Duration,
-    ) -> () {
+    ) {
         let mut socks = Vec::new();
         if let Ok(fds) = curr_proc.fd() {
             for fd in fds {
-                match fd.target {
-                    FDTarget::Socket(x) => socks.push(x),
-                    _ => (),
+                if let FDTarget::Socket(x) = fd.target {
+                    socks.push(x)
                 }
             }
         }
@@ -55,13 +54,13 @@ impl Column for UdpPort {
 
         self.max_width = cmp::max(content.len(), self.max_width);
 
-        self.contents.insert(curr_proc.pid(), String::from(content));
+        self.contents.insert(curr_proc.pid(), content);
     }
 
     fn find_exact(&self, pid: i32, keyword: &str) -> bool {
         if let Some(content) = self.contents().get(&pid) {
             let content = content.replace("[", "").replace("]", "");
-            let content = content.split(",");
+            let content = content.split(',');
             for c in content {
                 if c == keyword {
                     return true;

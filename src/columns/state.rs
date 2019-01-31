@@ -32,12 +32,12 @@ impl Column for State {
         _curr_io: &ProcResult<Io>,
         _prev_io: &ProcResult<Io>,
         _interval: &Duration,
-    ) -> () {
+    ) {
         let content = format!("{}", curr_proc.stat.state);
 
         self.max_width = cmp::max(content.len(), self.max_width);
 
-        self.contents.insert(curr_proc.pid(), String::from(content));
+        self.contents.insert(curr_proc.pid(), content);
     }
 
     column_default!();

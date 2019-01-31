@@ -32,7 +32,7 @@ impl Column for Username {
         _curr_io: &ProcResult<Io>,
         _prev_io: &ProcResult<Io>,
         _interval: &Duration,
-    ) -> () {
+    ) {
         let user = users::get_user_by_uid(curr_proc.owner);
         let content = if let Some(user) = user {
             format!("{}", user.name().to_string_lossy())
@@ -42,7 +42,7 @@ impl Column for Username {
 
         self.max_width = cmp::max(content.len(), self.max_width);
 
-        self.contents.insert(curr_proc.pid(), String::from(content));
+        self.contents.insert(curr_proc.pid(), content);
     }
 
     column_default!();

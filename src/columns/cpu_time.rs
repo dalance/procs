@@ -32,15 +32,15 @@ impl Column for CpuTime {
         _curr_io: &ProcResult<Io>,
         _prev_io: &ProcResult<Io>,
         _interval: &Duration,
-    ) -> () {
+    ) {
         let time_sec = (curr_proc.stat.utime + curr_proc.stat.stime)
             / procfs::ticks_per_second().unwrap_or(100) as u64;
 
-        let content = format!("{}", util::parse_time(time_sec));
+        let content = util::parse_time(time_sec).to_string();
 
         self.max_width = cmp::max(content.len(), self.max_width);
 
-        self.contents.insert(curr_proc.pid(), String::from(content));
+        self.contents.insert(curr_proc.pid(), content);
     }
 
     column_default!();

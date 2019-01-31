@@ -32,13 +32,13 @@ impl Column for StartTime {
         _curr_io: &ProcResult<Io>,
         _prev_io: &ProcResult<Io>,
         _interval: &Duration,
-    ) -> () {
+    ) {
         let start_time = curr_proc.stat.starttime();
         let content = format!("{}", start_time.format("%Y/%m/%d %H:%M"));
 
         self.max_width = cmp::max(content.len(), self.max_width);
 
-        self.contents.insert(curr_proc.pid(), String::from(content));
+        self.contents.insert(curr_proc.pid(), content);
     }
 
     column_default!();
