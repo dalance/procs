@@ -124,22 +124,24 @@ The colors can be configured in `[style.by_unit]` section.
 
 ### `kind` list
 
-- Command
-- CpuTime
-- Pid
-- ReadBytes
-- Separator
-- StartTime
-- State
-- TcpPort
-- Tty
-- UdpPort
-- UsageCpu
-- UsageMem
-- Username
-- VmRss
-- VmSize
-- WriteBytes
+| procs `kind` | `ps` STANDARD FORMAT  |
+| ------------ | --------------------- |
+| Command      | args                  |
+| CpuTime      | cputime               |
+| Pid          | pid                   |
+| ReadBytes    | -not supported-       |
+| Separator    | -not supported-       |
+| StartTime    | start_time            |
+| State        | s                     |
+| TcpPort      | -not supported-       |
+| Tty          | tty                   |
+| UdpPort      | -not supported-       |
+| UsageCpu     | %cpu                  |
+| UsageMem     | %mem                  |
+| Username     | euser                 |
+| VmRss        | rss                   |
+| VmSize       | vsz                   |
+| WriteByte    | -not supported-       |
 
 ### `style` list
 
