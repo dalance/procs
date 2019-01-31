@@ -32,7 +32,7 @@ impl Column for Tty {
         _curr_io: &ProcResult<Io>,
         _prev_io: &ProcResult<Io>,
         _interval: &Duration,
-    ) -> () {
+    ) {
         let (major, minor) = curr_proc.stat.tty_nr();
         let content = if major == 136 {
             format!("pts/{}", minor)
@@ -42,7 +42,7 @@ impl Column for Tty {
 
         self.max_width = cmp::max(content.len(), self.max_width);
 
-        self.contents.insert(curr_proc.pid(), String::from(content));
+        self.contents.insert(curr_proc.pid(), content);
     }
 
     column_default!();

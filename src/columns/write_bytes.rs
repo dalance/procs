@@ -32,7 +32,7 @@ impl Column for WriteBytes {
         curr_io: &ProcResult<Io>,
         prev_io: &ProcResult<Io>,
         interval: &Duration,
-    ) -> () {
+    ) {
         let content = if curr_io.is_ok() && prev_io.is_ok() {
             let interval_ms = interval.as_secs() + interval.subsec_millis() as u64;
             let io = (curr_io.as_ref().unwrap().write_bytes
@@ -47,7 +47,7 @@ impl Column for WriteBytes {
 
         self.max_width = cmp::max(content.len(), self.max_width);
 
-        self.contents.insert(curr_proc.pid(), String::from(content));
+        self.contents.insert(curr_proc.pid(), content);
     }
 
     column_default!();

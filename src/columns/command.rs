@@ -32,9 +32,9 @@ impl Column for Command {
         _curr_io: &ProcResult<Io>,
         _prev_io: &ProcResult<Io>,
         _interval: &Duration,
-    ) -> () {
+    ) {
         let content = if let Ok(cmd) = &curr_proc.cmdline() {
-            if cmd.len() != 0 {
+            if !cmd.is_empty() {
                 let mut cmd = cmd
                     .iter()
                     .cloned()
@@ -55,7 +55,7 @@ impl Column for Command {
 
         self.max_width = cmp::max(content.len(), self.max_width);
 
-        self.contents.insert(curr_proc.pid(), String::from(content));
+        self.contents.insert(curr_proc.pid(), content);
     }
 
     column_default!();

@@ -180,11 +180,8 @@ fn apply_style(x: String, cs: &ConfigColumnStyle, s: &ConfigStyle) -> StyledObje
 // ---------------------------------------------------------------------------------------------------------------------
 
 fn main() {
-    match run() {
-        Err(x) => {
-            eprintln!("{}", x);
-        }
-        _ => (),
+    if let Err(x) = run() {
+        eprintln!("{}", x);
     }
 }
 
@@ -246,7 +243,7 @@ fn collect_proc(cols: &mut Vec<ColumnInfo>, opt: &Opt) -> Vec<i32> {
     pids
 }
 
-fn display_header(max_width: usize, cols: &Vec<ColumnInfo>, config: &Config) -> () {
+fn display_header(max_width: usize, cols: &[ColumnInfo], config: &Config) {
     let mut row = String::from("");
     for c in cols.iter() {
         row = format!(
@@ -260,7 +257,7 @@ fn display_header(max_width: usize, cols: &Vec<ColumnInfo>, config: &Config) -> 
     println!("{}", row);
 }
 
-fn display_unit(max_width: usize, cols: &Vec<ColumnInfo>, config: &Config) -> () {
+fn display_unit(max_width: usize, cols: &[ColumnInfo], config: &Config) {
     let mut row = String::from("");
     for c in cols.iter() {
         row = format!(
@@ -274,7 +271,7 @@ fn display_unit(max_width: usize, cols: &Vec<ColumnInfo>, config: &Config) -> ()
     println!("{}", row);
 }
 
-fn display_item(pid: i32, max_width: usize, cols: &Vec<ColumnInfo>, config: &Config) -> () {
+fn display_item(pid: i32, max_width: usize, cols: &[ColumnInfo], config: &Config) {
     let mut row = String::from("");
     for c in cols.iter() {
         row = format!(

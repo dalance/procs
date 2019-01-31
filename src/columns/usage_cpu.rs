@@ -32,7 +32,7 @@ impl Column for UsageCpu {
         _curr_io: &ProcResult<Io>,
         _prev_io: &ProcResult<Io>,
         interval: &Duration,
-    ) -> () {
+    ) {
         let curr_time = curr_proc.stat.utime + curr_proc.stat.stime;
         let prev_time = prev_proc.stat.utime + prev_proc.stat.stime;
         let usage_ms =
@@ -43,7 +43,7 @@ impl Column for UsageCpu {
 
         self.max_width = cmp::max(content.len(), self.max_width);
 
-        self.contents.insert(curr_proc.pid(), String::from(content));
+        self.contents.insert(curr_proc.pid(), content);
     }
 
     column_default!();
