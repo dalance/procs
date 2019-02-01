@@ -39,25 +39,29 @@ impl Column for UdpPort {
         _prev_io: &ProcResult<Io>,
         _interval: &Duration,
     ) {
-        let mut socks = Vec::new();
-        if let Ok(fds) = curr_proc.fd() {
+        let fmt_content = if let Ok(fds) = curr_proc.fd() {
+            let mut socks = Vec::new();
             for fd in fds {
                 if let FDTarget::Socket(x) = fd.target {
                     socks.push(x)
                 }
             }
-        }
-        let mut ports = Vec::new();
-        for sock in &socks {
-            let mut udp_iter = self.udp_entry.iter().chain(self.udp6_entry.iter());
-            let entry = udp_iter.find(|&x| x.inode == *sock);
-            if let Some(entry) = entry {
-                ports.push(entry.local_address.port());
+
+            let mut ports = Vec::new();
+            for sock in &socks {
+                let mut udp_iter = self.udp_entry.iter().chain(self.udp6_entry.iter());
+                let entry = udp_iter.find(|&x| x.inode == *sock);
+                if let Some(entry) = entry {
+                    ports.push(entry.local_address.port());
+                }
             }
-        }
-        ports.sort();
-        ports.dedup();
-        let fmt_content = format!("{:?}", ports);
+            ports.sort();
+            ports.dedup();
+
+            format!("{:?}", ports)
+        } else {
+            String::from("")
+        };
         let raw_content = fmt_content.clone();
 
         self.fmt_contents.insert(curr_proc.pid(), fmt_content);

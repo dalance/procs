@@ -39,27 +39,31 @@ impl Column for TcpPort {
         _prev_io: &ProcResult<Io>,
         _interval: &Duration,
     ) {
-        let mut socks = Vec::new();
-        if let Ok(fds) = curr_proc.fd() {
+        let fmt_content = if let Ok(fds) = curr_proc.fd() {
+            let mut socks = Vec::new();
             for fd in fds {
                 if let FDTarget::Socket(x) = fd.target {
                     socks.push(x)
                 }
             }
-        }
-        let mut ports = Vec::new();
-        for sock in &socks {
-            let mut tcp_iter = self.tcp_entry.iter().chain(self.tcp6_entry.iter());
-            let entry = tcp_iter.find(|&x| x.inode == *sock);
-            if let Some(entry) = entry {
-                if entry.state == TcpState::Listen {
-                    ports.push(entry.local_address.port());
+
+            let mut ports = Vec::new();
+            for sock in &socks {
+                let mut tcp_iter = self.tcp_entry.iter().chain(self.tcp6_entry.iter());
+                let entry = tcp_iter.find(|&x| x.inode == *sock);
+                if let Some(entry) = entry {
+                    if entry.state == TcpState::Listen {
+                        ports.push(entry.local_address.port());
+                    }
                 }
             }
-        }
-        ports.sort();
-        ports.dedup();
-        let fmt_content = format!("{:?}", ports);
+            ports.sort();
+            ports.dedup();
+
+            format!("{:?}", ports)
+        } else {
+            String::from("")
+        };
         let raw_content = fmt_content.clone();
 
         self.fmt_contents.insert(curr_proc.pid(), fmt_content);
