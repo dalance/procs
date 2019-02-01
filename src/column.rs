@@ -54,10 +54,7 @@ macro_rules! column_default {
         fn sorted_pid(&self, order: &crate::config::ConfigSortOrder) -> Vec<i32> {
             let mut contents: Vec<(&i32, &$x)> = self.raw_contents.iter().collect();
             contents.sort_by_key(|&(_x, y)| y);
-            match order {
-                crate::config::ConfigSortOrder::Descending => contents.reverse(),
-                _ => (),
-            }
+            if let crate::config::ConfigSortOrder::Descending = order { contents.reverse() }
             contents.iter().map(|(x, _y)| **x).collect()
         }
     };

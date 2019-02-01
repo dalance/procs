@@ -5,7 +5,7 @@ pub enum KeywordClass {
     NonNumeric,
 }
 
-pub fn find_partial<T: AsRef<str>>(columns: &[&Box<Column>], pid: i32, keyword: &[T]) -> bool {
+pub fn find_partial<T: AsRef<str>>(columns: &[&Column], pid: i32, keyword: &[T]) -> bool {
     for w in keyword {
         for c in columns {
             if c.find_partial(pid, w.as_ref()) {
@@ -16,7 +16,7 @@ pub fn find_partial<T: AsRef<str>>(columns: &[&Box<Column>], pid: i32, keyword: 
     false
 }
 
-pub fn find_exact<T: AsRef<str>>(columns: &[&Box<Column>], pid: i32, keyword: &[T]) -> bool {
+pub fn find_exact<T: AsRef<str>>(columns: &[&Column], pid: i32, keyword: &[T]) -> bool {
     for w in keyword {
         for c in columns {
             if c.find_exact(pid, w.as_ref()) {

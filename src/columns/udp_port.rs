@@ -21,8 +21,8 @@ impl UdpPort {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
             max_width: cmp::max(header.len(), unit.len()),
-            header: header,
-            unit: unit,
+            header,
+            unit,
             udp_entry: procfs::udp().unwrap(),
         }
     }
@@ -103,9 +103,8 @@ impl Column for UdpPort {
     fn sorted_pid(&self, order: &crate::config::ConfigSortOrder) -> Vec<i32> {
         let mut contents: Vec<(&i32, &String)> = self.raw_contents.iter().collect();
         contents.sort_by_key(|&(_x, y)| y);
-        match order {
-            crate::config::ConfigSortOrder::Descending => contents.reverse(),
-            _ => (),
+        if let crate::config::ConfigSortOrder::Descending = order {
+            contents.reverse()
         }
         contents.iter().map(|(x, _y)| **x).collect()
     }

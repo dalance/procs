@@ -20,8 +20,8 @@ impl ReadBytes {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
             max_width: cmp::max(header.len(), unit.len()),
-            header: header,
-            unit: unit,
+            header,
+            unit,
         }
     }
 }
@@ -36,7 +36,7 @@ impl Column for ReadBytes {
         interval: &Duration,
     ) {
         let (fmt_content, raw_content) = if curr_io.is_ok() && prev_io.is_ok() {
-            let interval_ms = interval.as_secs() + interval.subsec_millis() as u64;
+            let interval_ms = interval.as_secs() + u64::from(interval.subsec_millis());
             let io = (curr_io.as_ref().unwrap().read_bytes - prev_io.as_ref().unwrap().read_bytes)
                 * 1000
                 / interval_ms;

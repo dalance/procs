@@ -318,10 +318,10 @@ fn run() -> Result<(), Error> {
     let mut cols_numeric = Vec::new();
     for c in &cols {
         if c.nonnumeric_search {
-            cols_nonnumeric.push(&c.column);
+            cols_nonnumeric.push(c.column.as_ref());
         }
         if c.numeric_search {
-            cols_numeric.push(&c.column);
+            cols_numeric.push(c.column.as_ref());
         }
     }
 

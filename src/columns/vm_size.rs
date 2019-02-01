@@ -20,8 +20,8 @@ impl VmSize {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
             max_width: cmp::max(header.len(), unit.len()),
-            header: header,
-            unit: unit,
+            header,
+            unit,
         }
     }
 }

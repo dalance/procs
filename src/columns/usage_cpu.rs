@@ -20,8 +20,8 @@ impl UsageCpu {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
             max_width: cmp::max(header.len(), unit.len()),
-            header: header,
-            unit: unit,
+            header,
+            unit,
         }
     }
 }
@@ -39,7 +39,7 @@ impl Column for UsageCpu {
         let prev_time = prev_proc.stat.utime + prev_proc.stat.stime;
         let usage_ms =
             (curr_time - prev_time) * 1000 / procfs::ticks_per_second().unwrap_or(100) as u64;
-        let interval_ms = interval.as_secs() + interval.subsec_millis() as u64;
+        let interval_ms = interval.as_secs() + u64::from(interval.subsec_millis());
         let usage = usage_ms as f64 * 100.0 / interval_ms as f64;
 
         let fmt_content = format!("{:.1}", usage);
