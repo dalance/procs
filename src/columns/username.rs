@@ -7,7 +7,8 @@ use std::time::Duration;
 pub struct Username {
     header: String,
     unit: String,
-    contents: HashMap<i32, String>,
+    fmt_contents: HashMap<i32, String>,
+    raw_contents: HashMap<i32, String>,
     max_width: usize,
 }
 
@@ -16,7 +17,8 @@ impl Username {
         let header = String::from("User");
         let unit = String::from("");
         Username {
-            contents: HashMap::new(),
+            fmt_contents: HashMap::new(),
+            raw_contents: HashMap::new(),
             max_width: cmp::max(header.len(), unit.len()),
             header: header,
             unit: unit,
@@ -34,16 +36,18 @@ impl Column for Username {
         _interval: &Duration,
     ) {
         let user = users::get_user_by_uid(curr_proc.owner);
-        let content = if let Some(user) = user {
+        let fmt_content = if let Some(user) = user {
             format!("{}", user.name().to_string_lossy())
         } else {
             format!("{}", curr_proc.owner)
         };
+        let raw_content = fmt_content.clone();
 
-        self.max_width = cmp::max(content.len(), self.max_width);
+        self.max_width = cmp::max(fmt_content.len(), self.max_width);
 
-        self.contents.insert(curr_proc.pid(), content);
+        self.fmt_contents.insert(curr_proc.pid(), fmt_content);
+        self.raw_contents.insert(curr_proc.pid(), raw_content);
     }
 
-    column_default!();
+    column_default!(String);
 }

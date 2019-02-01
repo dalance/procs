@@ -7,7 +7,8 @@ use std::time::Duration;
 pub struct CpuTime {
     header: String,
     unit: String,
-    contents: HashMap<i32, String>,
+    fmt_contents: HashMap<i32, String>,
+    raw_contents: HashMap<i32, u64>,
     max_width: usize,
 }
 
@@ -16,7 +17,8 @@ impl CpuTime {
         let header = String::from("CPU Time");
         let unit = String::from("");
         CpuTime {
-            contents: HashMap::new(),
+            fmt_contents: HashMap::new(),
+            raw_contents: HashMap::new(),
             max_width: cmp::max(header.len(), unit.len()),
             header: header,
             unit: unit,
@@ -36,12 +38,14 @@ impl Column for CpuTime {
         let time_sec = (curr_proc.stat.utime + curr_proc.stat.stime)
             / procfs::ticks_per_second().unwrap_or(100) as u64;
 
-        let content = util::parse_time(time_sec).to_string();
+        let fmt_content = util::parse_time(time_sec).to_string();
+        let raw_content = time_sec;
 
-        self.max_width = cmp::max(content.len(), self.max_width);
+        self.max_width = cmp::max(fmt_content.len(), self.max_width);
 
-        self.contents.insert(curr_proc.pid(), content);
+        self.fmt_contents.insert(curr_proc.pid(), fmt_content);
+        self.raw_contents.insert(curr_proc.pid(), raw_content);
     }
 
-    column_default!();
+    column_default!(u64);
 }

@@ -7,7 +7,8 @@ use std::time::Duration;
 pub struct ReadBytes {
     header: String,
     unit: String,
-    contents: HashMap<i32, String>,
+    fmt_contents: HashMap<i32, String>,
+    raw_contents: HashMap<i32, u64>,
     max_width: usize,
 }
 
@@ -16,7 +17,8 @@ impl ReadBytes {
         let header = String::from("Read");
         let unit = String::from("[B/s]");
         ReadBytes {
-            contents: HashMap::new(),
+            fmt_contents: HashMap::new(),
+            raw_contents: HashMap::new(),
             max_width: cmp::max(header.len(), unit.len()),
             header: header,
             unit: unit,
@@ -33,21 +35,25 @@ impl Column for ReadBytes {
         prev_io: &ProcResult<Io>,
         interval: &Duration,
     ) {
-        let content = if curr_io.is_ok() && prev_io.is_ok() {
+        let (fmt_content, raw_content) = if curr_io.is_ok() && prev_io.is_ok() {
             let interval_ms = interval.as_secs() + interval.subsec_millis() as u64;
             let io = (curr_io.as_ref().unwrap().read_bytes - prev_io.as_ref().unwrap().read_bytes)
                 * 1000
                 / interval_ms;
             let (size, unit) = unbytify::bytify(io);
-            format!("{}{}", size, unit.replace("i", "").replace("B", ""))
+            (
+                format!("{}{}", size, unit.replace("i", "").replace("B", "")),
+                io,
+            )
         } else {
-            String::from("")
+            (String::from(""), 0)
         };
 
-        self.max_width = cmp::max(content.len(), self.max_width);
+        self.max_width = cmp::max(fmt_content.len(), self.max_width);
 
-        self.contents.insert(curr_proc.pid(), content);
+        self.fmt_contents.insert(curr_proc.pid(), fmt_content);
+        self.raw_contents.insert(curr_proc.pid(), raw_content);
     }
 
-    column_default!();
+    column_default!(u64);
 }

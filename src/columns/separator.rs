@@ -7,7 +7,8 @@ use std::time::Duration;
 pub struct Separator {
     header: String,
     unit: String,
-    contents: HashMap<i32, String>,
+    fmt_contents: HashMap<i32, String>,
+    raw_contents: HashMap<i32, String>,
     max_width: usize,
 }
 
@@ -16,7 +17,8 @@ impl Separator {
         let header = String::from("|");
         let unit = String::from("|");
         Separator {
-            contents: HashMap::new(),
+            fmt_contents: HashMap::new(),
+            raw_contents: HashMap::new(),
             max_width: cmp::max(header.len(), unit.len()),
             header: header,
             unit: unit,
@@ -33,12 +35,14 @@ impl Column for Separator {
         _prev_io: &ProcResult<Io>,
         _interval: &Duration,
     ) {
-        let content = "|".to_string();
+        let raw_content = "|".to_string();
+        let fmt_content = "|".to_string();
 
-        self.max_width = cmp::max(content.len(), self.max_width);
+        self.max_width = cmp::max(fmt_content.len(), self.max_width);
 
-        self.contents.insert(curr_proc.pid(), content);
+        self.fmt_contents.insert(curr_proc.pid(), fmt_content);
+        self.raw_contents.insert(curr_proc.pid(), raw_content);
     }
 
-    column_default!();
+    column_default!(String);
 }

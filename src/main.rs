@@ -5,10 +5,7 @@ mod util;
 
 use column::Column;
 use columns::*;
-use config::{
-    Config, ConfigColor, ConfigColumnKind, ConfigColumnStyle, ConfigSearchKind, ConfigStyle,
-    CONFIG_DEFAULT,
-};
+use config::*;
 use console::{Style, StyledObject, Term};
 use failure::{Error, ResultExt};
 use lazy_static::lazy_static;
@@ -210,7 +207,7 @@ fn get_config() -> Result<Config, Error> {
     Ok(config)
 }
 
-fn collect_proc(cols: &mut Vec<ColumnInfo>, opt: &Opt) -> Vec<i32> {
+fn collect_proc(cols: &mut Vec<ColumnInfo>, opt: &Opt) {
     let mut base_procs = Vec::new();
 
     for proc in procfs::all_processes() {
@@ -221,7 +218,6 @@ fn collect_proc(cols: &mut Vec<ColumnInfo>, opt: &Opt) -> Vec<i32> {
 
     thread::sleep(Duration::from_millis(opt.interval));
 
-    let mut pids = Vec::new();
     for (pid, prev_proc, prev_io, prev_time) in base_procs {
         let curr_proc = if let Ok(proc) = Process::new(pid) {
             proc
@@ -236,11 +232,7 @@ fn collect_proc(cols: &mut Vec<ColumnInfo>, opt: &Opt) -> Vec<i32> {
             c.column
                 .add(&curr_proc, &prev_proc, &curr_io, &prev_io, &interval);
         }
-
-        pids.push(pid);
     }
-
-    pids
 }
 
 fn display_header(max_width: usize, cols: &[ColumnInfo], config: &Config) {
@@ -271,13 +263,17 @@ fn display_unit(max_width: usize, cols: &[ColumnInfo], config: &Config) {
     println!("{}", row);
 }
 
-fn display_item(pid: i32, max_width: usize, cols: &[ColumnInfo], config: &Config) {
+fn display_content(pid: i32, max_width: usize, cols: &[ColumnInfo], config: &Config) {
     let mut row = String::from("");
     for c in cols.iter() {
         row = format!(
             "{} {}",
             row,
-            apply_style(c.column.display(pid).unwrap(), &c.style, &config.style)
+            apply_style(
+                c.column.display_content(pid).unwrap(),
+                &c.style,
+                &config.style
+            )
         );
     }
     row = row.trim_end().to_string();
@@ -313,7 +309,7 @@ fn run() -> Result<(), Error> {
         term_w = std::u16::MAX;
     }
 
-    let pids = collect_proc(&mut cols, &opt);
+    collect_proc(&mut cols, &opt);
 
     display_header(term_w as usize, &cols, &config);
     display_unit(term_w as usize, &cols, &config);
@@ -339,6 +335,10 @@ fn run() -> Result<(), Error> {
         }
     }
 
+    let pids = cols[config.sort.column]
+        .column
+        .sorted_pid(&config.sort.order);
+
     for pid in pids {
         let mut visible = true;
         if !opt.keyword.is_empty() {
@@ -361,7 +361,7 @@ fn run() -> Result<(), Error> {
         }
 
         if visible {
-            display_item(pid, term_w as usize, &cols, &config);
+            display_content(pid, term_w as usize, &cols, &config);
         }
     }
 

@@ -7,7 +7,8 @@ use std::time::Duration;
 pub struct UsageCpu {
     header: String,
     unit: String,
-    contents: HashMap<i32, String>,
+    fmt_contents: HashMap<i32, String>,
+    raw_contents: HashMap<i32, u32>,
     max_width: usize,
 }
 
@@ -16,7 +17,8 @@ impl UsageCpu {
         let header = String::from("CPU");
         let unit = String::from("[%]");
         UsageCpu {
-            contents: HashMap::new(),
+            fmt_contents: HashMap::new(),
+            raw_contents: HashMap::new(),
             max_width: cmp::max(header.len(), unit.len()),
             header: header,
             unit: unit,
@@ -38,13 +40,16 @@ impl Column for UsageCpu {
         let usage_ms =
             (curr_time - prev_time) * 1000 / procfs::ticks_per_second().unwrap_or(100) as u64;
         let interval_ms = interval.as_secs() + interval.subsec_millis() as u64;
+        let usage = usage_ms as f64 * 100.0 / interval_ms as f64;
 
-        let content = format!("{:.1}", usage_ms as f64 * 100.0 / interval_ms as f64);
+        let fmt_content = format!("{:.1}", usage);
+        let raw_content = (usage * 1000.0) as u32;
 
-        self.max_width = cmp::max(content.len(), self.max_width);
+        self.max_width = cmp::max(fmt_content.len(), self.max_width);
 
-        self.contents.insert(curr_proc.pid(), content);
+        self.fmt_contents.insert(curr_proc.pid(), fmt_content);
+        self.raw_contents.insert(curr_proc.pid(), raw_content);
     }
 
-    column_default!();
+    column_default!(u32);
 }

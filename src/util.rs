@@ -8,7 +8,7 @@ pub enum KeywordClass {
 pub fn find_partial<T: AsRef<str>>(columns: &[&Box<Column>], pid: i32, keyword: &[T]) -> bool {
     for w in keyword {
         for c in columns {
-            if c.find(pid, w.as_ref()) {
+            if c.find_partial(pid, w.as_ref()) {
                 return true;
             }
         }

@@ -106,6 +106,10 @@ color_x = "BrightBlue"
 [search]
 numeric_search = "Exact"
 nonnumeric_search = "Partial"
+
+[sort]
+column = 0
+order = "Ascending"
 ```
 
 `[[columns]]` section defines which columns are used.
@@ -120,7 +124,9 @@ For example, if `ByUnit` is choosen, color can be specified for each unit of val
 The colors can be configured in `[style.by_unit]` section.
 
 `[style]` section defines colors of header and unit line.
-`[search]` section defines match policy.
+`[search]` section defines match policy. Policy can be `Exact` or `Partial`.
+`[sort]` section defines the column used for sort and sort order.
+`order` can be `Ascending` or `Descending`.
 
 ### `kind` list
 

@@ -7,7 +7,8 @@ use std::time::Duration;
 pub struct UsageMem {
     header: String,
     unit: String,
-    contents: HashMap<i32, String>,
+    fmt_contents: HashMap<i32, String>,
+    raw_contents: HashMap<i32, u32>,
     max_width: usize,
     mem_total: u64,
 }
@@ -17,7 +18,8 @@ impl UsageMem {
         let header = String::from("MEM");
         let unit = String::from("[%]");
         UsageMem {
-            contents: HashMap::new(),
+            fmt_contents: HashMap::new(),
+            raw_contents: HashMap::new(),
             max_width: cmp::max(header.len(), unit.len()),
             header: header,
             unit: unit,
@@ -35,13 +37,15 @@ impl Column for UsageMem {
         _prev_io: &ProcResult<Io>,
         _interval: &Duration,
     ) {
-        let usage = curr_proc.stat.rss_bytes();
-        let content = format!("{:.1}", usage as f64 * 100.0 / self.mem_total as f64);
+        let usage = curr_proc.stat.rss_bytes() as f64 * 100.0 / self.mem_total as f64;
+        let fmt_content = format!("{:.1}", usage);
+        let raw_content = (usage * 1000.0) as u32;
 
-        self.max_width = cmp::max(content.len(), self.max_width);
+        self.max_width = cmp::max(fmt_content.len(), self.max_width);
 
-        self.contents.insert(curr_proc.pid(), content);
+        self.fmt_contents.insert(curr_proc.pid(), fmt_content);
+        self.raw_contents.insert(curr_proc.pid(), raw_content);
     }
 
-    column_default!();
+    column_default!(u32);
 }

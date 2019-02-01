@@ -1,4 +1,5 @@
 use crate::{column_default, Column};
+use chrono::{DateTime, Local};
 use procfs::{Io, ProcResult, Process};
 use std::cmp;
 use std::collections::HashMap;
@@ -7,7 +8,8 @@ use std::time::Duration;
 pub struct StartTime {
     header: String,
     unit: String,
-    contents: HashMap<i32, String>,
+    fmt_contents: HashMap<i32, String>,
+    raw_contents: HashMap<i32, DateTime<Local>>,
     max_width: usize,
 }
 
@@ -16,7 +18,8 @@ impl StartTime {
         let header = String::from("Start");
         let unit = String::from("");
         StartTime {
-            contents: HashMap::new(),
+            fmt_contents: HashMap::new(),
+            raw_contents: HashMap::new(),
             max_width: cmp::max(header.len(), unit.len()),
             header: header,
             unit: unit,
@@ -34,12 +37,14 @@ impl Column for StartTime {
         _interval: &Duration,
     ) {
         let start_time = curr_proc.stat.starttime();
-        let content = format!("{}", start_time.format("%Y/%m/%d %H:%M"));
+        let raw_content = start_time;
+        let fmt_content = format!("{}", start_time.format("%Y/%m/%d %H:%M"));
 
-        self.max_width = cmp::max(content.len(), self.max_width);
+        self.max_width = cmp::max(fmt_content.len(), self.max_width);
 
-        self.contents.insert(curr_proc.pid(), content);
+        self.fmt_contents.insert(curr_proc.pid(), fmt_content);
+        self.raw_contents.insert(curr_proc.pid(), raw_content);
     }
 
-    column_default!();
+    column_default!(DateTime<Local>);
 }

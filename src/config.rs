@@ -7,6 +7,8 @@ pub struct Config {
     pub style: ConfigStyle,
     #[serde(default)]
     pub search: ConfigSearch,
+    #[serde(default)]
+    pub sort: ConfigSort,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -188,6 +190,27 @@ impl Default for ConfigSearch {
 pub enum ConfigSearchKind {
     Exact,
     Partial,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ConfigSort {
+    pub column: usize,
+    pub order: ConfigSortOrder,
+}
+
+impl Default for ConfigSort {
+    fn default() -> Self {
+        ConfigSort {
+            column: 0,
+            order: ConfigSortOrder::Ascending,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum ConfigSortOrder {
+    Ascending,
+    Descending,
 }
 
 pub static CONFIG_DEFAULT: &'static str = r#"

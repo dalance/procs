@@ -7,7 +7,8 @@ use std::time::Duration;
 pub struct Tty {
     header: String,
     unit: String,
-    contents: HashMap<i32, String>,
+    fmt_contents: HashMap<i32, String>,
+    raw_contents: HashMap<i32, String>,
     max_width: usize,
 }
 
@@ -16,7 +17,8 @@ impl Tty {
         let header = String::from("TTY");
         let unit = String::from("");
         Tty {
-            contents: HashMap::new(),
+            fmt_contents: HashMap::new(),
+            raw_contents: HashMap::new(),
             max_width: cmp::max(header.len(), unit.len()),
             header: header,
             unit: unit,
@@ -34,16 +36,18 @@ impl Column for Tty {
         _interval: &Duration,
     ) {
         let (major, minor) = curr_proc.stat.tty_nr();
-        let content = if major == 136 {
+        let fmt_content = if major == 136 {
             format!("pts/{}", minor)
         } else {
             String::from("")
         };
+        let raw_content = fmt_content.clone();
 
-        self.max_width = cmp::max(content.len(), self.max_width);
+        self.max_width = cmp::max(fmt_content.len(), self.max_width);
 
-        self.contents.insert(curr_proc.pid(), content);
+        self.fmt_contents.insert(curr_proc.pid(), fmt_content);
+        self.raw_contents.insert(curr_proc.pid(), raw_content);
     }
 
-    column_default!();
+    column_default!(String);
 }

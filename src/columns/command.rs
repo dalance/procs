@@ -7,7 +7,8 @@ use std::time::Duration;
 pub struct Command {
     header: String,
     unit: String,
-    contents: HashMap<i32, String>,
+    fmt_contents: HashMap<i32, String>,
+    raw_contents: HashMap<i32, String>,
     max_width: usize,
 }
 
@@ -16,7 +17,8 @@ impl Command {
         let header = String::from("Command");
         let unit = String::from("");
         Command {
-            contents: HashMap::new(),
+            fmt_contents: HashMap::new(),
+            raw_contents: HashMap::new(),
             max_width: cmp::max(header.len(), unit.len()),
             header: header,
             unit: unit,
@@ -33,7 +35,7 @@ impl Column for Command {
         _prev_io: &ProcResult<Io>,
         _interval: &Duration,
     ) {
-        let content = if let Ok(cmd) = &curr_proc.cmdline() {
+        let fmt_content = if let Ok(cmd) = &curr_proc.cmdline() {
             if !cmd.is_empty() {
                 let mut cmd = cmd
                     .iter()
@@ -52,11 +54,13 @@ impl Column for Command {
         } else {
             curr_proc.stat.comm.clone()
         };
+        let raw_content = fmt_content.clone();
 
-        self.max_width = cmp::max(content.len(), self.max_width);
+        self.max_width = cmp::max(fmt_content.len(), self.max_width);
 
-        self.contents.insert(curr_proc.pid(), content);
+        self.fmt_contents.insert(curr_proc.pid(), fmt_content);
+        self.raw_contents.insert(curr_proc.pid(), raw_content);
     }
 
-    column_default!();
+    column_default!(String);
 }

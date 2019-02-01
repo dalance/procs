@@ -1,4 +1,4 @@
-use crate::{column_default, Column};
+use crate::Column;
 use procfs::{FDTarget, Io, ProcResult, Process, UdpNetEntry};
 use std::cmp;
 use std::collections::HashMap;
@@ -7,7 +7,8 @@ use std::time::Duration;
 pub struct UdpPort {
     header: String,
     unit: String,
-    contents: HashMap<i32, String>,
+    fmt_contents: HashMap<i32, String>,
+    raw_contents: HashMap<i32, String>,
     max_width: usize,
     udp_entry: Vec<UdpNetEntry>,
 }
@@ -17,7 +18,8 @@ impl UdpPort {
         let header = String::from("UDP");
         let unit = String::from("");
         UdpPort {
-            contents: HashMap::new(),
+            fmt_contents: HashMap::new(),
+            raw_contents: HashMap::new(),
             max_width: cmp::max(header.len(), unit.len()),
             header: header,
             unit: unit,
@@ -50,15 +52,41 @@ impl Column for UdpPort {
                 ports.push(entry.local_address.port());
             }
         }
-        let content = format!("{:?}", ports);
+        let fmt_content = format!("{:?}", ports);
+        let raw_content = fmt_content.clone();
 
-        self.max_width = cmp::max(content.len(), self.max_width);
+        self.max_width = cmp::max(fmt_content.len(), self.max_width);
 
-        self.contents.insert(curr_proc.pid(), content);
+        self.fmt_contents.insert(curr_proc.pid(), fmt_content);
+        self.raw_contents.insert(curr_proc.pid(), raw_content);
+    }
+
+    fn display_header(&self) -> String {
+        crate::util::expand(&self.header, self.max_width)
+    }
+
+    fn display_unit(&self) -> String {
+        crate::util::expand(&self.unit, self.max_width)
+    }
+
+    fn display_content(&self, pid: i32) -> Option<String> {
+        if let Some(content) = self.fmt_contents.get(&pid) {
+            Some(crate::util::expand(content, self.max_width))
+        } else {
+            None
+        }
+    }
+
+    fn find_partial(&self, pid: i32, keyword: &str) -> bool {
+        if let Some(content) = self.fmt_contents.get(&pid) {
+            content.find(keyword).is_some()
+        } else {
+            false
+        }
     }
 
     fn find_exact(&self, pid: i32, keyword: &str) -> bool {
-        if let Some(content) = self.contents().get(&pid) {
+        if let Some(content) = self.fmt_contents.get(&pid) {
             let content = content.replace("[", "").replace("]", "");
             let content = content.split(',');
             for c in content {
@@ -72,5 +100,13 @@ impl Column for UdpPort {
         }
     }
 
-    column_default!();
+    fn sorted_pid(&self, order: &crate::config::ConfigSortOrder) -> Vec<i32> {
+        let mut contents: Vec<(&i32, &String)> = self.raw_contents.iter().collect();
+        contents.sort_by_key(|&(_x, y)| y);
+        match order {
+            crate::config::ConfigSortOrder::Descending => contents.reverse(),
+            _ => (),
+        }
+        contents.iter().map(|(x, _y)| **x).collect()
+    }
 }
