@@ -280,3 +280,14 @@ fn run() -> Result<(), Error> {
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_run() {
+        let ret = run();
+        assert!(ret.is_ok());
+    }
+}
