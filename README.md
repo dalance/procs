@@ -57,6 +57,7 @@ $ procs 6000 60000 60001 16723
 
 ![procs_port](https://user-images.githubusercontent.com/4331004/51976347-c09b3600-24c7-11e9-8d40-2c437efbd5e1.png)
 
+Note that procfs permissions only allow identifying listening ports for processes owned by the current user, so not all ports will show up unless run as root.
 
 ## Configuration
 
