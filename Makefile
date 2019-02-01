@@ -12,7 +12,7 @@ export LONG_VERSION
 all: test
 
 test:
-	cargo test -- --test-threads=1
+	cargo test
 
 watch:
 	cargo watch "test -- --test-threads=1"
