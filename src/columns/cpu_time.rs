@@ -41,8 +41,6 @@ impl Column for CpuTime {
         let fmt_content = util::parse_time(time_sec).to_string();
         let raw_content = time_sec;
 
-        self.max_width = cmp::max(fmt_content.len(), self.max_width);
-
         self.fmt_contents.insert(curr_proc.pid(), fmt_content);
         self.raw_contents.insert(curr_proc.pid(), raw_content);
     }

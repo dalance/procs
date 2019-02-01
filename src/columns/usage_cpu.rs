@@ -45,8 +45,6 @@ impl Column for UsageCpu {
         let fmt_content = format!("{:.1}", usage);
         let raw_content = (usage * 1000.0) as u32;
 
-        self.max_width = cmp::max(fmt_content.len(), self.max_width);
-
         self.fmt_contents.insert(curr_proc.pid(), fmt_content);
         self.raw_contents.insert(curr_proc.pid(), raw_content);
     }

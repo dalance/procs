@@ -38,8 +38,6 @@ impl Column for Pid {
         let raw_content = curr_proc.pid();
         let fmt_content = format!("{}", raw_content);
 
-        self.max_width = cmp::max(fmt_content.len(), self.max_width);
-
         self.fmt_contents.insert(curr_proc.pid(), fmt_content);
         self.raw_contents.insert(curr_proc.pid(), raw_content);
     }

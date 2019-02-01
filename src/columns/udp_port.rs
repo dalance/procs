@@ -60,8 +60,6 @@ impl Column for UdpPort {
         let fmt_content = format!("{:?}", ports);
         let raw_content = fmt_content.clone();
 
-        self.max_width = cmp::max(fmt_content.len(), self.max_width);
-
         self.fmt_contents.insert(curr_proc.pid(), fmt_content);
         self.raw_contents.insert(curr_proc.pid(), raw_content);
     }
@@ -112,5 +110,15 @@ impl Column for UdpPort {
             contents.reverse()
         }
         contents.iter().map(|(x, _y)| **x).collect()
+    }
+
+    fn reset_max_width(&mut self) {
+        self.max_width = std::cmp::max(self.header.len(), self.unit.len());
+    }
+
+    fn update_max_width(&mut self, pid: i32) {
+        if let Some(content) = self.fmt_contents.get(&pid) {
+            self.max_width = cmp::max(content.len(), self.max_width);
+        }
     }
 }

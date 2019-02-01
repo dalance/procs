@@ -311,9 +311,6 @@ fn run() -> Result<(), Error> {
 
     collect_proc(&mut cols, &opt);
 
-    display_header(term_w as usize, &cols, &config);
-    display_unit(term_w as usize, &cols, &config);
-
     let mut cols_nonnumeric = Vec::new();
     let mut cols_numeric = Vec::new();
     for c in &cols {
@@ -339,6 +336,7 @@ fn run() -> Result<(), Error> {
         .column
         .sorted_pid(&config.sort.order);
 
+    let mut visible_pids = Vec::new();
     for pid in pids {
         let mut visible = true;
         if !opt.keyword.is_empty() {
@@ -361,8 +359,21 @@ fn run() -> Result<(), Error> {
         }
 
         if visible {
-            display_content(pid, term_w as usize, &cols, &config);
+            visible_pids.push(pid);
         }
+    }
+
+    for pid in &visible_pids {
+        for c in &mut cols {
+            c.column.update_max_width(*pid);
+        }
+    }
+
+    display_header(term_w as usize, &cols, &config);
+    display_unit(term_w as usize, &cols, &config);
+
+    for pid in &visible_pids {
+        display_content(*pid, term_w as usize, &cols, &config);
     }
 
     Ok(())

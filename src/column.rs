@@ -19,6 +19,8 @@ pub trait Column {
     fn find_partial(&self, pid: i32, keyword: &str) -> bool;
     fn find_exact(&self, pid: i32, keyword: &str) -> bool;
     fn sorted_pid(&self, order: &ConfigSortOrder) -> Vec<i32>;
+    fn reset_max_width(&mut self) -> ();
+    fn update_max_width(&mut self, pid: i32) -> ();
 }
 
 #[macro_export]
@@ -56,6 +58,14 @@ macro_rules! column_default {
             contents.sort_by_key(|&(_x, y)| y);
             if let crate::config::ConfigSortOrder::Descending = order { contents.reverse() }
             contents.iter().map(|(x, _y)| **x).collect()
+        }
+        fn reset_max_width(&mut self) {
+            self.max_width = std::cmp::max(self.header.len(), self.unit.len());
+        }
+        fn update_max_width(&mut self, pid: i32) {
+            if let Some(content) = self.fmt_contents.get(&pid) {
+                self.max_width = cmp::max(content.len(), self.max_width);
+            }
         }
     };
 }

@@ -56,8 +56,6 @@ impl Column for Command {
         };
         let raw_content = fmt_content.clone();
 
-        self.max_width = cmp::max(fmt_content.len(), self.max_width);
-
         self.fmt_contents.insert(curr_proc.pid(), fmt_content);
         self.raw_contents.insert(curr_proc.pid(), raw_content);
     }

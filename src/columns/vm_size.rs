@@ -39,8 +39,6 @@ impl Column for VmSize {
         let (size, unit) = unbytify::bytify(raw_content);
         let fmt_content = format!("{}{}", size, unit.replace("i", "").replace("B", ""));
 
-        self.max_width = cmp::max(fmt_content.len(), self.max_width);
-
         self.fmt_contents.insert(curr_proc.pid(), fmt_content);
         self.raw_contents.insert(curr_proc.pid(), raw_content);
     }

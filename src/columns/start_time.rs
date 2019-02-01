@@ -40,8 +40,6 @@ impl Column for StartTime {
         let raw_content = start_time;
         let fmt_content = format!("{}", start_time.format("%Y/%m/%d %H:%M"));
 
-        self.max_width = cmp::max(fmt_content.len(), self.max_width);
-
         self.fmt_contents.insert(curr_proc.pid(), fmt_content);
         self.raw_contents.insert(curr_proc.pid(), raw_content);
     }
