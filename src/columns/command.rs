@@ -46,7 +46,7 @@ impl Column for Command {
                     })
                     .collect::<String>();
                 cmd.pop();
-                cmd = cmd.replace("\n", "  ");
+                cmd = cmd.replace("\n", "");
                 cmd
             } else {
                 curr_proc.stat.comm.clone()
