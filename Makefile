@@ -15,7 +15,7 @@ test:
 	cargo test
 
 watch:
-	cargo watch "test -- --test-threads=1"
+	cargo watch test
 
 clean:
 	cargo clean

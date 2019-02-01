@@ -19,7 +19,7 @@ after_success: |
         # Uncomment the following line for coveralls.io
         # cargo tarpaulin --ciserver travis-ci --coveralls $TRAVIS_JOB_ID
 
-        cargo +nightly tarpaulin --out Xml -- --test-threads=1
+        cargo +nightly tarpaulin --out Xml
         bash <(curl -s https://codecov.io/bash)
     fi
 
