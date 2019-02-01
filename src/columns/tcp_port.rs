@@ -11,6 +11,7 @@ pub struct TcpPort {
     raw_contents: HashMap<i32, String>,
     max_width: usize,
     tcp_entry: Vec<TcpNetEntry>,
+    tcp6_entry: Vec<TcpNetEntry>,
 }
 
 impl TcpPort {
@@ -24,6 +25,7 @@ impl TcpPort {
             header,
             unit,
             tcp_entry: procfs::tcp().unwrap(),
+            tcp6_entry: procfs::tcp6().unwrap(),
         }
     }
 }
@@ -47,13 +49,16 @@ impl Column for TcpPort {
         }
         let mut ports = Vec::new();
         for sock in &socks {
-            let entry = self.tcp_entry.iter().find(|&x| x.inode == *sock);
+            let mut tcp_iter = self.tcp_entry.iter().chain(self.tcp6_entry.iter());
+            let entry = tcp_iter.find(|&x| x.inode == *sock);
             if let Some(entry) = entry {
                 if entry.state == TcpState::Listen {
                     ports.push(entry.local_address.port());
                 }
             }
         }
+        ports.sort();
+        ports.dedup();
         let fmt_content = format!("{:?}", ports);
         let raw_content = fmt_content.clone();
 

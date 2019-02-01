@@ -11,6 +11,7 @@ pub struct UdpPort {
     raw_contents: HashMap<i32, String>,
     max_width: usize,
     udp_entry: Vec<UdpNetEntry>,
+    udp6_entry: Vec<UdpNetEntry>,
 }
 
 impl UdpPort {
@@ -24,6 +25,7 @@ impl UdpPort {
             header,
             unit,
             udp_entry: procfs::udp().unwrap(),
+            udp6_entry: procfs::udp6().unwrap(),
         }
     }
 }
@@ -47,11 +49,14 @@ impl Column for UdpPort {
         }
         let mut ports = Vec::new();
         for sock in &socks {
-            let entry = self.udp_entry.iter().find(|&x| x.inode == *sock);
+            let mut udp_iter = self.udp_entry.iter().chain(self.udp6_entry.iter());
+            let entry = udp_iter.find(|&x| x.inode == *sock);
             if let Some(entry) = entry {
                 ports.push(entry.local_address.port());
             }
         }
+        ports.sort();
+        ports.dedup();
         let fmt_content = format!("{:?}", ports);
         let raw_content = fmt_content.clone();
 
