@@ -33,6 +33,17 @@ pub struct Opt {
     #[structopt(name = "KEYWORD")]
     pub keyword: Vec<String>,
 
+    /// Color mode
+    #[structopt(
+        short = "c",
+        long = "color",
+        default_value = "auto",
+        possible_value = "auto",
+        possible_value = "always",
+        possible_value = "disable"
+    )]
+    pub color: String,
+
     /// Interval to calculate throughput
     #[structopt(long = "interval", default_value = "100", value_name = "ms")]
     pub interval: u64,
@@ -209,6 +220,12 @@ fn run() -> Result<(), Error> {
     let (_term_h, mut term_w) = term.size();
     if !console::user_attended() {
         term_w = std::u16::MAX;
+    }
+
+    match opt.color.as_ref() {
+        "always" => console::set_colors_enabled(true),
+        "disable" => console::set_colors_enabled(false),
+        _ => (),
     }
 
     collect_proc(&mut cols, &opt);
