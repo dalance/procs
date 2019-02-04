@@ -13,6 +13,10 @@ pub trait Column {
         interval: &Duration,
     ) -> ();
 
+    fn available(&self) -> bool {
+        true
+    }
+
     fn display_header(&self) -> String;
     fn display_unit(&self) -> String;
     fn display_content(&self, pid: i32) -> Option<String>;

@@ -208,12 +208,15 @@ fn run() -> Result<(), Error> {
 
     let mut cols = Vec::new();
     for c in &config.columns {
-        cols.push(ColumnInfo {
-            column: gen_column(c.kind.clone()),
-            style: c.style.clone(),
-            nonnumeric_search: c.nonnumeric_search,
-            numeric_search: c.numeric_search,
-        });
+        let column = gen_column(c.kind.clone());
+        if column.available() {
+            cols.push(ColumnInfo {
+                column,
+                style: c.style.clone(),
+                nonnumeric_search: c.nonnumeric_search,
+                numeric_search: c.numeric_search,
+            });
+        }
     }
 
     let term = Term::stdout();
