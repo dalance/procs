@@ -86,14 +86,8 @@ fn gen_column(kind: ConfigColumnKind) -> Box<dyn Column> {
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
-// Main
+// Functions
 // ---------------------------------------------------------------------------------------------------------------------
-
-fn main() {
-    if let Err(x) = run() {
-        eprintln!("{}", x);
-    }
-}
 
 fn get_config() -> Result<Config, Error> {
     let cfg_path = match dirs::home_dir() {
@@ -194,6 +188,18 @@ fn display_content(pid: i32, max_width: usize, cols: &[ColumnInfo], config: &Con
     println!("{}", row);
 }
 
+// ---------------------------------------------------------------------------------------------------------------------
+// Main
+// ---------------------------------------------------------------------------------------------------------------------
+
+#[cfg_attr(tarpaulin, skip)]
+fn main() {
+    if let Err(x) = run() {
+        eprintln!("{}", x);
+    }
+}
+
+#[cfg_attr(tarpaulin, skip)]
 fn run() -> Result<(), Error> {
     let opt = Opt::from_args();
     run_opt(opt)
@@ -311,6 +317,30 @@ mod tests {
     #[test]
     fn test_run() {
         let args = vec!["procs"];
+        let opt = Opt::from_iter(args.iter());
+        let ret = run_opt(opt);
+        assert!(ret.is_ok());
+    }
+
+    #[test]
+    fn test_run_with_nonnumeric() {
+        let args = vec!["procs", "root"];
+        let opt = Opt::from_iter(args.iter());
+        let ret = run_opt(opt);
+        assert!(ret.is_ok());
+    }
+
+    #[test]
+    fn test_run_with_numeric() {
+        let args = vec!["procs", "1"];
+        let opt = Opt::from_iter(args.iter());
+        let ret = run_opt(opt);
+        assert!(ret.is_ok());
+    }
+
+    #[test]
+    fn test_run_config() {
+        let args = vec!["procs", "--config"];
         let opt = Opt::from_iter(args.iter());
         let ret = run_opt(opt);
         assert!(ret.is_ok());
