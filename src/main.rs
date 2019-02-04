@@ -196,7 +196,10 @@ fn display_content(pid: i32, max_width: usize, cols: &[ColumnInfo], config: &Con
 
 fn run() -> Result<(), Error> {
     let opt = Opt::from_args();
+    run_opt(opt)
+}
 
+fn run_opt(opt: Opt) -> Result<(), Error> {
     if opt.config {
         let config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
         let toml = toml::to_string(&config)?;
@@ -307,7 +310,9 @@ mod tests {
 
     #[test]
     fn test_run() {
-        let ret = run();
+        let args = vec!["procs"];
+        let opt = Opt::from_iter(args.iter());
+        let ret = run_opt(opt);
         assert!(ret.is_ok());
     }
 }

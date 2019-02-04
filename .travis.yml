@@ -18,7 +18,7 @@ script:
 
 after_success: |
     if [[ $TRAVIS_OS_NAME == "linux" ]]; then
-        cargo tarpaulin --out Xml -v
+        cargo tarpaulin --out Xml
         bash <(curl -s https://codecov.io/bash)
     fi
 
