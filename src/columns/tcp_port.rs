@@ -24,8 +24,8 @@ impl TcpPort {
             max_width: cmp::max(header.len(), unit.len()),
             header,
             unit,
-            tcp_entry: procfs::tcp().unwrap_or(Vec::new()),
-            tcp6_entry: procfs::tcp6().unwrap_or(Vec::new()),
+            tcp_entry: procfs::tcp().unwrap_or_default(),
+            tcp6_entry: procfs::tcp6().unwrap_or_default(),
         }
     }
 }

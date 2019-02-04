@@ -24,8 +24,8 @@ impl UdpPort {
             max_width: cmp::max(header.len(), unit.len()),
             header,
             unit,
-            udp_entry: procfs::udp().unwrap_or(Vec::new()),
-            udp6_entry: procfs::udp6().unwrap_or(Vec::new()),
+            udp_entry: procfs::udp().unwrap_or_default(),
+            udp6_entry: procfs::udp6().unwrap_or_default(),
         }
     }
 }
