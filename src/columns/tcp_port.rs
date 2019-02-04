@@ -70,30 +70,6 @@ impl Column for TcpPort {
         self.raw_contents.insert(curr_proc.pid(), raw_content);
     }
 
-    fn display_header(&self) -> String {
-        crate::util::expand(&self.header, self.max_width)
-    }
-
-    fn display_unit(&self) -> String {
-        crate::util::expand(&self.unit, self.max_width)
-    }
-
-    fn display_content(&self, pid: i32) -> Option<String> {
-        if let Some(content) = self.fmt_contents.get(&pid) {
-            Some(crate::util::expand(content, self.max_width))
-        } else {
-            None
-        }
-    }
-
-    fn find_partial(&self, pid: i32, keyword: &str) -> bool {
-        if let Some(content) = self.fmt_contents.get(&pid) {
-            content.find(keyword).is_some()
-        } else {
-            false
-        }
-    }
-
     fn find_exact(&self, pid: i32, keyword: &str) -> bool {
         if let Some(content) = self.fmt_contents.get(&pid) {
             let content = content.replace("[", "").replace("]", "");
@@ -109,22 +85,11 @@ impl Column for TcpPort {
         }
     }
 
-    fn sorted_pid(&self, order: &crate::config::ConfigSortOrder) -> Vec<i32> {
-        let mut contents: Vec<(&i32, &String)> = self.raw_contents.iter().collect();
-        contents.sort_by_key(|&(_x, y)| y);
-        if let crate::config::ConfigSortOrder::Descending = order {
-            contents.reverse()
-        }
-        contents.iter().map(|(x, _y)| **x).collect()
-    }
-
-    fn reset_max_width(&mut self) {
-        self.max_width = std::cmp::max(self.header.len(), self.unit.len());
-    }
-
-    fn update_max_width(&mut self, pid: i32) {
-        if let Some(content) = self.fmt_contents.get(&pid) {
-            self.max_width = cmp::max(content.len(), self.max_width);
-        }
-    }
+    crate::column_default_display_header!();
+    crate::column_default_display_unit!();
+    crate::column_default_display_content!();
+    crate::column_default_find_partial!();
+    crate::column_default_sorted_pid!(String);
+    crate::column_default_reset_max_width!();
+    crate::column_default_update_max_width!();
 }
