@@ -1,5 +1,6 @@
 pub mod command;
 pub mod cpu_time;
+pub mod nice;
 pub mod pid;
 pub mod read_bytes;
 pub mod separator;
@@ -17,6 +18,7 @@ pub mod write_bytes;
 
 pub use self::command::Command;
 pub use self::cpu_time::CpuTime;
+pub use self::nice::Nice;
 pub use self::pid::Pid;
 pub use self::read_bytes::ReadBytes;
 pub use self::separator::Separator;

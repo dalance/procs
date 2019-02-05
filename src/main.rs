@@ -68,6 +68,7 @@ fn gen_column(kind: ConfigColumnKind) -> Box<dyn Column> {
     match kind {
         ConfigColumnKind::Command => Box::new(Command::new()),
         ConfigColumnKind::CpuTime => Box::new(CpuTime::new()),
+        ConfigColumnKind::Nice => Box::new(Nice::new()),
         ConfigColumnKind::Pid => Box::new(Pid::new()),
         ConfigColumnKind::ReadBytes => Box::new(ReadBytes::new()),
         ConfigColumnKind::Separator => Box::new(Separator::new()),

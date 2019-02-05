@@ -33,6 +33,7 @@ pub enum ConfigColor {
 pub enum ConfigColumnKind {
     Command,
     CpuTime,
+    Nice,
     Pid,
     ReadBytes,
     Separator,
@@ -238,6 +239,11 @@ nonnumeric_search = false
 [[columns]]
 kind = "State"
 style = "ByState"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "Nice"
+style = "BrightMagenta"
 numeric_search = false
 nonnumeric_search = false
 [[columns]]
