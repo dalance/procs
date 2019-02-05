@@ -32,6 +32,8 @@ cargo install procs
 
 ## Usage
 
+### Show all processes
+
 Type `procs` only. It shows the information of all processes.
 
 ```console
@@ -40,6 +42,8 @@ $ procs
 
 ![procs](https://user-images.githubusercontent.com/4331004/51976289-9f3a4a00-24c7-11e9-8573-8f746ccf1ed4.png)
 
+### Search by non-numeric keyword
+
 If you add any keyword as argument, it is matched to `USER` or `Command` by default.
 
 ```console
@@ -47,6 +51,8 @@ $ procs zsh
 ```
 
 ![procs_zsh](https://user-images.githubusercontent.com/4331004/51976319-b24d1a00-24c7-11e9-8060-09e71d18e5ec.png)
+
+### Search by numeric keyword
 
 If a numeric is used as the keyword, it is matched to `PID`, `TCP`, `UDP` by default.
 Numeric is treated as exact match, and non-numeric is treated as partial match by default.
@@ -58,6 +64,17 @@ $ procs 6000 60000 60001 16723
 ![procs_port](https://user-images.githubusercontent.com/4331004/51976347-c09b3600-24c7-11e9-8d40-2c437efbd5e1.png)
 
 Note that procfs permissions only allow identifying listening ports for processes owned by the current user, so not all ports will show up unless run as root.
+
+### Show Docker container name
+
+If you have access permission to docker daemon ( `unix:///var/run/docker.sock` ), `Docker` column is added.
+
+```console
+$ procs growi
+```
+
+![procs_docker](https://user-images.githubusercontent.com/4331004/52265847-4d3a6e00-2978-11e9-8186-ea8e934acbb1.png)
+
 
 ## Configuration
 
