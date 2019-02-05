@@ -25,7 +25,12 @@ fn apply_style_by_state(x: String, s: &ConfigStyle) -> StyledObject<String> {
         ref x if x.starts_with('R') => apply_color(x.to_string(), &s.by_state.color_r),
         ref x if x.starts_with('S') => apply_color(x.to_string(), &s.by_state.color_s),
         ref x if x.starts_with('T') => apply_color(x.to_string(), &s.by_state.color_t),
+        ref x if x.starts_with('t') => apply_color(x.to_string(), &s.by_state.color_t),
         ref x if x.starts_with('Z') => apply_color(x.to_string(), &s.by_state.color_z),
+        ref x if x.starts_with('X') => apply_color(x.to_string(), &s.by_state.color_x),
+        ref x if x.starts_with('K') => apply_color(x.to_string(), &s.by_state.color_k),
+        ref x if x.starts_with('W') => apply_color(x.to_string(), &s.by_state.color_w),
+        ref x if x.starts_with('P') => apply_color(x.to_string(), &s.by_state.color_p),
         _ => apply_color(x.to_string(), &s.by_state.color_x),
     }
 }

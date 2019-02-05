@@ -156,6 +156,9 @@ pub struct ConfigStyleByState {
     pub color_t: ConfigColor,
     pub color_z: ConfigColor,
     pub color_x: ConfigColor,
+    pub color_k: ConfigColor,
+    pub color_w: ConfigColor,
+    pub color_p: ConfigColor,
 }
 
 impl Default for ConfigStyleByState {
@@ -166,7 +169,10 @@ impl Default for ConfigStyleByState {
             color_s: ConfigColor::BrightBlue,
             color_t: ConfigColor::BrightCyan,
             color_z: ConfigColor::BrightMagenta,
-            color_x: ConfigColor::BrightWhite,
+            color_x: ConfigColor::BrightMagenta,
+            color_k: ConfigColor::BrightYellow,
+            color_w: ConfigColor::BrightYellow,
+            color_p: ConfigColor::BrightYellow,
         }
     }
 }
