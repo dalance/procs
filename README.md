@@ -10,7 +10,7 @@
 
 - Output by the colored and human-readable format
 - Keyword search over multi-column
-- Some additional information (ex. TCP/UDP port, Read/Write throughput) which are not supported by `ps`
+- Some additional information (ex. TCP/UDP port, Read/Write throughput, Docker container name) which are not supported by `ps`
 
 ## Platform
 
@@ -44,7 +44,7 @@ $ procs
 
 ### Search by non-numeric keyword
 
-If you add any keyword as argument, it is matched to `USER` or `Command` by default.
+If you add any keyword as argument, it is matched to `USER`, `Command`, `Docker` by default.
 
 ```console
 $ procs zsh
