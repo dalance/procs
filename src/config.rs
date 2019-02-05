@@ -9,6 +9,8 @@ pub struct Config {
     pub search: ConfigSearch,
     #[serde(default)]
     pub sort: ConfigSort,
+    #[serde(default)]
+    pub docker: ConfigDocker,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -33,6 +35,7 @@ pub enum ConfigColor {
 pub enum ConfigColumnKind {
     Command,
     CpuTime,
+    Docker,
     Nice,
     Pid,
     ReadBytes,
@@ -220,6 +223,19 @@ pub enum ConfigSortOrder {
     Descending,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ConfigDocker {
+    pub path: String,
+}
+
+impl Default for ConfigDocker {
+    fn default() -> Self {
+        ConfigDocker {
+            path: String::from("unix:///var/run/docker.sock"),
+        }
+    }
+}
+
 pub static CONFIG_DEFAULT: &'static str = r#"
 [[columns]]
 kind = "Pid"
@@ -306,6 +322,11 @@ kind = "StartTime"
 style = "BrightMagenta"
 numeric_search = false
 nonnumeric_search = false
+[[columns]]
+kind = "Docker"
+style = "BrightGreen"
+numeric_search = false
+nonnumeric_search = true
 [[columns]]
 kind = "Separator"
 style = "White"

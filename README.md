@@ -135,6 +135,7 @@ The colors can be configured in `[style.by_unit]` section.
 | ------------ | --------------------- |
 | Command      | args                  |
 | CpuTime      | cputime               |
+| Docker       | -not supported-       |
 | Nice         | ni                    |
 | Pid          | pid                   |
 | ReadBytes    | -not supported-       |

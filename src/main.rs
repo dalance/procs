@@ -64,10 +64,11 @@ struct ColumnInfo {
     numeric_search: bool,
 }
 
-fn gen_column(kind: ConfigColumnKind) -> Box<dyn Column> {
+fn gen_column(kind: &ConfigColumnKind, docker_path: &str) -> Box<dyn Column> {
     match kind {
         ConfigColumnKind::Command => Box::new(Command::new()),
         ConfigColumnKind::CpuTime => Box::new(CpuTime::new()),
+        ConfigColumnKind::Docker => Box::new(Docker::new(docker_path)),
         ConfigColumnKind::Nice => Box::new(Nice::new()),
         ConfigColumnKind::Pid => Box::new(Pid::new()),
         ConfigColumnKind::ReadBytes => Box::new(ReadBytes::new()),
@@ -218,7 +219,7 @@ fn run_opt(opt: Opt) -> Result<(), Error> {
 
     let mut cols = Vec::new();
     for c in &config.columns {
-        let column = gen_column(c.kind.clone());
+        let column = gen_column(&c.kind, &config.docker.path);
         if column.available() {
             cols.push(ColumnInfo {
                 column,

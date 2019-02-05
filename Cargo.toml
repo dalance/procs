@@ -18,15 +18,16 @@ codecov   = { repository = "dalance/procs", branch = "master", service = "github
 console      = "0.7.5"
 chrono       = "0.4.6"
 dirs         = "1.0.4"
+dockworker   = "0.0.8"
 failure      = "0.1.5"
 lazy_static  = "1.2.0"
 procfs       = "0.4.3"
-users        = "0.8.1"
 serde        = "1.0.33"
 serde_derive = "1.0.33"
 structopt    = "0.2.14"
 toml         = "0.4.5"
 unbytify     = "0.2.0"
+users        = "0.8.1"
 
 [package.metadata.release]
 dev-version-ext            = "pre"
