@@ -12,6 +12,7 @@ use failure::{Error, ResultExt};
 use procfs::Process;
 use std::fs;
 use std::io::Read;
+use std::process;
 use std::thread;
 use std::time::{Duration, Instant};
 use structopt::{clap, StructOpt};
@@ -32,6 +33,10 @@ pub struct Opt {
     /// Keyword for search
     #[structopt(name = "KEYWORD")]
     pub keyword: Vec<String>,
+
+    /// Show self process
+    #[structopt(long = "self")]
+    pub show_self: bool,
 
     /// Color mode
     #[structopt(
@@ -242,6 +247,8 @@ fn run_opt(opt: Opt) -> Result<(), Error> {
         _ => (),
     }
 
+    let self_pid = process::id() as i32;
+
     collect_proc(&mut cols, &opt);
 
     let mut cols_nonnumeric = Vec::new();
@@ -289,6 +296,12 @@ fn run_opt(opt: Opt) -> Result<(), Error> {
                     util::find_exact(cols_numeric.as_slice(), pid, &keyword_numeric)
                 }
             };
+        }
+
+        if !opt.show_self {
+            if pid == self_pid {
+                visible = false;
+            }
         }
 
         if visible {
