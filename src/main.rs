@@ -298,10 +298,8 @@ fn run_opt(opt: Opt) -> Result<(), Error> {
             };
         }
 
-        if !opt.show_self {
-            if pid == self_pid {
-                visible = false;
-            }
+        if !opt.show_self && pid == self_pid {
+            visible = false;
         }
 
         if visible {
