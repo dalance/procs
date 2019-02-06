@@ -206,13 +206,6 @@ fn main() {
 #[cfg_attr(tarpaulin, skip)]
 fn run() -> Result<(), Error> {
     let opt = Opt::from_args();
-    run_opt(opt)
-}
-
-fn run_opt(opt: Opt) -> Result<(), Error> {
-    // -------------------------------------------------------------------------
-    // Config
-    // -------------------------------------------------------------------------
 
     if opt.config {
         let config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
@@ -223,6 +216,10 @@ fn run_opt(opt: Opt) -> Result<(), Error> {
 
     let config = get_config()?;
 
+    run_opt_config(opt, config)
+}
+
+fn run_opt_config(opt: Opt, config: Config) -> Result<(), Error> {
     // -------------------------------------------------------------------------
     // Generate column
     // -------------------------------------------------------------------------
@@ -366,7 +363,9 @@ mod tests {
     fn test_run() {
         let args = vec!["procs"];
         let opt = Opt::from_iter(args.iter());
-        let ret = run_opt(opt);
+        let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
+        config.pager.mode = ConfigPagerMode::Disable;
+        let ret = run_opt_config(opt, config);
         assert!(ret.is_ok());
     }
 
@@ -374,7 +373,9 @@ mod tests {
     fn test_run_with_nonnumeric() {
         let args = vec!["procs", "root"];
         let opt = Opt::from_iter(args.iter());
-        let ret = run_opt(opt);
+        let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
+        config.pager.mode = ConfigPagerMode::Disable;
+        let ret = run_opt_config(opt, config);
         assert!(ret.is_ok());
     }
 
@@ -382,7 +383,9 @@ mod tests {
     fn test_run_with_numeric() {
         let args = vec!["procs", "1"];
         let opt = Opt::from_iter(args.iter());
-        let ret = run_opt(opt);
+        let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
+        config.pager.mode = ConfigPagerMode::Disable;
+        let ret = run_opt_config(opt, config);
         assert!(ret.is_ok());
     }
 
@@ -390,7 +393,9 @@ mod tests {
     fn test_run_config() {
         let args = vec!["procs", "--config"];
         let opt = Opt::from_iter(args.iter());
-        let ret = run_opt(opt);
+        let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
+        config.pager.mode = ConfigPagerMode::Disable;
+        let ret = run_opt_config(opt, config);
         assert!(ret.is_ok());
     }
 }
