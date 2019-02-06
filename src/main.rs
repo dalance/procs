@@ -149,7 +149,7 @@ fn collect_proc(cols: &mut Vec<ColumnInfo>, opt: &Opt) {
     }
 }
 
-fn display_header(max_width: usize, cols: &[ColumnInfo], config: &Config) {
+fn display_header(term: &Term, max_width: usize, cols: &[ColumnInfo], config: &Config) {
     let mut row = String::from("");
     for c in cols.iter() {
         row = format!(
@@ -160,10 +160,10 @@ fn display_header(max_width: usize, cols: &[ColumnInfo], config: &Config) {
     }
     row = row.trim_end().to_string();
     row = console::truncate_str(&row, max_width, "").to_string();
-    println!("{}", row);
+    let _ = term.write_line(&row);
 }
 
-fn display_unit(max_width: usize, cols: &[ColumnInfo], config: &Config) {
+fn display_unit(term: &Term, max_width: usize, cols: &[ColumnInfo], config: &Config) {
     let mut row = String::from("");
     for c in cols.iter() {
         row = format!(
@@ -174,10 +174,10 @@ fn display_unit(max_width: usize, cols: &[ColumnInfo], config: &Config) {
     }
     row = row.trim_end().to_string();
     row = console::truncate_str(&row, max_width, "").to_string();
-    println!("{}", row);
+    let _ = term.write_line(&row);
 }
 
-fn display_content(pid: i32, max_width: usize, cols: &[ColumnInfo], config: &Config) {
+fn display_content(term: &Term, pid: i32, max_width: usize, cols: &[ColumnInfo], config: &Config) {
     let mut row = String::from("");
     for c in cols.iter() {
         row = format!(
@@ -192,7 +192,7 @@ fn display_content(pid: i32, max_width: usize, cols: &[ColumnInfo], config: &Con
     }
     row = row.trim_end().to_string();
     row = console::truncate_str(&row, max_width, "").to_string();
-    println!("{}", row);
+    let _ = term.write_line(&row);
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -313,11 +313,11 @@ fn run_opt(opt: Opt) -> Result<(), Error> {
         }
     }
 
-    display_header(term_w as usize, &cols, &config);
-    display_unit(term_w as usize, &cols, &config);
+    display_header(&term, term_w as usize, &cols, &config);
+    display_unit(&term, term_w as usize, &cols, &config);
 
     for pid in &visible_pids {
-        display_content(*pid, term_w as usize, &cols, &config);
+        display_content(&term, *pid, term_w as usize, &cols, &config);
     }
 
     Ok(())
