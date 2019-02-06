@@ -9,6 +9,7 @@ use columns::*;
 use config::*;
 use console::Term;
 use failure::{Error, ResultExt};
+use pager::Pager;
 use procfs::Process;
 use std::fs;
 use std::io::Read;
@@ -33,10 +34,6 @@ pub struct Opt {
     /// Keyword for search
     #[structopt(name = "KEYWORD")]
     pub keyword: Vec<String>,
-
-    /// Show self process
-    #[structopt(long = "self")]
-    pub show_self: bool,
 
     /// Color mode
     #[structopt(
@@ -213,6 +210,10 @@ fn run() -> Result<(), Error> {
 }
 
 fn run_opt(opt: Opt) -> Result<(), Error> {
+    // -------------------------------------------------------------------------
+    // Config
+    // -------------------------------------------------------------------------
+
     if opt.config {
         let config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
         let toml = toml::to_string(&config)?;
@@ -221,6 +222,10 @@ fn run_opt(opt: Opt) -> Result<(), Error> {
     }
 
     let config = get_config()?;
+
+    // -------------------------------------------------------------------------
+    // Generate column
+    // -------------------------------------------------------------------------
 
     let mut cols = Vec::new();
     for c in &config.columns {
@@ -235,21 +240,11 @@ fn run_opt(opt: Opt) -> Result<(), Error> {
         }
     }
 
-    let term = Term::stdout();
-    let (_term_h, mut term_w) = term.size();
-    if !console::user_attended() {
-        term_w = std::u16::MAX;
-    }
-
-    match opt.color.as_ref() {
-        "always" => console::set_colors_enabled(true),
-        "disable" => console::set_colors_enabled(false),
-        _ => (),
-    }
-
-    let self_pid = process::id() as i32;
-
     collect_proc(&mut cols, &opt);
+
+    // -------------------------------------------------------------------------
+    // Search column
+    // -------------------------------------------------------------------------
 
     let mut cols_nonnumeric = Vec::new();
     let mut cols_numeric = Vec::new();
@@ -276,6 +271,8 @@ fn run_opt(opt: Opt) -> Result<(), Error> {
         .column
         .sorted_pid(&config.sort.order);
 
+    let self_pid = process::id() as i32;
+
     let mut visible_pids = Vec::new();
     for pid in pids {
         let mut visible = true;
@@ -298,7 +295,7 @@ fn run_opt(opt: Opt) -> Result<(), Error> {
             };
         }
 
-        if !opt.show_self && pid == self_pid {
+        if !config.display.show_self && pid == self_pid {
             visible = false;
         }
 
@@ -310,6 +307,44 @@ fn run_opt(opt: Opt) -> Result<(), Error> {
     for pid in &visible_pids {
         for c in &mut cols {
             c.column.update_max_width(*pid);
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Display
+    // -------------------------------------------------------------------------
+
+    let term = Term::stdout();
+    let (term_h, mut term_w) = term.size();
+
+    let user_attended = console::user_attended();
+
+    if !user_attended {
+        term_w = std::u16::MAX;
+    }
+
+    let use_pager = match config.pager.mode {
+        // +3 means header/unit line and next prompt
+        ConfigPagerMode::Auto => term_h < visible_pids.len() as u16 + 3,
+        ConfigPagerMode::Always => true,
+        ConfigPagerMode::Disable => false,
+    };
+
+    if use_pager {
+        if let Some(ref pager) = config.pager.command {
+            Pager::with_pager(&pager).setup();
+        } else {
+            Pager::new().setup();
+        }
+    }
+
+    match opt.color.as_ref() {
+        "always" => console::set_colors_enabled(true),
+        "disable" => console::set_colors_enabled(false),
+        _ => {
+            if use_pager && user_attended {
+                console::set_colors_enabled(true);
+            }
         }
     }
 

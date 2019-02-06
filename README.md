@@ -75,6 +75,10 @@ $ procs growi
 
 ![procs_docker](https://user-images.githubusercontent.com/4331004/52265847-4d3a6e00-2978-11e9-8186-ea8e934acbb1.png)
 
+### Pager
+
+If output lines exceed terminal height, pager is used automatically.
+This behavior and pager command can be specified by configuration file.
 
 ## Configuration
 
@@ -111,7 +115,10 @@ color_r = "BrightGreen"
 color_s = "BrightBlue"
 color_t = "BrightCyan"
 color_z = "BrightMagenta"
-color_x = "BrightWhite"
+color_x = "BrightMagenta"
+color_k = "BrightYellow"
+color_w = "BrightYellow"
+color_p = "BrightYellow"
 
 [style.by_unit]
 color_k = "BrightBlue"
@@ -125,10 +132,21 @@ color_x = "BrightBlue"
 numeric_search = "Exact"
 nonnumeric_search = "Partial"
 
+[display]
+show_self = false
+
 [sort]
 column = 0
 order = "Ascending"
+
+[docker]
+path = "unix:///var/run/docker.sock"
+
+[pager]
+mode = "Auto"
 ```
+
+### `[[columns]]` section
 
 `[[columns]]` section defines which columns are used.
 The first `[[columns]]` is shown at left side, and the last is shown at right side.
@@ -141,12 +159,7 @@ These are the styles for value-aware coloring.
 For example, if `ByUnit` is choosen, color can be specified for each unit of value ( like `K`, `M`, `G`,,, ).
 The colors can be configured in `[style.by_unit]` section.
 
-`[style]` section defines colors of header and unit line.
-`[search]` section defines match policy. Policy can be `Exact` or `Partial`.
-`[sort]` section defines the column used for sort and sort order.
-`order` can be `Ascending` or `Descending`.
-
-### `kind` list
+#### `kind` list
 
 | procs `kind` | `ps` STANDARD FORMAT  |
 | ------------ | --------------------- |
@@ -169,7 +182,7 @@ The colors can be configured in `[style.by_unit]` section.
 | VmSize       | vsz                   |
 | WriteByte    | -not supported-       |
 
-### `style` list
+#### `style` list
 
 - BrightRed
 - BrightGreen
@@ -189,4 +202,62 @@ The colors can be configured in `[style.by_unit]` section.
 - ByState
 - ByUnit
 
+### `[style]` section
 
+`[style]` section defines colors of header and unit line.
+The available list of color is below.
+
+#### `color` list
+
+- BrightRed
+- BrightGreen
+- BrightYellow
+- BrightBlue
+- BrightMagenta
+- BrightCyan
+- BrightWhite
+- Red
+- Green
+- Yellow
+- Blue
+- Magenta
+- Cyan
+- White
+
+### `[style.by_*]` section
+
+`[style.by_*]` section defines colors of special styles like `ByPercentage`, `ByState`, `ByUnit`.
+The available list of color is the same as the list of `[style]` section.
+
+### `[search]` section
+
+`[search]` section defines match policy. Policy can be `Exact` or `Partial`.
+
+### `[display]` section
+
+`[display]` section defines option for display.
+`show_self` means whether the self ( `procs` ) process is shown.
+
+### `[sort]` section
+
+`[sort]` section defines the column used for sort and sort order.
+If `column` is 0, value is sorted by left column.
+`order` can be `Ascending` or `Descending`.
+
+### `[docker]` section
+
+`[docker]` section defines how to communicate to docker daemon.
+`path` means UNIX domain socket to docker daemon.
+
+### `[pager]` section
+
+`[pager]` section defines the behavior of pager.
+`mode` can be `Auto`, `Always` or `Disable`.
+If `Auto`, pager is used only when output lines exceed terminal height.
+Pager command is choosen by `PAGER` environment variable, but you can specify pager comand like below:
+
+```.procs.toml
+[pager]
+mode = "Auto"
+command = "less"
+```

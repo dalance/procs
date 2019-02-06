@@ -8,9 +8,13 @@ pub struct Config {
     #[serde(default)]
     pub search: ConfigSearch,
     #[serde(default)]
+    pub display: ConfigDisplay,
+    #[serde(default)]
     pub sort: ConfigSort,
     #[serde(default)]
     pub docker: ConfigDocker,
+    #[serde(default)]
+    pub pager: ConfigPager,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -203,6 +207,17 @@ pub enum ConfigSearchKind {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ConfigDisplay {
+    pub show_self: bool,
+}
+
+impl Default for ConfigDisplay {
+    fn default() -> Self {
+        ConfigDisplay { show_self: false }
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ConfigSort {
     pub column: usize,
     pub order: ConfigSortOrder,
@@ -234,6 +249,28 @@ impl Default for ConfigDocker {
             path: String::from("unix:///var/run/docker.sock"),
         }
     }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ConfigPager {
+    pub mode: ConfigPagerMode,
+    pub command: Option<String>,
+}
+
+impl Default for ConfigPager {
+    fn default() -> Self {
+        ConfigPager {
+            mode: ConfigPagerMode::Auto,
+            command: None,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum ConfigPagerMode {
+    Auto,
+    Always,
+    Disable,
 }
 
 pub static CONFIG_DEFAULT: &'static str = r#"
