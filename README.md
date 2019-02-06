@@ -262,3 +262,11 @@ Pager command is choosen by `PAGER` environment variable, but you can specify pa
 mode = "Auto"
 command = "less"
 ```
+
+If `more` is used, `-f` option is recommended.
+
+```.procs.toml
+[pager]
+mode = "Auto"
+command = "more -f"
+```

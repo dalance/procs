@@ -330,8 +330,11 @@ fn run_opt_config(opt: Opt, config: Config) -> Result<(), Error> {
     if use_pager {
         if let Some(ref pager) = config.pager.command {
             Pager::with_pager(&pager).setup();
+        }
+        if quale::which("less").is_some() {
+            Pager::with_default_pager("less").setup();
         } else {
-            Pager::new().setup();
+            Pager::with_default_pager("more -f").setup();
         }
     }
 
