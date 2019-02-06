@@ -198,8 +198,21 @@ fn display_content(term: &Term, pid: i32, max_width: usize, cols: &[ColumnInfo],
 
 #[cfg_attr(tarpaulin, skip)]
 fn main() {
+    let err = Term::stderr();
+
     if let Err(x) = run() {
-        eprintln!("{}", x);
+        let mut cause = x.iter_chain();
+        let _ = err.write_line(&format!(
+            "{} {}",
+            console::style("error:").red().bold(),
+            cause.next().unwrap()
+        ));
+
+        for x in cause {
+            let _ = err.write_line(&format!("  {} {}", console::style("caused by:").red(), x));
+        }
+
+        process::exit(1);
     }
 }
 
