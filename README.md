@@ -162,26 +162,35 @@ The colors can be configured in `[style.by_unit]` section.
 
 #### `kind` list
 
-| procs `kind` | `ps` STANDARD FORMAT  |
-| ------------ | --------------------- |
-| Command      | args                  |
-| CpuTime      | cputime               |
-| Docker       | -not supported-       |
-| Nice         | ni                    |
-| Pid          | pid                   |
-| ReadBytes    | -not supported-       |
-| Separator    | -not supported-       |
-| StartTime    | start_time            |
-| State        | s                     |
-| TcpPort      | -not supported-       |
-| Tty          | tty                   |
-| UdpPort      | -not supported-       |
-| UsageCpu     | %cpu                  |
-| UsageMem     | %mem                  |
-| Username     | euser                 |
-| VmRss        | rss                   |
-| VmSize       | vsz                   |
-| WriteByte    | -not supported-       |
+| procs `kind` | `ps` STANDARD FORMAT  | Description                      |
+| ------------ | --------------------- | -------------------------------- |
+| Command      | args                  | Command with all arguments       |
+| CpuTime      | cputime               | Cumulative CPU time              |
+| Eip          | eip                   | Instruction pointer              |
+| Esp          | esp                   | Stack pointer                    |
+| Docker       | -not supported-       | Docker container name            |
+| MajFlt       | maj_flt               | Major page fault count           |
+| MinFlt       | min_flt               | Minor page fault count           |
+| Nice         | ni                    | Nice value                       |
+| Pid          | pid                   | Process ID                       |
+| Ppid         | ppid                  | Parent process ID                |
+| Priority     | pri                   | Priority                         |
+| Processor    | psr                   | Currently assigned processor     |
+| ReadBytes    | -not supported-       | Read bytes from storage          |
+| RtPriority   | rtprio                | Real-time priority               |
+| Separator    | -not supported-       | Show `|` for column separation   |
+| StartTime    | start_time            | Starting time                    |
+| State        | s                     | Process State                    |
+| TcpPort      | -not supported-       | Binded TCP ports                 |
+| Threads      | nlwp                  | Thread count                     |
+| Tty          | tty                   | Controlling TTY                  |
+| UdpPort      | -not supported-       | Binded UDP ports                 |
+| UsageCpu     | %cpu                  | CPU utilization                  |
+| UsageMem     | %mem                  | Memory utilization               |
+| Username     | euser                 | User name                        |
+| VmRss        | rss                   | Resident set size                |
+| VmSize       | vsz                   | Physical page size               |
+| WriteByte    | -not supported-       | Write bytes to storage           |
 
 #### `style` list
 
