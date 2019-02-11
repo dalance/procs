@@ -10,7 +10,10 @@
 
 - Output by the colored and human-readable format
 - Keyword search over multi-column
-- Some additional information (ex. TCP/UDP port, Read/Write throughput, Docker container name) which are not supported by `ps`
+- Some additional information which are not supported by `ps`
+    - TCP/UDP port
+    - Read/Write throughput
+    - Docker container name
 - Pager support
 
 ## Platform
