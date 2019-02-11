@@ -427,4 +427,99 @@ mod tests {
         let ret = run_opt_config(opt, config);
         assert!(ret.is_ok());
     }
+
+    pub static CONFIG_ALL: &'static str = r#"
+[[columns]]
+kind = "Command"
+style = "BrightRed"
+[[columns]]
+kind = "CpuTime"
+style = "BrightGreen"
+[[columns]]
+kind = "Eip"
+style = "BrightYellow"
+[[columns]]
+kind = "Esp"
+style = "BrightBlue"
+[[columns]]
+kind = "Docker"
+style = "BrightMagenta"
+[[columns]]
+kind = "MajFlt"
+style = "BrightCyan"
+[[columns]]
+kind = "MinFlt"
+style = "BrightWhite"
+[[columns]]
+kind = "Nice"
+style = "Red"
+[[columns]]
+kind = "Pid"
+style = "Green"
+[[columns]]
+kind = "Ppid"
+style = "Yellow"
+[[columns]]
+kind = "Priority"
+style = "Blue"
+[[columns]]
+kind = "Processor"
+style = "Magenta"
+[[columns]]
+kind = "ReadBytes"
+style = "Cyan"
+[[columns]]
+kind = "RtPriority"
+style = "White"
+[[columns]]
+kind = "Separator"
+style = "White"
+[[columns]]
+kind = "StartTime"
+style = "White"
+[[columns]]
+kind = "State"
+style = "White"
+[[columns]]
+kind = "TcpPort"
+style = "White"
+[[columns]]
+kind = "Threads"
+style = "White"
+[[columns]]
+kind = "Tty"
+style = "White"
+[[columns]]
+kind = "UdpPort"
+style = "White"
+[[columns]]
+kind = "UsageCpu"
+style = "White"
+[[columns]]
+kind = "UsageMem"
+style = "White"
+[[columns]]
+kind = "Username"
+style = "White"
+[[columns]]
+kind = "VmRss"
+style = "White"
+[[columns]]
+kind = "VmSize"
+style = "White"
+[[columns]]
+kind = "WriteBytes"
+style = "White"
+"#;
+
+    #[test]
+    fn test_run_all() {
+        let args = vec!["procs"];
+        let opt = Opt::from_iter(args.iter());
+        let mut config: Config = toml::from_str(CONFIG_ALL).unwrap();
+        config.pager.mode = ConfigPagerMode::Disable;
+        let ret = run_opt_config(opt, config);
+        assert!(ret.is_ok());
+    }
+
 }
