@@ -1,5 +1,13 @@
 use serde_derive::{Deserialize, Serialize};
 
+fn default_true() -> bool {
+    true
+}
+
+fn default_false() -> bool {
+    false
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Config {
     pub columns: Vec<ConfigColumn>,
@@ -91,9 +99,9 @@ pub enum ConfigColumnStyle {
 pub struct ConfigColumn {
     pub kind: ConfigColumnKind,
     pub style: ConfigColumnStyle,
-    #[serde(default)]
+    #[serde(default = "default_false")]
     pub numeric_search: bool,
-    #[serde(default)]
+    #[serde(default = "default_false")]
     pub nonnumeric_search: bool,
 }
 
@@ -217,12 +225,24 @@ pub enum ConfigSearchKind {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ConfigDisplay {
+    #[serde(default = "default_false")]
     pub show_self: bool,
+    #[serde(default = "default_true")]
+    pub cut_to_terminal: bool,
+    #[serde(default = "default_false")]
+    pub cut_to_pager: bool,
+    #[serde(default = "default_false")]
+    pub cut_to_pipe: bool,
 }
 
 impl Default for ConfigDisplay {
     fn default() -> Self {
-        ConfigDisplay { show_self: false }
+        ConfigDisplay {
+            show_self: false,
+            cut_to_terminal: true,
+            cut_to_pager: false,
+            cut_to_pipe: false,
+        }
     }
 }
 

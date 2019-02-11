@@ -135,6 +135,9 @@ nonnumeric_search = "Partial"
 
 [display]
 show_self = false
+cut_to_terminal = true
+cut_to_pager = false
+cut_to_pipe = false
 
 [sort]
 column = 0
@@ -247,6 +250,7 @@ The available list of color is the same as the list of `[style]` section.
 
 `[display]` section defines option for display.
 `show_self` means whether the self ( `procs` ) process is shown.
+`cut_to_*` means whether output lines is truncated upto terminal size.
 
 ### `[sort]` section
 
@@ -264,7 +268,7 @@ If `column` is 0, value is sorted by left column.
 `[pager]` section defines the behavior of pager.
 `mode` can be `Auto`, `Always` or `Disable`.
 If `Auto`, pager is used only when output lines exceed terminal height.
-Pager command is choosen by `PAGER` environment variable, but you can specify pager comand like below:
+Default pager is `less -SR` ( if `less` is not found, `more -f` ),  but you can specify pager comand like below:
 
 ```.procs.toml
 [pager]

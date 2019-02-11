@@ -336,11 +336,7 @@ fn run_opt_config(opt: Opt, config: Config) -> Result<(), Error> {
     let term = Term::stdout();
     let (term_h, mut term_w) = term.size();
 
-    let user_attended = console::user_attended();
-
-    if !user_attended {
-        term_w = std::u16::MAX;
-    }
+    let use_terminal = console::user_attended();
 
     let use_pager = match config.pager.mode {
         // +3 means header/unit line and next prompt
@@ -349,12 +345,20 @@ fn run_opt_config(opt: Opt, config: Config) -> Result<(), Error> {
         ConfigPagerMode::Disable => false,
     };
 
+    let mut truncate = use_terminal && use_pager && config.display.cut_to_pager;
+    truncate |= use_terminal && !use_pager && config.display.cut_to_terminal;
+    truncate |= !use_terminal && config.display.cut_to_pipe;
+
+    if !truncate {
+        term_w = std::u16::MAX;
+    }
+
     if use_pager {
         if let Some(ref pager) = config.pager.command {
             Pager::with_pager(&pager).setup();
         }
         if quale::which("less").is_some() {
-            Pager::with_default_pager("less").setup();
+            Pager::with_default_pager("less -SR").setup();
         } else {
             Pager::with_default_pager("more -f").setup();
         }
@@ -364,7 +368,7 @@ fn run_opt_config(opt: Opt, config: Config) -> Result<(), Error> {
         "always" => console::set_colors_enabled(true),
         "disable" => console::set_colors_enabled(false),
         _ => {
-            if use_pager && user_attended {
+            if use_pager && use_terminal {
                 console::set_colors_enabled(true);
             }
         }
