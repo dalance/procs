@@ -94,6 +94,7 @@ fn gen_column(kind: &ConfigColumnKind, docker_path: &str) -> Box<dyn Column> {
         ConfigColumnKind::Username => Box::new(Username::new()),
         ConfigColumnKind::VmRss => Box::new(VmRss::new()),
         ConfigColumnKind::VmSize => Box::new(VmSize::new()),
+        ConfigColumnKind::Wchan => Box::new(Wchan::new()),
         ConfigColumnKind::WriteBytes => Box::new(WriteBytes::new()),
     }
 }

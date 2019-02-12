@@ -71,6 +71,7 @@ pub enum ConfigColumnKind {
     Username,
     VmRss,
     VmSize,
+    Wchan,
     WriteBytes,
 }
 

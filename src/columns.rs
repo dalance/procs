@@ -24,6 +24,7 @@ pub mod usage_mem;
 pub mod username;
 pub mod vm_rss;
 pub mod vm_size;
+pub mod wchan;
 pub mod write_bytes;
 
 pub use self::command::Command;
@@ -52,4 +53,5 @@ pub use self::usage_mem::UsageMem;
 pub use self::username::Username;
 pub use self::vm_rss::VmRss;
 pub use self::vm_size::VmSize;
+pub use self::wchan::Wchan;
 pub use self::write_bytes::WriteBytes;

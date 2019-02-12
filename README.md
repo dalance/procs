@@ -196,6 +196,7 @@ The colors can be configured in `[style.by_unit]` section.
 | Username     | euser                 | User name                        |
 | VmRss        | rss                   | Resident set size                |
 | VmSize       | vsz                   | Physical page size               |
+| Wchan        | wchan                 | Process sleeping kernel function |
 | WriteByte    | -not supported-       | Write bytes to storage           |
 
 #### `style` list
