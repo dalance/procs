@@ -103,6 +103,7 @@ fn gen_column(kind: &ConfigColumnKind, docker_path: &str) -> Box<dyn Column> {
 // Functions
 // ---------------------------------------------------------------------------------------------------------------------
 
+#[cfg_attr(tarpaulin, skip)]
 fn get_config() -> Result<Config, Error> {
     let cfg_path = match dirs::home_dir() {
         Some(mut path) => {
