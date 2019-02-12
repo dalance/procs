@@ -1,4 +1,10 @@
+use crate::column::Column;
+use crate::columns::*;
 use serde_derive::{Deserialize, Serialize};
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Functions for serde defalut
+// ---------------------------------------------------------------------------------------------------------------------
 
 fn default_true() -> bool {
     true
@@ -7,6 +13,54 @@ fn default_true() -> bool {
 fn default_false() -> bool {
     false
 }
+
+// ---------------------------------------------------------------------------------------------------------------------
+// ColumnInfo
+// ---------------------------------------------------------------------------------------------------------------------
+
+pub struct ColumnInfo {
+    pub column: Box<dyn Column>,
+    pub style: ConfigColumnStyle,
+    pub nonnumeric_search: bool,
+    pub numeric_search: bool,
+}
+
+pub fn gen_column(kind: &ConfigColumnKind, docker_path: &str) -> Box<dyn Column> {
+    match kind {
+        ConfigColumnKind::Command => Box::new(Command::new()),
+        ConfigColumnKind::CpuTime => Box::new(CpuTime::new()),
+        ConfigColumnKind::Docker => Box::new(Docker::new(docker_path)),
+        ConfigColumnKind::Eip => Box::new(Eip::new()),
+        ConfigColumnKind::Esp => Box::new(Esp::new()),
+        ConfigColumnKind::MajFlt => Box::new(MajFlt::new()),
+        ConfigColumnKind::MinFlt => Box::new(MinFlt::new()),
+        ConfigColumnKind::Nice => Box::new(Nice::new()),
+        ConfigColumnKind::Pid => Box::new(Pid::new()),
+        ConfigColumnKind::Ppid => Box::new(Ppid::new()),
+        ConfigColumnKind::Priority => Box::new(Priority::new()),
+        ConfigColumnKind::Processor => Box::new(Processor::new()),
+        ConfigColumnKind::ReadBytes => Box::new(ReadBytes::new()),
+        ConfigColumnKind::RtPriority => Box::new(RtPriority::new()),
+        ConfigColumnKind::Separator => Box::new(Separator::new()),
+        ConfigColumnKind::StartTime => Box::new(StartTime::new()),
+        ConfigColumnKind::State => Box::new(State::new()),
+        ConfigColumnKind::TcpPort => Box::new(TcpPort::new()),
+        ConfigColumnKind::Threads => Box::new(Threads::new()),
+        ConfigColumnKind::Tty => Box::new(Tty::new()),
+        ConfigColumnKind::UdpPort => Box::new(UdpPort::new()),
+        ConfigColumnKind::UsageCpu => Box::new(UsageCpu::new()),
+        ConfigColumnKind::UsageMem => Box::new(UsageMem::new()),
+        ConfigColumnKind::Username => Box::new(Username::new()),
+        ConfigColumnKind::VmRss => Box::new(VmRss::new()),
+        ConfigColumnKind::VmSize => Box::new(VmSize::new()),
+        ConfigColumnKind::Wchan => Box::new(Wchan::new()),
+        ConfigColumnKind::WriteBytes => Box::new(WriteBytes::new()),
+    }
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Config
+// ---------------------------------------------------------------------------------------------------------------------
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Config {
