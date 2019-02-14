@@ -1,5 +1,5 @@
 use crate::Column;
-use procfs::{FDTarget, Io, ProcResult, Process, TcpNetEntry, TcpState};
+use procfs::{FDTarget, Io, ProcResult, Process, Status, TcpNetEntry, TcpState};
 use std::cmp;
 use std::collections::HashMap;
 use std::time::Duration;
@@ -37,6 +37,7 @@ impl Column for TcpPort {
         _prev_proc: &Process,
         _curr_io: &ProcResult<Io>,
         _prev_io: &ProcResult<Io>,
+        _curr_status: &ProcResult<Status>,
         _interval: &Duration,
     ) {
         let fmt_content = if let Ok(fds) = curr_proc.fd() {

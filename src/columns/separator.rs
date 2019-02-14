@@ -1,5 +1,5 @@
 use crate::{column_default, Column};
-use procfs::{Io, ProcResult, Process};
+use procfs::{Io, ProcResult, Process, Status};
 use std::cmp;
 use std::collections::HashMap;
 use std::time::Duration;
@@ -33,6 +33,7 @@ impl Column for Separator {
         _prev_proc: &Process,
         _curr_io: &ProcResult<Io>,
         _prev_io: &ProcResult<Io>,
+        _curr_status: &ProcResult<Status>,
         _interval: &Duration,
     ) {
         let raw_content = "|".to_string();

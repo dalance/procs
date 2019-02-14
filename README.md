@@ -194,8 +194,18 @@ The colors can be configured in `[style.by_unit]` section.
 | UsageCpu     | %cpu                  | CPU utilization                  |
 | UsageMem     | %mem                  | Memory utilization               |
 | Username     | euser                 | User name                        |
+| VmData       | -not supported-       | Data size                        |
+| VmExe        | trs                   | Text segments size               |
+| VmHwm        | -not supported-       | Peak resident set size           |
+| VmLib        | -not supported-       | Library code size                |
+| VmLock       | -not supported-       | Locked memory size               |
+| VmPeak       | -not supported-       | Peak virtual memory size         |
+| VmPin        | -not supported-       | Pinned memory size               |
+| VmPte        | -not supported-       | Page table entries size          |
 | VmRss        | rss                   | Resident set size                |
 | VmSize       | vsz                   | Physical page size               |
+| VmStack      | -not supported-       | Stack size                       |
+| VmSwap       | -not supported-       | Swapped-out virtual memory size  |
 | Wchan        | wchan                 | Process sleeping kernel function |
 | WriteByte    | -not supported-       | Write bytes to storage           |
 

@@ -51,8 +51,18 @@ pub fn gen_column(kind: &ConfigColumnKind, docker_path: &str) -> Box<dyn Column>
         ConfigColumnKind::UsageCpu => Box::new(UsageCpu::new()),
         ConfigColumnKind::UsageMem => Box::new(UsageMem::new()),
         ConfigColumnKind::Username => Box::new(Username::new()),
+        ConfigColumnKind::VmData => Box::new(VmData::new()),
+        ConfigColumnKind::VmExe => Box::new(VmExe::new()),
+        ConfigColumnKind::VmHwm => Box::new(VmHwm::new()),
+        ConfigColumnKind::VmLib => Box::new(VmLib::new()),
+        ConfigColumnKind::VmLock => Box::new(VmLock::new()),
+        ConfigColumnKind::VmPeak => Box::new(VmPeak::new()),
+        ConfigColumnKind::VmPin => Box::new(VmPin::new()),
+        ConfigColumnKind::VmPte => Box::new(VmPte::new()),
         ConfigColumnKind::VmRss => Box::new(VmRss::new()),
         ConfigColumnKind::VmSize => Box::new(VmSize::new()),
+        ConfigColumnKind::VmStack => Box::new(VmStack::new()),
+        ConfigColumnKind::VmSwap => Box::new(VmSwap::new()),
         ConfigColumnKind::Wchan => Box::new(Wchan::new()),
         ConfigColumnKind::WriteBytes => Box::new(WriteBytes::new()),
     }
@@ -123,8 +133,18 @@ pub enum ConfigColumnKind {
     UsageCpu,
     UsageMem,
     Username,
+    VmData,
+    VmExe,
+    VmHwm,
+    VmLib,
+    VmLock,
+    VmPeak,
+    VmPin,
+    VmPte,
     VmRss,
     VmSize,
+    VmStack,
+    VmSwap,
     Wchan,
     WriteBytes,
 }
@@ -396,6 +416,11 @@ nonnumeric_search = false
 [[columns]]
 kind = "UsageMem"
 style = "ByPercentage"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "VmPeak"
+style = "ByUnit"
 numeric_search = false
 nonnumeric_search = false
 [[columns]]

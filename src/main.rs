@@ -102,12 +102,19 @@ fn collect_proc(cols: &mut Vec<ColumnInfo>, opt: &Opt) {
             prev_proc.clone()
         };
         let curr_io = curr_proc.io();
+        let curr_status = curr_proc.status();
         let curr_time = Instant::now();
         let interval = curr_time - prev_time;
 
         for c in cols.iter_mut() {
-            c.column
-                .add(&curr_proc, &prev_proc, &curr_io, &prev_io, &interval);
+            c.column.add(
+                &curr_proc,
+                &prev_proc,
+                &curr_io,
+                &prev_io,
+                &curr_status,
+                &interval,
+            );
         }
     }
 }
@@ -459,11 +466,41 @@ style = "White"
 kind = "Username"
 style = "White"
 [[columns]]
+kind = "VmData"
+style = "ByUnit"
+[[columns]]
+kind = "VmExe"
+style = "ByUnit"
+[[columns]]
+kind = "VmHwm"
+style = "ByUnit"
+[[columns]]
+kind = "VmLib"
+style = "ByUnit"
+[[columns]]
+kind = "VmLock"
+style = "ByUnit"
+[[columns]]
+kind = "VmPeak"
+style = "ByUnit"
+[[columns]]
+kind = "VmPin"
+style = "ByUnit"
+[[columns]]
+kind = "VmPte"
+style = "ByUnit"
+[[columns]]
 kind = "VmRss"
-style = "White"
+style = "ByUnit"
 [[columns]]
 kind = "VmSize"
-style = "White"
+style = "ByUnit"
+[[columns]]
+kind = "VmStack"
+style = "ByUnit"
+[[columns]]
+kind = "VmSwap"
+style = "ByUnit"
 [[columns]]
 kind = "Wchan"
 style = "White"

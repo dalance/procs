@@ -4,19 +4,19 @@ use std::cmp;
 use std::collections::HashMap;
 use std::time::Duration;
 
-pub struct Tty {
+pub struct VmSwap {
     header: String,
     unit: String,
     fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, String>,
+    raw_contents: HashMap<i32, u64>,
     max_width: usize,
 }
 
-impl Tty {
+impl VmSwap {
     pub fn new() -> Self {
-        let header = String::from("TTY");
-        let unit = String::from("");
-        Tty {
+        let header = String::from("VmSwap");
+        let unit = String::from("[bytes]");
+        VmSwap {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
             max_width: cmp::max(header.len(), unit.len()),
@@ -26,27 +26,34 @@ impl Tty {
     }
 }
 
-impl Column for Tty {
+impl Column for VmSwap {
     fn add(
         &mut self,
         curr_proc: &Process,
         _prev_proc: &Process,
         _curr_io: &ProcResult<Io>,
         _prev_io: &ProcResult<Io>,
-        _curr_status: &ProcResult<Status>,
+        curr_status: &ProcResult<Status>,
         _interval: &Duration,
     ) {
-        let (major, minor) = curr_proc.stat.tty_nr();
-        let fmt_content = if major == 136 {
-            format!("pts/{}", minor)
+        let (raw_content, fmt_content) = if let Ok(ref curr_status) = curr_status {
+            if let Some(val) = curr_status.vmswap {
+                let val = val * 1024;
+                let (size, unit) = unbytify::bytify(val);
+                (
+                    val,
+                    format!("{}{}", size, unit.replace("i", "").replace("B", "")),
+                )
+            } else {
+                (0, String::from(""))
+            }
         } else {
-            String::from("")
+            (0, String::from(""))
         };
-        let raw_content = fmt_content.clone();
 
         self.fmt_contents.insert(curr_proc.pid(), fmt_content);
         self.raw_contents.insert(curr_proc.pid(), raw_content);
     }
 
-    column_default!(String);
+    column_default!(u64);
 }

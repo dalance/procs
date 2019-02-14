@@ -1,5 +1,5 @@
 use crate::{column_default, Column};
-use procfs::{Io, ProcResult, Process};
+use procfs::{Io, ProcResult, Process, Status};
 use std::cmp;
 use std::collections::HashMap;
 use std::time::Duration;
@@ -14,7 +14,7 @@ pub struct VmSize {
 
 impl VmSize {
     pub fn new() -> Self {
-        let header = String::from("VSZ");
+        let header = String::from("VmSize");
         let unit = String::from("[bytes]");
         VmSize {
             fmt_contents: HashMap::new(),
@@ -33,6 +33,7 @@ impl Column for VmSize {
         _prev_proc: &Process,
         _curr_io: &ProcResult<Io>,
         _prev_io: &ProcResult<Io>,
+        _curr_status: &ProcResult<Status>,
         _interval: &Duration,
     ) {
         let raw_content = curr_proc.stat.vsize;

@@ -1,6 +1,6 @@
 use crate::config;
 use config::ConfigSortOrder;
-use procfs::{Io, ProcResult, Process};
+use procfs::{Io, ProcResult, Process, Status};
 use std::time::Duration;
 
 pub trait Column {
@@ -10,6 +10,7 @@ pub trait Column {
         prev_proc: &Process,
         curr_io: &ProcResult<Io>,
         prev_io: &ProcResult<Io>,
+        curr_status: &ProcResult<Status>,
         interval: &Duration,
     ) -> ();
 
