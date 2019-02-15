@@ -1,8 +1,10 @@
 #[cfg(target_os = "macos")]
-use libproc::proc_pid::{self, ProcType};
+use libproc::libproc::proc_pid::{self, ProcType, TaskAllInfo};
 #[cfg(target_os = "linux")]
 use procfs::{Io, ProcResult, Process, Status};
+#[cfg(target_os = "linux")]
 use std::thread;
+#[cfg(target_os = "linux")]
 use std::time::{Duration, Instant};
 
 #[cfg(target_os = "linux")]
@@ -57,7 +59,6 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
 #[cfg(target_os = "macos")]
 pub struct ProcessInfo {
     pub curr_proc: TaskAllInfo,
-    pub interval: Duration,
 }
 
 #[cfg(target_os = "macos")]
@@ -67,7 +68,7 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
 
     if let Some(procs) = proc_pid::listpids(ProcType::ProcAllPIDS) {
         for p in procs {
-            curr_proc = proc_pid::pidinfo::<TaskAllInfo>(p, 0);
+            let curr_proc = proc_pid::pidinfo::<TaskAllInfo>(p, 0);
 
             let proc = ProcessInfo { curr_proc };
 
