@@ -56,9 +56,7 @@ pub mod vm_peak;
 pub mod vm_pin;
 #[cfg(target_os = "linux")]
 pub mod vm_pte;
-#[cfg(target_os = "linux")]
 pub mod vm_rss;
-#[cfg(target_os = "linux")]
 pub mod vm_size;
 #[cfg(target_os = "linux")]
 pub mod vm_stack;
@@ -127,9 +125,7 @@ pub use self::vm_peak::VmPeak;
 pub use self::vm_pin::VmPin;
 #[cfg(target_os = "linux")]
 pub use self::vm_pte::VmPte;
-#[cfg(target_os = "linux")]
 pub use self::vm_rss::VmRss;
-#[cfg(target_os = "linux")]
 pub use self::vm_size::VmSize;
 #[cfg(target_os = "linux")]
 pub use self::vm_stack::VmStack;

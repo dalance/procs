@@ -2,8 +2,6 @@ use crate::process::ProcessInfo;
 use crate::{column_default, Column};
 use std::cmp;
 use std::collections::HashMap;
-#[cfg(target_os = "macos")]
-use std::ffi::CStr;
 
 pub struct Command {
     header: String,
@@ -63,10 +61,6 @@ impl Column for Command {
 impl Column for Command {
     fn add(&mut self, proc: &ProcessInfo) {
         let pid = proc.curr_proc.pbsd.pbi_pid as i32;
-        //let comm = proc.curr_proc.pbsd.pbi_name.as_ref();
-        //let comm = unsafe { &*(comm as *const _ as *const [u8]) };
-        //let comm = unsafe { CStr::from_bytes_with_nul_unchecked(comm) };
-        //let fmt_content = format!("{}", comm.to_string_lossy());
         let fmt_content = format!("{}", proc.name);
         let raw_content = fmt_content.clone();
 
