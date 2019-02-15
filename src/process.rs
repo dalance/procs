@@ -71,9 +71,12 @@ pub fn collect_proc(_interval: Duration) -> Vec<ProcessInfo> {
     let mut ret = Vec::new();
     let mut system = System::new();
 
-    for (pid, proc) in system.get_process_list().drain() {
-        if let Ok(curr_proc) = proc_pid::pidinfo::<TaskAllInfo>(pid as i32, 0) {
-            let proc = ProcessInfo { curr_proc, proc };
+    for (pid, proc) in system.get_process_list() {
+        if let Ok(curr_proc) = proc_pid::pidinfo::<TaskAllInfo>(*pid as i32, 0) {
+            let proc = ProcessInfo {
+                curr_proc,
+                proc: proc.clone(),
+            };
             ret.push(proc);
         }
     }
