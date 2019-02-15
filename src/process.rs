@@ -69,6 +69,7 @@ pub fn collect_proc(_interval: Duration) -> Vec<ProcessInfo> {
 
     if let Ok(procs) = proc_pid::listpids(ProcType::ProcAllPIDS) {
         for p in procs {
+            dbg!(p);
             if let Ok(curr_proc) = proc_pid::pidinfo::<TaskAllInfo>(p as i32, 0) {
                 let proc = ProcessInfo { curr_proc };
                 ret.push(proc);
