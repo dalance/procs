@@ -1,8 +1,5 @@
 mod column;
-#[cfg(target_os = "linux")]
-mod columns_linux;
-#[cfg(target_os = "macos")]
-mod columns_macos;
+mod columns;
 mod config;
 mod process;
 mod style;

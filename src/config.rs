@@ -1,8 +1,5 @@
 use crate::column::Column;
-#[cfg(target_os = "linux")]
-use crate::columns_linux::*;
-#[cfg(target_os = "macos")]
-use crate::columns_macos::*;
+use crate::columns::*;
 use serde_derive::{Deserialize, Serialize};
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -337,7 +334,7 @@ pub struct ConfigDisplay {
 impl Default for ConfigDisplay {
     fn default() -> Self {
         ConfigDisplay {
-            show_self: true,
+            show_self: false,
             cut_to_terminal: true,
             cut_to_pager: false,
             cut_to_pipe: false,
