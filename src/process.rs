@@ -60,6 +60,7 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
 
 #[cfg(target_os = "macos")]
 pub struct ProcessInfo {
+    pub name: String,
     pub curr_proc: TaskAllInfo,
 }
 
@@ -69,9 +70,9 @@ pub fn collect_proc(_interval: Duration) -> Vec<ProcessInfo> {
 
     if let Ok(procs) = proc_pid::listpids(ProcType::ProcAllPIDS) {
         for p in procs {
-            dbg!(p);
             if let Ok(curr_proc) = proc_pid::pidinfo::<TaskAllInfo>(p as i32, 0) {
-                let proc = ProcessInfo { curr_proc };
+                let name = proc_pid::name(p);
+                let proc = ProcessInfo { name, curr_proc };
                 ret.push(proc);
             }
         }
