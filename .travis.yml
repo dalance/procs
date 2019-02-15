@@ -17,6 +17,7 @@ before_cache: |
 
 script:
 - make test
+- if [[ $TRAVIS_OS_NAME == "osx"   ]]; then ps aux; fi
 - if [[ $TRAVIS_OS_NAME == "linux" ]]; then make release_lnx; fi
 - if [[ $TRAVIS_OS_NAME == "osx"   ]]; then make release_mac; fi
 
