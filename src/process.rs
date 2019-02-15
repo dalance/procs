@@ -64,7 +64,7 @@ pub struct ProcessInfo {
 }
 
 #[cfg(target_os = "macos")]
-pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
+pub fn collect_proc(_interval: Duration) -> Vec<ProcessInfo> {
     let mut ret = Vec::new();
 
     if let Ok(procs) = proc_pid::listpids(ProcType::ProcAllPIDS) {
