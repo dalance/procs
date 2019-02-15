@@ -51,7 +51,11 @@ impl Column for State {
             5 => "T",
             _ => "?",
         };
-        let fmt_content = format!("{}", state);
+        //let fmt_content = format!("{}", state);
+        let fmt_content = format!(
+            "{} {} {}",
+            state, proc.curr_proc.pbsd.pbi_status, proc.curr_proc.pbsd.pbi_xstatus
+        );
         let raw_content = fmt_content.clone();
 
         self.fmt_contents.insert(pid, fmt_content);
