@@ -364,6 +364,7 @@ mod tests {
         assert!(ret.is_ok());
     }
 
+    #[cfg(target_os = "linux")]
     pub static CONFIG_ALL: &'static str = r#"
 [[columns]]
 kind = "Command"
@@ -478,6 +479,16 @@ kind = "Wchan"
 style = "White"
 [[columns]]
 kind = "WriteBytes"
+style = "White"
+"#;
+
+    #[cfg(target_os = "macos")]
+    pub static CONFIG_ALL: &'static str = r#"
+[[columns]]
+kind = "Pid"
+style = "Green"
+[[columns]]
+kind = "Username"
 style = "White"
 "#;
 
