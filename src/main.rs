@@ -331,35 +331,35 @@ mod tests {
         assert!(ret.is_ok());
     }
 
-    #[test]
-    fn test_run_with_nonnumeric() {
-        let args = vec!["procs", "root"];
-        let opt = Opt::from_iter(args.iter());
-        let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
-        config.pager.mode = ConfigPagerMode::Disable;
-        let ret = run_opt_config(opt, config);
-        assert!(ret.is_ok());
-    }
+    //#[test]
+    //fn test_run_with_nonnumeric() {
+    //    let args = vec!["procs", "root"];
+    //    let opt = Opt::from_iter(args.iter());
+    //    let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
+    //    config.pager.mode = ConfigPagerMode::Disable;
+    //    let ret = run_opt_config(opt, config);
+    //    assert!(ret.is_ok());
+    //}
 
-    #[test]
-    fn test_run_with_numeric() {
-        let args = vec!["procs", "1"];
-        let opt = Opt::from_iter(args.iter());
-        let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
-        config.pager.mode = ConfigPagerMode::Disable;
-        let ret = run_opt_config(opt, config);
-        assert!(ret.is_ok());
-    }
+    //#[test]
+    //fn test_run_with_numeric() {
+    //    let args = vec!["procs", "1"];
+    //    let opt = Opt::from_iter(args.iter());
+    //    let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
+    //    config.pager.mode = ConfigPagerMode::Disable;
+    //    let ret = run_opt_config(opt, config);
+    //    assert!(ret.is_ok());
+    //}
 
-    #[test]
-    fn test_run_config() {
-        let args = vec!["procs", "--config"];
-        let opt = Opt::from_iter(args.iter());
-        let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
-        config.pager.mode = ConfigPagerMode::Disable;
-        let ret = run_opt_config(opt, config);
-        assert!(ret.is_ok());
-    }
+    //#[test]
+    //fn test_run_config() {
+    //    let args = vec!["procs", "--config"];
+    //    let opt = Opt::from_iter(args.iter());
+    //    let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
+    //    config.pager.mode = ConfigPagerMode::Disable;
+    //    let ret = run_opt_config(opt, config);
+    //    assert!(ret.is_ok());
+    //}
 
     #[cfg(target_os = "linux")]
     pub static CONFIG_ALL: &'static str = r#"
@@ -489,14 +489,14 @@ kind = "Username"
 style = "White"
 "#;
 
-    #[test]
-    fn test_run_all() {
-        let args = vec!["procs"];
-        let opt = Opt::from_iter(args.iter());
-        let mut config: Config = toml::from_str(CONFIG_ALL).unwrap();
-        config.pager.mode = ConfigPagerMode::Disable;
-        let ret = run_opt_config(opt, config);
-        assert!(ret.is_ok());
-    }
+    //#[test]
+    //fn test_run_all() {
+    //    let args = vec!["procs"];
+    //    let opt = Opt::from_iter(args.iter());
+    //    let mut config: Config = toml::from_str(CONFIG_ALL).unwrap();
+    //    config.pager.mode = ConfigPagerMode::Disable;
+    //    let ret = run_opt_config(opt, config);
+    //    assert!(ret.is_ok());
+    //}
 
 }
