@@ -45,15 +45,16 @@ impl Column for State {
 impl Column for State {
     fn add(&mut self, proc: &ProcessInfo) {
         let pid = proc.curr_proc.pbsd.pbi_pid as i32;
-        let state = match proc.proc.status() {
-            ProcessStatus::Idle => "I",
-            ProcessStatus::Run => "R",
-            ProcessStatus::Sleep => "S",
-            ProcessStatus::Stop => "T",
-            ProcessStatus::Zombie => "Z",
-            ProcessStatus::Unknown(_) => "?",
-        };
-        let fmt_content = format!("{}", state);
+        //let state = match proc.proc.status() {
+        //    ProcessStatus::Idle => "I",
+        //    ProcessStatus::Run => "R",
+        //    ProcessStatus::Sleep => "S",
+        //    ProcessStatus::Stop => "T",
+        //    ProcessStatus::Zombie => "Z",
+        //    ProcessStatus::Unknown(_) => "?",
+        //};
+        //let fmt_content = format!("{}", state);
+        let fmt_content = format!("{}", proc.proc.status());
         let raw_content = fmt_content.clone();
 
         self.fmt_contents.insert(pid, fmt_content);
