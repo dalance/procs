@@ -49,6 +49,7 @@ impl Column for State {
             3 => "S",
             4 => "I",
             5 => "T",
+            6 => "H",
             _ => "?",
         };
         //let fmt_content = format!("{}", state);
