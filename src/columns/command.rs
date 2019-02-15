@@ -63,7 +63,7 @@ impl Column for Command {
 impl Column for Command {
     fn add(&mut self, proc: &ProcessInfo) {
         let pid = proc.curr_proc.pbsd.pbi_pid as i32;
-        let fmt_content = format!("{}", proc.proc.cmd());
+        let fmt_content = format!("{:?}", proc.proc.cmd());
         let raw_content = fmt_content.clone();
 
         self.fmt_contents.insert(pid, fmt_content);

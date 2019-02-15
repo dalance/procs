@@ -51,11 +51,6 @@ impl Column for State {
             ProcessStatus::Sleep => "S",
             ProcessStatus::Stop => "T",
             ProcessStatus::Zombie => "Z",
-            ProcessStatus::Tracing => "T",
-            ProcessStatus::Dead => "D",
-            ProcessStatus::Wakekill => "W",
-            ProcessStatus::Waking => "W",
-            ProcessStatus::Parked => "P",
             ProcessStatus::Unknown => "?",
         };
         let fmt_content = format!("{}", state);
