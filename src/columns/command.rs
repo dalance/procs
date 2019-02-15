@@ -63,7 +63,7 @@ impl Column for Command {
 impl Column for Command {
     fn add(&mut self, proc: &ProcessInfo) {
         let pid = proc.curr_proc.pbsd.pbi_pid as i32;
-        let comm = CStr::from_bytes_with_nul_unchecked(&proc.curr_proc.pbsd.pbi_comm);
+        let comm = CStr::from_bytes_with_nul_unchecked(&proc.curr_proc.pbsd.pbi_comm.as_ref());
         let fmt_content = format!("{}", comm);
         let raw_content = fmt_content.clone();
 
