@@ -51,7 +51,6 @@ impl Column for State {
             ProcessStatus::Sleep => "S",
             ProcessStatus::Stop => "T",
             ProcessStatus::Zombie => "Z",
-            ProcessStatus::Unknown => "?",
         };
         let fmt_content = format!("{}", state);
         let raw_content = fmt_content.clone();
