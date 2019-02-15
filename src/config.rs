@@ -77,6 +77,7 @@ pub fn gen_column(kind: &ConfigColumnKind, _docker_path: &str) -> Box<dyn Column
     match kind {
         ConfigColumnKind::Pid => Box::new(Pid::new()),
         ConfigColumnKind::Separator => Box::new(Separator::new()),
+        ConfigColumnKind::State => Box::new(State::new()),
         ConfigColumnKind::Username => Box::new(Username::new()),
     }
 }
@@ -168,6 +169,7 @@ pub enum ConfigColumnKind {
 pub enum ConfigColumnKind {
     Pid,
     Separator,
+    State,
     Username,
 }
 
@@ -523,6 +525,11 @@ nonnumeric_search = true
 [[columns]]
 kind = "Separator"
 style = "White"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "State"
+style = "ByState"
 numeric_search = false
 nonnumeric_search = false
 "#;
