@@ -32,7 +32,7 @@ impl Column for Username {
         let fmt_content = if let Some(user) = user {
             format!("{}", user.name().to_string_lossy())
         } else {
-            format!("{}", proc.curr_proc.owner)
+            format!("{}", proc.curr_proc.pbsd.pbi_uid)
         };
         let raw_content = fmt_content.clone();
 
