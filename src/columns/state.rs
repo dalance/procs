@@ -2,6 +2,8 @@ use crate::process::ProcessInfo;
 use crate::{column_default, Column};
 use std::cmp;
 use std::collections::HashMap;
+#[cfg(target_os = "macos")]
+use sysinfo::{ProcessExt, ProcessStatus};
 
 pub struct State {
     header: String,
@@ -43,20 +45,20 @@ impl Column for State {
 impl Column for State {
     fn add(&mut self, proc: &ProcessInfo) {
         let pid = proc.curr_proc.pbsd.pbi_pid as i32;
-        let state = match proc.curr_proc.pbsd.pbi_status {
-            1 => "R",
-            2 => "U",
-            3 => "S",
-            4 => "I",
-            5 => "T",
-            6 => "H",
-            _ => "?",
+        let state = match proc.proc.status() {
+            ProcessStatus::Idle => "I",
+            ProcessStatus::Run => "R",
+            ProcessStatus::Sleep => "S",
+            ProcessStatus::Stop => "T",
+            ProcessStatus::Zombie => "Z",
+            ProcessStatus::Tracing => "T",
+            ProcessStatus::Dead => "D",
+            ProcessStatus::Wakekill => "W",
+            ProcessStatus::Waking => "W",
+            ProcessStatus::Parked => "P",
+            ProcessStatus::Unknown => "?",
         };
-        //let fmt_content = format!("{}", state);
-        let fmt_content = format!(
-            "{} {} {}",
-            state, proc.curr_proc.pbsd.pbi_status, proc.curr_proc.pbsd.pbi_xstatus
-        );
+        let fmt_content = format!("{}", state);
         let raw_content = fmt_content.clone();
 
         self.fmt_contents.insert(pid, fmt_content);
