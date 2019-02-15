@@ -1,5 +1,8 @@
 use crate::column::Column;
-use crate::columns::*;
+#[cfg(target_os = "linux")]
+use crate::columns_linux::*;
+#[cfg(target_os = "macos")]
+use crate::columns_macos::*;
 use serde_derive::{Deserialize, Serialize};
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -25,6 +28,7 @@ pub struct ColumnInfo {
     pub numeric_search: bool,
 }
 
+#[cfg(target_os = "linux")]
 pub fn gen_column(kind: &ConfigColumnKind, docker_path: &str) -> Box<dyn Column> {
     match kind {
         ConfigColumnKind::Command => Box::new(Command::new()),
@@ -68,6 +72,13 @@ pub fn gen_column(kind: &ConfigColumnKind, docker_path: &str) -> Box<dyn Column>
     }
 }
 
+#[cfg(target_os = "macos")]
+pub fn gen_column(kind: &ConfigColumnKind, docker_path: &str) -> Box<dyn Column> {
+    match kind {
+        ConfigColumnKind::Pid => Box::new(Pid::new()),
+    }
+}
+
 // ---------------------------------------------------------------------------------------------------------------------
 // Config
 // ---------------------------------------------------------------------------------------------------------------------
@@ -107,6 +118,7 @@ pub enum ConfigColor {
     White,
 }
 
+#[cfg(target_os = "linux")]
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ConfigColumnKind {
     Command,
@@ -147,6 +159,12 @@ pub enum ConfigColumnKind {
     VmSwap,
     Wchan,
     WriteBytes,
+}
+
+#[cfg(target_os = "macos")]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum ConfigColumnKind {
+    Pid,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -377,6 +395,7 @@ pub enum ConfigPagerMode {
     Disable,
 }
 
+#[cfg(target_os = "linux")]
 pub static CONFIG_DEFAULT: &'static str = r#"
 [[columns]]
 kind = "Pid"
@@ -483,4 +502,13 @@ kind = "Command"
 style = "BrightWhite"
 numeric_search = false
 nonnumeric_search = true
+"#;
+
+#[cfg(target_os = "macos")]
+pub static CONFIG_DEFAULT: &'static str = r#"
+[[columns]]
+kind = "Pid"
+style = "BrightYellow"
+numeric_search = true
+nonnumeric_search = false
 "#;

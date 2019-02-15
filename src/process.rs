@@ -1,7 +1,11 @@
+#[cfg(target_os = "macos")]
+use libproc::proc_pid::{self, ProcType};
+#[cfg(target_os = "linux")]
 use procfs::{Io, ProcResult, Process, Status};
 use std::thread;
 use std::time::{Duration, Instant};
 
+#[cfg(target_os = "linux")]
 pub struct ProcessInfo {
     pub curr_proc: Process,
     pub prev_proc: Process,
@@ -11,6 +15,7 @@ pub struct ProcessInfo {
     pub interval: Duration,
 }
 
+#[cfg(target_os = "linux")]
 pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
     let mut base_procs = Vec::new();
     let mut ret = Vec::new();
@@ -44,6 +49,30 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
         };
 
         ret.push(proc);
+    }
+
+    ret
+}
+
+#[cfg(target_os = "macos")]
+pub struct ProcessInfo {
+    pub curr_proc: TaskAllInfo,
+    pub interval: Duration,
+}
+
+#[cfg(target_os = "macos")]
+pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
+    let mut base_procs = Vec::new();
+    let mut ret = Vec::new();
+
+    if let Some(procs) = proc_pid::listpids(ProcType::ProcAllPIDS) {
+        for p in procs {
+            curr_proc = proc_pid::pidinfo::<TaskAllInfo>(p, 0);
+
+            let proc = ProcessInfo { curr_proc };
+
+            ret.push(proc);
+        }
     }
 
     ret

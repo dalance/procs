@@ -22,7 +22,6 @@ dockworker   = "0.0.8"
 failure      = "0.1.5"
 lazy_static  = "1.2.0"
 pager        = "0.15.0"
-procfs       = "0.4.5"
 quale        = "1.0.0"
 serde        = "1.0.33"
 serde_derive = "1.0.33"
@@ -30,6 +29,12 @@ structopt    = "0.2.14"
 toml         = "0.4.5"
 unbytify     = "0.2.0"
 users        = "0.8.1"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+procfs       = "0.4.5"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+libproc      = "0.3.2"
 
 [package.metadata.release]
 dev-version-ext            = "pre"
