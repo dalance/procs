@@ -61,7 +61,8 @@ impl Column for Command {
 impl Column for Command {
     fn add(&mut self, proc: &ProcessInfo) {
         let pid = proc.curr_proc.pbsd.pbi_pid as i32;
-        let fmt_content = format!("{}", String::from_utf8_lossy(&proc.curr_proc.pbsd.pbi_name));
+        let comm = CStr::from_bytes_with_nul_unchecked(&proc.curr_proc.pbsd.pbi_comm);
+        let fmt_content = format!("{}", comm);
         let raw_content = fmt_content.clone();
 
         self.fmt_contents.insert(pid, fmt_content);
