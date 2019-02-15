@@ -65,7 +65,7 @@ impl Column for Command {
         let pid = proc.curr_proc.pbsd.pbi_pid as i32;
         let comm = proc.curr_proc.pbsd.pbi_comm.as_ref();
         let comm = unsafe { &*(comm as *const _ as *const [u8]) };
-        let comm = CStr::from_bytes_with_nul_unchecked(comm);
+        let comm = unsafe { CStr::from_bytes_with_nul_unchecked(comm) };
         let fmt_content = format!("{}", comm.to_string_lossy());
         let raw_content = fmt_content.clone();
 
