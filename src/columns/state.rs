@@ -54,6 +54,7 @@ impl Column for State {
         //    ProcessStatus::Unknown(_) => "?",
         //};
         //let fmt_content = format!("{}", state);
+        let _ = proc.proc.status();
         let fmt_content = format!("{}", proc.proc.status());
         let raw_content = fmt_content.clone();
 
