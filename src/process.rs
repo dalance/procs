@@ -72,6 +72,10 @@ pub fn collect_proc(_interval: Duration) -> Vec<ProcessInfo> {
             if let Ok(curr_proc) = proc_pid::pidinfo::<TaskAllInfo>(p as i32, 0) {
                 let proc = ProcessInfo { curr_proc };
                 ret.push(proc);
+            } else {
+                let curr_proc = Default::default();
+                let proc = ProcessInfo { curr_proc };
+                ret.push(proc);
             }
         }
     }
