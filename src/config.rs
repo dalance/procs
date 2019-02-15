@@ -72,6 +72,8 @@ pub fn gen_column(kind: &ConfigColumnKind, docker_path: &str) -> Box<dyn Column>
 #[cfg(target_os = "macos")]
 pub fn gen_column(kind: &ConfigColumnKind, _docker_path: &str) -> Box<dyn Column> {
     match kind {
+        ConfigColumnKind::Command => Box::new(Command::new()),
+        ConfigColumnKind::Nice => Box::new(Nice::new()),
         ConfigColumnKind::Pid => Box::new(Pid::new()),
         ConfigColumnKind::Separator => Box::new(Separator::new()),
         ConfigColumnKind::State => Box::new(State::new()),
@@ -164,6 +166,8 @@ pub enum ConfigColumnKind {
 #[cfg(target_os = "macos")]
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ConfigColumnKind {
+    Command,
+    Nice,
     Pid,
     Separator,
     State,
@@ -529,4 +533,19 @@ kind = "State"
 style = "ByState"
 numeric_search = false
 nonnumeric_search = false
+[[columns]]
+kind = "Nice"
+style = "BrightMagenta"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "Separator"
+style = "White"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "Command"
+style = "BrightWhite"
+numeric_search = false
+nonnumeric_search = true
 "#;

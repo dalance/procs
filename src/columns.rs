@@ -1,4 +1,3 @@
-#[cfg(target_os = "linux")]
 pub mod command;
 #[cfg(target_os = "linux")]
 pub mod cpu_time;
@@ -12,7 +11,6 @@ pub mod esp;
 pub mod maj_flt;
 #[cfg(target_os = "linux")]
 pub mod min_flt;
-#[cfg(target_os = "linux")]
 pub mod nice;
 pub mod pid;
 #[cfg(target_os = "linux")]
@@ -71,7 +69,6 @@ pub mod wchan;
 #[cfg(target_os = "linux")]
 pub mod write_bytes;
 
-#[cfg(target_os = "linux")]
 pub use self::command::Command;
 #[cfg(target_os = "linux")]
 pub use self::cpu_time::CpuTime;
@@ -85,7 +82,6 @@ pub use self::esp::Esp;
 pub use self::maj_flt::MajFlt;
 #[cfg(target_os = "linux")]
 pub use self::min_flt::MinFlt;
-#[cfg(target_os = "linux")]
 pub use self::nice::Nice;
 pub use self::pid::Pid;
 #[cfg(target_os = "linux")]
