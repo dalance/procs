@@ -8,6 +8,8 @@ use std::thread;
 use std::time::Duration;
 #[cfg(target_os = "linux")]
 use std::time::{Duration, Instant};
+#[cfg(target_os = "macos")]
+use sysinfo::{Process, ProcessExt, System, SystemExt};
 
 #[cfg(target_os = "linux")]
 pub struct ProcessInfo {
@@ -60,23 +62,30 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
 
 #[cfg(target_os = "macos")]
 pub struct ProcessInfo {
-    pub name: String,
     pub curr_proc: TaskAllInfo,
+    pub proc: Process,
 }
 
 #[cfg(target_os = "macos")]
 pub fn collect_proc(_interval: Duration) -> Vec<ProcessInfo> {
     let mut ret = Vec::new();
+    let mut system = System::new();
 
-    if let Ok(procs) = proc_pid::listpids(ProcType::ProcAllPIDS) {
-        for p in procs {
-            if let Ok(curr_proc) = proc_pid::pidinfo::<TaskAllInfo>(p as i32, 0) {
-                let name = proc_pid::name(p as i32).unwrap_or_default();
-                let proc = ProcessInfo { name, curr_proc };
-                ret.push(proc);
-            }
+    for (pid, proc) in system.get_process_list() {
+        if let Ok(curr_proc) = proc_pid::pidinfo::<TaskAllInfo>(pid as i32, 0) {
+            let proc = ProcessInfo { curr_proc, proc };
+            ret.push(proc);
         }
     }
+
+    //if let Ok(procs) = proc_pid::listpids(ProcType::ProcAllPIDS) {
+    //    for p in procs {
+    //        if let Ok(curr_proc) = proc_pid::pidinfo::<TaskAllInfo>(p as i32, 0) {
+    //            let proc = ProcessInfo { name, curr_proc };
+    //            ret.push(proc);
+    //        }
+    //    }
+    //}
 
     ret
 }
