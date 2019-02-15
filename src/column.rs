@@ -1,18 +1,9 @@
 use crate::config;
+use crate::process::ProcessInfo;
 use config::ConfigSortOrder;
-use procfs::{Io, ProcResult, Process, Status};
-use std::time::Duration;
 
 pub trait Column {
-    fn add(
-        &mut self,
-        curr_proc: &Process,
-        prev_proc: &Process,
-        curr_io: &ProcResult<Io>,
-        prev_io: &ProcResult<Io>,
-        curr_status: &ProcResult<Status>,
-        interval: &Duration,
-    ) -> ();
+    fn add(&mut self, proc: &ProcessInfo) -> ();
 
     fn available(&self) -> bool {
         true

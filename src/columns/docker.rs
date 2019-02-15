@@ -1,9 +1,8 @@
+use crate::process::ProcessInfo;
 use crate::{column_default, Column};
 use dockworker::container::ContainerFilters;
-use procfs::{Io, ProcResult, Process, Status};
 use std::cmp;
 use std::collections::HashMap;
-use std::time::Duration;
 
 pub struct Docker {
     header: String,
@@ -47,16 +46,8 @@ impl Docker {
 }
 
 impl Column for Docker {
-    fn add(
-        &mut self,
-        curr_proc: &Process,
-        _prev_proc: &Process,
-        _curr_io: &ProcResult<Io>,
-        _prev_io: &ProcResult<Io>,
-        _curr_status: &ProcResult<Status>,
-        _interval: &Duration,
-    ) {
-        let fmt_content = if let Ok(cgroups) = curr_proc.cgroups() {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let fmt_content = if let Ok(cgroups) = proc.curr_proc.cgroups() {
             let cgroup_name = cgroups[0].pathname.clone();
             if cgroup_name.starts_with("/docker") {
                 let container_id = cgroup_name.replace("/docker/", "");
@@ -73,8 +64,8 @@ impl Column for Docker {
         };
         let raw_content = fmt_content.clone();
 
-        self.fmt_contents.insert(curr_proc.pid(), fmt_content);
-        self.raw_contents.insert(curr_proc.pid(), raw_content);
+        self.fmt_contents.insert(proc.curr_proc.pid(), fmt_content);
+        self.raw_contents.insert(proc.curr_proc.pid(), raw_content);
     }
 
     fn available(&self) -> bool {

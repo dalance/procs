@@ -1,6 +1,7 @@
 mod column;
 mod columns;
 mod config;
+mod process;
 mod style;
 mod util;
 
@@ -9,12 +10,10 @@ use config::*;
 use console::Term;
 use failure::{Error, ResultExt};
 use pager::Pager;
-use procfs::Process;
+use process::collect_proc;
 use std::fs;
 use std::io::Read;
-use std::process;
-use std::thread;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 use structopt::{clap, StructOpt};
 use style::{apply_color, apply_style};
 use util::KeywordClass;
@@ -84,41 +83,6 @@ fn get_config() -> Result<Config, Error> {
     Ok(config)
 }
 
-fn collect_proc(cols: &mut Vec<ColumnInfo>, opt: &Opt) {
-    let mut base_procs = Vec::new();
-
-    for proc in procfs::all_processes() {
-        let io = proc.io();
-        let time = Instant::now();
-        base_procs.push((proc.pid(), proc, io, time));
-    }
-
-    thread::sleep(Duration::from_millis(opt.interval));
-
-    for (pid, prev_proc, prev_io, prev_time) in base_procs {
-        let curr_proc = if let Ok(proc) = Process::new(pid) {
-            proc
-        } else {
-            prev_proc.clone()
-        };
-        let curr_io = curr_proc.io();
-        let curr_status = curr_proc.status();
-        let curr_time = Instant::now();
-        let interval = curr_time - prev_time;
-
-        for c in cols.iter_mut() {
-            c.column.add(
-                &curr_proc,
-                &prev_proc,
-                &curr_io,
-                &prev_io,
-                &curr_status,
-                &interval,
-            );
-        }
-    }
-}
-
 fn display_header(term: &Term, max_width: usize, cols: &[ColumnInfo], config: &Config) {
     let mut row = String::from("");
     for c in cols.iter() {
@@ -185,7 +149,7 @@ fn main() {
             let _ = err.write_line(&format!("  {} {}", console::style("caused by:").red(), x));
         }
 
-        process::exit(1);
+        std::process::exit(1);
     }
 }
 
@@ -223,7 +187,12 @@ fn run_opt_config(opt: Opt, config: Config) -> Result<(), Error> {
         }
     }
 
-    collect_proc(&mut cols, &opt);
+    let proc = collect_proc(Duration::from_millis(opt.interval));
+    for c in cols.iter_mut() {
+        for p in &proc {
+            c.column.add(&p);
+        }
+    }
 
     // -------------------------------------------------------------------------
     // Search column
@@ -254,7 +223,7 @@ fn run_opt_config(opt: Opt, config: Config) -> Result<(), Error> {
         .column
         .sorted_pid(&config.sort.order);
 
-    let self_pid = process::id() as i32;
+    let self_pid = std::process::id() as i32;
 
     let mut visible_pids = Vec::new();
     for pid in pids {

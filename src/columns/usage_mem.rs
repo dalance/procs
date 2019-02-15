@@ -1,8 +1,7 @@
+use crate::process::ProcessInfo;
 use crate::{column_default, Column};
-use procfs::{Io, ProcResult, Process, Status};
 use std::cmp;
 use std::collections::HashMap;
-use std::time::Duration;
 
 pub struct UsageMem {
     header: String,
@@ -29,21 +28,13 @@ impl UsageMem {
 }
 
 impl Column for UsageMem {
-    fn add(
-        &mut self,
-        curr_proc: &Process,
-        _prev_proc: &Process,
-        _curr_io: &ProcResult<Io>,
-        _prev_io: &ProcResult<Io>,
-        _curr_status: &ProcResult<Status>,
-        _interval: &Duration,
-    ) {
-        let usage = curr_proc.stat.rss_bytes() as f64 * 100.0 / self.mem_total as f64;
+    fn add(&mut self, proc: &ProcessInfo) {
+        let usage = proc.curr_proc.stat.rss_bytes() as f64 * 100.0 / self.mem_total as f64;
         let fmt_content = format!("{:.1}", usage);
         let raw_content = (usage * 1000.0) as u32;
 
-        self.fmt_contents.insert(curr_proc.pid(), fmt_content);
-        self.raw_contents.insert(curr_proc.pid(), raw_content);
+        self.fmt_contents.insert(proc.curr_proc.pid(), fmt_content);
+        self.raw_contents.insert(proc.curr_proc.pid(), raw_content);
     }
 
     column_default!(u32);

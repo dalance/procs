@@ -1,9 +1,8 @@
+use crate::process::ProcessInfo;
 use crate::{column_default, Column};
 use chrono::{DateTime, Local};
-use procfs::{Io, ProcResult, Process, Status};
 use std::cmp;
 use std::collections::HashMap;
-use std::time::Duration;
 
 pub struct StartTime {
     header: String,
@@ -28,21 +27,13 @@ impl StartTime {
 }
 
 impl Column for StartTime {
-    fn add(
-        &mut self,
-        curr_proc: &Process,
-        _prev_proc: &Process,
-        _curr_io: &ProcResult<Io>,
-        _prev_io: &ProcResult<Io>,
-        _curr_status: &ProcResult<Status>,
-        _interval: &Duration,
-    ) {
-        let start_time = curr_proc.stat.starttime();
+    fn add(&mut self, proc: &ProcessInfo) {
+        let start_time = proc.curr_proc.stat.starttime();
         let raw_content = start_time;
         let fmt_content = format!("{}", start_time.format("%Y/%m/%d %H:%M"));
 
-        self.fmt_contents.insert(curr_proc.pid(), fmt_content);
-        self.raw_contents.insert(curr_proc.pid(), raw_content);
+        self.fmt_contents.insert(proc.curr_proc.pid(), fmt_content);
+        self.raw_contents.insert(proc.curr_proc.pid(), raw_content);
     }
 
     column_default!(DateTime<Local>);

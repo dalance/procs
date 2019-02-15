@@ -1,8 +1,7 @@
+use crate::process::ProcessInfo;
 use crate::{column_default, Column};
-use procfs::{Io, ProcResult, Process, Status};
 use std::cmp;
 use std::collections::HashMap;
-use std::time::Duration;
 
 pub struct VmExe {
     header: String,
@@ -27,16 +26,8 @@ impl VmExe {
 }
 
 impl Column for VmExe {
-    fn add(
-        &mut self,
-        curr_proc: &Process,
-        _prev_proc: &Process,
-        _curr_io: &ProcResult<Io>,
-        _prev_io: &ProcResult<Io>,
-        curr_status: &ProcResult<Status>,
-        _interval: &Duration,
-    ) {
-        let (raw_content, fmt_content) = if let Ok(ref curr_status) = curr_status {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let (raw_content, fmt_content) = if let Ok(ref curr_status) = proc.curr_status {
             if let Some(val) = curr_status.vmexe {
                 let val = val * 1024;
                 let (size, unit) = unbytify::bytify(val);
@@ -51,8 +42,8 @@ impl Column for VmExe {
             (0, String::from(""))
         };
 
-        self.fmt_contents.insert(curr_proc.pid(), fmt_content);
-        self.raw_contents.insert(curr_proc.pid(), raw_content);
+        self.fmt_contents.insert(proc.curr_proc.pid(), fmt_content);
+        self.raw_contents.insert(proc.curr_proc.pid(), raw_content);
     }
 
     column_default!(u64);

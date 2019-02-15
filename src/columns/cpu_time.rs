@@ -1,8 +1,7 @@
+use crate::process::ProcessInfo;
 use crate::{column_default, util, Column};
-use procfs::{Io, ProcResult, Process, Status};
 use std::cmp;
 use std::collections::HashMap;
-use std::time::Duration;
 
 pub struct CpuTime {
     header: String,
@@ -27,23 +26,15 @@ impl CpuTime {
 }
 
 impl Column for CpuTime {
-    fn add(
-        &mut self,
-        curr_proc: &Process,
-        _prev_proc: &Process,
-        _curr_io: &ProcResult<Io>,
-        _prev_io: &ProcResult<Io>,
-        _curr_status: &ProcResult<Status>,
-        _interval: &Duration,
-    ) {
-        let time_sec = (curr_proc.stat.utime + curr_proc.stat.stime)
+    fn add(&mut self, proc: &ProcessInfo) {
+        let time_sec = (proc.curr_proc.stat.utime + proc.curr_proc.stat.stime)
             / procfs::ticks_per_second().unwrap_or(100) as u64;
 
         let fmt_content = util::parse_time(time_sec).to_string();
         let raw_content = time_sec;
 
-        self.fmt_contents.insert(curr_proc.pid(), fmt_content);
-        self.raw_contents.insert(curr_proc.pid(), raw_content);
+        self.fmt_contents.insert(proc.curr_proc.pid(), fmt_content);
+        self.raw_contents.insert(proc.curr_proc.pid(), raw_content);
     }
 
     column_default!(u64);

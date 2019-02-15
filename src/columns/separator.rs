@@ -1,8 +1,7 @@
+use crate::process::ProcessInfo;
 use crate::{column_default, Column};
-use procfs::{Io, ProcResult, Process, Status};
 use std::cmp;
 use std::collections::HashMap;
-use std::time::Duration;
 
 pub struct Separator {
     header: String,
@@ -27,20 +26,12 @@ impl Separator {
 }
 
 impl Column for Separator {
-    fn add(
-        &mut self,
-        curr_proc: &Process,
-        _prev_proc: &Process,
-        _curr_io: &ProcResult<Io>,
-        _prev_io: &ProcResult<Io>,
-        _curr_status: &ProcResult<Status>,
-        _interval: &Duration,
-    ) {
+    fn add(&mut self, proc: &ProcessInfo) {
         let raw_content = "|".to_string();
         let fmt_content = "|".to_string();
 
-        self.fmt_contents.insert(curr_proc.pid(), fmt_content);
-        self.raw_contents.insert(curr_proc.pid(), raw_content);
+        self.fmt_contents.insert(proc.curr_proc.pid(), fmt_content);
+        self.raw_contents.insert(proc.curr_proc.pid(), raw_content);
     }
 
     column_default!(String);

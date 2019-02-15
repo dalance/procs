@@ -1,8 +1,8 @@
+use crate::process::ProcessInfo;
 use crate::Column;
-use procfs::{FDTarget, Io, ProcResult, Process, Status, TcpNetEntry, TcpState};
+use procfs::{FDTarget, TcpNetEntry, TcpState};
 use std::cmp;
 use std::collections::HashMap;
-use std::time::Duration;
 
 pub struct TcpPort {
     header: String,
@@ -31,16 +31,8 @@ impl TcpPort {
 }
 
 impl Column for TcpPort {
-    fn add(
-        &mut self,
-        curr_proc: &Process,
-        _prev_proc: &Process,
-        _curr_io: &ProcResult<Io>,
-        _prev_io: &ProcResult<Io>,
-        _curr_status: &ProcResult<Status>,
-        _interval: &Duration,
-    ) {
-        let fmt_content = if let Ok(fds) = curr_proc.fd() {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let fmt_content = if let Ok(fds) = proc.curr_proc.fd() {
             let mut socks = Vec::new();
             for fd in fds {
                 if let FDTarget::Socket(x) = fd.target {
@@ -67,8 +59,8 @@ impl Column for TcpPort {
         };
         let raw_content = fmt_content.clone();
 
-        self.fmt_contents.insert(curr_proc.pid(), fmt_content);
-        self.raw_contents.insert(curr_proc.pid(), raw_content);
+        self.fmt_contents.insert(proc.curr_proc.pid(), fmt_content);
+        self.raw_contents.insert(proc.curr_proc.pid(), raw_content);
     }
 
     fn find_exact(&self, pid: i32, keyword: &str) -> bool {
