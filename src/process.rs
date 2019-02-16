@@ -73,7 +73,7 @@ pub fn collect_proc(_interval: Duration) -> Vec<ProcessInfo> {
         for p in procs {
             if let Ok(curr_proc) = proc_pid::pidinfo::<TaskAllInfo>(p as i32, 0) {
                 if let Ok(bsd) = proc_pid::pidinfo::<BSDInfo>(p as i32, 1) {
-                    if let Ok(thread) = proc_pid::pidinfo::<ThreadInfo>(p as i32, 0) {
+                    if let Ok(thread) = proc_pid::pidinfo::<ThreadInfo2>(p as i32, 0) {
                         let proc = ProcessInfo { curr_proc, bsd, thread };
                         ret.push(proc);
                     }
@@ -85,6 +85,21 @@ pub fn collect_proc(_interval: Duration) -> Vec<ProcessInfo> {
     ret
 }
 
-impl PIDInfo for ThreadInfo {
+#[repr(C)]
+pub struct ThreadInfo2 {
+    pub pth_user_time           : uint64_t,                     // user run time
+    pub pth_system_time         : uint64_t,                     // system run time
+    pub pth_cpu_usage           : int32_t,                      // scaled cpu usage percentage
+    pub pth_policy              : int32_t,                      // scheduling policy in effect
+    pub pth_run_state           : int32_t,                      // run state (see below)
+    pub pth_flags               : int32_t,                      // various flags (see below)
+    pub pth_sleep_time          : int32_t,                      // number of seconds that thread
+    pub pth_curpri              : int32_t,                      // cur priority
+    pub pth_priority            : int32_t,                      // priority
+    pub pth_maxpriority         : int32_t,                      // max priority
+    pub pth_name                : [c_char; MAXTHREADNAMESIZE]   // thread name, if any
+}
+
+impl PIDInfo for ThreadInfo2 {
     fn flavor() -> PidInfoFlavor { PidInfoFlavor::ThreadInfo }
 }
