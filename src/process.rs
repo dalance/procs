@@ -84,3 +84,7 @@ pub fn collect_proc(_interval: Duration) -> Vec<ProcessInfo> {
 
     ret
 }
+
+impl PIDInfo for ThreadInfo {
+    fn flavor() -> PidInfoFlavor { PidInfoFlavor::ThreadInfo }
+}
