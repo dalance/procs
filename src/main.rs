@@ -5,18 +5,18 @@ mod process;
 mod style;
 mod util;
 
-use column::Column;
-use config::*;
+use crate::column::Column;
+use crate::config::*;
+use crate::process::collect_proc;
+use crate::style::{apply_color, apply_style};
+use crate::util::KeywordClass;
 use console::Term;
 use failure::{Error, ResultExt};
 use pager::Pager;
-use process::collect_proc;
 use std::fs;
 use std::io::Read;
 use std::time::Duration;
 use structopt::{clap, StructOpt};
-use style::{apply_color, apply_style};
-use util::KeywordClass;
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Opt

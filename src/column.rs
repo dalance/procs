@@ -1,6 +1,5 @@
-use crate::config;
+use crate::config::ConfigSortOrder;
 use crate::process::ProcessInfo;
-use config::ConfigSortOrder;
 
 pub trait Column {
     fn add(&mut self, proc: &ProcessInfo) -> ();
