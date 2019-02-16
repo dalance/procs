@@ -2,8 +2,6 @@ use crate::process::ProcessInfo;
 use crate::{column_default, Column};
 use std::cmp;
 use std::collections::HashMap;
-#[cfg(target_os = "macos")]
-use sysinfo::{ProcessExt, ProcessStatus};
 
 pub struct State {
     header: String,

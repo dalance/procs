@@ -8,8 +8,6 @@ use std::thread;
 use std::time::Duration;
 #[cfg(target_os = "linux")]
 use std::time::{Duration, Instant};
-#[cfg(target_os = "macos")]
-use sysinfo::{Process, ProcessExt, System, SystemExt};
 
 #[cfg(target_os = "linux")]
 pub struct ProcessInfo {
