@@ -8,7 +8,7 @@ use std::thread;
 use std::time::Duration;
 #[cfg(target_os = "linux")]
 use std::time::{Duration, Instant};
-#[cfg(target_os = "linux")]
+#[cfg(target_os = "macos")]
 use libc::{uint64_t, uint32_t, int32_t, c_void, c_int, uid_t, gid_t, c_char};
 
 #[cfg(target_os = "linux")]
@@ -64,7 +64,7 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
 pub struct ProcessInfo {
     pub curr_proc: TaskAllInfo,
     pub bsd: BSDInfo,
-    pub thread: ThreadInfo,
+    pub thread: ThreadInfo2,
 }
 
 #[cfg(target_os = "macos")]
