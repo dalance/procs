@@ -1,5 +1,5 @@
 #[cfg(target_os = "macos")]
-use libproc::libproc::proc_pid::{self, BSDInfo, ProcType, TaskAllInfo, ThreadInfo};
+use libproc::libproc::proc_pid::{self, BSDInfo, ProcType, TaskAllInfo, ThreadInfo, PidInfoFlavor, PIDInfo};
 #[cfg(target_os = "linux")]
 use procfs::{Io, ProcResult, Process, Status};
 #[cfg(target_os = "linux")]
