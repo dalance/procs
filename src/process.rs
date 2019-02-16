@@ -63,32 +63,20 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
 #[cfg(target_os = "macos")]
 pub struct ProcessInfo {
     pub curr_proc: TaskAllInfo,
-    pub proc: Process,
 }
 
 #[cfg(target_os = "macos")]
 pub fn collect_proc(_interval: Duration) -> Vec<ProcessInfo> {
     let mut ret = Vec::new();
-    let mut system = System::new();
 
-    for (pid, proc) in system.get_process_list() {
-        if let Ok(curr_proc) = proc_pid::pidinfo::<TaskAllInfo>(*pid as i32, 0) {
-            let proc = ProcessInfo {
-                curr_proc,
-                proc: proc.clone(),
-            };
-            ret.push(proc);
+    if let Ok(procs) = proc_pid::listpids(ProcType::ProcAllPIDS) {
+        for p in procs {
+            if let Ok(curr_proc) = proc_pid::pidinfo::<TaskAllInfo>(p as i32, 2) {
+                let proc = ProcessInfo { curr_proc };
+                ret.push(proc);
+            }
         }
     }
-
-    //if let Ok(procs) = proc_pid::listpids(ProcType::ProcAllPIDS) {
-    //    for p in procs {
-    //        if let Ok(curr_proc) = proc_pid::pidinfo::<TaskAllInfo>(p as i32, 0) {
-    //            let proc = ProcessInfo { name, curr_proc };
-    //            ret.push(proc);
-    //        }
-    //    }
-    //}
 
     ret
 }
