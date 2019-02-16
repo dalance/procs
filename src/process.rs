@@ -8,6 +8,8 @@ use std::thread;
 use std::time::Duration;
 #[cfg(target_os = "linux")]
 use std::time::{Duration, Instant};
+#[cfg(target_os = "linux")]
+use libc::{uint64_t, uint32_t, int32_t, c_void, c_int, uid_t, gid_t, c_char};
 
 #[cfg(target_os = "linux")]
 pub struct ProcessInfo {
@@ -85,7 +87,10 @@ pub fn collect_proc(_interval: Duration) -> Vec<ProcessInfo> {
     ret
 }
 
+const MAXTHREADNAMESIZE : usize = 64;
+
 #[repr(C)]
+#[derive(Default)]
 pub struct ThreadInfo2 {
     pub pth_user_time           : uint64_t,                     // user run time
     pub pth_system_time         : uint64_t,                     // system run time
