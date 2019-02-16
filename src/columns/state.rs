@@ -45,7 +45,7 @@ impl Column for State {
 impl Column for State {
     fn add(&mut self, proc: &ProcessInfo) {
         let pid = proc.curr_proc.pbsd.pbi_pid as i32;
-        let state = match proc.curr_proc.pbsd.pbi_status {
+        let state = match proc.bsd.pbi_status {
             1 => "R",
             2 => "U",
             3 => "S",

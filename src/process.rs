@@ -1,5 +1,5 @@
 #[cfg(target_os = "macos")]
-use libproc::libproc::proc_pid::{self, ProcType, TaskAllInfo};
+use libproc::libproc::proc_pid::{self, BSDInfo, ProcType, TaskAllInfo};
 #[cfg(target_os = "linux")]
 use procfs::{Io, ProcResult, Process, Status};
 #[cfg(target_os = "linux")]
@@ -63,6 +63,7 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
 #[cfg(target_os = "macos")]
 pub struct ProcessInfo {
     pub curr_proc: TaskAllInfo,
+    pub bsd: BSDInfo,
 }
 
 #[cfg(target_os = "macos")]
@@ -71,9 +72,11 @@ pub fn collect_proc(_interval: Duration) -> Vec<ProcessInfo> {
 
     if let Ok(procs) = proc_pid::listpids(ProcType::ProcAllPIDS) {
         for p in procs {
-            if let Ok(curr_proc) = proc_pid::pidinfo::<TaskAllInfo>(p as i32, 2) {
-                let proc = ProcessInfo { curr_proc };
-                ret.push(proc);
+            if let Ok(curr_proc) = proc_pid::pidinfo::<TaskAllInfo>(p as i32, 0) {
+                if let Ok(bsd) = proc_pid::pidinfo::<BSDInfo>(p as i32, 1) {
+                    let proc = ProcessInfo { curr_proc, bsd };
+                    ret.push(proc);
+                }
             }
         }
     }
