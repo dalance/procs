@@ -291,9 +291,9 @@ fn run_opt_config(opt: Opt, config: Config) -> Result<(), Error> {
             Pager::with_pager(&pager).setup();
         }
         if quale::which("less").is_some() {
-            Pager::with_default_pager("less -SR").setup();
+            Pager::with_pager("less -SR").setup();
         } else {
-            Pager::with_default_pager("more -f").setup();
+            Pager::with_pager("more -f").setup();
         }
     }
 
