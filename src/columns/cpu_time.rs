@@ -33,8 +33,8 @@ impl Column for CpuTime {
         let fmt_content = util::parse_time(time_sec).to_string();
         let raw_content = time_sec;
 
-        self.fmt_contents.insert(proc.curr_proc.pid(), fmt_content);
-        self.raw_contents.insert(proc.curr_proc.pid(), raw_content);
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
     }
 
     column_default!(u64);

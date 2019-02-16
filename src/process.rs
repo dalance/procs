@@ -3,6 +3,7 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 pub struct ProcessInfo {
+    pub pid: i32,
     pub curr_proc: Process,
     pub prev_proc: Process,
     pub curr_io: ProcResult<Io>,
@@ -35,6 +36,7 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
         let interval = curr_time - prev_time;
 
         let proc = ProcessInfo {
+            pid,
             curr_proc,
             prev_proc,
             curr_io,

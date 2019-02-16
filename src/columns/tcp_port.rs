@@ -59,8 +59,8 @@ impl Column for TcpPort {
         };
         let raw_content = fmt_content.clone();
 
-        self.fmt_contents.insert(proc.curr_proc.pid(), fmt_content);
-        self.raw_contents.insert(proc.curr_proc.pid(), raw_content);
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
     }
 
     fn find_exact(&self, pid: i32, keyword: &str) -> bool {
