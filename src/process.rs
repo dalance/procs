@@ -62,6 +62,7 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
 pub struct ProcessInfo {
     pub curr_proc: TaskAllInfo,
     pub bsd: BSDInfo,
+    pub thread: ThreadInfo,
 }
 
 #[cfg(target_os = "macos")]
@@ -72,8 +73,10 @@ pub fn collect_proc(_interval: Duration) -> Vec<ProcessInfo> {
         for p in procs {
             if let Ok(curr_proc) = proc_pid::pidinfo::<TaskAllInfo>(p as i32, 0) {
                 if let Ok(bsd) = proc_pid::pidinfo::<BSDInfo>(p as i32, 1) {
-                    let proc = ProcessInfo { curr_proc, bsd };
-                    ret.push(proc);
+                    if let Ok(thread) = proc_pid::pidinfo::<ThreadInfo>(p as i32, 0) {
+                        let proc = ProcessInfo { curr_proc, bsd, thread };
+                        ret.push(proc);
+                    }
                 }
             }
         }

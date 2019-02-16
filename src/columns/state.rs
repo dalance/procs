@@ -52,7 +52,7 @@ impl Column for State {
             6 => "Z",
             _ => "?",
         };
-        let fmt_content = format!("{}", state);
+        let fmt_content = format!("{} {}", state, proc.thread.pth_run_state);
         let raw_content = fmt_content.clone();
 
         self.fmt_contents.insert(pid, fmt_content);
