@@ -90,7 +90,6 @@ pub fn collect_proc(_interval: Duration) -> Vec<ProcessInfo> {
 const MAXTHREADNAMESIZE : usize = 64;
 
 #[repr(C)]
-#[derive(Default)]
 pub struct ThreadInfo2 {
     pub pth_user_time           : uint64_t,                     // user run time
     pub pth_system_time         : uint64_t,                     // system run time
@@ -107,4 +106,22 @@ pub struct ThreadInfo2 {
 
 impl PIDInfo for ThreadInfo2 {
     fn flavor() -> PidInfoFlavor { PidInfoFlavor::ThreadInfo }
+}
+
+impl Default for ThreadInfo2 {
+    fn default() -> ThreadInfo2 {
+        ThreadInfo2 {
+            pth_user_time           : 0,
+            pth_system_time         : 0,
+            pth_cpu_usage           : 0,
+            pth_policy              : 0,
+            pth_run_state           : 0,
+            pth_flags               : 0,
+            pth_sleep_time          : 0,
+            pth_curpri              : 0,
+            pth_priority            : 0,
+            pth_maxpriority         : 0,
+            pth_name                : [0; MAXTHREADNAMESIZE],
+        }
+    }
 }
