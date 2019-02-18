@@ -30,8 +30,8 @@ impl Column for Esp {
         let raw_content = proc.curr_proc.stat.kstkesp;
         let fmt_content = format!("{:x}", raw_content);
 
-        self.fmt_contents.insert(proc.curr_proc.pid(), fmt_content);
-        self.raw_contents.insert(proc.curr_proc.pid(), raw_content);
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
     }
 
     column_default!(u64);

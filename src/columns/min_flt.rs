@@ -30,8 +30,8 @@ impl Column for MinFlt {
         let raw_content = proc.curr_proc.stat.minflt;
         let fmt_content = format!("{}", raw_content);
 
-        self.fmt_contents.insert(proc.curr_proc.pid(), fmt_content);
-        self.raw_contents.insert(proc.curr_proc.pid(), raw_content);
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
     }
 
     column_default!(u64);

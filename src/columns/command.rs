@@ -28,7 +28,6 @@ impl Command {
 #[cfg(target_os = "linux")]
 impl Column for Command {
     fn add(&mut self, proc: &ProcessInfo) {
-        let pid = proc.curr_proc.pid();
         let fmt_content = if let Ok(cmd) = &proc.curr_proc.cmdline() {
             if !cmd.is_empty() {
                 let mut cmd = cmd
@@ -50,8 +49,8 @@ impl Column for Command {
         };
         let raw_content = fmt_content.clone();
 
-        self.fmt_contents.insert(pid, fmt_content);
-        self.raw_contents.insert(pid, raw_content);
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
     }
 
     column_default!(String);
@@ -60,13 +59,11 @@ impl Column for Command {
 #[cfg(target_os = "macos")]
 impl Column for Command {
     fn add(&mut self, proc: &ProcessInfo) {
-        let pid = proc.curr_proc.pbsd.pbi_pid as i32;
-        //let fmt_content = format!("{:?}", proc.proc.cmd());
         let fmt_content = String::from("");
         let raw_content = fmt_content.clone();
 
-        self.fmt_contents.insert(pid, fmt_content);
-        self.raw_contents.insert(pid, raw_content);
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
     }
 
     column_default!(String);

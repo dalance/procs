@@ -5,18 +5,18 @@ mod process;
 mod style;
 mod util;
 
-use column::Column;
-use config::*;
+use crate::column::Column;
+use crate::config::*;
+use crate::process::collect_proc;
+use crate::style::{apply_color, apply_style};
+use crate::util::KeywordClass;
 use console::Term;
 use failure::{Error, ResultExt};
 use pager::Pager;
-use process::collect_proc;
 use std::fs;
 use std::io::Read;
 use std::time::Duration;
 use structopt::{clap, StructOpt};
-use style::{apply_color, apply_style};
-use util::KeywordClass;
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Opt
@@ -129,6 +129,25 @@ fn display_content(term: &Term, pid: i32, max_width: usize, cols: &[ColumnInfo],
     let _ = term.write_line(&row);
 }
 
+fn search<T: AsRef<str>>(
+    pid: i32,
+    keyword_numeric: &[T],
+    keyword_nonnumeric: &[T],
+    cols_numeric: &[&Column],
+    cols_nonnumeric: &[&Column],
+    config: &Config,
+) -> bool {
+    let mut ret = match config.search.nonnumeric_search {
+        ConfigSearchKind::Partial => util::find_partial(cols_nonnumeric, pid, keyword_nonnumeric),
+        ConfigSearchKind::Exact => util::find_exact(cols_nonnumeric, pid, keyword_nonnumeric),
+    };
+    ret |= match config.search.numeric_search {
+        ConfigSearchKind::Partial => util::find_partial(cols_numeric, pid, keyword_numeric),
+        ConfigSearchKind::Exact => util::find_exact(cols_numeric, pid, keyword_numeric),
+    };
+    ret
+}
+
 // ---------------------------------------------------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------------------------------------------------
@@ -229,22 +248,14 @@ fn run_opt_config(opt: Opt, config: Config) -> Result<(), Error> {
     for pid in pids {
         let mut visible = true;
         if !opt.keyword.is_empty() {
-            visible = match config.search.nonnumeric_search {
-                ConfigSearchKind::Partial => {
-                    util::find_partial(cols_nonnumeric.as_slice(), pid, &keyword_nonnumeric)
-                }
-                ConfigSearchKind::Exact => {
-                    util::find_exact(cols_nonnumeric.as_slice(), pid, &keyword_nonnumeric)
-                }
-            };
-            visible |= match config.search.numeric_search {
-                ConfigSearchKind::Partial => {
-                    util::find_partial(cols_numeric.as_slice(), pid, &keyword_numeric)
-                }
-                ConfigSearchKind::Exact => {
-                    util::find_exact(cols_numeric.as_slice(), pid, &keyword_numeric)
-                }
-            };
+            visible = search(
+                pid,
+                &keyword_numeric,
+                &keyword_nonnumeric,
+                cols_numeric.as_slice(),
+                cols_nonnumeric.as_slice(),
+                &config,
+            );
         }
 
         if !config.display.show_self && pid == self_pid {
@@ -291,9 +302,9 @@ fn run_opt_config(opt: Opt, config: Config) -> Result<(), Error> {
             Pager::with_pager(&pager).setup();
         }
         if quale::which("less").is_some() {
-            Pager::with_default_pager("less -SR").setup();
+            Pager::with_pager("less -SR").setup();
         } else {
-            Pager::with_default_pager("more -f").setup();
+            Pager::with_pager("more -f").setup();
         }
     }
 

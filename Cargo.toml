@@ -1,6 +1,6 @@
 [package]
 name = "procs"
-version = "0.4.6-pre"
+version = "0.4.8-pre"
 authors = ["dalance@gmail.com"]
 repository = "https://github.com/dalance/procs"
 keywords = ["process"]
@@ -31,7 +31,7 @@ unbytify     = "0.2.0"
 users        = "0.8.1"
 
 [target.'cfg(target_os = "linux")'.dependencies]
-procfs       = "0.4.5"
+procfs       = "0.4.6"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 #libproc      = "0.3.2"

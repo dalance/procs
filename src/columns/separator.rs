@@ -25,29 +25,13 @@ impl Separator {
     }
 }
 
-#[cfg(target_os = "linux")]
 impl Column for Separator {
     fn add(&mut self, proc: &ProcessInfo) {
-        let pid = proc.curr_proc.pid();
         let raw_content = "|".to_string();
         let fmt_content = "|".to_string();
 
-        self.fmt_contents.insert(pid, fmt_content);
-        self.raw_contents.insert(pid, raw_content);
-    }
-
-    column_default!(String);
-}
-
-#[cfg(target_os = "macos")]
-impl Column for Separator {
-    fn add(&mut self, proc: &ProcessInfo) {
-        let pid = proc.curr_proc.pbsd.pbi_pid as i32;
-        let raw_content = "|".to_string();
-        let fmt_content = "|".to_string();
-
-        self.fmt_contents.insert(pid, fmt_content);
-        self.raw_contents.insert(pid, raw_content);
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
     }
 
     column_default!(String);

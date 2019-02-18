@@ -25,29 +25,13 @@ impl Pid {
     }
 }
 
-#[cfg(target_os = "linux")]
 impl Column for Pid {
     fn add(&mut self, proc: &ProcessInfo) {
-        let pid = proc.curr_proc.pid();
-        let raw_content = pid;
+        let raw_content = proc.pid;
         let fmt_content = format!("{}", raw_content);
 
-        self.fmt_contents.insert(pid, fmt_content);
-        self.raw_contents.insert(pid, raw_content);
-    }
-
-    column_default!(i32);
-}
-
-#[cfg(target_os = "macos")]
-impl Column for Pid {
-    fn add(&mut self, proc: &ProcessInfo) {
-        let pid = proc.curr_proc.pbsd.pbi_pid as i32;
-        let raw_content = pid;
-        let fmt_content = format!("{}", raw_content);
-
-        self.fmt_contents.insert(pid, fmt_content);
-        self.raw_contents.insert(pid, raw_content);
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
     }
 
     column_default!(i32);

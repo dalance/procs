@@ -15,6 +15,7 @@ use std::time::{Duration, Instant};
 
 #[cfg(target_os = "linux")]
 pub struct ProcessInfo {
+    pub pid: i32,
     pub curr_proc: Process,
     pub prev_proc: Process,
     pub curr_io: ProcResult<Io>,
@@ -48,6 +49,7 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
         let interval = curr_time - prev_time;
 
         let proc = ProcessInfo {
+            pid,
             curr_proc,
             prev_proc,
             curr_io,
@@ -64,6 +66,7 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
 
 #[cfg(target_os = "macos")]
 pub struct ProcessInfo {
+    pub pid: i32,
     pub curr_proc: TaskAllInfo,
     pub threads: Vec<ThreadInfo2>,
 }
@@ -87,7 +90,11 @@ pub fn collect_proc(_interval: Duration) -> Vec<ProcessInfo> {
                         }
                     }
                 }
-                let proc = ProcessInfo { curr_proc, threads };
+                let proc = ProcessInfo {
+                    pid: p as i32,
+                    curr_proc,
+                    threads,
+                };
                 ret.push(proc);
             }
         }
@@ -96,6 +103,7 @@ pub fn collect_proc(_interval: Duration) -> Vec<ProcessInfo> {
     ret
 }
 
+#[cfg(target_os = "macos")]
 const MAXTHREADNAMESIZE: usize = 64;
 
 #[cfg(target_os = "macos")]
