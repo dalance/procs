@@ -75,13 +75,13 @@ pub fn collect_proc(_interval: Duration) -> Vec<ProcessInfo> {
     if let Ok(procs) = proc_pid::listpids(ProcType::ProcAllPIDS) {
         for p in procs {
             if let Ok(curr_proc) = proc_pid::pidinfo::<TaskAllInfo>(p as i32, 0) {
-                let (len, threadids) = proc_pid::listthreads(
+                let threadids = proc_pid::listthreads(
                     curr_proc.pbsd.pbi_pid as i32,
                     curr_proc.ptinfo.pti_threadnum as usize,
                 );
-                dbg!((len, threadids.len()));
                 let mut threads = Vec::new();
-                if let Ok(threadids) = threadids {
+                if let Ok((len, threadids)) = threadids {
+                    dbg!((len, threadids.len()));
                     for t in threadids {
                         if let Ok(thread) = proc_pid::pidinfo::<ThreadInfo2>(p as i32, t) {
                             threads.push(thread);
