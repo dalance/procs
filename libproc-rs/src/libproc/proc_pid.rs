@@ -534,6 +534,8 @@ pub fn listthreads(pid: i32, threadnum: usize) -> Result<Vec<uint64_t>, String> 
     if ret <= 0 {
         Err(get_errno_with_message(ret))
     } else {
+        let actual_len = ret as usize / mem::size_of::<uint64_t>();
+        buffer.truncate(actual_len);
         Ok(buffer)
     }
 }
