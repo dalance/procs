@@ -43,7 +43,7 @@ impl Column for State {
 impl Column for State {
     fn add(&mut self, proc: &ProcessInfo) {
         let pid = proc.curr_proc.pbsd.pbi_pid as i32;
-        let state = match proc.bsd.pbi_status {
+        let state = match proc.threads[0].pth_run_state {
             1 => "R",
             2 => "U",
             3 => "S",
@@ -52,7 +52,7 @@ impl Column for State {
             6 => "Z",
             _ => "?",
         };
-        let fmt_content = format!("{} {}", state, proc.thread.pth_run_state);
+        let fmt_content = format!("{} {}", state, proc.threads[0].pth_run_state);
         let raw_content = fmt_content.clone();
 
         self.fmt_contents.insert(pid, fmt_content);
