@@ -44,15 +44,30 @@ impl Column for State {
         let pid = proc.curr_proc.pbsd.pbi_pid as i32;
         let mut state = 7;
         for t in &proc.threads {
-            state = cmp::min(t.pth_run_state, state);
+            let s = match t.pth_run_state {
+                1 => 1, // TH_STATE_RUNNING
+                2 => 5, // TH_STATE_STOPPED
+                3 => {
+                    if t.pth_sleep_time > 20 {
+                        4
+                    } else {
+                        3
+                    }
+                } // TH_STATE_WAITING
+                4 => 2, // TH_STATE_UNINTERRUPTIBLE
+                5 => 6, // TH_STATE_HALTED
+                _ => 7,
+            };
+            state = cmp::min(s, state);
         }
         let state = match state {
+            0 => "",
             1 => "R",
             2 => "U",
             3 => "S",
-            4 => "T",
-            5 => "I",
-            6 => "Z",
+            4 => "I",
+            5 => "T",
+            6 => "H",
             _ => "?",
         };
         let fmt_content = format!("{}", state);
