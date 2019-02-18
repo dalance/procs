@@ -511,7 +511,7 @@ fn name_test_init_pid() {
     }
 }
 
-pub fn listthreads(pid: i32, threadnum: usize) -> Result<Vec<uint64_t>, String> {
+pub fn listthreads(pid: i32, threadnum: usize) -> Result<(usize, Vec<uint64_t>), String> {
     let buffer_size = (mem::size_of::<uint64_t>() * threadnum) as i32;
     let mut buffer = Vec::<uint64_t>::with_capacity(threadnum);
     let buffer_ptr = unsafe {
@@ -536,6 +536,6 @@ pub fn listthreads(pid: i32, threadnum: usize) -> Result<Vec<uint64_t>, String> 
     } else {
         let actual_len = ret as usize / mem::size_of::<uint64_t>();
         buffer.truncate(actual_len);
-        Ok(buffer)
+        Ok((actual_len, buffer))
     }
 }
