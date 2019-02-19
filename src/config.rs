@@ -73,6 +73,7 @@ pub fn gen_column(kind: &ConfigColumnKind, docker_path: &str) -> Box<dyn Column>
 pub fn gen_column(kind: &ConfigColumnKind, _docker_path: &str) -> Box<dyn Column> {
     match kind {
         ConfigColumnKind::Command => Box::new(Command::new()),
+        ConfigColumnKind::CpuTime => Box::new(CpuTime::new()),
         ConfigColumnKind::Nice => Box::new(Nice::new()),
         ConfigColumnKind::Pid => Box::new(Pid::new()),
         ConfigColumnKind::Ppid => Box::new(Ppid::new()),
@@ -171,6 +172,7 @@ pub enum ConfigColumnKind {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ConfigColumnKind {
     Command,
+    CpuTime,
     Nice,
     Pid,
     Ppid,
@@ -559,6 +561,11 @@ nonnumeric_search = false
 [[columns]]
 kind = "Separator"
 style = "White"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "CpuTime"
+style = "BrightCyan"
 numeric_search = false
 nonnumeric_search = false
 [[columns]]

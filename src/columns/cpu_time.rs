@@ -25,10 +25,27 @@ impl CpuTime {
     }
 }
 
+#[cfg(target_os = "linux")]
 impl Column for CpuTime {
     fn add(&mut self, proc: &ProcessInfo) {
         let time_sec = (proc.curr_proc.stat.utime + proc.curr_proc.stat.stime)
             / procfs::ticks_per_second().unwrap_or(100) as u64;
+
+        let fmt_content = util::parse_time(time_sec).to_string();
+        let raw_content = time_sec;
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(u64);
+}
+
+#[cfg(target_os = "macos")]
+impl Column for CpuTime {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let time_sec =
+            (proc.task.ptinfo.pti_total_user + proc.task.ptinfo.pti_total_system) / 1000000000u64;
 
         let fmt_content = util::parse_time(time_sec).to_string();
         let raw_content = time_sec;
