@@ -2,7 +2,7 @@
 use libc::{c_int, c_void, size_t};
 #[cfg(target_os = "macos")]
 use libproc::libproc::proc_pid::{
-    self, BSDInfo, ListFDs, ListThreads, ProcType, TaskAllInfo, TaskInfo, ThreadInfo,
+    self, BSDInfo, ListFDs, ListThreads, ProcFDType, ProcType, TaskAllInfo, TaskInfo, ThreadInfo,
 };
 #[cfg(target_os = "linux")]
 use procfs::{Io, ProcResult, Process, Status};
@@ -115,7 +115,7 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
         if let Ok(fds) = fds {
             dbg!((fds.len(), curr_task.pbsd.pbi_nfiles));
             for fd in fds {
-                dbg!((fd.proc_fd, fd.proc_fdtype));
+                dbg!((fd.proc_fd, ProcFDType::from(fd.proc_fdtype)));
             }
         }
 

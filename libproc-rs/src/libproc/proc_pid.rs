@@ -580,6 +580,34 @@ pub struct ProcFDInfo {
     pub proc_fdtype: uint32_t,
 }
 
+#[derive(Copy, Clone, Debug)]
+pub enum ProcFDType {
+    ProcFDTypeATalk    = 0,
+    ProcFDTypeVNode    = 1,
+    ProcFDTypeSocket   = 2,
+    ProcFDTypePSHM     = 3,
+    ProcFDTypePSEM     = 4,
+    ProcFDTypeKQueue   = 5,
+    ProcFDTypePipe     = 6,
+    ProcFDTypeFSEvents = 7
+}
+
+impl ProcFDType {
+    pub fn from(value: uint32_t) -> Option<ProcFDType> {
+        match value {
+            0 => Some(ProcFDTypeATalk   ),
+            1 => Some(ProcFDTypeVNode   ),
+            2 => Some(ProcFDTypeSocket  ),
+            3 => Some(ProcFDTypePSHM    ),
+            4 => Some(ProcFDTypePSEM    ),
+            5 => Some(ProcFDTypeKQueue  ),
+            6 => Some(ProcFDTypePipe    ),
+            7 => Some(ProcFDTypeFSEvents),
+            _ => None
+        }
+    }
+}
+
 #[test]
 fn listthreads_test() {
     use std::process;
