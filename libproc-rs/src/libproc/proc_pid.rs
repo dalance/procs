@@ -582,27 +582,27 @@ pub struct ProcFDInfo {
 
 #[derive(Copy, Clone, Debug)]
 pub enum ProcFDType {
-    ProcFDTypeATalk    = 0,
-    ProcFDTypeVNode    = 1,
-    ProcFDTypeSocket   = 2,
-    ProcFDTypePSHM     = 3,
-    ProcFDTypePSEM     = 4,
-    ProcFDTypeKQueue   = 5,
-    ProcFDTypePipe     = 6,
-    ProcFDTypeFSEvents = 7
+    ATalk    = 0,
+    VNode    = 1,
+    Socket   = 2,
+    PSHM     = 3,
+    PSEM     = 4,
+    KQueue   = 5,
+    Pipe     = 6,
+    FSEvents = 7
 }
 
 impl ProcFDType {
     pub fn from(value: uint32_t) -> Option<ProcFDType> {
         match value {
-            0 => Some(ProcFDTypeATalk   ),
-            1 => Some(ProcFDTypeVNode   ),
-            2 => Some(ProcFDTypeSocket  ),
-            3 => Some(ProcFDTypePSHM    ),
-            4 => Some(ProcFDTypePSEM    ),
-            5 => Some(ProcFDTypeKQueue  ),
-            6 => Some(ProcFDTypePipe    ),
-            7 => Some(ProcFDTypeFSEvents),
+            0 => Some(ProcFDType::ATalk   ),
+            1 => Some(ProcFDType::VNode   ),
+            2 => Some(ProcFDType::Socket  ),
+            3 => Some(ProcFDType::PSHM    ),
+            4 => Some(ProcFDType::PSEM    ),
+            5 => Some(ProcFDType::KQueue  ),
+            6 => Some(ProcFDType::Pipe    ),
+            7 => Some(ProcFDType::FSEvents),
             _ => None
         }
     }
