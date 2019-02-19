@@ -130,11 +130,11 @@ fn get_arg_max() -> size_t {
 
 #[cfg(target_os = "macos")]
 pub struct PathInfo {
-    name: String,
-    exe: PathBuf,
-    root: PathBuf,
-    cmd: Vec<String>,
-    env: Vec<String>,
+    pub name: String,
+    pub exe: PathBuf,
+    pub root: PathBuf,
+    pub cmd: Vec<String>,
+    pub env: Vec<String>,
 }
 
 #[cfg(target_os = "macos")]
