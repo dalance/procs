@@ -1,7 +1,7 @@
 #[cfg(target_os = "macos")]
-use libc::{c_char, c_int, c_void, int32_t, size_t, uint64_t};
+use libc::{c_int, c_void, size_t};
 #[cfg(target_os = "macos")]
-use libproc::libproc::proc_pid::{self, PIDInfo, PidInfoFlavor, ProcType, TaskAllInfo};
+use libproc::libproc::proc_pid::{self, PIDInfo, PidInfoFlavor, ProcType, TaskAllInfo, ThreadInfo};
 #[cfg(target_os = "linux")]
 use procfs::{Io, ProcResult, Process, Status};
 #[cfg(target_os = "macos")]
@@ -71,7 +71,7 @@ pub struct ProcessInfo {
     pub pid: i32,
     pub task: TaskAllInfo,
     pub path: Option<PathInfo>,
-    pub threads: Vec<ThreadInfo2>,
+    pub threads: Vec<ThreadInfo>,
 }
 
 #[cfg(target_os = "macos")]
@@ -89,7 +89,7 @@ pub fn collect_proc(_interval: Duration) -> Vec<ProcessInfo> {
                 let mut threads = Vec::new();
                 if let Ok(threadids) = threadids {
                     for t in threadids {
-                        if let Ok(thread) = proc_pid::pidinfo::<ThreadInfo2>(p as i32, t) {
+                        if let Ok(thread) = proc_pid::pidinfo::<ThreadInfo>(p as i32, t) {
                             threads.push(thread);
                         }
                     }
@@ -237,51 +237,6 @@ fn get_path_info(pid: i32, mut size: size_t) -> Option<PathInfo> {
             }
         } else {
             None
-        }
-    }
-}
-
-#[cfg(target_os = "macos")]
-const MAXTHREADNAMESIZE: usize = 64;
-
-#[cfg(target_os = "macos")]
-#[repr(C)]
-pub struct ThreadInfo2 {
-    pub pth_user_time: uint64_t,               // user run time
-    pub pth_system_time: uint64_t,             // system run time
-    pub pth_cpu_usage: int32_t,                // scaled cpu usage percentage
-    pub pth_policy: int32_t,                   // scheduling policy in effect
-    pub pth_run_state: int32_t,                // run state (see below)
-    pub pth_flags: int32_t,                    // various flags (see below)
-    pub pth_sleep_time: int32_t,               // number of seconds that thread
-    pub pth_curpri: int32_t,                   // cur priority
-    pub pth_priority: int32_t,                 // priority
-    pub pth_maxpriority: int32_t,              // max priority
-    pub pth_name: [c_char; MAXTHREADNAMESIZE], // thread name, if any
-}
-
-#[cfg(target_os = "macos")]
-impl PIDInfo for ThreadInfo2 {
-    fn flavor() -> PidInfoFlavor {
-        PidInfoFlavor::ThreadInfo
-    }
-}
-
-#[cfg(target_os = "macos")]
-impl Default for ThreadInfo2 {
-    fn default() -> ThreadInfo2 {
-        ThreadInfo2 {
-            pth_user_time: 0,
-            pth_system_time: 0,
-            pth_cpu_usage: 0,
-            pth_policy: 0,
-            pth_run_state: 0,
-            pth_flags: 0,
-            pth_sleep_time: 0,
-            pth_curpri: 0,
-            pth_priority: 0,
-            pth_maxpriority: 0,
-            pth_name: [0; MAXTHREADNAMESIZE],
         }
     }
 }

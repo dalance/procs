@@ -130,6 +130,28 @@ pub struct ThreadInfo {
     pub pth_name                : [c_char; MAXTHREADNAMESIZE]   // thread name, if any
 }
 
+impl PIDInfo for ThreadInfo {
+    fn flavor() -> PidInfoFlavor { PidInfoFlavor::ThreadInfo }
+}
+
+impl Default for ThreadInfo {
+    fn default() -> ThreadInfo {
+        ThreadInfo {
+            pth_user_time  : 0,
+            pth_system_time: 0,
+            pth_cpu_usage  : 0,
+            pth_policy     : 0,
+            pth_run_state  : 0,
+            pth_flags      : 0,
+            pth_sleep_time : 0,
+            pth_curpri     : 0,
+            pth_priority   : 0,
+            pth_maxpriority: 0,
+            pth_name       : [0; MAXTHREADNAMESIZE],
+        }
+    }
+}
+
 #[derive(Default)]
 pub struct WorkQueueInfo {
     pub pwq_nthreads            : uint32_t,     // total number of workqueue threads
