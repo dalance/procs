@@ -504,6 +504,13 @@ fn name_test_init_pid() {
     }
 }
 
+// This trait is needed for polymorphism on pidinfo types, also abstracting flavor in order to provide
+// type-guaranteed flavor correctness
+pub trait ListPIDInfo {
+    type Item;
+    fn flavor() -> PidInfoFlavor;
+}
+
 /// Returns the Thread IDs of the process that match pid passed in.
 /// `threadnum` is the maximum number of threads to return.
 /// The length of return value: `Vec<uint64_t>` may be less than `threadnum`.
@@ -529,27 +536,35 @@ fn name_test_init_pid() {
 ///     };
 /// }
 /// ```
-pub fn listthreads(pid: i32, threadnum: i32) -> Result<Vec<uint64_t>, String> {
-    let buffer_size = mem::size_of::<uint64_t>() as i32 * threadnum;
-    let mut buffer = Vec::<uint64_t>::with_capacity(threadnum as usize);
+pub fn listpidinfo<T: ListPIDInfo>(pid : i32, max_len: usize) -> Result<Vec<T::Item>, String> {
+    let flavor = T::flavor() as i32;
+    let buffer_size = mem::size_of::<T::Item>() as i32 * max_len as i32;
+    let mut buffer = Vec::<T::Item>::with_capacity(max_len);
     let buffer_ptr = unsafe {
-        buffer.set_len(threadnum as usize);
+        buffer.set_len(max_len);
         buffer.as_mut_ptr() as *mut c_void
     };
 
     let ret: i32;
 
     unsafe {
-        ret = proc_pidinfo( pid, PidInfoFlavor::ListThreads as i32, 0, buffer_ptr, buffer_size);
+        ret = proc_pidinfo( pid, flavor, 0, buffer_ptr, buffer_size);
     };
 
     if ret <= 0 {
         Err(get_errno_with_message(ret))
     } else {
-        let actual_len = ret as usize / mem::size_of::<uint64_t>();
+        let actual_len = ret as usize / mem::size_of::<T::Item>();
         buffer.truncate(actual_len);
         Ok(buffer)
     }
+}
+
+pub struct ListThreads;
+
+impl ListPIDInfo for ListThreads {
+    type Item = uint64_t;
+    fn flavor() -> PidInfoFlavor { PidInfoFlavor::ListThreads }
 }
 
 #[test]

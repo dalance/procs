@@ -1,7 +1,9 @@
 #[cfg(target_os = "macos")]
 use libc::{c_int, c_void, size_t};
 #[cfg(target_os = "macos")]
-use libproc::libproc::proc_pid::{self, BSDInfo, ProcType, TaskAllInfo, TaskInfo, ThreadInfo};
+use libproc::libproc::proc_pid::{
+    self, BSDInfo, ListThreads, ProcType, TaskAllInfo, TaskInfo, ThreadInfo,
+};
 #[cfg(target_os = "linux")]
 use procfs::{Io, ProcResult, Process, Status};
 #[cfg(target_os = "macos")]
@@ -98,7 +100,8 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
 
         let curr_path = get_path_info(pid, arg_max);
 
-        let threadids = proc_pid::listthreads(pid, curr_task.ptinfo.pti_threadnum);
+        let threadids =
+            proc_pid::listpidinfo::<ListThreads>(pid, curr_task.ptinfo.pti_threadnum as usize);
         let mut curr_threads = Vec::new();
         if let Ok(threadids) = threadids {
             for t in threadids {
