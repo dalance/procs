@@ -150,7 +150,7 @@ unsafe fn get_unchecked_str(cp: *mut u8, start: *mut u8) -> String {
 }
 
 #[cfg(target_os = "macos")]
-fn get_cmd_env(pid: i32, size: size_t) -> Option<PathInfo> {
+fn get_path_info(pid: i32, size: size_t) -> Option<PathInfo> {
     let mut proc_args = Vec::with_capacity(size as usize);
     let ptr: *mut u8 = proc_args.as_mut_slice().as_mut_ptr();
 
