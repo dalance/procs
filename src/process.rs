@@ -8,7 +8,6 @@ use procfs::{Io, ProcResult, Process, Status};
 use std::ffi::OsStr;
 #[cfg(target_os = "macos")]
 use std::path::{Path, PathBuf};
-#[cfg(target_os = "linux")]
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -94,7 +93,7 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
         let curr_task = if let Ok(task) = proc_pid::pidinfo::<TaskAllInfo>(pid, 0) {
             task
         } else {
-            prev_task.clone()
+            clone_task_all_info(&prev_task)
         };
 
         if let Ok(curr_task) = proc_pid::pidinfo::<TaskAllInfo>(pid, 0) {
@@ -262,52 +261,50 @@ fn get_path_info(pid: i32, mut size: size_t) -> Option<PathInfo> {
 }
 
 #[cfg(target_os = "macos")]
-impl Clone for TaskAllInfo {
-    fn clone(&self) -> TaskAllInfo {
-        let pbsd = BSDInfo {
-            pbi_flags: self.pbdf.pbi_flags,
-            pbi_status: self.pbdf.pbi_status,
-            pbi_xstatus: self.pbdf.pbi_xstatus,
-            pbi_pid: self.pbdf.pbi_pid,
-            pbi_ppid: self.pbdf.pbi_ppid,
-            pbi_uid: self.pbdf.pbi_uid,
-            pbi_gid: self.pbdf.pbi_gid,
-            pbi_ruid: self.pbdf.pbi_ruid,
-            pbi_rgid: self.pbdf.pbi_rgid,
-            pbi_svuid: self.pbdf.pbi_svuid,
-            pbi_svgid: self.pbdf.pbi_svgid,
-            rfu_1: self.pbdf.rfu_1,
-            pbi_comm: self.pbdf.pbi_comm,
-            pbi_name: self.pbdf.pbi_name,
-            pbi_nfiles: self.pbdf.pbi_nfiles,
-            pbi_pgid: self.pbdf.pbi_pgid,
-            pbi_pjobc: self.pbdf.pbi_pjobc,
-            e_tdev: self.pbdf.e_tdev,
-            e_tpgid: self.pbdf.e_tpgid,
-            pbi_nice: self.pbdf.pbi_nice,
-            pbi_start_tvsec: self.pbdf.pbi_start_tvsec,
-            pbi_start_tvusec: self.pbdf.pbi_start_tvusec,
-        };
-        let ptinfo = TaskInfo {
-            pti_virtual_size: self.pti_virtual_size,
-            pti_resident_size: self.pti_resident_size,
-            pti_total_user: self.pti_total_user,
-            pti_total_system: self.pti_total_system,
-            pti_threads_user: self.pti_threads_user,
-            pti_threads_system: self.pti_threads_system,
-            pti_policy: self.pti_policy,
-            pti_faults: self.pti_faults,
-            pti_pageins: self.pti_pageins,
-            pti_cow_faults: self.pti_cow_faults,
-            pti_messages_sent: self.pti_messages_sent,
-            pti_messages_received: self.pti_messages_received,
-            pti_syscalls_mach: self.pti_syscalls_mach,
-            pti_syscalls_unix: self.pti_syscalls_unix,
-            pti_csw: self.pti_csw,
-            pti_threadnum: self.pti_threadnum,
-            pti_numrunning: self.pti_numrunning,
-            pti_priority: self.pti_priority,
-        };
-        TaskAllInfo { pbsd, ptinfo }
-    }
+fn clone_task_all_info(&src: TaskAllInfo) -> TaskAllInfo {
+    let pbsd = BSDInfo {
+        pbi_flags: src.pbdf.pbi_flags,
+        pbi_status: src.pbdf.pbi_status,
+        pbi_xstatus: src.pbdf.pbi_xstatus,
+        pbi_pid: src.pbdf.pbi_pid,
+        pbi_ppid: src.pbdf.pbi_ppid,
+        pbi_uid: src.pbdf.pbi_uid,
+        pbi_gid: src.pbdf.pbi_gid,
+        pbi_ruid: src.pbdf.pbi_ruid,
+        pbi_rgid: src.pbdf.pbi_rgid,
+        pbi_svuid: src.pbdf.pbi_svuid,
+        pbi_svgid: src.pbdf.pbi_svgid,
+        rfu_1: src.pbdf.rfu_1,
+        pbi_comm: src.pbdf.pbi_comm,
+        pbi_name: src.pbdf.pbi_name,
+        pbi_nfiles: src.pbdf.pbi_nfiles,
+        pbi_pgid: src.pbdf.pbi_pgid,
+        pbi_pjobc: src.pbdf.pbi_pjobc,
+        e_tdev: src.pbdf.e_tdev,
+        e_tpgid: src.pbdf.e_tpgid,
+        pbi_nice: src.pbdf.pbi_nice,
+        pbi_start_tvsec: src.pbdf.pbi_start_tvsec,
+        pbi_start_tvusec: src.pbdf.pbi_start_tvusec,
+    };
+    let ptinfo = TaskInfo {
+        pti_virtual_size: src.pti_virtual_size,
+        pti_resident_size: src.pti_resident_size,
+        pti_total_user: src.pti_total_user,
+        pti_total_system: src.pti_total_system,
+        pti_threads_user: src.pti_threads_user,
+        pti_threads_system: src.pti_threads_system,
+        pti_policy: src.pti_policy,
+        pti_faults: src.pti_faults,
+        pti_pageins: src.pti_pageins,
+        pti_cow_faults: src.pti_cow_faults,
+        pti_messages_sent: src.pti_messages_sent,
+        pti_messages_received: src.pti_messages_received,
+        pti_syscalls_mach: src.pti_syscalls_mach,
+        pti_syscalls_unix: src.pti_syscalls_unix,
+        pti_csw: src.pti_csw,
+        pti_threadnum: src.pti_threadnum,
+        pti_numrunning: src.pti_numrunning,
+        pti_priority: src.pti_priority,
+    };
+    TaskAllInfo { pbsd, ptinfo }
 }
