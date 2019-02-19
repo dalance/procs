@@ -41,7 +41,7 @@ impl Column for Nice {
 #[cfg(target_os = "macos")]
 impl Column for Nice {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = proc.curr_proc.pbsd.pbi_nice as i64;
+        let raw_content = proc.task.pbsd.pbi_nice as i64;
         let fmt_content = format!("{}", raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);

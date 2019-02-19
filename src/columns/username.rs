@@ -46,11 +46,11 @@ impl Column for Username {
 #[cfg(target_os = "macos")]
 impl Column for Username {
     fn add(&mut self, proc: &ProcessInfo) {
-        let user = users::get_user_by_uid(proc.curr_proc.pbsd.pbi_uid);
+        let user = users::get_user_by_uid(proc.task.pbsd.pbi_uid);
         let fmt_content = if let Some(user) = user {
             format!("{}", user.name().to_string_lossy())
         } else {
-            format!("{}", proc.curr_proc.pbsd.pbi_uid)
+            format!("{}", proc.task.pbsd.pbi_uid)
         };
         let raw_content = fmt_content.clone();
 
