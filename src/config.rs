@@ -81,6 +81,7 @@ pub fn gen_column(kind: &ConfigColumnKind, _docker_path: &str) -> Box<dyn Column
         ConfigColumnKind::StartTime => Box::new(StartTime::new()),
         ConfigColumnKind::State => Box::new(State::new()),
         ConfigColumnKind::Tty => Box::new(Tty::new()),
+        ConfigColumnKind::UsageCpu => Box::new(UsageCpu::new()),
         ConfigColumnKind::Username => Box::new(Username::new()),
         ConfigColumnKind::VmRss => Box::new(VmRss::new()),
         ConfigColumnKind::VmSize => Box::new(VmSize::new()),
@@ -181,6 +182,7 @@ pub enum ConfigColumnKind {
     StartTime,
     State,
     Tty,
+    UsageCpu,
     Username,
     VmRss,
     VmSize,
@@ -553,6 +555,11 @@ nonnumeric_search = false
 [[columns]]
 kind = "Tty"
 style = "BrightWhite"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "UsageCpu"
+style = "ByPercentage"
 numeric_search = false
 nonnumeric_search = false
 [[columns]]

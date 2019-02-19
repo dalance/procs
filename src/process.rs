@@ -261,7 +261,7 @@ fn get_path_info(pid: i32, mut size: size_t) -> Option<PathInfo> {
 }
 
 #[cfg(target_os = "macos")]
-fn clone_task_all_info(&src: TaskAllInfo) -> TaskAllInfo {
+fn clone_task_all_info(src: &TaskAllInfo) -> TaskAllInfo {
     let pbsd = BSDInfo {
         pbi_flags: src.pbdf.pbi_flags,
         pbi_status: src.pbdf.pbi_status,

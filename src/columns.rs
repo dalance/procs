@@ -31,7 +31,6 @@ pub mod threads;
 pub mod tty;
 #[cfg(target_os = "linux")]
 pub mod udp_port;
-#[cfg(target_os = "linux")]
 pub mod usage_cpu;
 #[cfg(target_os = "linux")]
 pub mod usage_mem;
@@ -96,7 +95,6 @@ pub use self::threads::Threads;
 pub use self::tty::Tty;
 #[cfg(target_os = "linux")]
 pub use self::udp_port::UdpPort;
-#[cfg(target_os = "linux")]
 pub use self::usage_cpu::UsageCpu;
 #[cfg(target_os = "linux")]
 pub use self::usage_mem::UsageMem;
