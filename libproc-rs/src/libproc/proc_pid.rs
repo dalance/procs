@@ -570,8 +570,14 @@ impl ListPIDInfo for ListThreads {
 pub struct ListFDs;
 
 impl ListPIDInfo for ListFDs {
-    type Item = c_int;
+    type Item = ProcFDInfo;
     fn flavor() -> PidInfoFlavor { PidInfoFlavor::ListFDs }
+}
+
+#[repr(C)]
+pub struct ProcFDInfo {
+    pub proc_fd: int32_t,
+    pub proc_fdtype: uint32_t,
 }
 
 #[test]
