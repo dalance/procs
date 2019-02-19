@@ -25,6 +25,7 @@ impl Tty {
     }
 }
 
+#[cfg(target_os = "linux")]
 impl Column for Tty {
     fn add(&mut self, proc: &ProcessInfo) {
         let (major, minor) = proc.curr_proc.stat.tty_nr();
@@ -33,6 +34,22 @@ impl Column for Tty {
         } else {
             String::from("")
         };
+        let raw_content = fmt_content.clone();
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(String);
+}
+
+#[cfg(target_os = "macos")]
+impl Column for Tty {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let dev = proc.task.pbsd.e_tdev;
+        let major = (dev >> 24) & 0xff;
+        let minor = dev & 0xffffff;
+        let fmt_content = format!("{} {}", major, minor);
         let raw_content = fmt_content.clone();
 
         self.fmt_contents.insert(proc.pid, fmt_content);

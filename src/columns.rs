@@ -28,7 +28,6 @@ pub mod state;
 pub mod tcp_port;
 #[cfg(target_os = "linux")]
 pub mod threads;
-#[cfg(target_os = "linux")]
 pub mod tty;
 #[cfg(target_os = "linux")]
 pub mod udp_port;
@@ -94,7 +93,6 @@ pub use self::state::State;
 pub use self::tcp_port::TcpPort;
 #[cfg(target_os = "linux")]
 pub use self::threads::Threads;
-#[cfg(target_os = "linux")]
 pub use self::tty::Tty;
 #[cfg(target_os = "linux")]
 pub use self::udp_port::UdpPort;
