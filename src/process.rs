@@ -96,33 +96,31 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
             clone_task_all_info(&prev_task)
         };
 
-        if let Ok(curr_task) = proc_pid::pidinfo::<TaskAllInfo>(pid, 0) {
-            let curr_path = get_path_info(pid, arg_max);
+        let curr_path = get_path_info(pid, arg_max);
 
-            let threadids = proc_pid::listthreads(pid, curr_task.ptinfo.pti_threadnum);
-            let mut curr_threads = Vec::new();
-            if let Ok(threadids) = threadids {
-                for t in threadids {
-                    if let Ok(thread) = proc_pid::pidinfo::<ThreadInfo>(pid, t) {
-                        curr_threads.push(thread);
-                    }
+        let threadids = proc_pid::listthreads(pid, curr_task.ptinfo.pti_threadnum);
+        let mut curr_threads = Vec::new();
+        if let Ok(threadids) = threadids {
+            for t in threadids {
+                if let Ok(thread) = proc_pid::pidinfo::<ThreadInfo>(pid, t) {
+                    curr_threads.push(thread);
                 }
             }
-
-            let curr_time = Instant::now();
-            let interval = curr_time - prev_time;
-
-            let proc = ProcessInfo {
-                pid,
-                curr_task,
-                prev_task,
-                curr_path,
-                curr_threads,
-                interval,
-            };
-
-            ret.push(proc);
         }
+
+        let curr_time = Instant::now();
+        let interval = curr_time - prev_time;
+
+        let proc = ProcessInfo {
+            pid,
+            curr_task,
+            prev_task,
+            curr_path,
+            curr_threads,
+            interval,
+        };
+
+        ret.push(proc);
     }
 
     ret
