@@ -1,6 +1,8 @@
 use crate::process::ProcessInfo;
 use crate::{column_default, Column};
-use chrono::{offset::TimeZone, DateTime, Local};
+#[cfg(target_os = "macos")]
+use chrono::offset::TimeZone;
+use chrono::{DateTime, Local};
 use std::cmp;
 use std::collections::HashMap;
 
