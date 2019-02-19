@@ -111,6 +111,14 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
             }
         }
 
+        let fds = proc_pid::listpidinfo::<ListFDs>(pid, curr_task.pbsd.pbi_nfiles);
+        if let Ok(fds) = fds {
+            dbg!((fds.len(), curr_task.pbsd.pbi_nfiles));
+            for fd in fds {
+                dbg!(fd);
+            }
+        }
+
         let curr_time = Instant::now();
         let interval = curr_time - prev_time;
 

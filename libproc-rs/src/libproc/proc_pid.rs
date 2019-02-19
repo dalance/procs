@@ -567,6 +567,13 @@ impl ListPIDInfo for ListThreads {
     fn flavor() -> PidInfoFlavor { PidInfoFlavor::ListThreads }
 }
 
+pub struct ListFDs;
+
+impl ListPIDInfo for ListFDs {
+    type Item = c_int;
+    fn flavor() -> PidInfoFlavor { PidInfoFlavor::ListFDs }
+}
+
 #[test]
 fn listthreads_test() {
     use std::process;
