@@ -69,40 +69,63 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
 #[cfg(target_os = "macos")]
 pub struct ProcessInfo {
     pub pid: i32,
-    pub task: TaskAllInfo,
-    pub path: Option<PathInfo>,
-    pub threads: Vec<ThreadInfo>,
+    pub curr_task: TaskAllInfo,
+    pub prev_task: TaskAllInfo,
+    pub curr_path: Option<PathInfo>,
+    pub curr_threads: Vec<ThreadInfo>,
+    pub interval: Duration,
 }
 
 #[cfg(target_os = "macos")]
-pub fn collect_proc(_interval: Duration) -> Vec<ProcessInfo> {
+pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
+    let mut base_procs = Vec::new();
     let mut ret = Vec::new();
     let arg_max = get_arg_max();
 
     if let Ok(procs) = proc_pid::listpids(ProcType::ProcAllPIDS) {
         for p in procs {
             if let Ok(task) = proc_pid::pidinfo::<TaskAllInfo>(p as i32, 0) {
-                let path = get_path_info(p as i32, arg_max);
+                let time = Instant::now();
+                base_procs.push((p as i32, task, time));
+            }
+        }
+    }
 
-                let threadids =
-                    proc_pid::listthreads(task.pbsd.pbi_pid as i32, task.ptinfo.pti_threadnum);
-                let mut threads = Vec::new();
-                if let Ok(threadids) = threadids {
-                    for t in threadids {
-                        if let Ok(thread) = proc_pid::pidinfo::<ThreadInfo>(p as i32, t) {
-                            threads.push(thread);
-                        }
+    thread::sleep(interval);
+
+    for (pid, prev_task, prev_time) in base_procs {
+        let curr_task = if let Ok(task) = proc_pid::pidinfo::<TaskAllInfo>(pid, 0) {
+            task
+        } else {
+            prev_task.clone()
+        };
+
+        if let Ok(task) = proc_pid::pidinfo::<TaskAllInfo>(pid, 0) {
+            let path = get_path_info(pid, arg_max);
+
+            let threadids = proc_pid::listthreads(pid, task.ptinfo.pti_threadnum);
+            let mut threads = Vec::new();
+            if let Ok(threadids) = threadids {
+                for t in threadids {
+                    if let Ok(thread) = proc_pid::pidinfo::<ThreadInfo>(pid, t) {
+                        threads.push(thread);
                     }
                 }
-
-                let proc = ProcessInfo {
-                    pid: p as i32,
-                    task,
-                    path,
-                    threads,
-                };
-                ret.push(proc);
             }
+
+            let curr_time = Instant::now();
+            let interval = curr_time - prev_time;
+
+            let proc = ProcessInfo {
+                pid,
+                curr_task,
+                prev_task,
+                curr_path,
+                curr_threads,
+                interval,
+            };
+
+            ret.push(proc);
         }
     }
 
