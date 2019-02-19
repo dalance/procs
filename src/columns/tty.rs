@@ -49,7 +49,11 @@ impl Column for Tty {
         let dev = proc.task.pbsd.e_tdev;
         let major = (dev >> 24) & 0xff;
         let minor = dev & 0xffffff;
-        let fmt_content = format!("{} {}", major, minor);
+        let fmt_content = if major == 16 {
+            format!("s{:03}", minor)
+        } else {
+            String::from("")
+        };
         let raw_content = fmt_content.clone();
 
         self.fmt_contents.insert(proc.pid, fmt_content);
