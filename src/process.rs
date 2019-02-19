@@ -115,7 +115,7 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
         if let Ok(fds) = fds {
             dbg!((fds.len(), curr_task.pbsd.pbi_nfiles));
             for fd in fds {
-                dbg!(fd);
+                dbg!((fd.proc_fd, fd.proc_fdtype));
             }
         }
 
