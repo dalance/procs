@@ -1,7 +1,7 @@
 #[cfg(target_os = "macos")]
 use libc::{c_int, c_void, size_t};
 #[cfg(target_os = "macos")]
-use libproc::libproc::proc_pid::{self, ProcType, TaskAllInfo, ThreadInfo};
+use libproc::libproc::proc_pid::{self, BSDInfo, ProcType, TaskAllInfo, TaskInfo, ThreadInfo};
 #[cfg(target_os = "linux")]
 use procfs::{Io, ProcResult, Process, Status};
 #[cfg(target_os = "macos")]
@@ -10,9 +10,6 @@ use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 #[cfg(target_os = "linux")]
 use std::thread;
-#[cfg(target_os = "macos")]
-use std::time::Duration;
-#[cfg(target_os = "linux")]
 use std::time::{Duration, Instant};
 
 #[cfg(target_os = "linux")]
@@ -100,15 +97,15 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
             prev_task.clone()
         };
 
-        if let Ok(task) = proc_pid::pidinfo::<TaskAllInfo>(pid, 0) {
-            let path = get_path_info(pid, arg_max);
+        if let Ok(curr_task) = proc_pid::pidinfo::<TaskAllInfo>(pid, 0) {
+            let curr_path = get_path_info(pid, arg_max);
 
-            let threadids = proc_pid::listthreads(pid, task.ptinfo.pti_threadnum);
-            let mut threads = Vec::new();
+            let threadids = proc_pid::listthreads(pid, curr_task.ptinfo.pti_threadnum);
+            let mut curr_threads = Vec::new();
             if let Ok(threadids) = threadids {
                 for t in threadids {
                     if let Ok(thread) = proc_pid::pidinfo::<ThreadInfo>(pid, t) {
-                        threads.push(thread);
+                        curr_threads.push(thread);
                     }
                 }
             }
@@ -261,5 +258,56 @@ fn get_path_info(pid: i32, mut size: size_t) -> Option<PathInfo> {
         } else {
             None
         }
+    }
+}
+
+#[cfg(target_os = "macos")]
+impl Clone for TaskAllInfo {
+    fn clone(&self) -> TaskAllInfo {
+        let pbsd = BSDInfo {
+            pbi_flags: self.pbdf.pbi_flags,
+            pbi_status: self.pbdf.pbi_status,
+            pbi_xstatus: self.pbdf.pbi_xstatus,
+            pbi_pid: self.pbdf.pbi_pid,
+            pbi_ppid: self.pbdf.pbi_ppid,
+            pbi_uid: self.pbdf.pbi_uid,
+            pbi_gid: self.pbdf.pbi_gid,
+            pbi_ruid: self.pbdf.pbi_ruid,
+            pbi_rgid: self.pbdf.pbi_rgid,
+            pbi_svuid: self.pbdf.pbi_svuid,
+            pbi_svgid: self.pbdf.pbi_svgid,
+            rfu_1: self.pbdf.rfu_1,
+            pbi_comm: self.pbdf.pbi_comm,
+            pbi_name: self.pbdf.pbi_name,
+            pbi_nfiles: self.pbdf.pbi_nfiles,
+            pbi_pgid: self.pbdf.pbi_pgid,
+            pbi_pjobc: self.pbdf.pbi_pjobc,
+            e_tdev: self.pbdf.e_tdev,
+            e_tpgid: self.pbdf.e_tpgid,
+            pbi_nice: self.pbdf.pbi_nice,
+            pbi_start_tvsec: self.pbdf.pbi_start_tvsec,
+            pbi_start_tvusec: self.pbdf.pbi_start_tvusec,
+        };
+        let ptinfo = TaskInfo {
+            pti_virtual_size: self.pti_virtual_size,
+            pti_resident_size: self.pti_resident_size,
+            pti_total_user: self.pti_total_user,
+            pti_total_system: self.pti_total_system,
+            pti_threads_user: self.pti_threads_user,
+            pti_threads_system: self.pti_threads_system,
+            pti_policy: self.pti_policy,
+            pti_faults: self.pti_faults,
+            pti_pageins: self.pti_pageins,
+            pti_cow_faults: self.pti_cow_faults,
+            pti_messages_sent: self.pti_messages_sent,
+            pti_messages_received: self.pti_messages_received,
+            pti_syscalls_mach: self.pti_syscalls_mach,
+            pti_syscalls_unix: self.pti_syscalls_unix,
+            pti_csw: self.pti_csw,
+            pti_threadnum: self.pti_threadnum,
+            pti_numrunning: self.pti_numrunning,
+            pti_priority: self.pti_priority,
+        };
+        TaskAllInfo { pbsd, ptinfo }
     }
 }
