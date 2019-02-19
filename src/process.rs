@@ -69,9 +69,9 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
 #[cfg(target_os = "macos")]
 pub struct ProcessInfo {
     pub pid: i32,
-    pub curr_proc: TaskAllInfo,
+    pub task: TaskAllInfo,
+    pub path: Option<PathInfo>,
     pub threads: Vec<ThreadInfo2>,
-    pub path_info: Option<PathInfo>,
 }
 
 #[cfg(target_os = "macos")]
@@ -81,11 +81,11 @@ pub fn collect_proc(_interval: Duration) -> Vec<ProcessInfo> {
 
     if let Ok(procs) = proc_pid::listpids(ProcType::ProcAllPIDS) {
         for p in procs {
-            if let Ok(curr_proc) = proc_pid::pidinfo::<TaskAllInfo>(p as i32, 0) {
-                let threadids = proc_pid::listthreads(
-                    curr_proc.pbsd.pbi_pid as i32,
-                    curr_proc.ptinfo.pti_threadnum,
-                );
+            if let Ok(task) = proc_pid::pidinfo::<TaskAllInfo>(p as i32, 0) {
+                let path = get_path_info(p as i32, arg_max);
+
+                let threadids =
+                    proc_pid::listthreads(task.pbsd.pbi_pid as i32, task.ptinfo.pti_threadnum);
                 let mut threads = Vec::new();
                 if let Ok(threadids) = threadids {
                     for t in threadids {
@@ -95,13 +95,11 @@ pub fn collect_proc(_interval: Duration) -> Vec<ProcessInfo> {
                     }
                 }
 
-                let path_info = get_path_info(p as i32, arg_max);
-
                 let proc = ProcessInfo {
                     pid: p as i32,
-                    curr_proc,
+                    task,
+                    path,
                     threads,
-                    path_info,
                 };
                 ret.push(proc);
             }
