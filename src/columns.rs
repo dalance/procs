@@ -24,7 +24,6 @@ pub mod read_bytes;
 #[cfg(target_os = "linux")]
 pub mod rt_priority;
 pub mod separator;
-#[cfg(target_os = "linux")]
 pub mod start_time;
 pub mod state;
 #[cfg(target_os = "linux")]
@@ -93,7 +92,6 @@ pub use self::read_bytes::ReadBytes;
 #[cfg(target_os = "linux")]
 pub use self::rt_priority::RtPriority;
 pub use self::separator::Separator;
-#[cfg(target_os = "linux")]
 pub use self::start_time::StartTime;
 pub use self::state::State;
 #[cfg(target_os = "linux")]

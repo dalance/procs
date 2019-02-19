@@ -76,6 +76,7 @@ pub fn gen_column(kind: &ConfigColumnKind, _docker_path: &str) -> Box<dyn Column
         ConfigColumnKind::Nice => Box::new(Nice::new()),
         ConfigColumnKind::Pid => Box::new(Pid::new()),
         ConfigColumnKind::Separator => Box::new(Separator::new()),
+        ConfigColumnKind::StartTime => Box::new(StartTime::new()),
         ConfigColumnKind::State => Box::new(State::new()),
         ConfigColumnKind::Username => Box::new(Username::new()),
         ConfigColumnKind::VmRss => Box::new(VmRss::new()),
@@ -172,6 +173,7 @@ pub enum ConfigColumnKind {
     Nice,
     Pid,
     Separator,
+    StartTime,
     State,
     Username,
     VmRss,
@@ -550,6 +552,16 @@ nonnumeric_search = false
 [[columns]]
 kind = "VmRss"
 style = "ByUnit"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "Separator"
+style = "White"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "StartTime"
+style = "BrightMagenta"
 numeric_search = false
 nonnumeric_search = false
 [[columns]]

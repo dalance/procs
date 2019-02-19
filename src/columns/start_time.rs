@@ -26,9 +26,24 @@ impl StartTime {
     }
 }
 
+#[cfg(target_os = "linux")]
 impl Column for StartTime {
     fn add(&mut self, proc: &ProcessInfo) {
         let start_time = proc.curr_proc.stat.starttime();
+        let raw_content = start_time;
+        let fmt_content = format!("{}", start_time.format("%Y/%m/%d %H:%M"));
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(DateTime<Local>);
+}
+
+#[cfg(target_os = "macos")]
+impl Column for StartTime {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let start_time = Local.timestamp(proc.task.pbsd.pbi_start_tvsec);;
         let raw_content = start_time;
         let fmt_content = format!("{}", start_time.format("%Y/%m/%d %H:%M"));
 
