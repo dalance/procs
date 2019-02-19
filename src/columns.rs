@@ -13,7 +13,6 @@ pub mod maj_flt;
 pub mod min_flt;
 pub mod nice;
 pub mod pid;
-#[cfg(target_os = "linux")]
 pub mod ppid;
 #[cfg(target_os = "linux")]
 pub mod priority;
@@ -81,7 +80,6 @@ pub use self::maj_flt::MajFlt;
 pub use self::min_flt::MinFlt;
 pub use self::nice::Nice;
 pub use self::pid::Pid;
-#[cfg(target_os = "linux")]
 pub use self::ppid::Ppid;
 #[cfg(target_os = "linux")]
 pub use self::priority::Priority;
