@@ -1,9 +1,7 @@
 #[cfg(target_os = "macos")]
-use libc::{c_char, c_int, c_void, gid_t, int32_t, size_t, uid_t, uint32_t, uint64_t};
+use libc::{c_char, c_int, c_void, int32_t, size_t, uint64_t};
 #[cfg(target_os = "macos")]
-use libproc::libproc::proc_pid::{
-    self, BSDInfo, PIDInfo, PidInfoFlavor, ProcType, TaskAllInfo, ThreadInfo,
-};
+use libproc::libproc::proc_pid::{self, PIDInfo, PidInfoFlavor, ProcType, TaskAllInfo};
 #[cfg(target_os = "linux")]
 use procfs::{Io, ProcResult, Process, Status};
 #[cfg(target_os = "macos")]
@@ -79,7 +77,7 @@ pub struct ProcessInfo {
 #[cfg(target_os = "macos")]
 pub fn collect_proc(_interval: Duration) -> Vec<ProcessInfo> {
     let mut ret = Vec::new();
-    let arg_max = get_arg_max();
+    let mut arg_max = get_arg_max();
 
     if let Ok(procs) = proc_pid::listpids(ProcType::ProcAllPIDS) {
         for p in procs {
@@ -151,7 +149,7 @@ unsafe fn get_unchecked_str(cp: *mut u8, start: *mut u8) -> String {
 }
 
 #[cfg(target_os = "macos")]
-fn get_path_info(pid: i32, size: size_t) -> Option<PathInfo> {
+fn get_path_info(pid: i32, mut size: size_t) -> Option<PathInfo> {
     let mut proc_args = Vec::with_capacity(size as usize);
     let ptr: *mut u8 = proc_args.as_mut_slice().as_mut_ptr();
 

@@ -41,7 +41,6 @@ impl Column for State {
 #[cfg(target_os = "macos")]
 impl Column for State {
     fn add(&mut self, proc: &ProcessInfo) {
-        let pid = proc.curr_proc.pbsd.pbi_pid as i32;
         let mut state = 7;
         for t in &proc.threads {
             let s = match t.pth_run_state {
