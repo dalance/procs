@@ -1,6 +1,6 @@
 use crate::process::ProcessInfo;
 use crate::{column_default, Column};
-use chrono::{DateTime, Local};
+use chrono::{offset::TimeZone, DateTime, Local};
 use std::cmp;
 use std::collections::HashMap;
 
