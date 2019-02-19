@@ -96,7 +96,8 @@ pub fn collect_proc(_interval: Duration) -> Vec<ProcessInfo> {
                         }
                     }
                 }
-                let pathinfo = get_path_info(p as i32, arg_max);
+
+                let path_info = get_path_info(p as i32, arg_max);
 
                 let proc = ProcessInfo {
                     pid: p as i32,
