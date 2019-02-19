@@ -1,7 +1,7 @@
 #[cfg(target_os = "macos")]
 use libc::{c_int, c_void, size_t};
 #[cfg(target_os = "macos")]
-use libproc::libproc::proc_pid::{self, PIDInfo, PidInfoFlavor, ProcType, TaskAllInfo, ThreadInfo};
+use libproc::libproc::proc_pid::{self, ProcType, TaskAllInfo, ThreadInfo};
 #[cfg(target_os = "linux")]
 use procfs::{Io, ProcResult, Process, Status};
 #[cfg(target_os = "macos")]
@@ -77,7 +77,7 @@ pub struct ProcessInfo {
 #[cfg(target_os = "macos")]
 pub fn collect_proc(_interval: Duration) -> Vec<ProcessInfo> {
     let mut ret = Vec::new();
-    let mut arg_max = get_arg_max();
+    let arg_max = get_arg_max();
 
     if let Ok(procs) = proc_pid::listpids(ProcType::ProcAllPIDS) {
         for p in procs {
