@@ -59,7 +59,26 @@ impl Column for Command {
 #[cfg(target_os = "macos")]
 impl Column for Command {
     fn add(&mut self, proc: &ProcessInfo) {
-        let fmt_content = String::from("");
+        let fmt_content = if let Ok(path_info) = &proc.path_info {
+            if !path_info.cmd.is_empty() {
+                let mut cmd = path_info
+                    .cmd
+                    .iter()
+                    .cloned()
+                    .map(|mut x| {
+                        x.push(' ');
+                        x
+                    })
+                    .collect::<String>();
+                cmd.pop();
+                cmd = cmd.replace("\n", " ").replace("\t", " ");
+                cmd
+            } else {
+                String::from("")
+            }
+        } else {
+            String::from("")
+        };
         let raw_content = fmt_content.clone();
 
         self.fmt_contents.insert(proc.pid, fmt_content);
