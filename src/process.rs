@@ -157,89 +157,91 @@ fn get_path_info(pid: i32, size: size_t) -> Option<PathInfo> {
 
     let mut mib: [c_int; 3] = [libc::CTL_KERN, libc::KERN_PROCARGS2, pid as c_int];
 
-    if libc::sysctl(
-        mib.as_mut_ptr(),
-        3,
-        ptr as *mut c_void,
-        &mut size,
-        ::std::ptr::null_mut(),
-        0,
-    ) != -1
-    {
-        let mut n_args: c_int = 0;
-        libc::memcpy(
-            (&mut n_args) as *mut c_int as *mut c_void,
-            ptr as *const c_void,
-            ::std::mem::size_of::<c_int>(),
+    unsafe {
+        let ret = libc::sysctl(
+            mib.as_mut_ptr(),
+            3,
+            ptr as *mut c_void,
+            &mut size,
+            ::std::ptr::null_mut(),
+            0,
         );
-        let mut cp = ptr.offset(::std::mem::size_of::<c_int>() as isize);
-        let mut start = cp;
-        if cp < ptr.offset(size as isize) {
-            while cp < ptr.offset(size as isize) && *cp != 0 {
-                cp = cp.offset(1);
-            }
-            let exe = Path::new(get_unchecked_str(cp, start).as_str()).to_path_buf();
-            let name = exe
-                .file_name()
-                .unwrap_or_else(|| OsStr::new(""))
-                .to_str()
-                .unwrap_or_else(|| "")
-                .to_owned();
-            let mut need_root = true;
-            let mut root = Default::default();
-            if exe.is_absolute() {
-                if let Some(parent) = exe.parent() {
-                    root = parent.to_path_buf();
-                    need_root = false;
+        if ret != -1 {
+            let mut n_args: c_int = 0;
+            libc::memcpy(
+                (&mut n_args) as *mut c_int as *mut c_void,
+                ptr as *const c_void,
+                ::std::mem::size_of::<c_int>(),
+            );
+            let mut cp = ptr.offset(::std::mem::size_of::<c_int>() as isize);
+            let mut start = cp;
+            if cp < ptr.offset(size as isize) {
+                while cp < ptr.offset(size as isize) && *cp != 0 {
+                    cp = cp.offset(1);
                 }
-            }
-            while cp < ptr.offset(size as isize) && *cp == 0 {
-                cp = cp.offset(1);
-            }
-            start = cp;
-            let mut c = 0;
-            let mut cmd = Vec::new();
-            while c < n_args && cp < ptr.offset(size as isize) {
-                if *cp == 0 {
-                    c += 1;
-                    cmd.push(get_unchecked_str(cp, start));
-                    start = cp.offset(1);
-                }
-                cp = cp.offset(1);
-            }
-            start = cp;
-            let mut env = Vec::new();
-            while cp < ptr.offset(size as isize) {
-                if *cp == 0 {
-                    if cp == start {
-                        break;
-                    }
-                    env.push(get_unchecked_str(cp, start));
-                    start = cp.offset(1);
-                }
-                cp = cp.offset(1);
-            }
-            if need_root == true {
-                for env in env.iter() {
-                    if env.starts_with("PATH=") {
-                        root = Path::new(&env[6..]).to_path_buf();
-                        break;
+                let exe = Path::new(get_unchecked_str(cp, start).as_str()).to_path_buf();
+                let name = exe
+                    .file_name()
+                    .unwrap_or_else(|| OsStr::new(""))
+                    .to_str()
+                    .unwrap_or_else(|| "")
+                    .to_owned();
+                let mut need_root = true;
+                let mut root = Default::default();
+                if exe.is_absolute() {
+                    if let Some(parent) = exe.parent() {
+                        root = parent.to_path_buf();
+                        need_root = false;
                     }
                 }
-            }
+                while cp < ptr.offset(size as isize) && *cp == 0 {
+                    cp = cp.offset(1);
+                }
+                start = cp;
+                let mut c = 0;
+                let mut cmd = Vec::new();
+                while c < n_args && cp < ptr.offset(size as isize) {
+                    if *cp == 0 {
+                        c += 1;
+                        cmd.push(get_unchecked_str(cp, start));
+                        start = cp.offset(1);
+                    }
+                    cp = cp.offset(1);
+                }
+                start = cp;
+                let mut env = Vec::new();
+                while cp < ptr.offset(size as isize) {
+                    if *cp == 0 {
+                        if cp == start {
+                            break;
+                        }
+                        env.push(get_unchecked_str(cp, start));
+                        start = cp.offset(1);
+                    }
+                    cp = cp.offset(1);
+                }
+                if need_root == true {
+                    for env in env.iter() {
+                        if env.starts_with("PATH=") {
+                            root = Path::new(&env[6..]).to_path_buf();
+                            break;
+                        }
+                    }
+                }
 
-            Some(PathInfo {
-                exe,
-                name,
-                root,
-                cmd,
-                env,
-            })
+                Some(PathInfo {
+                    exe,
+                    name,
+                    root,
+                    cmd,
+                    env,
+                })
+            } else {
+                None
+            }
         } else {
             None
         }
-    } else {
-        None
     }
 }
 
