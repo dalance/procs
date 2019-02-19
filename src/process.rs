@@ -133,9 +133,9 @@ fn get_arg_max() -> size_t {
 }
 
 #[cfg(target_os = "macos")]
-struct PathInfo {
-    exe: PathBuf,
+pub struct PathInfo {
     name: String,
+    exe: PathBuf,
     root: PathBuf,
     cmd: Vec<String>,
     env: Vec<String>,
