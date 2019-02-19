@@ -42,7 +42,7 @@ impl Column for State {
 impl Column for State {
     fn add(&mut self, proc: &ProcessInfo) {
         let mut state = 7;
-        for t in &proc.threads {
+        for t in &proc.curr_threads {
             let s = match t.pth_run_state {
                 1 => 1, // TH_STATE_RUNNING
                 2 => 5, // TH_STATE_STOPPED

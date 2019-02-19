@@ -59,7 +59,7 @@ impl Column for Command {
 #[cfg(target_os = "macos")]
 impl Column for Command {
     fn add(&mut self, proc: &ProcessInfo) {
-        let fmt_content = if let Some(path) = &proc.path {
+        let fmt_content = if let Some(path) = &proc.curr_path {
             if !path.cmd.is_empty() {
                 let mut cmd = path
                     .cmd
