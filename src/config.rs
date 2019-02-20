@@ -25,13 +25,15 @@ pub struct ColumnInfo {
     pub numeric_search: bool,
 }
 
-#[cfg(target_os = "linux")]
 pub fn gen_column(kind: &ConfigColumnKind, docker_path: &str) -> Box<dyn Column> {
     match kind {
         ConfigColumnKind::Command => Box::new(Command::new()),
         ConfigColumnKind::CpuTime => Box::new(CpuTime::new()),
+        #[cfg(target_os = "linux")]
         ConfigColumnKind::Docker => Box::new(Docker::new(docker_path)),
+        #[cfg(target_os = "linux")]
         ConfigColumnKind::Eip => Box::new(Eip::new()),
+        #[cfg(target_os = "linux")]
         ConfigColumnKind::Esp => Box::new(Esp::new()),
         ConfigColumnKind::MajFlt => Box::new(MajFlt::new()),
         ConfigColumnKind::MinFlt => Box::new(MinFlt::new()),
@@ -39,8 +41,11 @@ pub fn gen_column(kind: &ConfigColumnKind, docker_path: &str) -> Box<dyn Column>
         ConfigColumnKind::Pid => Box::new(Pid::new()),
         ConfigColumnKind::Ppid => Box::new(Ppid::new()),
         ConfigColumnKind::Priority => Box::new(Priority::new()),
+        #[cfg(target_os = "linux")]
         ConfigColumnKind::Processor => Box::new(Processor::new()),
+        #[cfg(target_os = "linux")]
         ConfigColumnKind::ReadBytes => Box::new(ReadBytes::new()),
+        #[cfg(target_os = "linux")]
         ConfigColumnKind::RtPriority => Box::new(RtPriority::new()),
         ConfigColumnKind::Separator => Box::new(Separator::new()),
         ConfigColumnKind::StartTime => Box::new(StartTime::new()),
@@ -52,46 +57,32 @@ pub fn gen_column(kind: &ConfigColumnKind, docker_path: &str) -> Box<dyn Column>
         ConfigColumnKind::UsageCpu => Box::new(UsageCpu::new()),
         ConfigColumnKind::UsageMem => Box::new(UsageMem::new()),
         ConfigColumnKind::Username => Box::new(Username::new()),
+        #[cfg(target_os = "linux")]
         ConfigColumnKind::VmData => Box::new(VmData::new()),
+        #[cfg(target_os = "linux")]
         ConfigColumnKind::VmExe => Box::new(VmExe::new()),
+        #[cfg(target_os = "linux")]
         ConfigColumnKind::VmHwm => Box::new(VmHwm::new()),
+        #[cfg(target_os = "linux")]
         ConfigColumnKind::VmLib => Box::new(VmLib::new()),
+        #[cfg(target_os = "linux")]
         ConfigColumnKind::VmLock => Box::new(VmLock::new()),
+        #[cfg(target_os = "linux")]
         ConfigColumnKind::VmPeak => Box::new(VmPeak::new()),
+        #[cfg(target_os = "linux")]
         ConfigColumnKind::VmPin => Box::new(VmPin::new()),
+        #[cfg(target_os = "linux")]
         ConfigColumnKind::VmPte => Box::new(VmPte::new()),
         ConfigColumnKind::VmRss => Box::new(VmRss::new()),
         ConfigColumnKind::VmSize => Box::new(VmSize::new()),
+        #[cfg(target_os = "linux")]
         ConfigColumnKind::VmStack => Box::new(VmStack::new()),
+        #[cfg(target_os = "linux")]
         ConfigColumnKind::VmSwap => Box::new(VmSwap::new()),
+        #[cfg(target_os = "linux")]
         ConfigColumnKind::Wchan => Box::new(Wchan::new()),
+        #[cfg(target_os = "linux")]
         ConfigColumnKind::WriteBytes => Box::new(WriteBytes::new()),
-    }
-}
-
-#[cfg(target_os = "macos")]
-pub fn gen_column(kind: &ConfigColumnKind, _docker_path: &str) -> Box<dyn Column> {
-    match kind {
-        ConfigColumnKind::Command => Box::new(Command::new()),
-        ConfigColumnKind::CpuTime => Box::new(CpuTime::new()),
-        ConfigColumnKind::MajFlt => Box::new(MajFlt::new()),
-        ConfigColumnKind::MinFlt => Box::new(MinFlt::new()),
-        ConfigColumnKind::Nice => Box::new(Nice::new()),
-        ConfigColumnKind::Pid => Box::new(Pid::new()),
-        ConfigColumnKind::Ppid => Box::new(Ppid::new()),
-        ConfigColumnKind::Priority => Box::new(Priority::new()),
-        ConfigColumnKind::Separator => Box::new(Separator::new()),
-        ConfigColumnKind::StartTime => Box::new(StartTime::new()),
-        ConfigColumnKind::State => Box::new(State::new()),
-        ConfigColumnKind::TcpPort => Box::new(TcpPort::new()),
-        ConfigColumnKind::Threads => Box::new(Threads::new()),
-        ConfigColumnKind::Tty => Box::new(Tty::new()),
-        ConfigColumnKind::UdpPort => Box::new(UdpPort::new()),
-        ConfigColumnKind::UsageCpu => Box::new(UsageCpu::new()),
-        ConfigColumnKind::UsageMem => Box::new(UsageMem::new()),
-        ConfigColumnKind::Username => Box::new(Username::new()),
-        ConfigColumnKind::VmRss => Box::new(VmRss::new()),
-        ConfigColumnKind::VmSize => Box::new(VmSize::new()),
     }
 }
 
@@ -134,13 +125,15 @@ pub enum ConfigColor {
     White,
 }
 
-#[cfg(target_os = "linux")]
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ConfigColumnKind {
     Command,
     CpuTime,
+    #[cfg(target_os = "linux")]
     Docker,
+    #[cfg(target_os = "linux")]
     Eip,
+    #[cfg(target_os = "linux")]
     Esp,
     MajFlt,
     MinFlt,
@@ -148,8 +141,11 @@ pub enum ConfigColumnKind {
     Pid,
     Ppid,
     Priority,
+    #[cfg(target_os = "linux")]
     Processor,
+    #[cfg(target_os = "linux")]
     ReadBytes,
+    #[cfg(target_os = "linux")]
     RtPriority,
     Separator,
     StartTime,
@@ -161,45 +157,32 @@ pub enum ConfigColumnKind {
     UsageCpu,
     UsageMem,
     Username,
+    #[cfg(target_os = "linux")]
     VmData,
+    #[cfg(target_os = "linux")]
     VmExe,
+    #[cfg(target_os = "linux")]
     VmHwm,
+    #[cfg(target_os = "linux")]
     VmLib,
+    #[cfg(target_os = "linux")]
     VmLock,
+    #[cfg(target_os = "linux")]
     VmPeak,
+    #[cfg(target_os = "linux")]
     VmPin,
+    #[cfg(target_os = "linux")]
     VmPte,
     VmRss,
     VmSize,
+    #[cfg(target_os = "linux")]
     VmStack,
+    #[cfg(target_os = "linux")]
     VmSwap,
+    #[cfg(target_os = "linux")]
     Wchan,
+    #[cfg(target_os = "linux")]
     WriteBytes,
-}
-
-#[cfg(target_os = "macos")]
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub enum ConfigColumnKind {
-    Command,
-    CpuTime,
-    MajFlt,
-    MinFlt,
-    Nice,
-    Pid,
-    Ppid,
-    Priority,
-    Separator,
-    StartTime,
-    State,
-    TcpPort,
-    Threads,
-    Tty,
-    UdpPort,
-    UsageCpu,
-    UsageMem,
-    Username,
-    VmRss,
-    VmSize,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -417,7 +400,7 @@ pub struct ConfigPager {
 impl Default for ConfigPager {
     fn default() -> Self {
         ConfigPager {
-            mode: ConfigPagerMode::Disable,
+            mode: ConfigPagerMode::Auto,
             command: None,
         }
     }
