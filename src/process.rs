@@ -123,22 +123,22 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
                                     let info = socket.psi.soi_proto.pri_in;
                                     dbg!(pid);
                                     dbg!(socket.psi.soi_protocol);
-                                    dbg!(info.insi_fport);
-                                    dbg!(info.insi_lport);
+                                    dbg!(change_endian(info.insi_fport as u32));
+                                    dbg!(change_endian(info.insi_lport as u32));
                                     if info.insi_vflag == 1 {
                                         dbg!(format!(
                                             "{}.{}.{}.{}",
-                                            info.insi_faddr.ina_46.i46a_addr4.s_addr >> 24 & 0xff,
-                                            info.insi_faddr.ina_46.i46a_addr4.s_addr >> 16 & 0xff,
-                                            info.insi_faddr.ina_46.i46a_addr4.s_addr >> 8 & 0xff,
                                             info.insi_faddr.ina_46.i46a_addr4.s_addr >> 0 & 0xff,
+                                            info.insi_faddr.ina_46.i46a_addr4.s_addr >> 8 & 0xff,
+                                            info.insi_faddr.ina_46.i46a_addr4.s_addr >> 16 & 0xff,
+                                            info.insi_faddr.ina_46.i46a_addr4.s_addr >> 24 & 0xff,
                                         ));
                                         dbg!(format!(
                                             "{}.{}.{}.{}",
-                                            info.insi_laddr.ina_46.i46a_addr4.s_addr >> 24 & 0xff,
-                                            info.insi_laddr.ina_46.i46a_addr4.s_addr >> 16 & 0xff,
-                                            info.insi_laddr.ina_46.i46a_addr4.s_addr >> 8 & 0xff,
                                             info.insi_laddr.ina_46.i46a_addr4.s_addr >> 0 & 0xff,
+                                            info.insi_laddr.ina_46.i46a_addr4.s_addr >> 8 & 0xff,
+                                            info.insi_laddr.ina_46.i46a_addr4.s_addr >> 16 & 0xff,
+                                            info.insi_laddr.ina_46.i46a_addr4.s_addr >> 24 & 0xff,
                                         ));
                                     } else {
                                         dbg!(info.insi_faddr.ina_6.s6_addr);
@@ -149,33 +149,33 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
                                     let info = socket.psi.soi_proto.pri_tcp;
                                     dbg!(pid);
                                     dbg!(socket.psi.soi_protocol);
-                                    dbg!(info.tcpsi_ini.insi_fport);
-                                    dbg!(info.tcpsi_ini.insi_lport);
+                                    dbg!(change_endian(info.tcpsi_ini.insi_fport as u32));
+                                    dbg!(change_endian(info.tcpsi_ini.insi_lport as u32));
                                     if info.tcpsi_ini.insi_vflag == 1 {
                                         dbg!(format!(
                                             "{}.{}.{}.{}",
-                                            info.tcpsi_ini.insi_faddr.ina_46.i46a_addr4.s_addr
-                                                >> 24
+                                            info.tcpsi_ini.insi_faddr.ina_46.i46a_addr4.s_addr >> 0
+                                                & 0xff,
+                                            info.tcpsi_ini.insi_faddr.ina_46.i46a_addr4.s_addr >> 8
                                                 & 0xff,
                                             info.tcpsi_ini.insi_faddr.ina_46.i46a_addr4.s_addr
                                                 >> 16
                                                 & 0xff,
-                                            info.tcpsi_ini.insi_faddr.ina_46.i46a_addr4.s_addr >> 8
-                                                & 0xff,
-                                            info.tcpsi_ini.insi_faddr.ina_46.i46a_addr4.s_addr >> 0
+                                            info.tcpsi_ini.insi_faddr.ina_46.i46a_addr4.s_addr
+                                                >> 24
                                                 & 0xff,
                                         ));
                                         dbg!(format!(
                                             "{}.{}.{}.{}",
-                                            info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr
-                                                >> 24
+                                            info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr >> 0
+                                                & 0xff,
+                                            info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr >> 8
                                                 & 0xff,
                                             info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr
                                                 >> 16
                                                 & 0xff,
-                                            info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr >> 8
-                                                & 0xff,
-                                            info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr >> 0
+                                            info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr
+                                                >> 24
                                                 & 0xff,
                                         ));
                                     } else {
@@ -207,6 +207,16 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
         ret.push(proc);
     }
 
+    ret
+}
+
+#[cfg(target_os = "macos")]
+fn change_endian(val: u32) -> u32 {
+    let mut ret = 0;
+    ret |= val >> 24 & 0x000000ff;
+    ret |= val >> 16 & 0x0000ff00;
+    ret |= val << 16 & 0x00ff0000;
+    ret |= val << 24 & 0xff000000;
     ret
 }
 
