@@ -660,18 +660,19 @@ pub trait PIDFDInfo: Default {
 ///                                     // access to the member of `soi_proto` is unsafe becasuse of union type.
 ///                                     let info = unsafe { socket.psi.soi_proto.pri_tcp };
 ///
-///                                     // change endian because the member of tcpsi_ini is network endian.
+///                                     // change endian and cut off because the member of insi_lport is network endian and 16bit witdh.
 ///                                     let mut port = 0;
-///                                     port |= info.tcpsi_ini.insi_lport >> 24 & 0x00ff;
-///                                     port |= info.tcpsi_ini.insi_lport >> 8  & 0xff00;
+///                                     port |= info.tcpsi_ini.insi_lport >> 8 & 0x00ff;
+///                                     port |= info.tcpsi_ini.insi_lport << 8 & 0xff00;
 ///
+///                                     // change endian because the member of insi_laddr is network endian.
 ///                                     let mut addr = 0;
 ///                                     addr |= info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr >> 24 & 0x000000ff;
 ///                                     addr |= info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr >> 8  & 0x0000ff00;
 ///                                     addr |= info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr << 8  & 0x00ff0000;
 ///                                     addr |= info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr << 24 & 0xff000000;
 ///
-///                                     println!("{}.{}.{}.{}:{}" addr >> 24 & 0xff, addr >> 16 & 0xff, addr >> 8 & 0xff, addr & 0xff, port);
+///                                     println!("{}.{}.{}.{}:{}", addr >> 24 & 0xff, addr >> 16 & 0xff, addr >> 8 & 0xff, addr & 0xff, port);
 ///                                     assert_eq!(port, 8000);
 ///                                     assert_eq!(addr>>24&0xff, 127);
 ///                                     assert_eq!(addr>>16&0xff, 0  );
