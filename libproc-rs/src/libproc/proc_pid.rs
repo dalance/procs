@@ -1,7 +1,7 @@
 extern crate libc;
 extern crate errno;
 
-use self::libc::{uint64_t, uint32_t, int32_t, uint8_t, c_short, c_ushort, c_void, c_int, c_uchar, uid_t, gid_t, c_char, off_t, stat, in_addr, sockaddr_un, in6_addr, SOCK_MAXADDRLEN, IF_NAMESIZE};
+use self::libc::{uint64_t, int64_t, uint32_t, int32_t, uint16_t, uint8_t, c_short, c_ushort, c_void, c_int, c_uchar, uid_t, gid_t, c_char, off_t, in_addr, sockaddr_un, in6_addr, SOCK_MAXADDRLEN, IF_NAMESIZE};
 use self::errno::errno;
 use std::ptr;
 use std::mem;
@@ -628,9 +628,36 @@ pub struct ProcFileInfo {
     pub fi_type     : int32_t,
 }
 
+#[derive(Copy, Clone, Debug)]
+pub enum SocketInfoKind {
+    Generic   = 0,
+    In        = 1,
+    Tcp       = 2,
+    Un        = 3,
+    Ndrv      = 4,
+    KernEvent = 5,
+    KernCtl   = 6
+}
+
+impl SocketInfoKind {
+    pub fn from(value: c_int) -> Option<SocketInfoKind> {
+        match value {
+            0 => Some(SocketInfoKind::Generic  ),
+            1 => Some(SocketInfoKind::In       ),
+            2 => Some(SocketInfoKind::Tcp      ),
+            3 => Some(SocketInfoKind::Un       ),
+            4 => Some(SocketInfoKind::Ndrv     ),
+            5 => Some(SocketInfoKind::KernEvent),
+            6 => Some(SocketInfoKind::KernCtl  ),
+            _ => None
+        }
+    }
+}
+
 #[repr(C)]
+#[derive(Default)]
 pub struct SocketInfo {
-    pub soi_stat    : stat,
+    pub soi_stat    : VInfoStat,
     pub soi_so      : uint64_t,
     pub soi_pcb     : uint64_t,
     pub soi_type    : c_int,
@@ -651,53 +678,30 @@ pub struct SocketInfo {
     pub soi_proto   : SocketInfoProto,
 }
 
-impl Default for SocketInfo {
-    fn default() -> SocketInfo {
-        SocketInfo {
-            soi_stat    : stat {
-                st_dev           : 0,
-                st_mode          : 0,
-                st_nlink         : 0,
-                st_ino           : 0,
-                st_uid           : 0,
-                st_gid           : 0,
-                st_rdev          : 0,
-                st_atime         : 0,
-                st_atime_nsec    : 0,
-                st_mtime         : 0,
-                st_mtime_nsec    : 0,
-                st_ctime         : 0,
-                st_ctime_nsec    : 0,
-                st_birthtime     : 0,
-                st_birthtime_nsec: 0,
-                st_size          : 0,
-                st_blocks        : 0,
-                st_blksize       : 0,
-                st_flags         : 0,
-                st_gen           : 0,
-                st_lspare        : 0,
-                st_qspare        : [0; 2],
-            },
-            soi_so      : 0,
-            soi_pcb     : 0,
-            soi_type    : 0,
-            soi_protocol: 0,
-            soi_family  : 0,
-            soi_options : 0,
-            soi_linger  : 0,
-            soi_state   : 0,
-            soi_qlen    : 0,
-            soi_incqlen : 0,
-            soi_qlimit  : 0,
-            soi_timeo   : 0,
-            soi_error   : 0,
-            soi_oobmark : 0,
-            soi_rcv     : Default::default(),
-            soi_snd     : Default::default(),
-            soi_kind    : 0,
-            soi_proto   : Default::default(),
-        }
-    }
+#[repr(C)]
+#[derive(Default)]
+pub struct VInfoStat {
+    pub vst_dev          : uint32_t,
+    pub vst_mode         : uint16_t,
+    pub vst_nlink        : uint16_t,
+    pub vst_ino          : uint64_t,
+    pub vst_uid          : uid_t,
+    pub vst_gid          : gid_t,
+    pub vst_atime        : int64_t,
+    pub vst_atimensec    : int64_t,
+    pub vst_mtime        : int64_t,
+    pub vst_mtimensec    : int64_t,
+    pub vst_ctime        : int64_t,
+    pub vst_ctimensec    : int64_t,
+    pub vst_birthtime    : int64_t,
+    pub vst_birthtimensec: int64_t,
+    pub vst_size         : off_t,
+    pub vst_blocks       : int64_t,
+    pub vst_blksize      : int32_t,
+    pub vst_flags        : uint32_t,
+    pub vst_gen          : uint32_t,
+    pub vst_rdev         : uint32_t,
+    pub vst_qspare       : [int64_t; 2],
 }
 
 #[repr(C)]
