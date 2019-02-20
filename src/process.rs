@@ -125,70 +125,14 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
                         if let Ok(socket) = proc_pid::pidfdinfo::<SocketFDInfo>(pid, fd.proc_fd) {
                             match SocketInfoKind::from(socket.psi.soi_kind) {
                                 Some(SocketInfoKind::In) => unsafe {
-                                    let info = socket.psi.soi_proto.pri_in;
-                                    curr_udps.push(info);
-                                    dbg!(pid);
-                                    dbg!(socket.psi.soi_protocol);
-                                    //dbg!(change_endian(info.insi_fport as u32) >> 16);
-                                    //dbg!(change_endian(info.insi_lport as u32) >> 16);
-                                    if info.insi_vflag == 1 {
-                                        dbg!(format!(
-                                            "{}.{}.{}.{}",
-                                            info.insi_faddr.ina_46.i46a_addr4.s_addr >> 0 & 0xff,
-                                            info.insi_faddr.ina_46.i46a_addr4.s_addr >> 8 & 0xff,
-                                            info.insi_faddr.ina_46.i46a_addr4.s_addr >> 16 & 0xff,
-                                            info.insi_faddr.ina_46.i46a_addr4.s_addr >> 24 & 0xff,
-                                        ));
-                                        dbg!(format!(
-                                            "{}.{}.{}.{}",
-                                            info.insi_laddr.ina_46.i46a_addr4.s_addr >> 0 & 0xff,
-                                            info.insi_laddr.ina_46.i46a_addr4.s_addr >> 8 & 0xff,
-                                            info.insi_laddr.ina_46.i46a_addr4.s_addr >> 16 & 0xff,
-                                            info.insi_laddr.ina_46.i46a_addr4.s_addr >> 24 & 0xff,
-                                        ));
-                                    } else {
-                                        dbg!(info.insi_faddr.ina_6.s6_addr);
-                                        dbg!(info.insi_laddr.ina_6.s6_addr);
+                                    if socket.psi.soi_protocol == libc::IPPROTO_UDP {
+                                        let info = socket.psi.soi_proto.pri_in;
+                                        curr_udps.push(info);
                                     }
                                 },
                                 Some(SocketInfoKind::Tcp) => unsafe {
                                     let info = socket.psi.soi_proto.pri_tcp;
                                     curr_tcps.push(info);
-                                    dbg!(pid);
-                                    dbg!(socket.psi.soi_protocol);
-                                    //dbg!(change_endian(info.tcpsi_ini.insi_fport as u32) >> 16);
-                                    //dbg!(change_endian(info.tcpsi_ini.insi_lport as u32) >> 16);
-                                    if info.tcpsi_ini.insi_vflag == 1 {
-                                        dbg!(format!(
-                                            "{}.{}.{}.{}",
-                                            info.tcpsi_ini.insi_faddr.ina_46.i46a_addr4.s_addr >> 0
-                                                & 0xff,
-                                            info.tcpsi_ini.insi_faddr.ina_46.i46a_addr4.s_addr >> 8
-                                                & 0xff,
-                                            info.tcpsi_ini.insi_faddr.ina_46.i46a_addr4.s_addr
-                                                >> 16
-                                                & 0xff,
-                                            info.tcpsi_ini.insi_faddr.ina_46.i46a_addr4.s_addr
-                                                >> 24
-                                                & 0xff,
-                                        ));
-                                        dbg!(format!(
-                                            "{}.{}.{}.{}",
-                                            info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr >> 0
-                                                & 0xff,
-                                            info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr >> 8
-                                                & 0xff,
-                                            info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr
-                                                >> 16
-                                                & 0xff,
-                                            info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr
-                                                >> 24
-                                                & 0xff,
-                                        ));
-                                    } else {
-                                        dbg!(info.tcpsi_ini.insi_faddr.ina_6.s6_addr);
-                                        dbg!(info.tcpsi_ini.insi_laddr.ina_6.s6_addr);
-                                    }
                                 },
                                 _ => (),
                             }
