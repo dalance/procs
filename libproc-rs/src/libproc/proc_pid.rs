@@ -665,12 +665,15 @@ pub trait PIDFDInfo: Default {
 ///                                     port |= info.tcpsi_ini.insi_lport >> 8 & 0x00ff;
 ///                                     port |= info.tcpsi_ini.insi_lport << 8 & 0xff00;
 ///
+///                                     // access to the member of `insi_laddr` is unsafe becasuse of union type.
+///                                     let s_addr = unsafe { info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr };
+///
 ///                                     // change endian because the member of insi_laddr is network endian.
 ///                                     let mut addr = 0;
-///                                     addr |= info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr >> 24 & 0x000000ff;
-///                                     addr |= info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr >> 8  & 0x0000ff00;
-///                                     addr |= info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr << 8  & 0x00ff0000;
-///                                     addr |= info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr << 24 & 0xff000000;
+///                                     addr |= s_addr >> 24 & 0x000000ff;
+///                                     addr |= s_addr >> 8  & 0x0000ff00;
+///                                     addr |= s_addr << 8  & 0x00ff0000;
+///                                     addr |= s_addr << 24 & 0xff000000;
 ///
 ///                                     println!("{}.{}.{}.{}:{}", addr >> 24 & 0xff, addr >> 16 & 0xff, addr >> 8 & 0xff, addr & 0xff, port);
 ///                                     assert_eq!(port, 8000);
@@ -771,11 +774,17 @@ pub struct ProcFileInfo {
 #[derive(Copy, Clone, Debug)]
 pub enum SocketInfoKind {
     Generic   = 0,
+    /// IPv4 and IPv6 Sockets
     In        = 1,
+    /// TCP Sockets
     Tcp       = 2,
+    /// Unix Domain Sockets
     Un        = 3,
+    /// PF_NDRV Sockets
     Ndrv      = 4,
+    /// Kernel Event Sockets
     KernEvent = 5,
+    /// Kernel Control Sockets
     KernCtl   = 6
 }
 
@@ -940,18 +949,30 @@ impl Default for InSIAddr {
 
 #[derive(Copy, Clone, Debug)]
 pub enum TcpSIState {
-    Closed      = 0,  // closed
-    Listen      = 1,  // listening for connection
-    SynSent     = 2,  // active, have sent syn
-    SynReceived = 3,  // have send and received syn
-    Established = 4,  // established
-    CloseWait   = 5,  // rcvd fin, waiting for close
-    FinWait1    = 6,  // have closed, sent fin
-    Closing     = 7,  // closed xchd FIN; await FIN ACK
-    LastAck     = 8,  // had fin and close; await FIN ACK
-    FinWait2    = 9,  // have closed, fin is acked
-    TimeWait    = 10, // in 2*msl quiet wait after close
-    Reserved    = 11, // pseudo state: reserved
+    /// closed
+    Closed      = 0,
+    /// listening for connection
+    Listen      = 1,
+    /// active, have sent syn
+    SynSent     = 2,
+    /// have send and received syn
+    SynReceived = 3,
+    /// established
+    Established = 4,
+    /// rcvd fin, waiting for close
+    CloseWait   = 5,
+    /// have closed, sent fin
+    FinWait1    = 6,
+    /// closed xchd FIN; await FIN ACK
+    Closing     = 7,
+    /// had fin and close; await FIN ACK
+    LastAck     = 8,
+    /// have closed, fin is acked
+    FinWait2    = 9,
+    /// in 2*msl quiet wait after close
+    TimeWait    = 10,
+    /// pseudo state: reserved
+    Reserved    = 11,
 }
 
 impl TcpSIState {
