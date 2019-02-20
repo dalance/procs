@@ -133,6 +133,20 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
                                         dbg!(info.insi_laddr.ina_6.s6_addr);
                                     }
                                 },
+                                Some(SocketInfoKind::Tcp) => unsafe {
+                                    let info = socket.psi.soi_proto.pri_tcp;
+                                    dbg!(pid);
+                                    dbg!(socket.psi.soi_protocol);
+                                    dbg!(info.tcpsi_ini.insi_fport);
+                                    dbg!(info.tcpsi_ini.insi_lport);
+                                    if info.insi_vflag == 1 {
+                                        dbg!(info.tcpsi_ini.insi_faddr.ina_46.i46a_addr4.s_addr);
+                                        dbg!(info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr);
+                                    } else {
+                                        dbg!(info.tcpsi_ini.insi_faddr.ina_6.s6_addr);
+                                        dbg!(info.tcpsi_ini.insi_laddr.ina_6.s6_addr);
+                                    }
+                                },
                                 _ => (),
                             }
                         }
