@@ -99,7 +99,7 @@ impl Column for TcpPort {
 impl Column for TcpPort {
     fn add(&mut self, proc: &ProcessInfo) {
         let mut ports = Vec::new();
-        for tcp in proc.curr_tcps {
+        for tcp in &proc.curr_tcps {
             match TcpSIState::from(tcp.tcpsi_state) {
                 Some(TcpSIState::Listen) => {
                     let port = crate::util::change_endian(tcp.tcpsi_ini.insi_lport as u32) >> 16;
