@@ -126,8 +126,18 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
                                     dbg!(info.insi_fport);
                                     dbg!(info.insi_lport);
                                     if info.insi_vflag == 1 {
-                                        dbg!(info.insi_faddr.ina_46.i46a_addr4.s_addr);
-                                        dbg!(info.insi_laddr.ina_46.i46a_addr4.s_addr);
+                                        dbg!( format!("{}.{}.{}.{}",
+                                                      info.insi_faddr.ina_46.i46a_addr4.s_addr >> 24 & 0xff,
+                                                      info.insi_faddr.ina_46.i46a_addr4.s_addr >> 16 & 0xff,
+                                                      info.insi_faddr.ina_46.i46a_addr4.s_addr >> 8  & 0xff,
+                                                      info.insi_faddr.ina_46.i46a_addr4.s_addr >> 0  & 0xff,
+                                                      );
+                                        dbg!( format!("{}.{}.{}.{}",
+                                                      info.insi_laddr.ina_46.i46a_addr4.s_addr >> 24 & 0xff,
+                                                      info.insi_laddr.ina_46.i46a_addr4.s_addr >> 16 & 0xff,
+                                                      info.insi_laddr.ina_46.i46a_addr4.s_addr >> 8  & 0xff,
+                                                      info.insi_laddr.ina_46.i46a_addr4.s_addr >> 0  & 0xff,
+                                                      );
                                     } else {
                                         dbg!(info.insi_faddr.ina_6.s6_addr);
                                         dbg!(info.insi_laddr.ina_6.s6_addr);
@@ -140,8 +150,18 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
                                     dbg!(info.tcpsi_ini.insi_fport);
                                     dbg!(info.tcpsi_ini.insi_lport);
                                     if info.tcpsi_ini.insi_vflag == 1 {
-                                        dbg!(info.tcpsi_ini.insi_faddr.ina_46.i46a_addr4.s_addr);
-                                        dbg!(info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr);
+                                        dbg!( format!("{}.{}.{}.{}",
+                                                      info.tcpsi_in.insi_faddr.ina_46.i46a_addr4.s_addr >> 24 & 0xff,
+                                                      info.tcpsi_in.insi_faddr.ina_46.i46a_addr4.s_addr >> 16 & 0xff,
+                                                      info.tcpsi_in.insi_faddr.ina_46.i46a_addr4.s_addr >> 8  & 0xff,
+                                                      info.tcpsi_in.insi_faddr.ina_46.i46a_addr4.s_addr >> 0  & 0xff,
+                                                      );
+                                        dbg!( format!("{}.{}.{}.{}",
+                                                      info.tcpsi_in.insi_laddr.ina_46.i46a_addr4.s_addr >> 24 & 0xff,
+                                                      info.tcpsi_in.insi_laddr.ina_46.i46a_addr4.s_addr >> 16 & 0xff,
+                                                      info.tcpsi_in.insi_laddr.ina_46.i46a_addr4.s_addr >> 8  & 0xff,
+                                                      info.tcpsi_in.insi_laddr.ina_46.i46a_addr4.s_addr >> 0  & 0xff,
+                                                      );
                                     } else {
                                         dbg!(info.tcpsi_ini.insi_faddr.ina_6.s6_addr);
                                         dbg!(info.tcpsi_ini.insi_laddr.ina_6.s6_addr);
