@@ -118,10 +118,21 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
                 match ProcFDType::from(fd.proc_fdtype) {
                     Some(ProcFDType::Socket) => {
                         if let Ok(socket) = proc_pid::pidfdinfo::<SocketFDInfo>(pid, fd.proc_fd) {
-                            dbg!(socket.psi.soi_type);
-                            dbg!(socket.psi.soi_protocol);
-                            dbg!(socket.psi.soi_family);
-                            dbg!(socket.psi.soi_kind);
+                            match SocketInfoKind::from(socket.psi.soi_kind) {
+                                Some(SocketInfoKind::In) => {
+                                    let info = socket.psi.soi_proto.pri_in;
+                                    dbg!(info.insi_fport);
+                                    dbg!(info.insi_lport);
+                                    if info.insi_vflag == 1 {
+                                        dbg!(info.insi_faddr.ina_46.i46a_addr4);
+                                        dbg!(info.insi_laddr.ina_46.i46a_addr4);
+                                    } else {
+                                        dbg!(info.insi_faddr.ina_6);
+                                        dbg!(info.insi_laddr.ina_6);
+                                    }
+                                }
+                                _ => (),
+                            }
                         }
                     }
                     _ => (),
