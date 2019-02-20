@@ -131,13 +131,13 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
                                                       info.insi_faddr.ina_46.i46a_addr4.s_addr >> 16 & 0xff,
                                                       info.insi_faddr.ina_46.i46a_addr4.s_addr >> 8  & 0xff,
                                                       info.insi_faddr.ina_46.i46a_addr4.s_addr >> 0  & 0xff,
-                                                      );
+                                                      ));
                                         dbg!( format!("{}.{}.{}.{}",
                                                       info.insi_laddr.ina_46.i46a_addr4.s_addr >> 24 & 0xff,
                                                       info.insi_laddr.ina_46.i46a_addr4.s_addr >> 16 & 0xff,
                                                       info.insi_laddr.ina_46.i46a_addr4.s_addr >> 8  & 0xff,
                                                       info.insi_laddr.ina_46.i46a_addr4.s_addr >> 0  & 0xff,
-                                                      );
+                                                      ));
                                     } else {
                                         dbg!(info.insi_faddr.ina_6.s6_addr);
                                         dbg!(info.insi_laddr.ina_6.s6_addr);
