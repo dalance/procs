@@ -139,7 +139,7 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
                                     dbg!(socket.psi.soi_protocol);
                                     dbg!(info.tcpsi_ini.insi_fport);
                                     dbg!(info.tcpsi_ini.insi_lport);
-                                    if info.insi_vflag == 1 {
+                                    if info.tcpsi_ini.insi_vflag == 1 {
                                         dbg!(info.tcpsi_ini.insi_faddr.ina_46.i46a_addr4.s_addr);
                                         dbg!(info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr);
                                     } else {
