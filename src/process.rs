@@ -123,8 +123,8 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
                                     let info = socket.psi.soi_proto.pri_in;
                                     dbg!(pid);
                                     dbg!(socket.psi.soi_protocol);
-                                    dbg!(change_endian(info.insi_fport as u32));
-                                    dbg!(change_endian(info.insi_lport as u32));
+                                    dbg!(change_endian(info.insi_fport as u32) >> 16);
+                                    dbg!(change_endian(info.insi_lport as u32) >> 16);
                                     if info.insi_vflag == 1 {
                                         dbg!(format!(
                                             "{}.{}.{}.{}",
@@ -149,8 +149,8 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
                                     let info = socket.psi.soi_proto.pri_tcp;
                                     dbg!(pid);
                                     dbg!(socket.psi.soi_protocol);
-                                    dbg!(change_endian(info.tcpsi_ini.insi_fport as u32));
-                                    dbg!(change_endian(info.tcpsi_ini.insi_lport as u32));
+                                    dbg!(change_endian(info.tcpsi_ini.insi_fport as u32) >> 16);
+                                    dbg!(change_endian(info.tcpsi_ini.insi_lport as u32) >> 16);
                                     if info.tcpsi_ini.insi_vflag == 1 {
                                         dbg!(format!(
                                             "{}.{}.{}.{}",

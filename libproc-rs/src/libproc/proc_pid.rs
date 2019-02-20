@@ -704,7 +704,7 @@ pub fn pidfdinfo<T: PIDFDInfo>(pid : i32, fd: int32_t) -> Result<T, String> {
 #[test]
 fn pidfdinfo_test() {
     use std::process;
-    use std::TcpListener;
+    use std::net::TcpListener;
     let pid = process::id() as i32;
 
     let listener = TcpListener::bind("127.0.0.1:65535");
