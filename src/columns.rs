@@ -22,7 +22,6 @@ pub mod separator;
 pub mod start_time;
 pub mod state;
 pub mod tcp_port;
-#[cfg(target_os = "linux")]
 pub mod threads;
 pub mod tty;
 pub mod udp_port;
@@ -80,7 +79,6 @@ pub use self::separator::Separator;
 pub use self::start_time::StartTime;
 pub use self::state::State;
 pub use self::tcp_port::TcpPort;
-#[cfg(target_os = "linux")]
 pub use self::threads::Threads;
 pub use self::tty::Tty;
 pub use self::udp_port::UdpPort;
