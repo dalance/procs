@@ -18,8 +18,7 @@ before_cache: |
 script:
 - make test
 - if [[ $TRAVIS_OS_NAME == "linux" ]]; then make release_lnx; fi
-- if [[ $TRAVIS_OS_NAME == "osx"   ]]; then python -m SimpleHTTPServer 8000; fi &
-- if [[ $TRAVIS_OS_NAME == "osx"   ]]; then make release_mac; ps auxw; sudo lsof -i -P; sudo ./target/x86_64-apple-darwin/release/procs; fi
+- if [[ $TRAVIS_OS_NAME == "osx"   ]]; then make release_mac; sudo ./target/x86_64-apple-darwin/release/procs; fi
 - if [[ $TRAVIS_OS_NAME == "osx"   ]]; then cd libproc-rs; cargo test; fi
 
 after_success: |

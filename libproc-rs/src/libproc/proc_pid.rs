@@ -601,13 +601,21 @@ pub struct ProcFDInfo {
 
 #[derive(Copy, Clone, Debug)]
 pub enum ProcFDType {
+    /// AppleTalk
     ATalk    = 0,
+    /// vnode
     VNode    = 1,
+    /// socket
     Socket   = 2,
+    /// POSIX shared memory
     PSHM     = 3,
+    /// POSIX semaphore
     PSEM     = 4,
+    /// kqueue
     KQueue   = 5,
+    /// pipe
     Pipe     = 6,
+    /// FSEvents
     FSEvents = 7
 }
 
@@ -949,29 +957,29 @@ impl Default for InSIAddr {
 
 #[derive(Copy, Clone, Debug)]
 pub enum TcpSIState {
-    /// closed
+    /// Closed
     Closed      = 0,
-    /// listening for connection
+    /// Listening for connection
     Listen      = 1,
-    /// active, have sent syn
+    /// Active, have sent syn
     SynSent     = 2,
-    /// have send and received syn
+    /// Have send and received syn
     SynReceived = 3,
-    /// established
+    /// Established
     Established = 4,
-    /// rcvd fin, waiting for close
+    /// Rcvd fin, waiting for close
     CloseWait   = 5,
-    /// have closed, sent fin
+    /// Have closed, sent fin
     FinWait1    = 6,
-    /// closed xchd FIN; await FIN ACK
+    /// Closed xchd FIN; await FIN ACK
     Closing     = 7,
-    /// had fin and close; await FIN ACK
+    /// Had fin and close; await FIN ACK
     LastAck     = 8,
-    /// have closed, fin is acked
+    /// Have closed, fin is acked
     FinWait2    = 9,
-    /// in 2*msl quiet wait after close
+    /// In 2*msl quiet wait after close
     TimeWait    = 10,
-    /// pseudo state: reserved
+    /// Pseudo state: reserved
     Reserved    = 11,
 }
 
