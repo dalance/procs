@@ -2,8 +2,8 @@
 use libc::{c_int, c_void, size_t};
 #[cfg(target_os = "macos")]
 use libproc::libproc::proc_pid::{
-    self, BSDInfo, ListFDs, ListThreads, ProcFDType, ProcType, SocketFDInfo, TaskAllInfo, TaskInfo,
-    ThreadInfo,
+    self, BSDInfo, ListFDs, ListThreads, ProcFDType, ProcType, SocketFDInfo, SocketInfoKind,
+    TaskAllInfo, TaskInfo, ThreadInfo,
 };
 #[cfg(target_os = "linux")]
 use procfs::{Io, ProcResult, Process, Status};
@@ -124,11 +124,11 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
                                     dbg!(info.insi_fport);
                                     dbg!(info.insi_lport);
                                     if info.insi_vflag == 1 {
-                                        dbg!(info.insi_faddr.ina_46.i46a_addr4);
-                                        dbg!(info.insi_laddr.ina_46.i46a_addr4);
+                                        dbg!(info.insi_faddr.ina_46.i46a_addr4.s_addr);
+                                        dbg!(info.insi_laddr.ina_46.i46a_addr4.s_addr);
                                     } else {
-                                        dbg!(info.insi_faddr.ina_6);
-                                        dbg!(info.insi_laddr.ina_6);
+                                        dbg!(info.insi_faddr.ina_6.s6_addr);
+                                        dbg!(info.insi_laddr.ina_6.s6_addr);
                                     }
                                 }
                                 _ => (),
