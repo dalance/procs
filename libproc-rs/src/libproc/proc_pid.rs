@@ -519,25 +519,20 @@ pub trait ListPIDInfo {
 ///
 /// ```
 /// use std::io::Write;
-/// use libproc::libproc::proc_pid::{listpidinfo, pidinfo, ListFDs, ListThreads, TaskAllInfo};
+/// use libproc::libproc::proc_pid::{listpidinfo, pidinfo, ListFDs, TaskAllInfo, ProcFDType};
 ///
-/// fn listthreads_test() {
+/// fn listpidinfo_test() {
 ///     use std::process;
 ///     let pid = process::id() as i32;
 ///
-///     match pidinfo::<TaskAllInfo>(pid, 0) {
-///         Ok(info) => {
-///             match listpidinfo::<ListThreads>(pid, info.ptinfo.pti_threadnum as usize) {
-///                 Ok(threads) => assert!(threads.len()>0),
-///                 Err(err) => assert!(false, "Error retrieving process info: {}", err)
+///     if let Ok(info) = pidinfo::<TaskAllInfo>(pid, 0) {
+///         if let Ok(fds) = listpidinfo::<ListFDs>(pid, info.pbsd.pbi_nfiles as usize) {
+///             for fd in &fds {
+///                 let fd_type = ProcFDType::from(fd.proc_fdtype);
+///                 println!("File Descriptor: {}, Type: {:?}", fd.proc_fd, fd_type);
 ///             }
-///             match listpidinfo::<ListFDs>(pid, info.pbsd.pbi_nfiles as usize) {
-///                 Ok(fds) => assert!(fds.len()>0),
-///                 Err(err) => assert!(false, "Error retrieving process info: {}", err)
-///             }
-///         },
-///         Err(err) => assert!(false, "Error retrieving process info: {}", err)
-///     };
+///         }
+///     }
 /// }
 /// ```
 pub fn listpidinfo<T: ListPIDInfo>(pid : i32, max_len: usize) -> Result<Vec<T::Item>, String> {
@@ -651,36 +646,47 @@ pub trait PIDFDInfo: Default {
 ///     use std::process;
 ///     let pid = process::id() as i32;
 ///
-///     let _listener = TcpListener::bind("127.0.0.1:65535");
+///     // Open TCP port:8000 to test.
+///     let _listener = TcpListener::bind("127.0.0.1:8000");
 ///
-///     match pidinfo::<BSDInfo>(pid, 0) {
-///         Ok(info) => {
-///             match listpidinfo::<ListFDs>(pid, info.pbi_nfiles as usize) {
-///                 Ok(fds) => {
-///                     for fd in fds {
-///                         match ProcFDType::from(fd.proc_fdtype) {
-///                             Some(ProcFDType::Socket) => {
-///                                 if let Ok(socket) = pidfdinfo::<SocketFDInfo>(pid, fd.proc_fd) {
-///                                     match SocketInfoKind::from(socket.psi.soi_kind) {
-///                                         Some(SocketInfoKind::Tcp) => unsafe {
-///                                             let info = socket.psi.soi_proto.pri_tcp;
-///                                             assert_eq!(socket.psi.soi_protocol,
-///                                             libc::IPPROTO_TCP);
-///                                             assert_eq!(info.tcpsi_ini.insi_lport as u32, 65535);
-///                                         },
-///                                         _ => assert!(false),
-///                                     }
-///                                 }
-///                             },
-///                             _ => (),
+///     if let Ok(info) = pidinfo::<BSDInfo>(pid, 0) {
+///         if let Ok(fds) = listpidinfo::<ListFDs>(pid, info.pbi_nfiles as usize) {
+///             for fd in &fds {
+///                 match ProcFDType::from(fd.proc_fdtype) {
+///                     Some(ProcFDType::Socket) => {
+///                         if let Ok(socket) = pidfdinfo::<SocketFDInfo>(pid, fd.proc_fd) {
+///                             match SocketInfoKind::from(socket.psi.soi_kind) {
+///                                 Some(SocketInfoKind::Tcp) => {
+///                                     // access to the member of `soi_proto` is unsafe becasuse of union type.
+///                                     let info = unsafe { socket.psi.soi_proto.pri_tcp };
+///
+///                                     // change endian because the member of tcpsi_ini is network endian.
+///                                     let mut port = 0;
+///                                     port |= info.tcpsi_ini.insi_lport >> 24 & 0x00ff;
+///                                     port |= info.tcpsi_ini.insi_lport >> 8  & 0xff00;
+///
+///                                     let mut addr = 0;
+///                                     addr |= info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr >> 24 & 0x000000ff;
+///                                     addr |= info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr >> 8  & 0x0000ff00;
+///                                     addr |= info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr << 8  & 0x00ff0000;
+///                                     addr |= info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr << 24 & 0xff000000;
+///
+///                                     println!("{}.{}.{}.{}:{}" addr >> 24 & 0xff, addr >> 16 & 0xff, addr >> 8 & 0xff, addr & 0xff, port);
+///                                     assert_eq!(port, 8000);
+///                                     assert_eq!(addr>>24&0xff, 127);
+///                                     assert_eq!(addr>>16&0xff, 0  );
+///                                     assert_eq!(addr>>8 &0xff, 0  );
+///                                     assert_eq!(addr>>0 &0xff, 1  );
+///                                 },
+///                                 _ => (),
+///                             }
 ///                         }
-///                     }
-///                 },
-///                 Err(err) => assert!(false, "Error retrieving process info: {}", err)
+///                     },
+///                     _ => (),
+///                 }
 ///             }
-///         },
-///         Err(err) => assert!(false, "Error retrieving process info: {}", err)
-///     };
+///         }
+///     }
 /// }
 /// ```
 ///
