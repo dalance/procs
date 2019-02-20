@@ -2,8 +2,8 @@
 use libc::{c_int, c_void, size_t};
 #[cfg(target_os = "macos")]
 use libproc::libproc::proc_pid::{
-    self, BSDInfo, ListFDs, ListThreads, ProcFDType, ProcType, SocketFDInfo, SocketInfoKind,
-    TaskAllInfo, TaskInfo, ThreadInfo,
+    self, BSDInfo, InSockInfo, ListFDs, ListThreads, ProcFDType, ProcType, SocketFDInfo,
+    SocketInfoKind, TaskAllInfo, TaskInfo, TcpSockInfo, ThreadInfo,
 };
 #[cfg(target_os = "linux")]
 use procfs::{Io, ProcResult, Process, Status};
@@ -72,6 +72,8 @@ pub struct ProcessInfo {
     pub prev_task: TaskAllInfo,
     pub curr_path: Option<PathInfo>,
     pub curr_threads: Vec<ThreadInfo>,
+    pub curr_udps: Vec<InSockInfo>,
+    pub curr_tcps: Vec<TcpSockInfo>,
     pub interval: Duration,
 }
 
@@ -112,6 +114,9 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
             }
         }
 
+        let mut curr_tcps = Vec::new();
+        let mut curr_udps = Vec::new();
+
         let fds = proc_pid::listpidinfo::<ListFDs>(pid, curr_task.pbsd.pbi_nfiles as usize);
         if let Ok(fds) = fds {
             for fd in fds {
@@ -121,67 +126,69 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
                             match SocketInfoKind::from(socket.psi.soi_kind) {
                                 Some(SocketInfoKind::In) => unsafe {
                                     let info = socket.psi.soi_proto.pri_in;
-                                    dbg!(pid);
-                                    dbg!(socket.psi.soi_protocol);
-                                    dbg!(change_endian(info.insi_fport as u32) >> 16);
-                                    dbg!(change_endian(info.insi_lport as u32) >> 16);
-                                    if info.insi_vflag == 1 {
-                                        dbg!(format!(
-                                            "{}.{}.{}.{}",
-                                            info.insi_faddr.ina_46.i46a_addr4.s_addr >> 0 & 0xff,
-                                            info.insi_faddr.ina_46.i46a_addr4.s_addr >> 8 & 0xff,
-                                            info.insi_faddr.ina_46.i46a_addr4.s_addr >> 16 & 0xff,
-                                            info.insi_faddr.ina_46.i46a_addr4.s_addr >> 24 & 0xff,
-                                        ));
-                                        dbg!(format!(
-                                            "{}.{}.{}.{}",
-                                            info.insi_laddr.ina_46.i46a_addr4.s_addr >> 0 & 0xff,
-                                            info.insi_laddr.ina_46.i46a_addr4.s_addr >> 8 & 0xff,
-                                            info.insi_laddr.ina_46.i46a_addr4.s_addr >> 16 & 0xff,
-                                            info.insi_laddr.ina_46.i46a_addr4.s_addr >> 24 & 0xff,
-                                        ));
-                                    } else {
-                                        dbg!(info.insi_faddr.ina_6.s6_addr);
-                                        dbg!(info.insi_laddr.ina_6.s6_addr);
-                                    }
+                                    curr_udps.push(info);
+                                    //dbg!(pid);
+                                    //dbg!(socket.psi.soi_protocol);
+                                    //dbg!(change_endian(info.insi_fport as u32) >> 16);
+                                    //dbg!(change_endian(info.insi_lport as u32) >> 16);
+                                    //if info.insi_vflag == 1 {
+                                    //    dbg!(format!(
+                                    //        "{}.{}.{}.{}",
+                                    //        info.insi_faddr.ina_46.i46a_addr4.s_addr >> 0 & 0xff,
+                                    //        info.insi_faddr.ina_46.i46a_addr4.s_addr >> 8 & 0xff,
+                                    //        info.insi_faddr.ina_46.i46a_addr4.s_addr >> 16 & 0xff,
+                                    //        info.insi_faddr.ina_46.i46a_addr4.s_addr >> 24 & 0xff,
+                                    //    ));
+                                    //    dbg!(format!(
+                                    //        "{}.{}.{}.{}",
+                                    //        info.insi_laddr.ina_46.i46a_addr4.s_addr >> 0 & 0xff,
+                                    //        info.insi_laddr.ina_46.i46a_addr4.s_addr >> 8 & 0xff,
+                                    //        info.insi_laddr.ina_46.i46a_addr4.s_addr >> 16 & 0xff,
+                                    //        info.insi_laddr.ina_46.i46a_addr4.s_addr >> 24 & 0xff,
+                                    //    ));
+                                    //} else {
+                                    //    dbg!(info.insi_faddr.ina_6.s6_addr);
+                                    //    dbg!(info.insi_laddr.ina_6.s6_addr);
+                                    //}
                                 },
                                 Some(SocketInfoKind::Tcp) => unsafe {
                                     let info = socket.psi.soi_proto.pri_tcp;
-                                    dbg!(pid);
-                                    dbg!(socket.psi.soi_protocol);
-                                    dbg!(change_endian(info.tcpsi_ini.insi_fport as u32) >> 16);
-                                    dbg!(change_endian(info.tcpsi_ini.insi_lport as u32) >> 16);
-                                    if info.tcpsi_ini.insi_vflag == 1 {
-                                        dbg!(format!(
-                                            "{}.{}.{}.{}",
-                                            info.tcpsi_ini.insi_faddr.ina_46.i46a_addr4.s_addr >> 0
-                                                & 0xff,
-                                            info.tcpsi_ini.insi_faddr.ina_46.i46a_addr4.s_addr >> 8
-                                                & 0xff,
-                                            info.tcpsi_ini.insi_faddr.ina_46.i46a_addr4.s_addr
-                                                >> 16
-                                                & 0xff,
-                                            info.tcpsi_ini.insi_faddr.ina_46.i46a_addr4.s_addr
-                                                >> 24
-                                                & 0xff,
-                                        ));
-                                        dbg!(format!(
-                                            "{}.{}.{}.{}",
-                                            info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr >> 0
-                                                & 0xff,
-                                            info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr >> 8
-                                                & 0xff,
-                                            info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr
-                                                >> 16
-                                                & 0xff,
-                                            info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr
-                                                >> 24
-                                                & 0xff,
-                                        ));
-                                    } else {
-                                        dbg!(info.tcpsi_ini.insi_faddr.ina_6.s6_addr);
-                                        dbg!(info.tcpsi_ini.insi_laddr.ina_6.s6_addr);
-                                    }
+                                    curr_tcps.push(info);
+                                    //dbg!(pid);
+                                    //dbg!(socket.psi.soi_protocol);
+                                    //dbg!(change_endian(info.tcpsi_ini.insi_fport as u32) >> 16);
+                                    //dbg!(change_endian(info.tcpsi_ini.insi_lport as u32) >> 16);
+                                    //if info.tcpsi_ini.insi_vflag == 1 {
+                                    //    dbg!(format!(
+                                    //        "{}.{}.{}.{}",
+                                    //        info.tcpsi_ini.insi_faddr.ina_46.i46a_addr4.s_addr >> 0
+                                    //            & 0xff,
+                                    //        info.tcpsi_ini.insi_faddr.ina_46.i46a_addr4.s_addr >> 8
+                                    //            & 0xff,
+                                    //        info.tcpsi_ini.insi_faddr.ina_46.i46a_addr4.s_addr
+                                    //            >> 16
+                                    //            & 0xff,
+                                    //        info.tcpsi_ini.insi_faddr.ina_46.i46a_addr4.s_addr
+                                    //            >> 24
+                                    //            & 0xff,
+                                    //    ));
+                                    //    dbg!(format!(
+                                    //        "{}.{}.{}.{}",
+                                    //        info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr >> 0
+                                    //            & 0xff,
+                                    //        info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr >> 8
+                                    //            & 0xff,
+                                    //        info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr
+                                    //            >> 16
+                                    //            & 0xff,
+                                    //        info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr
+                                    //            >> 24
+                                    //            & 0xff,
+                                    //    ));
+                                    //} else {
+                                    //    dbg!(info.tcpsi_ini.insi_faddr.ina_6.s6_addr);
+                                    //    dbg!(info.tcpsi_ini.insi_laddr.ina_6.s6_addr);
+                                    //}
                                 },
                                 _ => (),
                             }
@@ -201,6 +208,8 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
             prev_task,
             curr_path,
             curr_threads,
+            curr_udps,
+            curr_tcps,
             interval,
         };
 
