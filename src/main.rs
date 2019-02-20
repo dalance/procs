@@ -293,9 +293,9 @@ fn run_opt_config(opt: Opt, config: Config) -> Result<(), Error> {
     truncate |= use_terminal && !use_pager && config.display.cut_to_terminal;
     truncate |= !use_terminal && config.display.cut_to_pipe;
 
-    //if !truncate {
-    term_w = std::u16::MAX;
-    //}
+    if !truncate {
+        term_w = std::u16::MAX;
+    }
 
     if use_pager {
         if let Some(ref pager) = config.pager.command {
