@@ -19,7 +19,8 @@ script:
 - make test
 - if [[ $TRAVIS_OS_NAME == "osx"   ]]; then ps auxw; fi
 - if [[ $TRAVIS_OS_NAME == "linux" ]]; then make release_lnx; fi
-- if [[ $TRAVIS_OS_NAME == "osx"   ]]; then make release_mac; python -m SimpleHTTPServer 8000&; sudo ./target/x86_64-apple-darwin/release/procs; fi
+- if [[ $TRAVIS_OS_NAME == "osx"   ]]; then python -m SimpleHTTPServer 8000; fi &
+- if [[ $TRAVIS_OS_NAME == "osx"   ]]; then make release_mac; sudo ./target/x86_64-apple-darwin/release/procs; fi
 
 after_success: |
     if [[ $TRAVIS_OS_NAME == "linux" ]]; then
