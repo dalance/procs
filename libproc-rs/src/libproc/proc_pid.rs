@@ -1,7 +1,7 @@
 extern crate libc;
 extern crate errno;
 
-use self::libc::{uint64_t, uint32_t, int32_t, c_void, c_int, uid_t, gid_t, c_char};
+use self::libc::{uint64_t, uint32_t, int32_t, c_void, c_int, uid_t, gid_t, c_char, off_t, stat, in_addr, sockaddr_un, in6_addr};
 use self::errno::errno;
 use std::ptr;
 use std::mem;
@@ -214,7 +214,7 @@ extern {
 
     fn proc_pidinfo(pid : c_int, flavor : c_int, arg: uint64_t, buffer : *mut c_void, buffersize : c_int) -> c_int;
 
-//    fn proc_pidfdinfo(pid : c_int, fd : c_int, flavor : c_int, buffer : *mut c_void, buffersize : c_int) -> c_int;
+    fn proc_pidfdinfo(pid : c_int, fd : c_int, flavor : c_int, buffer : *mut c_void, buffersize : c_int) -> c_int;
 
     fn proc_name(pid: c_int, buffer: *mut c_void, buffersize: uint32_t) -> c_int;
 
@@ -605,6 +605,195 @@ impl ProcFDType {
             7 => Some(ProcFDType::FSEvents),
             _ => None
         }
+    }
+}
+
+pub trait PIDFDInfo: Default {
+    fn flavor() -> PidFDInfoFlavor;
+}
+
+#[repr(C)]
+#[derive(Default)]
+pub struct SocketFDInfo {
+    pub pfi: ProcFileInfo,
+    pub psi: SocketInfo,
+}
+
+#[repr(C)]
+#[derive(Default)]
+pub struct ProcFileInfo {
+    pub fi_openflags: uint32_t,
+    pub fi_status   : uint32_t,
+    pub fi_offset   : off_t,
+    pub fi_type     : int32_t,
+}
+
+#[repr(C)]
+#[derive(Default)]
+pub struct SocketInfo {
+    pub soi_stat    : stat,
+    pub soi_so      : uint64_t,
+    pub soi_pcb     : uint64_t,
+    pub soi_type    : c_int,
+    pub soi_protocol: c_int,
+    pub soi_family  : c_int,
+    pub soi_options : c_short,
+    pub soi_linger  : c_short,
+    pub soi_state   : c_short,
+    pub soi_qlen    : c_short,
+    pub soi_incqlen : c_short,
+    pub soi_qlimit  : c_short,
+    pub soi_timeo   : c_short,
+    pub soi_error   : c_ushort,
+    pub soi_oobmark : uint32_t,
+    pub soi_rcv     : SockBufInfo,
+    pub soi_snd     : SockBufInfo,
+    pub soi_kind    : c_int,
+    pub soi_proto   : SocketInfoProto,
+}
+
+#[repr(C)]
+#[derive(Default)]
+pub struct SockBufInfo {
+    pub sbi_cc   : uint32_t,
+    pub sbi_hiwat: uint32_t,
+    pub sbi_mbcnt: uint32_t,
+    pub sbi_mbmax: uint32_t,
+    pub sbi_lowat: uint32_t,
+    pub sbi_flags: c_short,
+    pub sbi_timeo: c_short,
+};
+
+#[repr(C)]
+#[derive(Default)]
+pub union SocketInfoProto {
+    pub pri_in        : InSockInfo,
+    pub pri_tcp       : TcpSockInfo,
+    pub pri_un        : UnSockInfo,
+    pub pri_ndrv      : NdrvInfo,
+    pub pri_kern_event: KernEventInfo,
+    pub pri_kern_ctl  : KernCtlInfo,
+}
+
+#[repr(C)]
+#[derive(Default)]
+pub struct In4In6Addr {
+    pub i46a_pad32: [u_int32_t;3],
+    pub i46a_addr4: in_addr,
+};
+
+#[repr(C)]
+#[derive(Default)]
+pub struct InSockInfo {
+    pub insi_fport : c_int,
+    pub insi_lport : c_int,
+    pub insi_gencnt: uint64_t,
+    pub insi_flags : uint32_t,
+    pub insi_flow  : uint32_t,
+    pub insi_vflag : uint8_t,
+    pub insi_ip_ttl: uint8_t,
+    pub insi_faddr : InSIAddr,
+    pub insi_laddr : InSIAddr,
+    pub insi_v4    : InSIV4,
+    pub insi_v6    : InSIV6,
+}
+
+#[repr(C)]
+#[derive(Default)]
+pub struct InSIV4 {
+    pub in4_top: c_uchar,
+}
+
+#[repr(C)]
+#[derive(Default)]
+pub struct InSIV6 {
+    pub in6_hlim   : uint8_t,
+    pub in6_cksum  : c_int,
+    pub in6_ifindex: c_ushort,
+    pub in6_hops   : c_short,
+}
+
+#[repr(C)]
+#[derive(Default)]
+pub union InSIAddr {
+    pub ina_46: In4In6Addr,
+    pub ina_6 : in6_addr,
+}
+
+#[repr(C)]
+#[derive(Default)]
+struct TcpSockInfo {
+    pub tcpsi_ini  : InSockInfo,
+    pub tcpsi_state: c_int,
+    pub tcpsi_timer: c_int[TSI_T_NTIMERS],
+    pub tcpsi_mss  : c_int,
+    pub tcpsi_flags: uint32_t,
+    pub tcpsi_tp   : uint64_t,
+};
+
+#[repr(C)]
+#[derive(Default)]
+struct UnSockInfo {
+    pub unsi_conn_so : uint64_t,
+    pub unsi_conn_pcb: uint64_t,
+    pub unsi_addr    : UnSIAddr,
+    pub unsi_caddr   : UnSIAddr,
+}
+
+#[repr(C)]
+#[derive(Default)]
+pub union UnSIAddr {
+    pub ua_sun  : sockaddr_un,
+    pub ua_dummy: c_char[SOCK_MAXADDRLEN],
+}
+
+#[repr(C)]
+#[derive(Default)]
+pub struct NdrvInfo {
+    pub ndrvsi_if_family: uint32_t,
+    pub ndrvsi_if_unit  : uint32_t,
+    pub ndrvsi_if_name  : c_char[IF_NAMESIZE],
+}
+
+#[repr(C)]
+#[derive(Default)]
+pub struct KernEventInfo {
+    pub kesi_vendor_code_filter: uint32_t,
+    pub kesi_class_filter      : uint32_t,
+    pub kesi_subclass_filter   : uint32_t,
+}	
+
+#[repr(C)]
+#[derive(Default)]
+pub struct KernCtlInfo {
+    pub kcsi_id         : uint32_t,
+    pub kcsi_reg_unit   : uint32_t,
+    pub kcsi_flags      : uint32_t,
+    pub kcsi_recvbufsize: uint32_t,
+    pub kcsi_sendbufsize: uint32_t,
+    pub kcsi_unit       : uint32_t,
+    pub kcsi_name       : c_char[MAX_KCTL_NAME],
+}
+
+impl PIDFDInfo for SocketFDInfo {
+    fn flavor() -> PidFDInfoFlavor { PidFDInfoFlavor::SocketInfo }
+}
+
+pub fn pidfdinfo<T: PIDFDInfo>(pid : i32, fd: int32_t) -> Result<T, String> {
+    let flavor = T::flavor() as i32;
+    let buffer_size = mem::size_of::<T>() as i32;
+    let mut pidinfo = T::default();
+    let buffer_ptr = &mut pidinfo as *mut _ as *mut c_void;
+    let ret: i32;
+
+    unsafe {
+        ret = proc_pidfdinfo(pid, fd, flavor, buffer_ptr, buffer_size);
+    };
+
+    if ret <= 0 {
+        Err(get_errno_with_message(ret))
+    } else {
+        Ok(pidinfo)
     }
 }
 
