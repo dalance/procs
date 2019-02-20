@@ -504,31 +504,35 @@ fn name_test_init_pid() {
     }
 }
 
-// This trait is needed for polymorphism on pidinfo types, also abstracting flavor in order to provide
+// This trait is needed for polymorphism on listpidinfo types, also abstracting flavor in order to provide
 // type-guaranteed flavor correctness
 pub trait ListPIDInfo {
     type Item;
     fn flavor() -> PidInfoFlavor;
 }
 
-/// Returns the Thread IDs of the process that match pid passed in.
-/// `threadnum` is the maximum number of threads to return.
-/// The length of return value: `Vec<uint64_t>` may be less than `threadnum`.
+/// Returns the information of the process that match pid passed in.
+/// `max_len` is the maximum number of array to return.
+/// The length of return value: `Vec<T::Item>` may be less than `max_len`.
 ///
 /// # Examples
 ///
 /// ```
 /// use std::io::Write;
-/// use libproc::libproc::proc_pid::{listthreads, pidinfo, TaskInfo};
+/// use libproc::libproc::proc_pid::{listpidinfo, pidinfo, ListThreads, TaskAllInfo};
 ///
 /// fn listthreads_test() {
 ///     use std::process;
 ///     let pid = process::id() as i32;
 ///
-///     match pidinfo::<TaskInfo>(pid, 0) {
+///     match pidinfo::<TaskAllInfo>(pid, 0) {
 ///         Ok(info) => {
-///             match listthreads(pid, info.pti_threadnum) {
+///             match listpidinfo::<ListThreads>(pid, info.ptinfo.pti_threadnum as usize) {
 ///                 Ok(threads) => assert!(threads.len()>0),
+///                 Err(err) => assert!(false, "Error retrieving process info: {}", err)
+///             }
+///             match listpidinfo::<ListFDs>(pid, info.pbsd.pbi_nfiles as usize) {
+///                 Ok(fds) => assert!(true),
 ///                 Err(err) => assert!(false, "Error retrieving process info: {}", err)
 ///             }
 ///         },
@@ -558,6 +562,26 @@ pub fn listpidinfo<T: ListPIDInfo>(pid : i32, max_len: usize) -> Result<Vec<T::I
         buffer.truncate(actual_len);
         Ok(buffer)
     }
+}
+
+#[test]
+fn listpidinfo_test() {
+    use std::process;
+    let pid = process::id() as i32;
+
+    match pidinfo::<TaskAllInfo>(pid, 0) {
+        Ok(info) => {
+            match listpidinfo::<ListThreads>(pid, info.ptinfo.pti_threadnum as usize) {
+                Ok(threads) => assert!(threads.len()>0),
+                Err(err) => assert!(false, "Error retrieving process info: {}", err)
+            }
+            match listpidinfo::<ListFDs>(pid, info.pbsd.pbi_nfiles as usize) {
+                Ok(fds) => assert!(true),
+                Err(err) => assert!(false, "Error retrieving process info: {}", err)
+            }
+        },
+        Err(err) => assert!(false, "Error retrieving process info: {}", err)
+    };
 }
 
 pub struct ListThreads;
@@ -608,8 +632,47 @@ impl ProcFDType {
     }
 }
 
+// This trait is needed for polymorphism on pidfdinfo types, also abstracting flavor in order to provide
+// type-guaranteed flavor correctness
 pub trait PIDFDInfo: Default {
     fn flavor() -> PidFDInfoFlavor;
+}
+
+/// Returns the information of the process that match pid passed in.
+///
+/// # Examples
+///
+/// ```
+/// use std::io::Write;
+/// use libproc::libproc::proc_pid::{pidinfo, BSDInfo};
+///
+/// fn pidinfo_test() {
+///     use std::process;
+///     let pid = process::id() as i32;
+///
+///     match pidinfo::<BSDInfo>(pid, 0) {
+///         Ok(info) => assert_eq!(info.pbi_pid as i32, pid),
+///         Err(err) => assert!(false, "Error retrieving process info: {}", err)
+///     };
+/// }
+/// ```
+///
+pub fn pidfdinfo<T: PIDFDInfo>(pid : i32, fd: int32_t) -> Result<T, String> {
+    let flavor = T::flavor() as i32;
+    let buffer_size = mem::size_of::<T>() as i32;
+    let mut pidinfo = T::default();
+    let buffer_ptr = &mut pidinfo as *mut _ as *mut c_void;
+    let ret: i32;
+
+    unsafe {
+        ret = proc_pidfdinfo(pid, fd, flavor, buffer_ptr, buffer_size);
+    };
+
+    if ret <= 0 {
+        Err(get_errno_with_message(ret))
+    } else {
+        Ok(pidinfo)
+    }
 }
 
 #[repr(C)]
@@ -617,6 +680,10 @@ pub trait PIDFDInfo: Default {
 pub struct SocketFDInfo {
     pub pfi: ProcFileInfo,
     pub psi: SocketInfo,
+}
+
+impl PIDFDInfo for SocketFDInfo {
+    fn flavor() -> PidFDInfoFlavor { PidFDInfoFlavor::SocketInfo }
 }
 
 #[repr(C)]
@@ -881,40 +948,3 @@ impl Default for KernCtlInfo {
     }
 }
 
-impl PIDFDInfo for SocketFDInfo {
-    fn flavor() -> PidFDInfoFlavor { PidFDInfoFlavor::SocketInfo }
-}
-
-pub fn pidfdinfo<T: PIDFDInfo>(pid : i32, fd: int32_t) -> Result<T, String> {
-    let flavor = T::flavor() as i32;
-    let buffer_size = mem::size_of::<T>() as i32;
-    let mut pidinfo = T::default();
-    let buffer_ptr = &mut pidinfo as *mut _ as *mut c_void;
-    let ret: i32;
-
-    unsafe {
-        ret = proc_pidfdinfo(pid, fd, flavor, buffer_ptr, buffer_size);
-    };
-
-    if ret <= 0 {
-        Err(get_errno_with_message(ret))
-    } else {
-        Ok(pidinfo)
-    }
-}
-
-#[test]
-fn listthreads_test() {
-    use std::process;
-    let pid = process::id() as i32;
-
-    match pidinfo::<TaskInfo>(pid, 0) {
-        Ok(info) => {
-            match listthreads(pid, info.pti_threadnum) {
-                Ok(threads) => assert!(threads.len()>0),
-                Err(err) => assert!(false, "Error retrieving process info: {}", err)
-            }
-        },
-        Err(err) => assert!(false, "Error retrieving process info: {}", err)
-    };
-}
