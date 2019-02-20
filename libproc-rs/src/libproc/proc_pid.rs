@@ -519,7 +519,7 @@ pub trait ListPIDInfo {
 ///
 /// ```
 /// use std::io::Write;
-/// use libproc::libproc::proc_pid::{listpidinfo, pidinfo, ListThreads, TaskAllInfo};
+/// use libproc::libproc::proc_pid::{listpidinfo, pidinfo, ListFDs, ListThreads, TaskAllInfo};
 ///
 /// fn listthreads_test() {
 ///     use std::process;
@@ -532,7 +532,7 @@ pub trait ListPIDInfo {
 ///                 Err(err) => assert!(false, "Error retrieving process info: {}", err)
 ///             }
 ///             match listpidinfo::<ListFDs>(pid, info.pbsd.pbi_nfiles as usize) {
-///                 Ok(fds) => assert!(true),
+///                 Ok(fds) => assert!(fds.len()>0),
 ///                 Err(err) => assert!(false, "Error retrieving process info: {}", err)
 ///             }
 ///         },
@@ -576,7 +576,7 @@ fn listpidinfo_test() {
                 Err(err) => assert!(false, "Error retrieving process info: {}", err)
             }
             match listpidinfo::<ListFDs>(pid, info.pbsd.pbi_nfiles as usize) {
-                Ok(fds) => assert!(true),
+                Ok(fds) => assert!(fds.len()>0),
                 Err(err) => assert!(false, "Error retrieving process info: {}", err)
             }
         },
@@ -644,14 +644,40 @@ pub trait PIDFDInfo: Default {
 ///
 /// ```
 /// use std::io::Write;
-/// use libproc::libproc::proc_pid::{pidinfo, BSDInfo};
+/// use std::net::TcpListener;
+/// use libproc::libproc::proc_pid::{listpidinfo, pidinfo, ListFDs, ListThreads, BSDInfo};
 ///
-/// fn pidinfo_test() {
+/// fn pidfdinfo_test() {
 ///     use std::process;
 ///     let pid = process::id() as i32;
 ///
+///     let listener = TcpListener::bind("127.0.0.1:65535");
+///
 ///     match pidinfo::<BSDInfo>(pid, 0) {
-///         Ok(info) => assert_eq!(info.pbi_pid as i32, pid),
+///         Ok(info) => {
+///             match listpidinfo::<ListFDs>(pid, info.pbi_nfiles as usize) {
+///                 Ok(fds) => {
+///                     for fd in fds {
+///                         match ProcFDType::from(fd.proc_fdtype) {
+///                             Some(ProcFDType::Socket) => {
+///                                 if let Ok(socket) = proc_pid::pidfdinfo::<SocketFDInfo>(pid, fd.proc_fd) {
+///                                     match SocketInfoKind::from(socket.psi.soi_kind) {
+///                                         Some(SocketInfoKind::Tcp) => unsafe {
+///                                             let info = socket.psi.soi_proto.pri_tcp;
+///                                             assert_eq!(socket.psi.soi_protocol,
+///                                             libc::IPPROTO_TCP);
+///                                             assert_eq!(info.tcpsi_ini.insi_lport, 0xffff0000);
+///                                         }
+///                                     }
+///                                 }
+///                             },
+///                             _ => (),
+///                         }
+///                     }
+///                 },
+///                 Err(err) => assert!(false, "Error retrieving process info: {}", err)
+///             }
+///         },
 ///         Err(err) => assert!(false, "Error retrieving process info: {}", err)
 ///     };
 /// }
@@ -673,6 +699,42 @@ pub fn pidfdinfo<T: PIDFDInfo>(pid : i32, fd: int32_t) -> Result<T, String> {
     } else {
         Ok(pidinfo)
     }
+}
+
+#[test]
+fn pidfdinfo_test() {
+    use std::process;
+    let pid = process::id() as i32;
+
+    let listener = TcpListener::bind("127.0.0.1:65535");
+
+    match pidinfo::<BSDInfo>(pid, 0) {
+        Ok(info) => {
+            match listpidinfo::<ListFDs>(pid, info.pbi_nfiles as usize) {
+                Ok(fds) => {
+                    for fd in fds {
+                        match ProcFDType::from(fd.proc_fdtype) {
+                            Some(ProcFDType::Socket) => {
+                                if let Ok(socket) = proc_pid::pidfdinfo::<SocketFDInfo>(pid, fd.proc_fd) {
+                                    match SocketInfoKind::from(socket.psi.soi_kind) {
+                                        Some(SocketInfoKind::Tcp) => unsafe {
+                                            let info = socket.psi.soi_proto.pri_tcp;
+                                            assert_eq!(socket.psi.soi_protocol,
+                                            libc::IPPROTO_TCP);
+                                            assert_eq!(info.tcpsi_ini.insi_lport, 0xffff0000);
+                                        }
+                                    }
+                                }
+                            },
+                            _ => (),
+                        }
+                    }
+                },
+                Err(err) => assert!(false, "Error retrieving process info: {}", err)
+            }
+        },
+        Err(err) => assert!(false, "Error retrieving process info: {}", err)
+    };
 }
 
 #[repr(C)]
