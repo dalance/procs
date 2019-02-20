@@ -3,7 +3,6 @@ use crate::Column;
 #[cfg(target_os = "linux")]
 use procfs::{FDTarget, UdpNetEntry};
 use std::cmp;
-#[cfg(target_os = "linux")]
 use std::collections::HashMap;
 
 pub struct UdpPort {

@@ -5,7 +5,6 @@ use libproc::libproc::proc_pid::TcpSIState;
 #[cfg(target_os = "linux")]
 use procfs::{FDTarget, TcpNetEntry, TcpState};
 use std::cmp;
-#[cfg(target_os = "linux")]
 use std::collections::HashMap;
 
 pub struct TcpPort {
