@@ -113,9 +113,15 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
 
         let fds = proc_pid::listpidinfo::<ListFDs>(pid, curr_task.pbsd.pbi_nfiles as usize);
         if let Ok(fds) = fds {
-            dbg!((fds.len(), curr_task.pbsd.pbi_nfiles));
             for fd in fds {
-                dbg!((fd.proc_fd, ProcFDType::from(fd.proc_fdtype)));
+                match ProcFDType::from(fd.proc_fdtype) {
+                    ProcFDType::Socket => {
+                        if let Ok(socket) = proc_pid::pidfdinfo::<SocketFDInfo>(pid, fd.proc_fd) {
+                            dbg!(socket);
+                        }
+                    }
+                    _ => (),
+                }
             }
         }
 
