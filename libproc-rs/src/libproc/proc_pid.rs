@@ -818,13 +818,13 @@ struct UnSockInfo {
 #[derive(Copy, Clone)]
 pub union UnSIAddr {
     pub ua_sun  : sockaddr_un,
-    pub ua_dummy: [c_char; SOCK_MAXADDRLEN],
+    pub ua_dummy: [c_char; SOCK_MAXADDRLEN as usize],
 }
 
 impl Default for UnSIAddr {
     fn default() -> UnSIAddr {
         UnSIAddr {
-            ua_dummy: [0; SOCK_MAXADDRLEN],
+            ua_dummy: [0; SOCK_MAXADDRLEN as usize],
         }
     }
 }
