@@ -787,7 +787,7 @@ pub union InSIAddr {
 impl Default for InSIAddr {
     fn default() -> InSIAddr {
         InSIAddr {
-            ina_6: in6_addr{s6_addr: [0;16], __align: [0;0]},
+            ina_46: Default::default(),
         }
     }
 }
@@ -796,7 +796,7 @@ const TSI_T_NTIMERS : usize = 4;
 
 #[repr(C)]
 #[derive(Copy, Clone, Default)]
-struct TcpSockInfo {
+pub struct TcpSockInfo {
     pub tcpsi_ini  : InSockInfo,
     pub tcpsi_state: c_int,
     pub tcpsi_timer: [c_int; TSI_T_NTIMERS],
@@ -807,7 +807,7 @@ struct TcpSockInfo {
 
 #[repr(C)]
 #[derive(Copy, Clone, Default)]
-struct UnSockInfo {
+pub struct UnSockInfo {
     pub unsi_conn_so : uint64_t,
     pub unsi_conn_pcb: uint64_t,
     pub unsi_addr    : UnSIAddr,
