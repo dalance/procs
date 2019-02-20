@@ -5,6 +5,7 @@ use libproc::libproc::proc_pid::TcpSIState;
 #[cfg(target_os = "linux")]
 use procfs::{FDTarget, TcpNetEntry, TcpState};
 use std::cmp;
+#[cfg(target_os = "linux")]
 use std::collections::HashMap;
 
 pub struct TcpPort {
@@ -101,7 +102,7 @@ impl Column for TcpPort {
         let mut ports = Vec::new();
         for tcp in proc.curr_tcps {
             match TcpSIState::from(tcp.tcpsi_state) {
-                TcpSIState::Listen => {
+                Some(TcpSIState::Listen) => {
                     let port = crate::util::change_endian(tcp.tcpsi_ini.insi_lport as u32) >> 16;
                     ports.push(port);
                 }

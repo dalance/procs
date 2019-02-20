@@ -3,9 +3,9 @@ use crate::Column;
 #[cfg(target_os = "linux")]
 use procfs::{FDTarget, UdpNetEntry};
 use std::cmp;
+#[cfg(target_os = "linux")]
 use std::collections::HashMap;
 
-#[cfg(target_os = "linux")]
 pub struct UdpPort {
     header: String,
     unit: String,
@@ -18,7 +18,6 @@ pub struct UdpPort {
     udp6_entry: Vec<UdpNetEntry>,
 }
 
-#[cfg(target_os = "linux")]
 impl UdpPort {
     pub fn new() -> Self {
         let header = String::from("UDP");

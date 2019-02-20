@@ -67,7 +67,7 @@ pub fn parse_time(x: u64) -> String {
 }
 
 #[cfg(target_os = "macos")]
-fn change_endian(val: u32) -> u32 {
+pub fn change_endian(val: u32) -> u32 {
     let mut ret = 0;
     ret |= val >> 24 & 0x000000ff;
     ret |= val >> 8 & 0x0000ff00;
