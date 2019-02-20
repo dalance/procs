@@ -36,11 +36,12 @@ fn get_mem_total() -> u64 {
 #[cfg(target_os = "macos")]
 fn get_mem_total() -> u64 {
     let mut mem_total: u64 = 0;
-    get_sys_value(
-        ffi::CTL_HW,
-        ffi::HW_MEMSIZE,
-        ::std::mem::size_of::<u64>(),
-        &mut mem_total as *mut u64 as *mut c_void,
+    let mut mib = [0, 0];
+    crate::util::get_sys_value(
+        sys::ffi::CTL_HW,
+        sys::ffi::HW_MEMSIZE,
+        std::mem::size_of::<u64>(),
+        &mut mem_total as *mut u64 as *mut libc::c_void,
         &mut mib,
     );
     mem_total

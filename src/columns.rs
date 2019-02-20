@@ -13,7 +13,6 @@ pub mod min_flt;
 pub mod nice;
 pub mod pid;
 pub mod ppid;
-#[cfg(target_os = "linux")]
 pub mod priority;
 #[cfg(target_os = "linux")]
 pub mod processor;
@@ -74,7 +73,6 @@ pub use self::min_flt::MinFlt;
 pub use self::nice::Nice;
 pub use self::pid::Pid;
 pub use self::ppid::Ppid;
-#[cfg(target_os = "linux")]
 pub use self::priority::Priority;
 #[cfg(target_os = "linux")]
 pub use self::processor::Processor;
