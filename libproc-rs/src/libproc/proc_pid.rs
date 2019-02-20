@@ -626,6 +626,7 @@ pub struct ProcFileInfo {
     pub fi_status   : uint32_t,
     pub fi_offset   : off_t,
     pub fi_type     : int32_t,
+    pub rfu_1       : int32_t,
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -675,6 +676,7 @@ pub struct SocketInfo {
     pub soi_rcv     : SockBufInfo,
     pub soi_snd     : SockBufInfo,
     pub soi_kind    : c_int,
+    pub rfu_1       : uint32_t,
     pub soi_proto   : SocketInfoProto,
 }
 
@@ -760,6 +762,7 @@ pub struct InSockInfo {
     pub insi_flow  : uint32_t,
     pub insi_vflag : uint8_t,
     pub insi_ip_ttl: uint8_t,
+    pub rfu_1      : uint32_t,
     pub insi_faddr : InSIAddr,
     pub insi_laddr : InSIAddr,
     pub insi_v4    : InSIV4,
@@ -806,6 +809,7 @@ pub struct TcpSockInfo {
     pub tcpsi_timer: [c_int; TSI_T_NTIMERS],
     pub tcpsi_mss  : c_int,
     pub tcpsi_flags: uint32_t,
+    pub rfu_1      : uint32_t,
     pub tcpsi_tp   : uint64_t,
 }
 
