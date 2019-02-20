@@ -121,6 +121,7 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
                             match SocketInfoKind::from(socket.psi.soi_kind) {
                                 Some(SocketInfoKind::In) => unsafe {
                                     let info = socket.psi.soi_proto.pri_in;
+                                    dbg!(pid);
                                     dbg!(socket.psi.soi_protocol);
                                     dbg!(info.insi_fport);
                                     dbg!(info.insi_lport);
