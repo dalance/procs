@@ -651,7 +651,7 @@ pub trait PIDFDInfo: Default {
 ///     use std::process;
 ///     let pid = process::id() as i32;
 ///
-///     let listener = TcpListener::bind("127.0.0.1:65535");
+///     let _listener = TcpListener::bind("127.0.0.1:65535");
 ///
 ///     match pidinfo::<BSDInfo>(pid, 0) {
 ///         Ok(info) => {
@@ -708,7 +708,7 @@ fn pidfdinfo_test() {
     use std::net::TcpListener;
     let pid = process::id() as i32;
 
-    let listener = TcpListener::bind("127.0.0.1:65535");
+    let _listener = TcpListener::bind("127.0.0.1:65535");
 
     match pidinfo::<BSDInfo>(pid, 0) {
         Ok(info) => {
