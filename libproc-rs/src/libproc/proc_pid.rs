@@ -1,7 +1,7 @@
 extern crate libc;
 extern crate errno;
 
-use self::libc::{uint64_t, uint32_t, int32_t, c_void, c_int, uid_t, gid_t, c_char, off_t, stat, in_addr, sockaddr_un, in6_addr};
+use self::libc::{uint64_t, uint32_t, int32_t, uint8_t, c_short, c_ushort, c_void, c_int, c_uchar, uid_t, gid_t, c_char, off_t, stat, in_addr, sockaddr_un, in6_addr, SOCK_MAXADDRLEN, IF_NAMESIZE};
 use self::errno::errno;
 use std::ptr;
 use std::mem;
@@ -629,7 +629,6 @@ pub struct ProcFileInfo {
 }
 
 #[repr(C)]
-#[derive(Default)]
 pub struct SocketInfo {
     pub soi_stat    : stat,
     pub soi_so      : uint64_t,
@@ -652,6 +651,55 @@ pub struct SocketInfo {
     pub soi_proto   : SocketInfoProto,
 }
 
+impl Default for SocketInfo {
+    fn default() -> SocketInfo {
+        SocketInfo {
+            soi_stat    : stat {
+                st_dev           : 0,
+                st_mode          : 0,
+                st_nlink         : 0,
+                st_ino           : 0,
+                st_uid           : 0,
+                st_gid           : 0,
+                st_rdev          : 0,
+                st_atime         : 0,
+                st_atime_nsec    : 0,
+                st_mtime         : 0,
+                st_mtime_nsec    : 0,
+                st_ctime         : 0,
+                st_ctime_nsec    : 0,
+                st_birthtime     : 0,
+                st_birthtime_nsec: 0,
+                st_size          : 0,
+                st_blocks        : 0,
+                st_blksize       : 0,
+                st_flags         : 0,
+                st_gen           : 0,
+                st_lspare        : 0,
+                st_qspare        : [0; 2],
+            },
+            soi_so      : 0,
+            soi_pcb     : 0,
+            soi_type    : 0,
+            soi_protocol: 0,
+            soi_family  : 0,
+            soi_options : 0,
+            soi_linger  : 0,
+            soi_state   : 0,
+            soi_qlen    : 0,
+            soi_incqlen : 0,
+            soi_qlimit  : 0,
+            soi_timeo   : 0,
+            soi_error   : 0,
+            soi_oobmark : 0,
+            soi_rcv     : Default::default(),
+            soi_snd     : Default::default(),
+            soi_kind    : 0,
+            soi_proto   : Default::default(),
+        }
+    }
+}
+
 #[repr(C)]
 #[derive(Default)]
 pub struct SockBufInfo {
@@ -662,10 +710,9 @@ pub struct SockBufInfo {
     pub sbi_lowat: uint32_t,
     pub sbi_flags: c_short,
     pub sbi_timeo: c_short,
-};
+}
 
 #[repr(C)]
-#[derive(Default)]
 pub union SocketInfoProto {
     pub pri_in        : InSockInfo,
     pub pri_tcp       : TcpSockInfo,
@@ -675,15 +722,32 @@ pub union SocketInfoProto {
     pub pri_kern_ctl  : KernCtlInfo,
 }
 
-#[repr(C)]
-#[derive(Default)]
-pub struct In4In6Addr {
-    pub i46a_pad32: [u_int32_t;3],
-    pub i46a_addr4: in_addr,
-};
+impl Default for SocketInfoProto {
+    fn default() -> SocketInfoProto {
+        SocketInfoProto {
+            pri_in: Default::default(),
+        }
+    }
+}
 
 #[repr(C)]
-#[derive(Default)]
+#[derive(Copy, Clone)]
+pub struct In4In6Addr {
+    pub i46a_pad32: [uint32_t; 3],
+    pub i46a_addr4: in_addr,
+}
+
+impl Default for In4In6Addr {
+    fn default() -> In4In6Addr {
+        In4In6Addr {
+            i46a_pad32: [0; 3],
+            i46a_addr4: in_addr{s_addr: 0},
+        }
+    }
+}
+
+#[repr(C)]
+#[derive(Copy, Clone, Default)]
 pub struct InSockInfo {
     pub insi_fport : c_int,
     pub insi_lport : c_int,
@@ -699,13 +763,13 @@ pub struct InSockInfo {
 }
 
 #[repr(C)]
-#[derive(Default)]
+#[derive(Copy, Clone, Default)]
 pub struct InSIV4 {
     pub in4_top: c_uchar,
 }
 
 #[repr(C)]
-#[derive(Default)]
+#[derive(Copy, Clone, Default)]
 pub struct InSIV6 {
     pub in6_hlim   : uint8_t,
     pub in6_cksum  : c_int,
@@ -714,25 +778,35 @@ pub struct InSIV6 {
 }
 
 #[repr(C)]
-#[derive(Default)]
+#[derive(Copy, Clone)]
 pub union InSIAddr {
     pub ina_46: In4In6Addr,
     pub ina_6 : in6_addr,
 }
 
+impl Default for InSIAddr {
+    fn default() -> InSIAddr {
+        InSIAddr {
+            ina_6: in6_addr{s6_addr: [0;16], __align: [0;0]},
+        }
+    }
+}
+
+const TSI_T_NTIMERS : usize = 4;
+
 #[repr(C)]
-#[derive(Default)]
+#[derive(Copy, Clone, Default)]
 struct TcpSockInfo {
     pub tcpsi_ini  : InSockInfo,
     pub tcpsi_state: c_int,
-    pub tcpsi_timer: c_int[TSI_T_NTIMERS],
+    pub tcpsi_timer: [c_int; TSI_T_NTIMERS],
     pub tcpsi_mss  : c_int,
     pub tcpsi_flags: uint32_t,
     pub tcpsi_tp   : uint64_t,
-};
+}
 
 #[repr(C)]
-#[derive(Default)]
+#[derive(Copy, Clone, Default)]
 struct UnSockInfo {
     pub unsi_conn_so : uint64_t,
     pub unsi_conn_pcb: uint64_t,
@@ -740,31 +814,43 @@ struct UnSockInfo {
     pub unsi_caddr   : UnSIAddr,
 }
 
+const SOCK_MAXADDRLEN : usize = 4;
+
 #[repr(C)]
-#[derive(Default)]
+#[derive(Copy, Clone)]
 pub union UnSIAddr {
     pub ua_sun  : sockaddr_un,
-    pub ua_dummy: c_char[SOCK_MAXADDRLEN],
+    pub ua_dummy: [c_char; SOCK_MAXADDRLEN],
+}
+
+impl Default for UnSIAddr {
+    fn default() -> UnSIAddr {
+        UnSIAddr {
+            ua_dummy: [0; SOCK_MAXADDRLEN],
+        }
+    }
 }
 
 #[repr(C)]
-#[derive(Default)]
+#[derive(Copy, Clone, Default)]
 pub struct NdrvInfo {
     pub ndrvsi_if_family: uint32_t,
     pub ndrvsi_if_unit  : uint32_t,
-    pub ndrvsi_if_name  : c_char[IF_NAMESIZE],
+    pub ndrvsi_if_name  : [c_char; IF_NAMESIZE],
 }
 
 #[repr(C)]
-#[derive(Default)]
+#[derive(Copy, Clone, Default)]
 pub struct KernEventInfo {
     pub kesi_vendor_code_filter: uint32_t,
     pub kesi_class_filter      : uint32_t,
     pub kesi_subclass_filter   : uint32_t,
-}	
+}
+
+const MAX_KCTL_NAME : usize = 96;
 
 #[repr(C)]
-#[derive(Default)]
+#[derive(Copy, Clone)]
 pub struct KernCtlInfo {
     pub kcsi_id         : uint32_t,
     pub kcsi_reg_unit   : uint32_t,
@@ -772,7 +858,21 @@ pub struct KernCtlInfo {
     pub kcsi_recvbufsize: uint32_t,
     pub kcsi_sendbufsize: uint32_t,
     pub kcsi_unit       : uint32_t,
-    pub kcsi_name       : c_char[MAX_KCTL_NAME],
+    pub kcsi_name       : [c_char; MAX_KCTL_NAME],
+}
+
+impl Default for KernCtlInfo {
+    fn default() -> KernCtlInfo {
+        KernCtlInfo {
+            kcsi_id         : 0,
+            kcsi_reg_unit   : 0,
+            kcsi_flags      : 0,
+            kcsi_recvbufsize: 0,
+            kcsi_sendbufsize: 0,
+            kcsi_unit       : 0,
+            kcsi_name       : [0; MAX_KCTL_NAME],
+        }
+    }
 }
 
 impl PIDFDInfo for SocketFDInfo {
