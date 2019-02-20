@@ -645,7 +645,7 @@ pub trait PIDFDInfo: Default {
 /// ```
 /// use std::io::Write;
 /// use std::net::TcpListener;
-/// use libproc::libproc::proc_pid::{listpidinfo, pidinfo, ListFDs, ListThreads, BSDInfo, ProcFDType, SocketFDInfo, SocketInfoKind};
+/// use libproc::libproc::proc_pid::{listpidinfo, pidinfo, pidfdinfo, ListFDs, ListThreads, BSDInfo, ProcFDType, SocketFDInfo, SocketInfoKind};
 ///
 /// fn pidfdinfo_test() {
 ///     use std::process;
