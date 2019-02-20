@@ -154,24 +154,28 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
                                     if info.tcpsi_ini.insi_vflag == 1 {
                                         dbg!(format!(
                                             "{}.{}.{}.{}",
-                                            info.tcpsi_in.insi_faddr.ina_46.i46a_addr4.s_addr >> 24
+                                            info.tcpsi_ini.insi_faddr.ina_46.i46a_addr4.s_addr
+                                                >> 24
                                                 & 0xff,
-                                            info.tcpsi_in.insi_faddr.ina_46.i46a_addr4.s_addr >> 16
+                                            info.tcpsi_ini.insi_faddr.ina_46.i46a_addr4.s_addr
+                                                >> 16
                                                 & 0xff,
-                                            info.tcpsi_in.insi_faddr.ina_46.i46a_addr4.s_addr >> 8
+                                            info.tcpsi_ini.insi_faddr.ina_46.i46a_addr4.s_addr >> 8
                                                 & 0xff,
-                                            info.tcpsi_in.insi_faddr.ina_46.i46a_addr4.s_addr >> 0
+                                            info.tcpsi_ini.insi_faddr.ina_46.i46a_addr4.s_addr >> 0
                                                 & 0xff,
                                         ));
                                         dbg!(format!(
                                             "{}.{}.{}.{}",
-                                            info.tcpsi_in.insi_laddr.ina_46.i46a_addr4.s_addr >> 24
+                                            info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr
+                                                >> 24
                                                 & 0xff,
-                                            info.tcpsi_in.insi_laddr.ina_46.i46a_addr4.s_addr >> 16
+                                            info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr
+                                                >> 16
                                                 & 0xff,
-                                            info.tcpsi_in.insi_laddr.ina_46.i46a_addr4.s_addr >> 8
+                                            info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr >> 8
                                                 & 0xff,
-                                            info.tcpsi_in.insi_laddr.ina_46.i46a_addr4.s_addr >> 0
+                                            info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr >> 0
                                                 & 0xff,
                                         ));
                                     } else {
