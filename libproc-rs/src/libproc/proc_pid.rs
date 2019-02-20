@@ -645,7 +645,7 @@ pub trait PIDFDInfo: Default {
 /// ```
 /// use std::io::Write;
 /// use std::net::TcpListener;
-/// use libproc::libproc::proc_pid::{listpidinfo, pidinfo, ListFDs, ListThreads, BSDInfo};
+/// use libproc::libproc::proc_pid::{listpidinfo, pidinfo, ListFDs, ListThreads, BSDInfo, ProcFDType, SocketFDInfo, SocketInfoKind};
 ///
 /// fn pidfdinfo_test() {
 ///     use std::process;
@@ -660,7 +660,7 @@ pub trait PIDFDInfo: Default {
 ///                     for fd in fds {
 ///                         match ProcFDType::from(fd.proc_fdtype) {
 ///                             Some(ProcFDType::Socket) => {
-///                                 if let Ok(socket) = proc_pid::pidfdinfo::<SocketFDInfo>(pid, fd.proc_fd) {
+///                                 if let Ok(socket) = pidfdinfo::<SocketFDInfo>(pid, fd.proc_fd) {
 ///                                     match SocketInfoKind::from(socket.psi.soi_kind) {
 ///                                         Some(SocketInfoKind::Tcp) => unsafe {
 ///                                             let info = socket.psi.soi_proto.pri_tcp;
@@ -704,6 +704,7 @@ pub fn pidfdinfo<T: PIDFDInfo>(pid : i32, fd: int32_t) -> Result<T, String> {
 #[test]
 fn pidfdinfo_test() {
     use std::process;
+    use std::TcpListener;
     let pid = process::id() as i32;
 
     let listener = TcpListener::bind("127.0.0.1:65535");
@@ -715,7 +716,7 @@ fn pidfdinfo_test() {
                     for fd in fds {
                         match ProcFDType::from(fd.proc_fdtype) {
                             Some(ProcFDType::Socket) => {
-                                if let Ok(socket) = proc_pid::pidfdinfo::<SocketFDInfo>(pid, fd.proc_fd) {
+                                if let Ok(socket) = pidfdinfo::<SocketFDInfo>(pid, fd.proc_fd) {
                                     match SocketInfoKind::from(socket.psi.soi_kind) {
                                         Some(SocketInfoKind::Tcp) => unsafe {
                                             let info = socket.psi.soi_proto.pri_tcp;
