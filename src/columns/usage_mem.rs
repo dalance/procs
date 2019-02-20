@@ -16,20 +16,54 @@ impl UsageMem {
     pub fn new() -> Self {
         let header = String::from("MEM");
         let unit = String::from("[%]");
+
         UsageMem {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
             max_width: cmp::max(header.len(), unit.len()),
             header,
             unit,
-            mem_total: procfs::meminfo().unwrap().mem_total,
+            mem_total: get_mem_total(),
         }
     }
 }
 
+#[cfg(target_os = "linux")]
+fn get_mem_total() -> u64 {
+    procfs::meminfo().unwrap().mem_total
+}
+
+#[cfg(target_os = "macos")]
+fn get_mem_total() -> u64 {
+    let mut mem_total: u64 = 0;
+    get_sys_value(
+        ffi::CTL_HW,
+        ffi::HW_MEMSIZE,
+        ::std::mem::size_of::<u64>(),
+        &mut mem_total as *mut u64 as *mut c_void,
+        &mut mib,
+    );
+    mem_total
+}
+
+#[cfg(target_os = "linux")]
 impl Column for UsageMem {
     fn add(&mut self, proc: &ProcessInfo) {
         let usage = proc.curr_proc.stat.rss_bytes() as f64 * 100.0 / self.mem_total as f64;
+        let fmt_content = format!("{:.1}", usage);
+        let raw_content = (usage * 1000.0) as u32;
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(u32);
+}
+
+#[cfg(target_os = "macos")]
+impl Column for UsageMem {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let usage = proc.curr_task.ptinfo.pti_resident_size as f64 * 100.0 / self.mem_total as f64;
         let fmt_content = format!("{:.1}", usage);
         let raw_content = (usage * 1000.0) as u32;
 

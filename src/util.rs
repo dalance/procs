@@ -75,3 +75,23 @@ pub fn change_endian(val: u32) -> u32 {
     ret |= val << 24 & 0xff000000;
     ret
 }
+
+#[cfg(target_os = "macos")]
+unsafe fn get_sys_value(
+    high: u32,
+    low: u32,
+    mut len: usize,
+    value: *mut c_void,
+    mib: &mut [i32; 2],
+) -> bool {
+    mib[0] = high as i32;
+    mib[1] = low as i32;
+    libc::sysctl(
+        mib.as_mut_ptr(),
+        2,
+        value,
+        &mut len as *mut usize,
+        ::std::ptr::null_mut(),
+        0,
+    ) == 0
+}
