@@ -1,5 +1,7 @@
 use crate::process::ProcessInfo;
 use crate::Column;
+#[cfg(target_os = "macos")]
+use libproc::libproc::proc_pid::TcpSIState;
 #[cfg(target_os = "linux")]
 use procfs::{FDTarget, TcpNetEntry, TcpState};
 use std::cmp;
@@ -98,7 +100,13 @@ impl Column for TcpPort {
     fn add(&mut self, proc: &ProcessInfo) {
         let mut ports = Vec::new();
         for tcp in proc.curr_tcps {
-            let port = crate::util::change_endian(tcp.tcpsi_ini.insi_lport as u32) >> 16;
+            match TcpSIState::from(tcp.tcpsi_state) {
+                TcpSIState::Listen => {
+                    let port = crate::util::change_endian(tcp.tcpsi_ini.insi_lport as u32) >> 16;
+                    ports.push(port);
+                }
+                _ => (),
+            }
         }
         ports.sort();
         ports.dedup();

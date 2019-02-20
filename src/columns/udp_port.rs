@@ -99,6 +99,7 @@ impl Column for UdpPort {
         let mut ports = Vec::new();
         for udp in proc.curr_udps {
             let port = crate::util::change_endian(udp.insi_lport as u32) >> 16;
+            ports.push(port);
         }
         ports.sort();
         ports.dedup();

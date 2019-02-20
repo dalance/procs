@@ -86,12 +86,10 @@ pub use self::rt_priority::RtPriority;
 pub use self::separator::Separator;
 pub use self::start_time::StartTime;
 pub use self::state::State;
-#[cfg(target_os = "linux")]
 pub use self::tcp_port::TcpPort;
 #[cfg(target_os = "linux")]
 pub use self::threads::Threads;
 pub use self::tty::Tty;
-#[cfg(target_os = "linux")]
 pub use self::udp_port::UdpPort;
 pub use self::usage_cpu::UsageCpu;
 #[cfg(target_os = "linux")]

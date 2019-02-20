@@ -931,6 +931,42 @@ impl Default for InSIAddr {
     }
 }
 
+#[derive(Copy, Clone, Debug)]
+pub enum TcpSIState {
+    Closed      = 0,  // closed
+    Listen      = 1,  // listening for connection
+    SynSent     = 2,  // active, have sent syn
+    SynReceived = 3,  // have send and received syn
+    Established = 4,  // established
+    CloseWait   = 5,  // rcvd fin, waiting for close
+    FinWait1    = 6,  // have closed, sent fin
+    Closing     = 7,  // closed xchd FIN; await FIN ACK
+    LastAck     = 8,  // had fin and close; await FIN ACK
+    FinWait2    = 9,  // have closed, fin is acked
+    TimeWait    = 10, // in 2*msl quiet wait after close
+    Reserved    = 11, // pseudo state: reserved
+}
+
+impl TcpSIState {
+    pub fn from(value: c_int) -> Option<TcpSIState> {
+        match value {
+            0  => Some(TcpSIState::Closed     ),
+            1  => Some(TcpSIState::Listen     ),
+            2  => Some(TcpSIState::SynSent    ),
+            3  => Some(TcpSIState::SynReceived),
+            4  => Some(TcpSIState::Established),
+            5  => Some(TcpSIState::CloseWait  ),
+            6  => Some(TcpSIState::FinWait1   ),
+            7  => Some(TcpSIState::Closing    ),
+            8  => Some(TcpSIState::LastAck    ),
+            9  => Some(TcpSIState::FinWait2   ),
+            10 => Some(TcpSIState::TimeWait   ),
+            11 => Some(TcpSIState::Reserved   ),
+            _  => None
+        }
+    }
+}
+
 const TSI_T_NTIMERS : usize = 4;
 
 #[repr(C)]
