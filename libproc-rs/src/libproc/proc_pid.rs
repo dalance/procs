@@ -814,8 +814,6 @@ struct UnSockInfo {
     pub unsi_caddr   : UnSIAddr,
 }
 
-const SOCK_MAXADDRLEN : usize = 4;
-
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub union UnSIAddr {
