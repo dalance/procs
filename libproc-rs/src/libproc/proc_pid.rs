@@ -613,14 +613,14 @@ pub trait PIDFDInfo: Default {
 }
 
 #[repr(C)]
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub struct SocketFDInfo {
     pub pfi: ProcFileInfo,
     pub psi: SocketInfo,
 }
 
 #[repr(C)]
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub struct ProcFileInfo {
     pub fi_openflags: uint32_t,
     pub fi_status   : uint32_t,
@@ -629,7 +629,6 @@ pub struct ProcFileInfo {
 }
 
 #[repr(C)]
-#[derive(Debug)]
 pub struct SocketInfo {
     pub soi_stat    : stat,
     pub soi_so      : uint64_t,
@@ -702,7 +701,7 @@ impl Default for SocketInfo {
 }
 
 #[repr(C)]
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub struct SockBufInfo {
     pub sbi_cc   : uint32_t,
     pub sbi_hiwat: uint32_t,
@@ -714,7 +713,6 @@ pub struct SockBufInfo {
 }
 
 #[repr(C)]
-#[derive(Debug)]
 pub union SocketInfoProto {
     pub pri_in        : InSockInfo,
     pub pri_tcp       : TcpSockInfo,
@@ -733,7 +731,7 @@ impl Default for SocketInfoProto {
 }
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone)]
 pub struct In4In6Addr {
     pub i46a_pad32: [uint32_t; 3],
     pub i46a_addr4: in_addr,
@@ -749,7 +747,7 @@ impl Default for In4In6Addr {
 }
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug, Default)]
+#[derive(Copy, Clone, Default)]
 pub struct InSockInfo {
     pub insi_fport : c_int,
     pub insi_lport : c_int,
@@ -765,13 +763,13 @@ pub struct InSockInfo {
 }
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug, Default)]
+#[derive(Copy, Clone, Default)]
 pub struct InSIV4 {
     pub in4_top: c_uchar,
 }
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug, Default)]
+#[derive(Copy, Clone, Default)]
 pub struct InSIV6 {
     pub in6_hlim   : uint8_t,
     pub in6_cksum  : c_int,
@@ -780,7 +778,7 @@ pub struct InSIV6 {
 }
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone)]
 pub union InSIAddr {
     pub ina_46: In4In6Addr,
     pub ina_6 : in6_addr,
@@ -797,7 +795,7 @@ impl Default for InSIAddr {
 const TSI_T_NTIMERS : usize = 4;
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug, Default)]
+#[derive(Copy, Clone, Default)]
 pub struct TcpSockInfo {
     pub tcpsi_ini  : InSockInfo,
     pub tcpsi_state: c_int,
@@ -808,7 +806,7 @@ pub struct TcpSockInfo {
 }
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug, Default)]
+#[derive(Copy, Clone, Default)]
 pub struct UnSockInfo {
     pub unsi_conn_so : uint64_t,
     pub unsi_conn_pcb: uint64_t,
@@ -817,7 +815,7 @@ pub struct UnSockInfo {
 }
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone)]
 pub union UnSIAddr {
     pub ua_sun  : sockaddr_un,
     pub ua_dummy: [c_char; SOCK_MAXADDRLEN as usize],
@@ -832,7 +830,7 @@ impl Default for UnSIAddr {
 }
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug, Default)]
+#[derive(Copy, Clone, Default)]
 pub struct NdrvInfo {
     pub ndrvsi_if_family: uint32_t,
     pub ndrvsi_if_unit  : uint32_t,
@@ -840,7 +838,7 @@ pub struct NdrvInfo {
 }
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug, Default)]
+#[derive(Copy, Clone, Default)]
 pub struct KernEventInfo {
     pub kesi_vendor_code_filter: uint32_t,
     pub kesi_class_filter      : uint32_t,
@@ -850,7 +848,7 @@ pub struct KernEventInfo {
 const MAX_KCTL_NAME : usize = 96;
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone)]
 pub struct KernCtlInfo {
     pub kcsi_id         : uint32_t,
     pub kcsi_reg_unit   : uint32_t,
