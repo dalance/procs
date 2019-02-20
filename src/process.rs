@@ -2,7 +2,8 @@
 use libc::{c_int, c_void, size_t};
 #[cfg(target_os = "macos")]
 use libproc::libproc::proc_pid::{
-    self, BSDInfo, ListFDs, ListThreads, ProcFDType, ProcType, TaskAllInfo, TaskInfo, ThreadInfo,
+    self, BSDInfo, ListFDs, ListThreads, ProcFDType, ProcType, SocketFDInfo, TaskAllInfo, TaskInfo,
+    ThreadInfo,
 };
 #[cfg(target_os = "linux")]
 use procfs::{Io, ProcResult, Process, Status};
@@ -115,7 +116,7 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
         if let Ok(fds) = fds {
             for fd in fds {
                 match ProcFDType::from(fd.proc_fdtype) {
-                    ProcFDType::Socket => {
+                    Some(ProcFDType::Socket) => {
                         if let Ok(socket) = proc_pid::pidfdinfo::<SocketFDInfo>(pid, fd.proc_fd) {
                             dbg!(socket.psi.soi_type);
                             dbg!(socket.psi.soi_protocol);
