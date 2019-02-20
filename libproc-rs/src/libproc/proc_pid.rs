@@ -667,7 +667,8 @@ pub trait PIDFDInfo: Default {
 ///                                             assert_eq!(socket.psi.soi_protocol,
 ///                                             libc::IPPROTO_TCP);
 ///                                             assert_eq!(info.tcpsi_ini.insi_lport, 0xffff0000);
-///                                         }
+///                                         },
+///                                         _ => assert!(false),
 ///                                     }
 ///                                 }
 ///                             },
@@ -724,6 +725,7 @@ fn pidfdinfo_test() {
                                             libc::IPPROTO_TCP);
                                             assert_eq!(info.tcpsi_ini.insi_lport, 0xffff0000);
                                         }
+                                        _ => assert!(false),
                                     }
                                 }
                             },
