@@ -74,6 +74,8 @@ pub fn gen_column(kind: &ConfigColumnKind, _docker_path: &str) -> Box<dyn Column
     match kind {
         ConfigColumnKind::Command => Box::new(Command::new()),
         ConfigColumnKind::CpuTime => Box::new(CpuTime::new()),
+        ConfigColumnKind::MajFlt => Box::new(MajFlt::new()),
+        ConfigColumnKind::MinFlt => Box::new(MinFlt::new()),
         ConfigColumnKind::Nice => Box::new(Nice::new()),
         ConfigColumnKind::Pid => Box::new(Pid::new()),
         ConfigColumnKind::Ppid => Box::new(Ppid::new()),
@@ -179,6 +181,8 @@ pub enum ConfigColumnKind {
 pub enum ConfigColumnKind {
     Command,
     CpuTime,
+    MajFlt,
+    MinFlt,
     Nice,
     Pid,
     Ppid,

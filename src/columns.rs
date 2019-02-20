@@ -6,9 +6,7 @@ pub mod docker;
 pub mod eip;
 #[cfg(target_os = "linux")]
 pub mod esp;
-#[cfg(target_os = "linux")]
 pub mod maj_flt;
-#[cfg(target_os = "linux")]
 pub mod min_flt;
 pub mod nice;
 pub mod pid;
@@ -66,9 +64,7 @@ pub use self::docker::Docker;
 pub use self::eip::Eip;
 #[cfg(target_os = "linux")]
 pub use self::esp::Esp;
-#[cfg(target_os = "linux")]
 pub use self::maj_flt::MajFlt;
-#[cfg(target_os = "linux")]
 pub use self::min_flt::MinFlt;
 pub use self::nice::Nice;
 pub use self::pid::Pid;

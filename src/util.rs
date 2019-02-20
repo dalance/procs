@@ -77,11 +77,11 @@ pub fn change_endian(val: u32) -> u32 {
 }
 
 #[cfg(target_os = "macos")]
-unsafe fn get_sys_value(
+pub unsafe fn get_sys_value(
     high: u32,
     low: u32,
     mut len: usize,
-    value: *mut c_void,
+    value: *mut libc::c_void,
     mib: &mut [i32; 2],
 ) -> bool {
     mib[0] = high as i32;

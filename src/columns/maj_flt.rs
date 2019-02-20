@@ -25,9 +25,23 @@ impl MajFlt {
     }
 }
 
+#[cfg(target_os = "linux")]
 impl Column for MajFlt {
     fn add(&mut self, proc: &ProcessInfo) {
         let raw_content = proc.curr_proc.stat.majflt;
+        let fmt_content = format!("{}", raw_content);
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(u64);
+}
+
+#[cfg(target_os = "macos")]
+impl Column for MajFlt {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let raw_content = proc.curr_task.ptinfo.pti_pageins as u64;
         let fmt_content = format!("{}", raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
