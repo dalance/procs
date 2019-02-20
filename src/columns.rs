@@ -24,12 +24,10 @@ pub mod rt_priority;
 pub mod separator;
 pub mod start_time;
 pub mod state;
-#[cfg(target_os = "linux")]
 pub mod tcp_port;
 #[cfg(target_os = "linux")]
 pub mod threads;
 pub mod tty;
-#[cfg(target_os = "linux")]
 pub mod udp_port;
 pub mod usage_cpu;
 #[cfg(target_os = "linux")]

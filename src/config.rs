@@ -80,7 +80,9 @@ pub fn gen_column(kind: &ConfigColumnKind, _docker_path: &str) -> Box<dyn Column
         ConfigColumnKind::Separator => Box::new(Separator::new()),
         ConfigColumnKind::StartTime => Box::new(StartTime::new()),
         ConfigColumnKind::State => Box::new(State::new()),
+        ConfigColumnKind::TcpPort => Box::new(TcpPort::new()),
         ConfigColumnKind::Tty => Box::new(Tty::new()),
+        ConfigColumnKind::UdpPort => Box::new(UdpPort::new()),
         ConfigColumnKind::UsageCpu => Box::new(UsageCpu::new()),
         ConfigColumnKind::Username => Box::new(Username::new()),
         ConfigColumnKind::VmRss => Box::new(VmRss::new()),
@@ -181,7 +183,9 @@ pub enum ConfigColumnKind {
     Separator,
     StartTime,
     State,
+    TcpPort,
     Tty,
+    UdpPort,
     UsageCpu,
     Username,
     VmRss,
@@ -571,6 +575,16 @@ nonnumeric_search = false
 kind = "VmRss"
 style = "ByUnit"
 numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "TcpPort"
+style = "BrightCyan"
+numeric_search = true
+nonnumeric_search = false
+[[columns]]
+kind = "UdpPort"
+style = "BrightCyan"
+numeric_search = true
 nonnumeric_search = false
 [[columns]]
 kind = "Separator"

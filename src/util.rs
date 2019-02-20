@@ -65,3 +65,13 @@ pub fn parse_time(x: u64) -> String {
         format!("{:02}:{:02}:{:02}", hour, min, sec)
     }
 }
+
+#[cfg(target_os = "macos")]
+fn change_endian(val: u32) -> u32 {
+    let mut ret = 0;
+    ret |= val >> 24 & 0x000000ff;
+    ret |= val >> 8 & 0x0000ff00;
+    ret |= val << 8 & 0x00ff0000;
+    ret |= val << 24 & 0xff000000;
+    ret
+}

@@ -1,5 +1,6 @@
 use crate::process::ProcessInfo;
 use crate::Column;
+#[cfg(target_os = "linux")]
 use procfs::{FDTarget, TcpNetEntry, TcpState};
 use std::cmp;
 use std::collections::HashMap;
@@ -10,7 +11,9 @@ pub struct TcpPort {
     fmt_contents: HashMap<i32, String>,
     raw_contents: HashMap<i32, String>,
     max_width: usize,
+    #[cfg(target_os = "linux")]
     tcp_entry: Vec<TcpNetEntry>,
+    #[cfg(target_os = "linux")]
     tcp6_entry: Vec<TcpNetEntry>,
 }
 
@@ -24,12 +27,15 @@ impl TcpPort {
             max_width: cmp::max(header.len(), unit.len()),
             header,
             unit,
+            #[cfg(target_os = "linux")]
             tcp_entry: procfs::tcp().unwrap_or_default(),
+            #[cfg(target_os = "linux")]
             tcp6_entry: procfs::tcp6().unwrap_or_default(),
         }
     }
 }
 
+#[cfg(target_os = "linux")]
 impl Column for TcpPort {
     fn add(&mut self, proc: &ProcessInfo) {
         let fmt_content = if let Ok(fds) = proc.curr_proc.fd() {
@@ -57,6 +63,47 @@ impl Column for TcpPort {
         } else {
             String::from("")
         };
+        let raw_content = fmt_content.clone();
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    fn find_exact(&self, pid: i32, keyword: &str) -> bool {
+        if let Some(content) = self.fmt_contents.get(&pid) {
+            let content = content.replace("[", "").replace("]", "");
+            let content = content.split(',');
+            for c in content {
+                if c == keyword {
+                    return true;
+                }
+            }
+            false
+        } else {
+            false
+        }
+    }
+
+    crate::column_default_display_header!();
+    crate::column_default_display_unit!();
+    crate::column_default_display_content!();
+    crate::column_default_find_partial!();
+    crate::column_default_sorted_pid!(String);
+    crate::column_default_reset_max_width!();
+    crate::column_default_update_max_width!();
+}
+
+#[cfg(target_os = "macos")]
+impl Column for TcpPort {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let mut ports = Vec::new();
+        for tcp in proc.curr_tcps {
+            let port = crate::util::change_endian(tcp.tcpsi_ini.insi_lport as u32) >> 16;
+        }
+        ports.sort();
+        ports.dedup();
+
+        let fmt_content = format!("{:?}", ports);
         let raw_content = fmt_content.clone();
 
         self.fmt_contents.insert(proc.pid, fmt_content);
