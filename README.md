@@ -21,7 +21,7 @@
 
 - Linux is supported.
 - macOS is experimentally supported.
-    - macOS version is checked on Travis-CI environment only. The issues caused by real-machine are welcome.
+    - macOS version is checked on Travis CI environment only. The issues caused by real-machine are welcome.
 
 ## Installation
 
