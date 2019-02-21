@@ -43,8 +43,8 @@ impl Column for VmRss {
 impl Column for VmRss {
     fn add(&mut self, proc: &ProcessInfo) {
         //let raw_content = proc.curr_task.ptinfo.pti_resident_size;
-        let raw_content = if Some(res) = proc.curr_res {
-            res.ri_lifetime_max_phys_footprint;
+        let raw_content = if let Some(ref curr_res) = proc.curr_res {
+            curr_res.ri_lifetime_max_phys_footprint
         } else {
             0
         };
