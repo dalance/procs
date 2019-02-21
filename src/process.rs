@@ -88,7 +88,7 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
     if let Ok(procs) = proc_pid::listpids(ProcType::ProcAllPIDS) {
         for p in procs {
             if let Ok(task) = proc_pid::pidinfo::<TaskAllInfo>(p as i32, 0) {
-                let res = proc_pid::pidrusage::<RUsageInfoV3>(p as i32).is_ok();
+                let res = proc_pid::pidrusage::<RUsageInfoV3>(p as i32).ok();
                 let time = Instant::now();
                 base_procs.push((p as i32, task, ret, time));
             }
@@ -146,7 +146,7 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
             }
         }
 
-        let curr_res = proc_pid::pidrusage::<RUsageInfoV3>(pid).is_ok();
+        let curr_res = proc_pid::pidrusage::<RUsageInfoV3>(pid).ok();
 
         let curr_time = Instant::now();
         let interval = curr_time - prev_time;
