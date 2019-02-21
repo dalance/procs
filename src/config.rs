@@ -344,7 +344,7 @@ impl Default for ConfigDisplay {
     fn default() -> Self {
         ConfigDisplay {
             show_self: false,
-            cut_to_terminal: true,
+            cut_to_terminal: false,
             cut_to_pager: false,
             cut_to_pipe: false,
         }
@@ -394,7 +394,7 @@ pub struct ConfigPager {
 impl Default for ConfigPager {
     fn default() -> Self {
         ConfigPager {
-            mode: ConfigPagerMode::Auto,
+            mode: ConfigPagerMode::Disable,
             command: None,
         }
     }
