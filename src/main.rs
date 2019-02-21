@@ -255,17 +255,18 @@ fn run_opt_config(opt: Opt, config: Config) -> Result<(), Error> {
 
     let mut visible_pids = Vec::new();
     for pid in pids {
-        let mut visible = true;
-        if !opt.keyword.is_empty() {
-            visible = search(
+        let mut visible = if opt.keyword.is_empty() {
+            true
+        } else {
+            search(
                 pid,
                 &keyword_numeric,
                 &keyword_nonnumeric,
                 cols_numeric.as_slice(),
                 cols_nonnumeric.as_slice(),
                 &config,
-            );
-        }
+            )
+        };
 
         if !config.display.show_self && pid == self_pid {
             visible = false;
