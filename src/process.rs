@@ -2,7 +2,7 @@
 use libc::{c_int, c_void, size_t};
 #[cfg(target_os = "macos")]
 use libproc::libproc::proc_pid::{
-    self, BSDInfo, InSockInfo, ListFDs, ListThreads, ProcFDType, ProcType, RUsageInfoV4,
+    self, BSDInfo, InSockInfo, ListFDs, ListThreads, ProcFDType, ProcType, RUsageInfoV2,
     SocketFDInfo, SocketInfoKind, TaskAllInfo, TaskInfo, TcpSockInfo, ThreadInfo,
 };
 #[cfg(target_os = "linux")]
@@ -74,8 +74,8 @@ pub struct ProcessInfo {
     pub curr_threads: Vec<ThreadInfo>,
     pub curr_udps: Vec<InSockInfo>,
     pub curr_tcps: Vec<TcpSockInfo>,
-    pub curr_res: Option<RUsageInfoV4>,
-    pub prev_res: Option<RUsageInfoV4>,
+    pub curr_res: Option<RUsageInfoV2>,
+    pub prev_res: Option<RUsageInfoV2>,
     pub interval: Duration,
 }
 
@@ -88,7 +88,7 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
     if let Ok(procs) = proc_pid::listpids(ProcType::ProcAllPIDS) {
         for p in procs {
             if let Ok(task) = proc_pid::pidinfo::<TaskAllInfo>(p as i32, 0) {
-                let res = proc_pid::pidrusage::<RUsageInfoV4>(p as i32).ok();
+                let res = proc_pid::pidrusage::<RUsageInfoV2>(p as i32).ok();
                 let time = Instant::now();
                 base_procs.push((p as i32, task, res, time));
             }
@@ -146,7 +146,7 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
             }
         }
 
-        let curr_res = proc_pid::pidrusage::<RUsageInfoV4>(pid).ok();
+        let curr_res = proc_pid::pidrusage::<RUsageInfoV2>(pid).ok();
 
         let curr_time = Instant::now();
         let interval = curr_time - prev_time;
