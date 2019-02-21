@@ -19,6 +19,11 @@ script:
 - make test
 - if [[ $TRAVIS_OS_NAME == "linux" ]]; then make release_lnx; fi
 - if [[ $TRAVIS_OS_NAME == "osx"   ]]; then make release_mac; fi
+- if [[ $TRAVIS_OS_NAME == "osx"   ]]; then ./target/x86_64-apple-darwin/release/procs; fi
+- if [[ $TRAVIS_OS_NAME == "osx"   ]]; then sudo chown root ./target/x86_64-apple-darwin/release/procs; fi
+- if [[ $TRAVIS_OS_NAME == "osx"   ]]; then sudo chmod u+s ./target/x86_64-apple-darwin/release/procs; fi
+- if [[ $TRAVIS_OS_NAME == "osx"   ]]; then ls -l ./target/x86_64-apple-darwin/release/procs; fi
+- if [[ $TRAVIS_OS_NAME == "osx"   ]]; then ./target/x86_64-apple-darwin/release/procs; fi
 - if [[ $TRAVIS_OS_NAME == "osx"   ]]; then cd libproc-rs; cargo test; fi
 
 after_success: |
