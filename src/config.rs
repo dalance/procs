@@ -42,7 +42,6 @@ pub fn gen_column(kind: &ConfigColumnKind, docker_path: &str) -> Box<dyn Column>
         ConfigColumnKind::Priority => Box::new(Priority::new()),
         #[cfg(target_os = "linux")]
         ConfigColumnKind::Processor => Box::new(Processor::new()),
-        #[cfg(target_os = "linux")]
         ConfigColumnKind::ReadBytes => Box::new(ReadBytes::new()),
         #[cfg(target_os = "linux")]
         ConfigColumnKind::RtPriority => Box::new(RtPriority::new()),
@@ -80,7 +79,6 @@ pub fn gen_column(kind: &ConfigColumnKind, docker_path: &str) -> Box<dyn Column>
         ConfigColumnKind::VmSwap => Box::new(VmSwap::new()),
         #[cfg(target_os = "linux")]
         ConfigColumnKind::Wchan => Box::new(Wchan::new()),
-        #[cfg(target_os = "linux")]
         ConfigColumnKind::WriteBytes => Box::new(WriteBytes::new()),
     }
 }
@@ -141,7 +139,6 @@ pub enum ConfigColumnKind {
     Priority,
     #[cfg(target_os = "linux")]
     Processor,
-    #[cfg(target_os = "linux")]
     ReadBytes,
     #[cfg(target_os = "linux")]
     RtPriority,
@@ -179,7 +176,6 @@ pub enum ConfigColumnKind {
     VmSwap,
     #[cfg(target_os = "linux")]
     Wchan,
-    #[cfg(target_os = "linux")]
     WriteBytes,
 }
 
@@ -581,6 +577,16 @@ nonnumeric_search = false
 kind = "UdpPort"
 style = "BrightCyan"
 numeric_search = true
+nonnumeric_search = false
+[[columns]]
+kind = "ReadBytes"
+style = "ByUnit"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "WriteBytes"
+style = "ByUnit"
+numeric_search = false
 nonnumeric_search = false
 [[columns]]
 kind = "Separator"

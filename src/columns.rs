@@ -13,7 +13,6 @@ pub mod ppid;
 pub mod priority;
 #[cfg(target_os = "linux")]
 pub mod processor;
-#[cfg(target_os = "linux")]
 pub mod read_bytes;
 #[cfg(target_os = "linux")]
 pub mod rt_priority;
@@ -51,7 +50,6 @@ pub mod vm_stack;
 pub mod vm_swap;
 #[cfg(target_os = "linux")]
 pub mod wchan;
-#[cfg(target_os = "linux")]
 pub mod write_bytes;
 
 pub use self::command::Command;
@@ -69,7 +67,6 @@ pub use self::ppid::Ppid;
 pub use self::priority::Priority;
 #[cfg(target_os = "linux")]
 pub use self::processor::Processor;
-#[cfg(target_os = "linux")]
 pub use self::read_bytes::ReadBytes;
 #[cfg(target_os = "linux")]
 pub use self::rt_priority::RtPriority;
@@ -107,5 +104,4 @@ pub use self::vm_stack::VmStack;
 pub use self::vm_swap::VmSwap;
 #[cfg(target_os = "linux")]
 pub use self::wchan::Wchan;
-#[cfg(target_os = "linux")]
 pub use self::write_bytes::WriteBytes;
