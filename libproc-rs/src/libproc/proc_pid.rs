@@ -1288,7 +1288,7 @@ pub struct RUsageInfoV4 {
     pub ri_billed_energy                : uint64_t,
     pub ri_serviced_energy              : uint64_t,
     pub ri_interval_max_phys_footprint  : uint64_t,
-    pub ri_unused[1]                    : uint64_t,
+    pub ri_unused                       : [uint64_t; 1],
 }
 
 impl PIDRUsage for RUsageInfoV4 {
