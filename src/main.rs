@@ -37,12 +37,21 @@ pub struct Opt {
     #[structopt(
         short = "c",
         long = "color",
-        default_value = "auto",
         possible_value = "auto",
         possible_value = "always",
         possible_value = "disable"
     )]
-    pub color: String,
+    pub color: Option<String>,
+
+    /// Pager mode
+    #[structopt(
+        short = "p",
+        long = "pager",
+        possible_value = "auto",
+        possible_value = "always",
+        possible_value = "disable"
+    )]
+    pub pager: Option<String>,
 
     /// Interval to calculate throughput
     #[structopt(long = "interval", default_value = "100", value_name = "ms")]
@@ -282,11 +291,17 @@ fn run_opt_config(opt: Opt, config: Config) -> Result<(), Error> {
 
     let use_terminal = console::user_attended();
 
-    let use_pager = match config.pager.mode {
-        // +3 means header/unit line and next prompt
-        ConfigPagerMode::Auto => term_h < visible_pids.len() as u16 + 3,
-        ConfigPagerMode::Always => true,
-        ConfigPagerMode::Disable => false,
+    // +3 means header/unit line and next prompt
+    let pager_threshold = visible_pids.len() as u16 + 3;
+
+    let use_pager = match (opt.pager.as_ref(), &config.pager.mode) {
+        (Some(x), _) if x == "auto" => term_h < pager_threshold,
+        (Some(x), _) if x == "always" => true,
+        (Some(x), _) if x == "disable" => false,
+        (None, ConfigPagerMode::Auto) => term_h < pager_threshold,
+        (None, ConfigPagerMode::Always) => true,
+        (None, ConfigPagerMode::Disable) => false,
+        _ => false,
     };
 
     let mut truncate = use_terminal && use_pager && config.display.cut_to_pager;
@@ -308,14 +323,22 @@ fn run_opt_config(opt: Opt, config: Config) -> Result<(), Error> {
         }
     }
 
-    match opt.color.as_ref() {
-        "always" => console::set_colors_enabled(true),
-        "disable" => console::set_colors_enabled(false),
-        _ => {
+    match (opt.color.as_ref(), &config.display.color_mode) {
+        (Some(x), _) if x == "auto" => {
             if use_pager && use_terminal {
                 console::set_colors_enabled(true);
             }
         }
+        (Some(x), _) if x == "always" => console::set_colors_enabled(true),
+        (Some(x), _) if x == "disable" => console::set_colors_enabled(false),
+        (None, ConfigColorMode::Auto) => {
+            if use_pager && use_terminal {
+                console::set_colors_enabled(true);
+            }
+        }
+        (None, ConfigColorMode::Always) => console::set_colors_enabled(true),
+        (None, ConfigColorMode::Disable) => console::set_colors_enabled(false),
+        _ => (),
     }
 
     display_header(&term, term_w as usize, &cols, &config);

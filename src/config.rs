@@ -338,6 +338,8 @@ pub struct ConfigDisplay {
     pub cut_to_pager: bool,
     #[serde(default = "default_false")]
     pub cut_to_pipe: bool,
+    #[serde(default)]
+    pub color_mode: ConfigColorMode,
 }
 
 impl Default for ConfigDisplay {
@@ -347,7 +349,21 @@ impl Default for ConfigDisplay {
             cut_to_terminal: true,
             cut_to_pager: false,
             cut_to_pipe: false,
+            color_mode: ConfigColorMode::Auto,
         }
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum ConfigColorMode {
+    Auto,
+    Always,
+    Disable,
+}
+
+impl Default for ConfigColorMode {
+    fn default() -> Self {
+        ConfigColorMode::Auto
     }
 }
 
