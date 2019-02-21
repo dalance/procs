@@ -603,34 +603,36 @@ pub struct ProcFDInfo {
 pub enum ProcFDType {
     /// AppleTalk
     ATalk    = 0,
-    /// vnode
+    /// Vnode
     VNode    = 1,
-    /// socket
+    /// Socket
     Socket   = 2,
     /// POSIX shared memory
     PSHM     = 3,
     /// POSIX semaphore
     PSEM     = 4,
-    /// kqueue
+    /// Kqueue
     KQueue   = 5,
-    /// pipe
+    /// Pipe
     Pipe     = 6,
     /// FSEvents
-    FSEvents = 7
+    FSEvents = 7,
+    /// Unknown
+    Unknown,
 }
 
-impl ProcFDType {
-    pub fn from(value: uint32_t) -> Option<ProcFDType> {
+impl From<uint32_t> for ProcFDType {
+    fn from(value: uint32_t) -> ProcFDType {
         match value {
-            0 => Some(ProcFDType::ATalk   ),
-            1 => Some(ProcFDType::VNode   ),
-            2 => Some(ProcFDType::Socket  ),
-            3 => Some(ProcFDType::PSHM    ),
-            4 => Some(ProcFDType::PSEM    ),
-            5 => Some(ProcFDType::KQueue  ),
-            6 => Some(ProcFDType::Pipe    ),
-            7 => Some(ProcFDType::FSEvents),
-            _ => None
+            0 => ProcFDType::ATalk   ,
+            1 => ProcFDType::VNode   ,
+            2 => ProcFDType::Socket  ,
+            3 => ProcFDType::PSHM    ,
+            4 => ProcFDType::PSEM    ,
+            5 => ProcFDType::KQueue  ,
+            6 => ProcFDType::Pipe    ,
+            7 => ProcFDType::FSEvents,
+            _ => ProcFDType::Unknown ,
         }
     }
 }

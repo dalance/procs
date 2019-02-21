@@ -120,8 +120,8 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
         let fds = proc_pid::listpidinfo::<ListFDs>(pid, curr_task.pbsd.pbi_nfiles as usize);
         if let Ok(fds) = fds {
             for fd in fds {
-                match ProcFDType::from(fd.proc_fdtype) {
-                    Some(ProcFDType::Socket) => {
+                match fd.proc_fdtype.into() {
+                    ProcFDType::Socket => {
                         if let Ok(socket) = proc_pid::pidfdinfo::<SocketFDInfo>(pid, fd.proc_fd) {
                             match SocketInfoKind::from(socket.psi.soi_kind) {
                                 Some(SocketInfoKind::In) => unsafe {
