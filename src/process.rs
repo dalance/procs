@@ -89,7 +89,7 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
         for p in procs {
             if let Ok(task) = proc_pid::pidinfo::<TaskAllInfo>(p as i32, 0) {
                 let res = proc_pid::pidrusage::<RUsageInfoV2>(p as i32).ok();
-                let ret = dbg!(res);
+                let res = dbg!(res);
                 let time = Instant::now();
                 base_procs.push((p as i32, task, res, time));
             }
