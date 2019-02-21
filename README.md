@@ -41,10 +41,11 @@ cargo install procs
 ### macOS permission issue
 
 In macOS, normal user can't access the process information of other users.
-So `procs` requires SUID bit as the same as `ps` command.
+So `procs` requires SUID bit as the same as `ps` command like below:
 
 ```console
-$ sudo chmod +s [procs binary path]
+$ sudo chown root [procs binary path]
+$ sudo chmod u+s  [procs binary path]
 ```
 
 ## Usage

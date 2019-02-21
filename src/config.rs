@@ -394,7 +394,7 @@ pub struct ConfigPager {
 impl Default for ConfigPager {
     fn default() -> Self {
         ConfigPager {
-            mode: ConfigPagerMode::Disable,
+            mode: ConfigPagerMode::Auto,
             command: None,
         }
     }
