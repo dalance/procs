@@ -14,6 +14,26 @@ fn default_false() -> bool {
     false
 }
 
+fn default_color_mode_auto() -> ConfigColorMode {
+    ConfigColorMode::Auto
+}
+
+fn default_pager_mode_auto() -> ConfigPagerMode {
+    ConfigPagerMode::Auto
+}
+
+fn default_search_kind_exact() -> ConfigSearchKind {
+    ConfigSearchKind::Exact
+}
+
+fn default_search_kind_partial() -> ConfigSearchKind {
+    ConfigSearchKind::Partial
+}
+
+fn default_sort_order_ascending() -> ConfigSortOrder {
+    ConfigSortOrder::Ascending
+}
+
 // ---------------------------------------------------------------------------------------------------------------------
 // ColumnInfo
 // ---------------------------------------------------------------------------------------------------------------------
@@ -279,7 +299,9 @@ impl Default for ConfigStyleByState {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ConfigSearch {
+    #[serde(default = "default_search_kind_exact")]
     pub numeric_search: ConfigSearchKind,
+    #[serde(default = "default_search_kind_partial")]
     pub nonnumeric_search: ConfigSearchKind,
 }
 
@@ -308,7 +330,7 @@ pub struct ConfigDisplay {
     pub cut_to_pager: bool,
     #[serde(default = "default_false")]
     pub cut_to_pipe: bool,
-    #[serde(default)]
+    #[serde(default = "default_color_mode_auto")]
     pub color_mode: ConfigColorMode,
 }
 
@@ -331,15 +353,11 @@ pub enum ConfigColorMode {
     Disable,
 }
 
-impl Default for ConfigColorMode {
-    fn default() -> Self {
-        ConfigColorMode::Auto
-    }
-}
-
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ConfigSort {
+    #[serde(default)]
     pub column: usize,
+    #[serde(default = "default_sort_order_ascending")]
     pub order: ConfigSortOrder,
 }
 
@@ -373,6 +391,7 @@ impl Default for ConfigDocker {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ConfigPager {
+    #[serde(default = "default_pager_mode_auto")]
     pub mode: ConfigPagerMode,
     pub command: Option<String>,
 }
