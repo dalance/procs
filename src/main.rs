@@ -255,7 +255,9 @@ fn run_opt_config(opt: Opt, config: Config) -> Result<(), Error> {
 
     let mut visible_pids = Vec::new();
     for pid in pids {
-        let mut visible = if opt.keyword.is_empty() {
+        let visible = if !config.display.show_self && pid == self_pid {
+            false
+        } else if opt.keyword.is_empty() {
             true
         } else {
             search(
@@ -267,10 +269,6 @@ fn run_opt_config(opt: Opt, config: Config) -> Result<(), Error> {
                 &config,
             )
         };
-
-        if !config.display.show_self && pid == self_pid {
-            visible = false;
-        }
 
         if visible {
             visible_pids.push(pid);
@@ -316,8 +314,7 @@ fn run_opt_config(opt: Opt, config: Config) -> Result<(), Error> {
     if use_pager {
         if let Some(ref pager) = config.pager.command {
             Pager::with_pager(&pager).setup();
-        }
-        if quale::which("less").is_some() {
+        } else if quale::which("less").is_some() {
             Pager::with_pager("less -SR").setup();
         } else {
             Pager::with_pager("more -f").setup();
