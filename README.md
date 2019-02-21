@@ -14,6 +14,7 @@
     - TCP/UDP port
     - Read/Write throughput
     - Docker container name
+    - More memory information
 - Pager support
 
 ## Platform
@@ -168,46 +169,46 @@ The colors can be configured in `[style.by_unit]` section.
 
 #### `kind` list
 
-| procs `kind` | `ps` STANDARD FORMAT  | Description                      |
-| ------------ | --------------------- | -------------------------------- |
-| Command      | args                  | Command with all arguments       |
-| CpuTime      | cputime               | Cumulative CPU time              |
-| Eip          | eip                   | Instruction pointer              |
-| Esp          | esp                   | Stack pointer                    |
-| Docker       | -not supported-       | Docker container name            |
-| MajFlt       | maj_flt               | Major page fault count           |
-| MinFlt       | min_flt               | Minor page fault count           |
-| Nice         | ni                    | Nice value                       |
-| Pid          | pid                   | Process ID                       |
-| Ppid         | ppid                  | Parent process ID                |
-| Priority     | pri                   | Priority                         |
-| Processor    | psr                   | Currently assigned processor     |
-| ReadBytes    | -not supported-       | Read bytes from storage          |
-| RtPriority   | rtprio                | Real-time priority               |
-| Separator    | -not supported-       | Show `|` for column separation   |
-| StartTime    | start_time            | Starting time                    |
-| State        | s                     | Process State                    |
-| TcpPort      | -not supported-       | Binded TCP ports                 |
-| Threads      | nlwp                  | Thread count                     |
-| Tty          | tty                   | Controlling TTY                  |
-| UdpPort      | -not supported-       | Binded UDP ports                 |
-| UsageCpu     | %cpu                  | CPU utilization                  |
-| UsageMem     | %mem                  | Memory utilization               |
-| Username     | euser                 | User name                        |
-| VmData       | -not supported-       | Data size                        |
-| VmExe        | trs                   | Text segments size               |
-| VmHwm        | -not supported-       | Peak resident set size           |
-| VmLib        | -not supported-       | Library code size                |
-| VmLock       | -not supported-       | Locked memory size               |
-| VmPeak       | -not supported-       | Peak virtual memory size         |
-| VmPin        | -not supported-       | Pinned memory size               |
-| VmPte        | -not supported-       | Page table entries size          |
-| VmRss        | rss                   | Resident set size                |
-| VmSize       | vsz                   | Physical page size               |
-| VmStack      | -not supported-       | Stack size                       |
-| VmSwap       | -not supported-       | Swapped-out virtual memory size  |
-| Wchan        | wchan                 | Process sleeping kernel function |
-| WriteByte    | -not supported-       | Write bytes to storage           |
+| procs `kind` | `ps` STANDARD FORMAT  | Description                      | Linux | macOS |
+| ------------ | --------------------- | -------------------------------- | ----- | ----- |
+| Command      | args                  | Command with all arguments       | o     | o     |
+| CpuTime      | cputime               | Cumulative CPU time              | o     | o     |
+| Eip          | eip                   | Instruction pointer              | o     |       |
+| Esp          | esp                   | Stack pointer                    | o     |       |
+| Docker       | -not supported-       | Docker container name            | o     | o     |
+| MajFlt       | maj_flt               | Major page fault count           | o     | o     |
+| MinFlt       | min_flt               | Minor page fault count           | o     | o     |
+| Nice         | ni                    | Nice value                       | o     | o     |
+| Pid          | pid                   | Process ID                       | o     | o     |
+| Ppid         | ppid                  | Parent process ID                | o     | o     |
+| Priority     | pri                   | Priority                         | o     | o     |
+| Processor    | psr                   | Currently assigned processor     | o     |       |
+| ReadBytes    | -not supported-       | Read bytes from storage          | o     | o     |
+| RtPriority   | rtprio                | Real-time priority               | o     |       |
+| Separator    | -not supported-       | Show `|` for column separation   | o     | o     |
+| StartTime    | start_time            | Starting time                    | o     | o     |
+| State        | s                     | Process State                    | o     | o     |
+| TcpPort      | -not supported-       | Binded TCP ports                 | o     | o     |
+| Threads      | nlwp                  | Thread count                     | o     | o     |
+| Tty          | tty                   | Controlling TTY                  | o     | o     |
+| UdpPort      | -not supported-       | Binded UDP ports                 | o     | o     |
+| UsageCpu     | %cpu                  | CPU utilization                  | o     | o     |
+| UsageMem     | %mem                  | Memory utilization               | o     | o     |
+| Username     | euser                 | User name                        | o     | o     |
+| VmData       | -not supported-       | Data size                        | o     |       |
+| VmExe        | trs                   | Text segments size               | o     |       |
+| VmHwm        | -not supported-       | Peak resident set size           | o     |       |
+| VmLib        | -not supported-       | Library code size                | o     |       |
+| VmLock       | -not supported-       | Locked memory size               | o     |       |
+| VmPeak       | -not supported-       | Peak virtual memory size         | o     |       |
+| VmPin        | -not supported-       | Pinned memory size               | o     |       |
+| VmPte        | -not supported-       | Page table entries size          | o     |       |
+| VmRss        | rss                   | Resident set size                | o     | o     |
+| VmSize       | vsz                   | Physical page size               | o     | o     |
+| VmStack      | -not supported-       | Stack size                       | o     |       |
+| VmSwap       | -not supported-       | Swapped-out virtual memory size  | o     |       |
+| Wchan        | wchan                 | Process sleeping kernel function | o     |       |
+| WriteByte    | -not supported-       | Write bytes to storage           | o     | o     |
 
 #### `style` list
 
