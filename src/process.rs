@@ -74,6 +74,8 @@ pub struct ProcessInfo {
     pub curr_threads: Vec<ThreadInfo>,
     pub curr_udps: Vec<InSockInfo>,
     pub curr_tcps: Vec<TcpSockInfo>,
+    pub curr_res: Option<RUsageInfoV3>,
+    pub prev_res: Option<RUsageInfoV3>,
     pub interval: Duration,
 }
 
@@ -86,15 +88,16 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
     if let Ok(procs) = proc_pid::listpids(ProcType::ProcAllPIDS) {
         for p in procs {
             if let Ok(task) = proc_pid::pidinfo::<TaskAllInfo>(p as i32, 0) {
+                let res = proc_pid::pidrusage::<RUsageInfoV3>(p as i32).is_ok();
                 let time = Instant::now();
-                base_procs.push((p as i32, task, time));
+                base_procs.push((p as i32, task, ret, time));
             }
         }
     }
 
     thread::sleep(interval);
 
-    for (pid, prev_task, prev_time) in base_procs {
+    for (pid, prev_task, prev_res, prev_time) in base_procs {
         let curr_task = if let Ok(task) = proc_pid::pidinfo::<TaskAllInfo>(pid, 0) {
             task
         } else {
@@ -143,6 +146,8 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
             }
         }
 
+        let curr_res = proc_pid::pidrusage::<RUsageInfoV3>(pid).is_ok();
+
         let curr_time = Instant::now();
         let interval = curr_time - prev_time;
 
@@ -154,6 +159,8 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
             curr_threads,
             curr_udps,
             curr_tcps,
+            curr_res,
+            prev_rev,
             interval,
         };
 
