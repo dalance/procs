@@ -735,8 +735,8 @@ fn pidfdinfo_test() {
             match listpidinfo::<ListFDs>(pid, info.pbi_nfiles as usize) {
                 Ok(fds) => {
                     for fd in fds {
-                        match ProcFDType::from(fd.proc_fdtype) {
-                            Some(ProcFDType::Socket) => {
+                        match fd.proc_fdtype.into() {
+                            ProcFDType::Socket => {
                                 if let Ok(socket) = pidfdinfo::<SocketFDInfo>(pid, fd.proc_fd) {
                                     match SocketInfoKind::from(socket.psi.soi_kind) {
                                         Some(SocketInfoKind::Tcp) => unsafe {
