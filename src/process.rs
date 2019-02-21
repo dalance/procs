@@ -2,8 +2,8 @@
 use libc::{c_int, c_void, size_t};
 #[cfg(target_os = "macos")]
 use libproc::libproc::proc_pid::{
-    self, BSDInfo, InSockInfo, ListFDs, ListThreads, ProcFDType, ProcType, SocketFDInfo,
-    SocketInfoKind, TaskAllInfo, TaskInfo, TcpSockInfo, ThreadInfo,
+    self, BSDInfo, InSockInfo, ListFDs, ListThreads, ProcFDType, ProcType, RUsageInfoV3,
+    SocketFDInfo, SocketInfoKind, TaskAllInfo, TaskInfo, TcpSockInfo, ThreadInfo,
 };
 #[cfg(target_os = "linux")]
 use procfs::{Io, ProcResult, Process, Status};
@@ -160,7 +160,7 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
             curr_udps,
             curr_tcps,
             curr_res,
-            prev_rev,
+            prev_res,
             interval,
         };
 

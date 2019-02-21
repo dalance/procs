@@ -1123,7 +1123,6 @@ pub trait PIDRUsage: Default {
 ///
 pub fn pidrusage<T: PIDRUsage>(pid : i32) -> Result<T, String> {
     let flavor = T::flavor() as i32;
-    let buffer_size = mem::size_of::<T>() as i32;
     let mut pidrusage = T::default();
     let buffer_ptr = &mut pidrusage as *mut _ as *mut c_void;
     let ret: i32;
