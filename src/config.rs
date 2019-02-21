@@ -29,7 +29,6 @@ pub fn gen_column(kind: &ConfigColumnKind, docker_path: &str) -> Box<dyn Column>
     match kind {
         ConfigColumnKind::Command => Box::new(Command::new()),
         ConfigColumnKind::CpuTime => Box::new(CpuTime::new()),
-        #[cfg(target_os = "linux")]
         ConfigColumnKind::Docker => Box::new(Docker::new(docker_path)),
         #[cfg(target_os = "linux")]
         ConfigColumnKind::Eip => Box::new(Eip::new()),
@@ -129,7 +128,6 @@ pub enum ConfigColor {
 pub enum ConfigColumnKind {
     Command,
     CpuTime,
-    #[cfg(target_os = "linux")]
     Docker,
     #[cfg(target_os = "linux")]
     Eip,
@@ -599,6 +597,11 @@ kind = "StartTime"
 style = "BrightMagenta"
 numeric_search = false
 nonnumeric_search = false
+[[columns]]
+kind = "Docker"
+style = "BrightGreen"
+numeric_search = false
+nonnumeric_search = true
 [[columns]]
 kind = "Separator"
 style = "White"

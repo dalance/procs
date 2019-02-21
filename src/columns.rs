@@ -1,6 +1,5 @@
 pub mod command;
 pub mod cpu_time;
-#[cfg(target_os = "linux")]
 pub mod docker;
 #[cfg(target_os = "linux")]
 pub mod eip;
@@ -57,7 +56,6 @@ pub mod write_bytes;
 
 pub use self::command::Command;
 pub use self::cpu_time::CpuTime;
-#[cfg(target_os = "linux")]
 pub use self::docker::Docker;
 #[cfg(target_os = "linux")]
 pub use self::eip::Eip;
