@@ -1139,6 +1139,19 @@ pub fn pidrusage<T: PIDRUsage>(pid : i32) -> Result<T, String> {
     }
 }
 
+#[test]
+fn pidrusage_test() {
+    use std::process;
+    let pid = process::id() as i32;
+
+    match pidrusage::<RUsageInfoV2>(pid) {
+        Ok(res) => {
+            println!("UUID: {:?}, Disk Read: {}, Disk Write: {}", res.ri_uuid, res.ri_diskio_bytesread, res.ri_diskio_byteswritten);
+        },
+        Err(err) => assert!(false, "Error retrieving process info: {}", err)
+    };
+}
+
 #[repr(C)]
 #[derive(Default)]
 pub struct RUsageInfoV0 {
@@ -1186,7 +1199,7 @@ impl PIDRUsage for RUsageInfoV1 {
 }
 
 #[repr(C)]
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct RUsageInfoV2 {
     pub ri_uuid                 : [uint8_t; 16],
     pub ri_user_time            : uint64_t,
