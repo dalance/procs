@@ -27,7 +27,7 @@ impl VmData {
 
 impl Column for VmData {
     fn add(&mut self, proc: &ProcessInfo) {
-        let (raw_content, fmt_content) = if let Ok(ref curr_status) = proc.curr_status {
+        let (raw_content, fmt_content) = if let Some(ref curr_status) = proc.curr_status {
             if let Some(val) = curr_status.vmdata {
                 let val = val * 1024;
                 let (size, unit) = unbytify::bytify(val);

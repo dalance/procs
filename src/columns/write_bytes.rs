@@ -28,7 +28,7 @@ impl WriteBytes {
 #[cfg(target_os = "linux")]
 impl Column for WriteBytes {
     fn add(&mut self, proc: &ProcessInfo) {
-        let (fmt_content, raw_content) = if proc.curr_io.is_ok() && proc.prev_io.is_ok() {
+        let (fmt_content, raw_content) = if proc.curr_io.is_some() && proc.prev_io.is_some() {
             let interval_ms = proc.interval.as_secs() + u64::from(proc.interval.subsec_millis());
             let io = (proc.curr_io.as_ref().unwrap().write_bytes
                 - proc.prev_io.as_ref().unwrap().write_bytes)
@@ -53,7 +53,7 @@ impl Column for WriteBytes {
 #[cfg(target_os = "macos")]
 impl Column for WriteBytes {
     fn add(&mut self, proc: &ProcessInfo) {
-        let (fmt_content, raw_content) = if proc.curr_res.is_ok() && proc.prev_res.is_ok() {
+        let (fmt_content, raw_content) = if proc.curr_res.is_some() && proc.prev_res.is_some() {
             let interval_ms = proc.interval.as_secs() + u64::from(proc.interval.subsec_millis());
             let io = (proc.curr_res.as_ref().unwrap().ri_diskio_byteswrite
                 - proc.prev_res.as_ref().unwrap().ri_diskio_byteswrite)
