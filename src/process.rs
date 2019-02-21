@@ -123,17 +123,17 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
                 match fd.proc_fdtype.into() {
                     ProcFDType::Socket => {
                         if let Ok(socket) = proc_pid::pidfdinfo::<SocketFDInfo>(pid, fd.proc_fd) {
-                            match SocketInfoKind::from(socket.psi.soi_kind) {
-                                Some(SocketInfoKind::In) => unsafe {
+                            match socket.psi.soi_kind.into() {
+                                SocketInfoKind::In => {
                                     if socket.psi.soi_protocol == libc::IPPROTO_UDP {
-                                        let info = socket.psi.soi_proto.pri_in;
+                                        let info = unsafe { socket.psi.soi_proto.pri_in };
                                         curr_udps.push(info);
                                     }
-                                },
-                                Some(SocketInfoKind::Tcp) => unsafe {
-                                    let info = socket.psi.soi_proto.pri_tcp;
+                                }
+                                SocketInfoKind::Tcp => {
+                                    let info = unsafe { socket.psi.soi_proto.pri_tcp };
                                     curr_tcps.push(info);
-                                },
+                                }
                                 _ => (),
                             }
                         }

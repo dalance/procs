@@ -665,8 +665,8 @@ pub trait PIDFDInfo: Default {
 ///                 match fd.proc_fdtype.into() {
 ///                     ProcFDType::Socket => {
 ///                         if let Ok(socket) = pidfdinfo::<SocketFDInfo>(pid, fd.proc_fd) {
-///                             match SocketInfoKind::from(socket.psi.soi_kind) {
-///                                 Some(SocketInfoKind::Tcp) => {
+///                             match socket.psi.soi_kind.into() {
+///                                 SocketInfoKind::Tcp => {
 ///                                     // access to the member of `soi_proto` is unsafe becasuse of union type.
 ///                                     let info = unsafe { socket.psi.soi_proto.pri_tcp };
 ///
@@ -738,8 +738,8 @@ fn pidfdinfo_test() {
                         match fd.proc_fdtype.into() {
                             ProcFDType::Socket => {
                                 if let Ok(socket) = pidfdinfo::<SocketFDInfo>(pid, fd.proc_fd) {
-                                    match SocketInfoKind::from(socket.psi.soi_kind) {
-                                        Some(SocketInfoKind::Tcp) => unsafe {
+                                    match socket.psi.soi_kind.into() {
+                                        SocketInfoKind::Tcp => unsafe {
                                             let info = socket.psi.soi_proto.pri_tcp;
                                             assert_eq!(socket.psi.soi_protocol,
                                             libc::IPPROTO_TCP);
@@ -795,20 +795,22 @@ pub enum SocketInfoKind {
     /// Kernel Event Sockets
     KernEvent = 5,
     /// Kernel Control Sockets
-    KernCtl   = 6
+    KernCtl   = 6,
+    /// Unknown
+    Unknown,
 }
 
-impl SocketInfoKind {
-    pub fn from(value: c_int) -> Option<SocketInfoKind> {
+impl From<c_int> for SocketInfoKind {
+    fn from(value: c_int) -> SocketInfoKind {
         match value {
-            0 => Some(SocketInfoKind::Generic  ),
-            1 => Some(SocketInfoKind::In       ),
-            2 => Some(SocketInfoKind::Tcp      ),
-            3 => Some(SocketInfoKind::Un       ),
-            4 => Some(SocketInfoKind::Ndrv     ),
-            5 => Some(SocketInfoKind::KernEvent),
-            6 => Some(SocketInfoKind::KernCtl  ),
-            _ => None
+            0 => SocketInfoKind::Generic  ,
+            1 => SocketInfoKind::In       ,
+            2 => SocketInfoKind::Tcp      ,
+            3 => SocketInfoKind::Un       ,
+            4 => SocketInfoKind::Ndrv     ,
+            5 => SocketInfoKind::KernEvent,
+            6 => SocketInfoKind::KernCtl  ,
+            _ => SocketInfoKind::Unknown  ,
         }
     }
 }
@@ -983,24 +985,26 @@ pub enum TcpSIState {
     TimeWait    = 10,
     /// Pseudo state: reserved
     Reserved    = 11,
+    /// Unknown
+    Unknown,
 }
 
-impl TcpSIState {
-    pub fn from(value: c_int) -> Option<TcpSIState> {
+impl From<c_int> for TcpSIState {
+    fn from(value: c_int) -> TcpSIState {
         match value {
-            0  => Some(TcpSIState::Closed     ),
-            1  => Some(TcpSIState::Listen     ),
-            2  => Some(TcpSIState::SynSent    ),
-            3  => Some(TcpSIState::SynReceived),
-            4  => Some(TcpSIState::Established),
-            5  => Some(TcpSIState::CloseWait  ),
-            6  => Some(TcpSIState::FinWait1   ),
-            7  => Some(TcpSIState::Closing    ),
-            8  => Some(TcpSIState::LastAck    ),
-            9  => Some(TcpSIState::FinWait2   ),
-            10 => Some(TcpSIState::TimeWait   ),
-            11 => Some(TcpSIState::Reserved   ),
-            _  => None
+            0  => TcpSIState::Closed     ,
+            1  => TcpSIState::Listen     ,
+            2  => TcpSIState::SynSent    ,
+            3  => TcpSIState::SynReceived,
+            4  => TcpSIState::Established,
+            5  => TcpSIState::CloseWait  ,
+            6  => TcpSIState::FinWait1   ,
+            7  => TcpSIState::Closing    ,
+            8  => TcpSIState::LastAck    ,
+            9  => TcpSIState::FinWait2   ,
+            10 => TcpSIState::TimeWait   ,
+            11 => TcpSIState::Reserved   ,
+            _  => TcpSIState::Unknown    ,
         }
     }
 }
