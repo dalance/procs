@@ -662,8 +662,8 @@ pub trait PIDFDInfo: Default {
 ///     if let Ok(info) = pidinfo::<BSDInfo>(pid, 0) {
 ///         if let Ok(fds) = listpidinfo::<ListFDs>(pid, info.pbi_nfiles as usize) {
 ///             for fd in &fds {
-///                 match ProcFDType::from(fd.proc_fdtype) {
-///                     Some(ProcFDType::Socket) => {
+///                 match fd.proc_fdtype.into() {
+///                     ProcFDType::Socket => {
 ///                         if let Ok(socket) = pidfdinfo::<SocketFDInfo>(pid, fd.proc_fd) {
 ///                             match SocketInfoKind::from(socket.psi.soi_kind) {
 ///                                 Some(SocketInfoKind::Tcp) => {
