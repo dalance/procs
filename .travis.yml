@@ -19,8 +19,6 @@ script:
 - make test
 - if [[ $TRAVIS_OS_NAME == "linux" ]]; then make release_lnx; fi
 - if [[ $TRAVIS_OS_NAME == "osx"   ]]; then make release_mac; fi
-- if [[ $TRAVIS_OS_NAME == "osx"   ]]; then dd if=/dev/zero of=tempfile bs=1024000 count=1000; fi &
-- if [[ $TRAVIS_OS_NAME == "osx"   ]]; then sudo ./target/x86_64-apple-darwin/release/procs; fi
 - if [[ $TRAVIS_OS_NAME == "osx"   ]]; then cd libproc-rs; cargo test; fi
 
 after_success: |
