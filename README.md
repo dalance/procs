@@ -141,6 +141,7 @@ show_self = false
 cut_to_terminal = true
 cut_to_pager = false
 cut_to_pipe = false
+color_mode = "Auto"
 
 [sort]
 column = 0
@@ -265,6 +266,7 @@ The available list of color is the same as the list of `[style]` section.
 `[display]` section defines option for display.
 `show_self` means whether the self ( `procs` ) process is shown.
 `cut_to_*` means whether output lines is truncated upto terminal size.
+`color_mode` means the default behavior of output coloring without `--color` commandline option. This can be `Auto`, `Always` or `Disable`.
 
 ### `[sort]` section
 
@@ -280,7 +282,7 @@ If `column` is 0, value is sorted by left column.
 ### `[pager]` section
 
 `[pager]` section defines the behavior of pager.
-`mode` can be `Auto`, `Always` or `Disable`.
+`mode` means the default behavior of pager usage without `--pager` commandline option. This can be `Auto`, `Always` or `Disable`.
 If `Auto`, pager is used only when output lines exceed terminal height.
 Default pager is `less -SR` ( if `less` is not found, `more -f` ),  but you can specify pager comand like below:
 
