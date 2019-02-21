@@ -19,7 +19,9 @@
 
 ## Platform
 
-Linux is supported only.
+- Linux is supported.
+- macOS is experimentally supported.
+    - macOS version is checked on Travis-CI environment only. The issues caused by real-machine are welcome.
 
 ## Installation
 
@@ -185,7 +187,7 @@ The colors can be configured in `[style.by_unit]` section.
 | Processor    | psr                   | Currently assigned processor     | o     |       |
 | ReadBytes    | -not supported-       | Read bytes from storage          | o     | o     |
 | RtPriority   | rtprio                | Real-time priority               | o     |       |
-| Separator    | -not supported-       | Show `|` for column separation   | o     | o     |
+| Separator    | -not supported-       | Show `\|` for column separation  | o     | o     |
 | StartTime    | start_time            | Starting time                    | o     | o     |
 | State        | s                     | Process State                    | o     | o     |
 | TcpPort      | -not supported-       | Binded TCP ports                 | o     | o     |
