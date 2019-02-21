@@ -42,7 +42,12 @@ impl Column for VmSize {
 #[cfg(target_os = "macos")]
 impl Column for VmSize {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = proc.curr_task.ptinfo.pti_virtual_size;
+        //let raw_content = proc.curr_task.ptinfo.pti_virtual_size;
+        let raw_content = if let Some(ref curr_res) = proc.curr_res {
+            curr_res.ri_lifetime_max_phys_footprint
+        } else {
+            0
+        };
         let (size, unit) = unbytify::bytify(raw_content);
         let fmt_content = format!("{}{}", size, unit.replace("i", "").replace("B", ""));
 
