@@ -1132,7 +1132,7 @@ pub fn pidrusage<T: PIDRUsage>(pid : i32) -> Result<T, String> {
         ret = proc_pid_rusage(pid, flavor, buffer_ptr);
     };
 
-    if ret <= 0 {
+    if ret < 0 {
         Err(get_errno_with_message(ret))
     } else {
         Ok(pidrusage)
