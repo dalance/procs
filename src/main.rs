@@ -407,6 +407,30 @@ style = "BrightYellow"
 kind = "Esp"
 style = "BrightBlue"
 [[columns]]
+kind = "Gid"
+style = "White"
+[[columns]]
+kind = "GidFs"
+style = "White"
+[[columns]]
+kind = "GidReal"
+style = "White"
+[[columns]]
+kind = "GidSaved"
+style = "White"
+[[columns]]
+kind = "Group"
+style = "White"
+[[columns]]
+kind = "GroupFs"
+style = "White"
+[[columns]]
+kind = "GroupReal"
+style = "White"
+[[columns]]
+kind = "GroupSaved"
+style = "White"
+[[columns]]
 kind = "Docker"
 style = "BrightMagenta"
 [[columns]]
@@ -458,13 +482,34 @@ style = "White"
 kind = "UdpPort"
 style = "White"
 [[columns]]
+kind = "Uid"
+style = "White"
+[[columns]]
+kind = "UidFs"
+style = "White"
+[[columns]]
+kind = "UidReal"
+style = "White"
+[[columns]]
+kind = "UidSaved"
+style = "White"
+[[columns]]
 kind = "UsageCpu"
 style = "White"
 [[columns]]
 kind = "UsageMem"
 style = "White"
 [[columns]]
-kind = "Username"
+kind = "User"
+style = "White"
+[[columns]]
+kind = "UserFs"
+style = "White"
+[[columns]]
+kind = "UserReal"
+style = "White"
+[[columns]]
+kind = "UserSaved"
 style = "White"
 [[columns]]
 kind = "VmData"
