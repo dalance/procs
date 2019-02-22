@@ -197,6 +197,7 @@ fn run() -> Result<(), Error> {
     run_opt_config(opt, config)
 }
 
+#[allow(clippy::cyclomatic_complexity)]
 fn run_opt_config(opt: Opt, config: Config) -> Result<(), Error> {
     // -------------------------------------------------------------------------
     // Generate column
