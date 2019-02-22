@@ -203,6 +203,7 @@ The colors can be configured in `[style.by_unit]` section.
 | MinFlt       | min_flt               | Minor page fault count           | o     | o     |
 | Nice         | ni                    | Nice value                       | o     | o     |
 | Pid          | pid                   | Process ID                       | o     | o     |
+| Policy       | policy                | Scheduling policy                | o     | o     |
 | Ppid         | ppid                  | Parent process ID                | o     | o     |
 | Priority     | pri                   | Priority                         | o     | o     |
 | Processor    | psr                   | Currently assigned processor     | o     |       |
