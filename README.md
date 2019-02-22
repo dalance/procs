@@ -173,9 +173,17 @@ The colors can be configured in `[style.by_unit]` section.
 | ------------ | --------------------- | -------------------------------- |
 | Command      | args                  | Command with all arguments       |
 | CpuTime      | cputime               | Cumulative CPU time              |
+| Docker       | -not supported-       | Docker container name            |
 | Eip          | eip                   | Instruction pointer              |
 | Esp          | esp                   | Stack pointer                    |
-| Docker       | -not supported-       | Docker container name            |
+| Gid          | egid                  | Group ID                         |
+| GidFs        | fgid                  | File system group ID             |
+| GidReal      | rgid                  | Real group ID                    |
+| GidSaved     | sgid                  | Saved group ID                   |
+| Group        | egroup                | Group name                       |
+| GroupFs      | fgroup                | File system group name           |
+| GroupReal    | rgroup                | Real group name                  |
+| GroupSaved   | sgroup                | Saved group name                 |
 | MajFlt       | maj_flt               | Major page fault count           |
 | MinFlt       | min_flt               | Minor page fault count           |
 | Nice         | ni                    | Nice value                       |
@@ -192,9 +200,16 @@ The colors can be configured in `[style.by_unit]` section.
 | Threads      | nlwp                  | Thread count                     |
 | Tty          | tty                   | Controlling TTY                  |
 | UdpPort      | -not supported-       | Binded UDP ports                 |
+| Uid          | euid                  | User ID                          |
+| UidFs        | fuid                  | File system user ID              |
+| UidReal      | ruid                  | Real user ID                     |
+| UidSaved     | suid                  | Saved user ID                    |
 | UsageCpu     | %cpu                  | CPU utilization                  |
 | UsageMem     | %mem                  | Memory utilization               |
-| Username     | euser                 | User name                        |
+| User         | euser                 | User name                        |
+| UserFs       | fuser                 | File system user name            |
+| UserReal     | ruser                 | Real user name                   |
+| UserSaved    | suser                 | Saved user name                  |
 | VmData       | -not supported-       | Data size                        |
 | VmExe        | trs                   | Text segments size               |
 | VmHwm        | -not supported-       | Peak resident set size           |
