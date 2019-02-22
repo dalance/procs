@@ -68,6 +68,7 @@ pub fn gen_column(kind: &ConfigColumnKind, docker_path: &str) -> Box<dyn Column>
         ConfigColumnKind::MinFlt => Box::new(MinFlt::new()),
         ConfigColumnKind::Nice => Box::new(Nice::new()),
         ConfigColumnKind::Pid => Box::new(Pid::new()),
+        ConfigColumnKind::Policy => Box::new(Policy::new()),
         ConfigColumnKind::Ppid => Box::new(Ppid::new()),
         ConfigColumnKind::Priority => Box::new(Priority::new()),
         #[cfg(target_os = "linux")]
@@ -185,6 +186,7 @@ pub enum ConfigColumnKind {
     MinFlt,
     Nice,
     Pid,
+    Policy,
     Ppid,
     Priority,
     #[cfg(target_os = "linux")]

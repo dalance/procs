@@ -459,6 +459,9 @@ style = "Red"
 kind = "Pid"
 style = "Green"
 [[columns]]
+kind = "Policy"
+style = "Green"
+[[columns]]
 kind = "Ppid"
 style = "Yellow"
 [[columns]]
@@ -608,6 +611,9 @@ kind = "Nice"
 style = "Red"
 [[columns]]
 kind = "Pid"
+style = "Green"
+[[columns]]
+kind = "Policy"
 style = "Green"
 [[columns]]
 kind = "Ppid"
