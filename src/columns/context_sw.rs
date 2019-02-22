@@ -56,7 +56,7 @@ impl Column for ContextSw {
 #[cfg(target_os = "macos")]
 impl Column for ContextSw {
     fn add(&mut self, proc: &ProcessInfo) {
-        let sw = proc.curr_task.ptinfo.pti_csw;
+        let sw = proc.curr_task.ptinfo.pti_csw as u64;
         let (size, unit) = unbytify::bytify(sw);
         let fmt_content = format!("{}{}", size, unit.replace("i", "").replace("B", ""));
         let raw_content = sw;
