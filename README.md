@@ -187,6 +187,7 @@ The colors can be configured in `[style.by_unit]` section.
 | procs `kind` | `ps` STANDARD FORMAT  | Description                      | Linux | macOS |
 | ------------ | --------------------- | -------------------------------- | ----- | ----- |
 | Command      | args                  | Command with all arguments       | o     | o     |
+| ContextSw    | -not supported-       | Context switch count             | o     | o     |
 | CpuTime      | cputime               | Cumulative CPU time              | o     | o     |
 | Docker       | -not supported-       | Docker container name            | o     | o     |
 | Eip          | eip                   | Instruction pointer              | o     |       |
