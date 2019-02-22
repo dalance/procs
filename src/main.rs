@@ -446,9 +446,6 @@ style = "White"
 kind = "GroupSaved"
 style = "White"
 [[columns]]
-kind = "Docker"
-style = "BrightMagenta"
-[[columns]]
 kind = "MajFlt"
 style = "BrightCyan"
 [[columns]]
@@ -579,6 +576,27 @@ style = "BrightRed"
 kind = "CpuTime"
 style = "BrightGreen"
 [[columns]]
+kind = "Docker"
+style = "BrightMagenta"
+[[columns]]
+kind = "Gid"
+style = "White"
+[[columns]]
+kind = "GidReal"
+style = "White"
+[[columns]]
+kind = "GidSaved"
+style = "White"
+[[columns]]
+kind = "Group"
+style = "White"
+[[columns]]
+kind = "GroupReal"
+style = "White"
+[[columns]]
+kind = "GroupSaved"
+style = "White"
+[[columns]]
 kind = "MajFlt"
 style = "BrightCyan"
 [[columns]]
@@ -596,6 +614,9 @@ style = "Yellow"
 [[columns]]
 kind = "Priority"
 style = "Blue"
+[[columns]]
+kind = "ReadBytes"
+style = "Cyan"
 [[columns]]
 kind = "Separator"
 style = "White"
@@ -618,13 +639,28 @@ style = "White"
 kind = "UdpPort"
 style = "White"
 [[columns]]
+kind = "Uid"
+style = "White"
+[[columns]]
+kind = "UidReal"
+style = "White"
+[[columns]]
+kind = "UidSaved"
+style = "White"
+[[columns]]
 kind = "UsageCpu"
 style = "White"
 [[columns]]
 kind = "UsageMem"
 style = "White"
 [[columns]]
-kind = "Username"
+kind = "User"
+style = "White"
+[[columns]]
+kind = "UserReal"
+style = "White"
+[[columns]]
+kind = "UserSaved"
 style = "White"
 [[columns]]
 kind = "VmRss"
@@ -632,6 +668,9 @@ style = "ByUnit"
 [[columns]]
 kind = "VmSize"
 style = "ByUnit"
+[[columns]]
+kind = "WriteBytes"
+style = "White"
 "#;
 
     #[test]
