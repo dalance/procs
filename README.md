@@ -218,10 +218,10 @@ The colors can be configured in `[style.by_unit]` section.
 | SigPnd       | pending               | Pending signal mask for thread   | o     |       |
 | StartTime    | start_time            | Starting time                    | o     | o     |
 | State        | s                     | Process State                    | o     | o     |
-| TcpPort      | -not supported-       | Binded TCP ports                 | o     | o     |
+| TcpPort      | -not supported-       | Bound TCP ports                  | o     | o     |
 | Threads      | nlwp                  | Thread count                     | o     | o     |
 | Tty          | tty                   | Controlling TTY                  | o     | o     |
-| UdpPort      | -not supported-       | Binded UDP ports                 | o     | o     |
+| UdpPort      | -not supported-       | Bound UDP ports                  | o     | o     |
 | Uid          | euid                  | User ID                          | o     | o     |
 | UidFs        | fuid                  | File system user ID              | o     |       |
 | UidReal      | ruid                  | Real user ID                     | o     | o     |

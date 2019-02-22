@@ -1,4 +1,4 @@
-# This is a forked version of [libproc-rs](https://github.com/andrewdavidmackenzie/libproc-rs).
+# This is a modified version of [libproc-rs](https://github.com/andrewdavidmackenzie/libproc-rs).
 
 ![Build Status](https://travis-ci.org/andrewdavidmackenzie/libproc-rs.svg?branch=master "Mac OS X")
 
