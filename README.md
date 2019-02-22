@@ -191,14 +191,14 @@ The colors can be configured in `[style.by_unit]` section.
 | Docker       | -not supported-       | Docker container name            | o     | o     |
 | Eip          | eip                   | Instruction pointer              | o     |       |
 | Esp          | esp                   | Stack pointer                    | o     |       |
-| Gid          | egid                  | Group ID                         | o     |       |
+| Gid          | egid                  | Group ID                         | o     | o     |
 | GidFs        | fgid                  | File system group ID             | o     |       |
-| GidReal      | rgid                  | Real group ID                    | o     |       |
-| GidSaved     | sgid                  | Saved group ID                   | o     |       |
-| Group        | egroup                | Group name                       | o     |       |
+| GidReal      | rgid                  | Real group ID                    | o     | o     |
+| GidSaved     | sgid                  | Saved group ID                   | o     | o     |
+| Group        | egroup                | Group name                       | o     | o     |
 | GroupFs      | fgroup                | File system group name           | o     |       |
-| GroupReal    | rgroup                | Real group name                  | o     |       |
-| GroupSaved   | sgroup                | Saved group name                 | o     |       |
+| GroupReal    | rgroup                | Real group name                  | o     | o     |
+| GroupSaved   | sgroup                | Saved group name                 | o     | o     |
 | MajFlt       | maj_flt               | Major page fault count           | o     | o     |
 | MinFlt       | min_flt               | Minor page fault count           | o     | o     |
 | Nice         | ni                    | Nice value                       | o     | o     |
@@ -215,16 +215,16 @@ The colors can be configured in `[style.by_unit]` section.
 | Threads      | nlwp                  | Thread count                     | o     | o     |
 | Tty          | tty                   | Controlling TTY                  | o     | o     |
 | UdpPort      | -not supported-       | Binded UDP ports                 | o     | o     |
-| Uid          | euid                  | User ID                          | o     |       |
+| Uid          | euid                  | User ID                          | o     | o     |
 | UidFs        | fuid                  | File system user ID              | o     |       |
-| UidReal      | ruid                  | Real user ID                     | o     |       |
-| UidSaved     | suid                  | Saved user ID                    | o     |       |
+| UidReal      | ruid                  | Real user ID                     | o     | o     |
+| UidSaved     | suid                  | Saved user ID                    | o     | o     |
 | UsageCpu     | %cpu                  | CPU utilization                  | o     | o     |
 | UsageMem     | %mem                  | Memory utilization               | o     | o     |
 | User         | euser                 | User name                        | o     | o     |
 | UserFs       | fuser                 | File system user name            | o     |       |
-| UserReal     | ruser                 | Real user name                   | o     |       |
-| UserSaved    | suser                 | Saved user name                  | o     |       |
+| UserReal     | ruser                 | Real user name                   | o     | o     |
+| UserSaved    | suser                 | Saved user name                  | o     | o     |
 | VmData       | -not supported-       | Data size                        | o     |       |
 | VmExe        | trs                   | Text segments size               | o     |       |
 | VmHwm        | -not supported-       | Peak resident set size           | o     |       |
