@@ -25,6 +25,7 @@ impl Uid {
     }
 }
 
+#[cfg(target_os = "linux")]
 impl Column for Uid {
     fn add(&mut self, proc: &ProcessInfo) {
         let (fmt_content, raw_content) = if let Some(ref status) = proc.curr_status {
@@ -33,6 +34,20 @@ impl Column for Uid {
         } else {
             (String::from(""), 0)
         };
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(i32);
+}
+
+#[cfg(target_os = "macos")]
+impl Column for Uid {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let uid = proc.curr_task.pbsd.pbi_uid as i32;
+        let fmt_content = format!("{}", uid);
+        let raw_content = uid;
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);

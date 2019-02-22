@@ -25,6 +25,7 @@ impl Gid {
     }
 }
 
+#[cfg(target_os = "linux")]
 impl Column for Gid {
     fn add(&mut self, proc: &ProcessInfo) {
         let (fmt_content, raw_content) = if let Some(ref status) = proc.curr_status {
@@ -33,6 +34,20 @@ impl Column for Gid {
         } else {
             (String::from(""), 0)
         };
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(i32);
+}
+
+#[cfg(target_os = "macos")]
+impl Column for Gid {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let gid = proc.curr_task.pbsd.pbi_gid as i32;
+        let fmt_content = format!("{}", gid);
+        let raw_content = gid;
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);

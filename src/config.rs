@@ -54,21 +54,15 @@ pub fn gen_column(kind: &ConfigColumnKind, docker_path: &str) -> Box<dyn Column>
         ConfigColumnKind::Eip => Box::new(Eip::new()),
         #[cfg(target_os = "linux")]
         ConfigColumnKind::Esp => Box::new(Esp::new()),
-        #[cfg(target_os = "linux")]
         ConfigColumnKind::Gid => Box::new(Gid::new()),
         #[cfg(target_os = "linux")]
         ConfigColumnKind::GidFs => Box::new(GidFs::new()),
-        #[cfg(target_os = "linux")]
         ConfigColumnKind::GidReal => Box::new(GidReal::new()),
-        #[cfg(target_os = "linux")]
         ConfigColumnKind::GidSaved => Box::new(GidSaved::new()),
-        #[cfg(target_os = "linux")]
         ConfigColumnKind::Group => Box::new(Group::new()),
         #[cfg(target_os = "linux")]
         ConfigColumnKind::GroupFs => Box::new(GroupFs::new()),
-        #[cfg(target_os = "linux")]
         ConfigColumnKind::GroupReal => Box::new(GroupReal::new()),
-        #[cfg(target_os = "linux")]
         ConfigColumnKind::GroupSaved => Box::new(GroupSaved::new()),
         ConfigColumnKind::MajFlt => Box::new(MajFlt::new()),
         ConfigColumnKind::MinFlt => Box::new(MinFlt::new()),
@@ -89,6 +83,7 @@ pub fn gen_column(kind: &ConfigColumnKind, docker_path: &str) -> Box<dyn Column>
         ConfigColumnKind::Tty => Box::new(Tty::new()),
         ConfigColumnKind::UdpPort => Box::new(UdpPort::new()),
         ConfigColumnKind::Uid => Box::new(Uid::new()),
+        #[cfg(target_os = "linux")]
         ConfigColumnKind::UidFs => Box::new(UidFs::new()),
         ConfigColumnKind::UidReal => Box::new(UidReal::new()),
         ConfigColumnKind::UidSaved => Box::new(UidSaved::new()),
@@ -97,9 +92,7 @@ pub fn gen_column(kind: &ConfigColumnKind, docker_path: &str) -> Box<dyn Column>
         ConfigColumnKind::User => Box::new(User::new()),
         #[cfg(target_os = "linux")]
         ConfigColumnKind::UserFs => Box::new(UserFs::new()),
-        #[cfg(target_os = "linux")]
         ConfigColumnKind::UserReal => Box::new(UserReal::new()),
-        #[cfg(target_os = "linux")]
         ConfigColumnKind::UserSaved => Box::new(UserSaved::new()),
         ConfigColumnKind::Username => Box::new(User::new()),
         #[cfg(target_os = "linux")]
@@ -178,21 +171,15 @@ pub enum ConfigColumnKind {
     Eip,
     #[cfg(target_os = "linux")]
     Esp,
-    #[cfg(target_os = "linux")]
     Gid,
     #[cfg(target_os = "linux")]
     GidFs,
-    #[cfg(target_os = "linux")]
     GidReal,
-    #[cfg(target_os = "linux")]
     GidSaved,
-    #[cfg(target_os = "linux")]
     Group,
     #[cfg(target_os = "linux")]
     GroupFs,
-    #[cfg(target_os = "linux")]
     GroupReal,
-    #[cfg(target_os = "linux")]
     GroupSaved,
     MajFlt,
     MinFlt,
@@ -213,6 +200,7 @@ pub enum ConfigColumnKind {
     Tty,
     UdpPort,
     Uid,
+    #[cfg(target_os = "linux")]
     UidFs,
     UidReal,
     UidSaved,
@@ -221,9 +209,7 @@ pub enum ConfigColumnKind {
     User,
     #[cfg(target_os = "linux")]
     UserFs,
-    #[cfg(target_os = "linux")]
     UserReal,
-    #[cfg(target_os = "linux")]
     UserSaved,
     Username,
     #[cfg(target_os = "linux")]
