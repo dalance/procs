@@ -1,4 +1,5 @@
 pub mod command;
+pub mod context_sw;
 pub mod cpu_time;
 pub mod docker;
 #[cfg(target_os = "linux")]
@@ -73,6 +74,7 @@ pub mod wchan;
 pub mod write_bytes;
 
 pub use self::command::Command;
+pub use self::context_sw::ContextSw;
 pub use self::cpu_time::CpuTime;
 pub use self::docker::Docker;
 #[cfg(target_os = "linux")]

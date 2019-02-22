@@ -411,6 +411,9 @@ mod tests {
 kind = "Command"
 style = "BrightRed"
 [[columns]]
+kind = "ContextSw"
+style = "BrightRed"
+[[columns]]
 kind = "CpuTime"
 style = "BrightGreen"
 [[columns]]
@@ -575,6 +578,9 @@ style = "White"
     pub static CONFIG_ALL: &'static str = r#"
 [[columns]]
 kind = "Command"
+style = "BrightRed"
+[[columns]]
+kind = "ContextSw"
 style = "BrightRed"
 [[columns]]
 kind = "CpuTime"

@@ -48,6 +48,7 @@ pub struct ColumnInfo {
 pub fn gen_column(kind: &ConfigColumnKind, docker_path: &str) -> Box<dyn Column> {
     match kind {
         ConfigColumnKind::Command => Box::new(Command::new()),
+        ConfigColumnKind::ContextSw => Box::new(ContextSw::new()),
         ConfigColumnKind::CpuTime => Box::new(CpuTime::new()),
         ConfigColumnKind::Docker => Box::new(Docker::new(docker_path)),
         #[cfg(target_os = "linux")]
@@ -166,6 +167,7 @@ pub enum ConfigColor {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ConfigColumnKind {
     Command,
+    ContextSw,
     CpuTime,
     Docker,
     #[cfg(target_os = "linux")]
