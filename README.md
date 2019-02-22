@@ -211,6 +211,11 @@ The colors can be configured in `[style.by_unit]` section.
 | ReadBytes    | -not supported-       | Read bytes from storage          | o     | o     |
 | RtPriority   | rtprio                | Real-time priority               | o     |       |
 | Separator    | -not supported-       | Show `\|` for column separation  | o     | o     |
+| ShnPnd       | pending               | Pending signal mask for process  | o     |       |
+| SigBlk       | blocked               | Blocked signal mask              | o     |       |
+| SigCgt       | caught                | Caught signal mask               | o     |       |
+| SigIgn       | ignored               | Ignored signal mask              | o     |       |
+| SigPnd       | pending               | Pending signal mask for thread   | o     |       |
 | StartTime    | start_time            | Starting time                    | o     | o     |
 | State        | s                     | Process State                    | o     | o     |
 | TcpPort      | -not supported-       | Binded TCP ports                 | o     | o     |

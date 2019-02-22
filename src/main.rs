@@ -483,6 +483,21 @@ style = "White"
 kind = "Separator"
 style = "White"
 [[columns]]
+kind = "ShnPnd"
+style = "White"
+[[columns]]
+kind = "SigBlk"
+style = "White"
+[[columns]]
+kind = "SigCgt"
+style = "White"
+[[columns]]
+kind = "SigIgn"
+style = "White"
+[[columns]]
+kind = "SigPnd"
+style = "White"
+[[columns]]
 kind = "StartTime"
 style = "White"
 [[columns]]

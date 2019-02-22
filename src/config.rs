@@ -78,6 +78,16 @@ pub fn gen_column(kind: &ConfigColumnKind, docker_path: &str) -> Box<dyn Column>
         #[cfg(target_os = "linux")]
         ConfigColumnKind::RtPriority => Box::new(RtPriority::new()),
         ConfigColumnKind::Separator => Box::new(Separator::new()),
+        #[cfg(target_os = "linux")]
+        ConfigColumnKind::ShdPnd => Box::new(ShdPnd::new()),
+        #[cfg(target_os = "linux")]
+        ConfigColumnKind::SigBlk => Box::new(SigBlk::new()),
+        #[cfg(target_os = "linux")]
+        ConfigColumnKind::SigCgt => Box::new(SigCgt::new()),
+        #[cfg(target_os = "linux")]
+        ConfigColumnKind::SigIgn => Box::new(SigIgn::new()),
+        #[cfg(target_os = "linux")]
+        ConfigColumnKind::SigPnd => Box::new(SigPnd::new()),
         ConfigColumnKind::StartTime => Box::new(StartTime::new()),
         ConfigColumnKind::State => Box::new(State::new()),
         ConfigColumnKind::TcpPort => Box::new(TcpPort::new()),
@@ -197,6 +207,16 @@ pub enum ConfigColumnKind {
     #[cfg(target_os = "linux")]
     RtPriority,
     Separator,
+    #[cfg(target_os = "linux")]
+    ShdPnd,
+    #[cfg(target_os = "linux")]
+    SigBlk,
+    #[cfg(target_os = "linux")]
+    SigCgt,
+    #[cfg(target_os = "linux")]
+    SigIgn,
+    #[cfg(target_os = "linux")]
+    SigPnd,
     StartTime,
     State,
     TcpPort,
