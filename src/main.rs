@@ -483,7 +483,7 @@ style = "White"
 kind = "Separator"
 style = "White"
 [[columns]]
-kind = "ShnPnd"
+kind = "ShdPnd"
 style = "White"
 [[columns]]
 kind = "SigBlk"

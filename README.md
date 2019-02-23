@@ -211,7 +211,7 @@ The colors can be configured in `[style.by_unit]` section.
 | ReadBytes    | -not supported-       | Read bytes from storage          | o     | o     |
 | RtPriority   | rtprio                | Real-time priority               | o     |       |
 | Separator    | -not supported-       | Show `\|` for column separation  | o     | o     |
-| ShnPnd       | pending               | Pending signal mask for process  | o     |       |
+| ShdPnd       | pending               | Pending signal mask for process  | o     |       |
 | SigBlk       | blocked               | Blocked signal mask              | o     |       |
 | SigCgt       | caught                | Caught signal mask               | o     |       |
 | SigIgn       | ignored               | Ignored signal mask              | o     |       |
