@@ -25,9 +25,24 @@ impl VmSize {
     }
 }
 
+#[cfg(target_os = "linux")]
 impl Column for VmSize {
     fn add(&mut self, proc: &ProcessInfo) {
         let raw_content = proc.curr_proc.stat.vsize;
+        let (size, unit) = unbytify::bytify(raw_content);
+        let fmt_content = format!("{}{}", size, unit.replace("i", "").replace("B", ""));
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(u64);
+}
+
+#[cfg(target_os = "macos")]
+impl Column for VmSize {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let raw_content = proc.curr_task.ptinfo.pti_virtual_size;
         let (size, unit) = unbytify::bytify(raw_content);
         let fmt_content = format!("{}{}", size, unit.replace("i", "").replace("B", ""));
 

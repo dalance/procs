@@ -25,6 +25,7 @@ impl User {
     }
 }
 
+#[cfg(target_os = "linux")]
 impl Column for User {
     fn add(&mut self, proc: &ProcessInfo) {
         let user = users::get_user_by_uid(proc.curr_proc.owner);
@@ -32,6 +33,24 @@ impl Column for User {
             format!("{}", user.name().to_string_lossy())
         } else {
             format!("{}", proc.curr_proc.owner)
+        };
+        let raw_content = fmt_content.clone();
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(String);
+}
+
+#[cfg(target_os = "macos")]
+impl Column for User {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let uid = proc.curr_task.pbsd.pbi_uid;
+        let fmt_content = if let Some(user) = users::get_user_by_uid(uid) {
+            format!("{}", user.name().to_string_lossy())
+        } else {
+            format!("{}", uid)
         };
         let raw_content = fmt_content.clone();
 

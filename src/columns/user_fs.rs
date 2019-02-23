@@ -27,7 +27,7 @@ impl UserFs {
 
 impl Column for UserFs {
     fn add(&mut self, proc: &ProcessInfo) {
-        let fmt_content = if let Ok(ref status) = proc.curr_status {
+        let fmt_content = if let Some(ref status) = proc.curr_status {
             let uid = status.fuid;
             if let Some(user) = users::get_user_by_uid(uid as u32) {
                 format!("{}", user.name().to_string_lossy())

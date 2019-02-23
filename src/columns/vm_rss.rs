@@ -25,9 +25,24 @@ impl VmRss {
     }
 }
 
+#[cfg(target_os = "linux")]
 impl Column for VmRss {
     fn add(&mut self, proc: &ProcessInfo) {
         let raw_content = proc.curr_proc.stat.rss_bytes() as u64;
+        let (size, unit) = unbytify::bytify(raw_content);
+        let fmt_content = format!("{}{}", size, unit.replace("i", "").replace("B", ""));
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(u64);
+}
+
+#[cfg(target_os = "macos")]
+impl Column for VmRss {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let raw_content = proc.curr_task.ptinfo.pti_resident_size;
         let (size, unit) = unbytify::bytify(raw_content);
         let fmt_content = format!("{}{}", size, unit.replace("i", "").replace("B", ""));
 

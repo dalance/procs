@@ -48,15 +48,20 @@ pub struct ColumnInfo {
 pub fn gen_column(kind: &ConfigColumnKind, docker_path: &str) -> Box<dyn Column> {
     match kind {
         ConfigColumnKind::Command => Box::new(Command::new()),
+        ConfigColumnKind::ContextSw => Box::new(ContextSw::new()),
         ConfigColumnKind::CpuTime => Box::new(CpuTime::new()),
         ConfigColumnKind::Docker => Box::new(Docker::new(docker_path)),
+        #[cfg(target_os = "linux")]
         ConfigColumnKind::Eip => Box::new(Eip::new()),
+        #[cfg(target_os = "linux")]
         ConfigColumnKind::Esp => Box::new(Esp::new()),
         ConfigColumnKind::Gid => Box::new(Gid::new()),
+        #[cfg(target_os = "linux")]
         ConfigColumnKind::GidFs => Box::new(GidFs::new()),
         ConfigColumnKind::GidReal => Box::new(GidReal::new()),
         ConfigColumnKind::GidSaved => Box::new(GidSaved::new()),
         ConfigColumnKind::Group => Box::new(Group::new()),
+        #[cfg(target_os = "linux")]
         ConfigColumnKind::GroupFs => Box::new(GroupFs::new()),
         ConfigColumnKind::GroupReal => Box::new(GroupReal::new()),
         ConfigColumnKind::GroupSaved => Box::new(GroupSaved::new()),
@@ -64,12 +69,25 @@ pub fn gen_column(kind: &ConfigColumnKind, docker_path: &str) -> Box<dyn Column>
         ConfigColumnKind::MinFlt => Box::new(MinFlt::new()),
         ConfigColumnKind::Nice => Box::new(Nice::new()),
         ConfigColumnKind::Pid => Box::new(Pid::new()),
+        ConfigColumnKind::Policy => Box::new(Policy::new()),
         ConfigColumnKind::Ppid => Box::new(Ppid::new()),
         ConfigColumnKind::Priority => Box::new(Priority::new()),
+        #[cfg(target_os = "linux")]
         ConfigColumnKind::Processor => Box::new(Processor::new()),
         ConfigColumnKind::ReadBytes => Box::new(ReadBytes::new()),
+        #[cfg(target_os = "linux")]
         ConfigColumnKind::RtPriority => Box::new(RtPriority::new()),
         ConfigColumnKind::Separator => Box::new(Separator::new()),
+        #[cfg(target_os = "linux")]
+        ConfigColumnKind::ShdPnd => Box::new(ShdPnd::new()),
+        #[cfg(target_os = "linux")]
+        ConfigColumnKind::SigBlk => Box::new(SigBlk::new()),
+        #[cfg(target_os = "linux")]
+        ConfigColumnKind::SigCgt => Box::new(SigCgt::new()),
+        #[cfg(target_os = "linux")]
+        ConfigColumnKind::SigIgn => Box::new(SigIgn::new()),
+        #[cfg(target_os = "linux")]
+        ConfigColumnKind::SigPnd => Box::new(SigPnd::new()),
         ConfigColumnKind::StartTime => Box::new(StartTime::new()),
         ConfigColumnKind::State => Box::new(State::new()),
         ConfigColumnKind::TcpPort => Box::new(TcpPort::new()),
@@ -77,28 +95,41 @@ pub fn gen_column(kind: &ConfigColumnKind, docker_path: &str) -> Box<dyn Column>
         ConfigColumnKind::Tty => Box::new(Tty::new()),
         ConfigColumnKind::UdpPort => Box::new(UdpPort::new()),
         ConfigColumnKind::Uid => Box::new(Uid::new()),
+        #[cfg(target_os = "linux")]
         ConfigColumnKind::UidFs => Box::new(UidFs::new()),
         ConfigColumnKind::UidReal => Box::new(UidReal::new()),
         ConfigColumnKind::UidSaved => Box::new(UidSaved::new()),
         ConfigColumnKind::UsageCpu => Box::new(UsageCpu::new()),
         ConfigColumnKind::UsageMem => Box::new(UsageMem::new()),
         ConfigColumnKind::User => Box::new(User::new()),
+        #[cfg(target_os = "linux")]
         ConfigColumnKind::UserFs => Box::new(UserFs::new()),
         ConfigColumnKind::UserReal => Box::new(UserReal::new()),
         ConfigColumnKind::UserSaved => Box::new(UserSaved::new()),
         ConfigColumnKind::Username => Box::new(User::new()),
+        #[cfg(target_os = "linux")]
         ConfigColumnKind::VmData => Box::new(VmData::new()),
+        #[cfg(target_os = "linux")]
         ConfigColumnKind::VmExe => Box::new(VmExe::new()),
+        #[cfg(target_os = "linux")]
         ConfigColumnKind::VmHwm => Box::new(VmHwm::new()),
+        #[cfg(target_os = "linux")]
         ConfigColumnKind::VmLib => Box::new(VmLib::new()),
+        #[cfg(target_os = "linux")]
         ConfigColumnKind::VmLock => Box::new(VmLock::new()),
+        #[cfg(target_os = "linux")]
         ConfigColumnKind::VmPeak => Box::new(VmPeak::new()),
+        #[cfg(target_os = "linux")]
         ConfigColumnKind::VmPin => Box::new(VmPin::new()),
+        #[cfg(target_os = "linux")]
         ConfigColumnKind::VmPte => Box::new(VmPte::new()),
         ConfigColumnKind::VmRss => Box::new(VmRss::new()),
         ConfigColumnKind::VmSize => Box::new(VmSize::new()),
+        #[cfg(target_os = "linux")]
         ConfigColumnKind::VmStack => Box::new(VmStack::new()),
+        #[cfg(target_os = "linux")]
         ConfigColumnKind::VmSwap => Box::new(VmSwap::new()),
+        #[cfg(target_os = "linux")]
         ConfigColumnKind::Wchan => Box::new(Wchan::new()),
         ConfigColumnKind::WriteBytes => Box::new(WriteBytes::new()),
     }
@@ -146,15 +177,20 @@ pub enum ConfigColor {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ConfigColumnKind {
     Command,
+    ContextSw,
     CpuTime,
     Docker,
+    #[cfg(target_os = "linux")]
     Eip,
+    #[cfg(target_os = "linux")]
     Esp,
     Gid,
+    #[cfg(target_os = "linux")]
     GidFs,
     GidReal,
     GidSaved,
     Group,
+    #[cfg(target_os = "linux")]
     GroupFs,
     GroupReal,
     GroupSaved,
@@ -162,12 +198,25 @@ pub enum ConfigColumnKind {
     MinFlt,
     Nice,
     Pid,
+    Policy,
     Ppid,
     Priority,
+    #[cfg(target_os = "linux")]
     Processor,
     ReadBytes,
+    #[cfg(target_os = "linux")]
     RtPriority,
     Separator,
+    #[cfg(target_os = "linux")]
+    ShdPnd,
+    #[cfg(target_os = "linux")]
+    SigBlk,
+    #[cfg(target_os = "linux")]
+    SigCgt,
+    #[cfg(target_os = "linux")]
+    SigIgn,
+    #[cfg(target_os = "linux")]
+    SigPnd,
     StartTime,
     State,
     TcpPort,
@@ -175,28 +224,41 @@ pub enum ConfigColumnKind {
     Tty,
     UdpPort,
     Uid,
+    #[cfg(target_os = "linux")]
     UidFs,
     UidReal,
     UidSaved,
     UsageCpu,
     UsageMem,
     User,
+    #[cfg(target_os = "linux")]
     UserFs,
     UserReal,
     UserSaved,
     Username,
+    #[cfg(target_os = "linux")]
     VmData,
+    #[cfg(target_os = "linux")]
     VmExe,
+    #[cfg(target_os = "linux")]
     VmHwm,
+    #[cfg(target_os = "linux")]
     VmLib,
+    #[cfg(target_os = "linux")]
     VmLock,
+    #[cfg(target_os = "linux")]
     VmPeak,
+    #[cfg(target_os = "linux")]
     VmPin,
+    #[cfg(target_os = "linux")]
     VmPte,
     VmRss,
     VmSize,
+    #[cfg(target_os = "linux")]
     VmStack,
+    #[cfg(target_os = "linux")]
     VmSwap,
+    #[cfg(target_os = "linux")]
     Wchan,
     WriteBytes,
 }
@@ -444,6 +506,7 @@ pub enum ConfigPagerMode {
     Disable,
 }
 
+#[cfg(target_os = "linux")]
 pub static CONFIG_DEFAULT: &'static str = r#"
 [[columns]]
 kind = "Pid"
@@ -488,6 +551,110 @@ nonnumeric_search = false
 [[columns]]
 kind = "VmPeak"
 style = "ByUnit"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "VmSize"
+style = "ByUnit"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "VmRss"
+style = "ByUnit"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "TcpPort"
+style = "BrightCyan"
+numeric_search = true
+nonnumeric_search = false
+[[columns]]
+kind = "UdpPort"
+style = "BrightCyan"
+numeric_search = true
+nonnumeric_search = false
+[[columns]]
+kind = "ReadBytes"
+style = "ByUnit"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "WriteBytes"
+style = "ByUnit"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "Separator"
+style = "White"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "CpuTime"
+style = "BrightCyan"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "StartTime"
+style = "BrightMagenta"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "Docker"
+style = "BrightGreen"
+numeric_search = false
+nonnumeric_search = true
+[[columns]]
+kind = "Separator"
+style = "White"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "Command"
+style = "BrightWhite"
+numeric_search = false
+nonnumeric_search = true
+"#;
+
+#[cfg(target_os = "macos")]
+pub static CONFIG_DEFAULT: &'static str = r#"
+[[columns]]
+kind = "Pid"
+style = "BrightYellow"
+numeric_search = true
+nonnumeric_search = false
+[[columns]]
+kind = "Username"
+style = "BrightGreen"
+numeric_search = false
+nonnumeric_search = true
+[[columns]]
+kind = "Separator"
+style = "White"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "State"
+style = "ByState"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "Nice"
+style = "BrightMagenta"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "Tty"
+style = "BrightWhite"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "UsageCpu"
+style = "ByPercentage"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "UsageMem"
+style = "ByPercentage"
 numeric_search = false
 nonnumeric_search = false
 [[columns]]

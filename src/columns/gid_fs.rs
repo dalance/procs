@@ -27,7 +27,7 @@ impl GidFs {
 
 impl Column for GidFs {
     fn add(&mut self, proc: &ProcessInfo) {
-        let (fmt_content, raw_content) = if let Ok(ref status) = proc.curr_status {
+        let (fmt_content, raw_content) = if let Some(ref status) = proc.curr_status {
             let gid = status.fgid;
             (format!("{}", gid), gid)
         } else {

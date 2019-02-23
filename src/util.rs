@@ -65,3 +65,33 @@ pub fn parse_time(x: u64) -> String {
         format!("{:02}:{:02}:{:02}", hour, min, sec)
     }
 }
+
+#[cfg(target_os = "macos")]
+pub fn change_endian(val: u32) -> u32 {
+    let mut ret = 0;
+    ret |= val >> 24 & 0x000000ff;
+    ret |= val >> 8 & 0x0000ff00;
+    ret |= val << 8 & 0x00ff0000;
+    ret |= val << 24 & 0xff000000;
+    ret
+}
+
+#[cfg(target_os = "macos")]
+pub unsafe fn get_sys_value(
+    high: u32,
+    low: u32,
+    mut len: usize,
+    value: *mut libc::c_void,
+    mib: &mut [i32; 2],
+) -> bool {
+    mib[0] = high as i32;
+    mib[1] = low as i32;
+    libc::sysctl(
+        mib.as_mut_ptr(),
+        2,
+        value,
+        &mut len as *mut usize,
+        ::std::ptr::null_mut(),
+        0,
+    ) == 0
+}
