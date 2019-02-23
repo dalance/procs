@@ -2,7 +2,7 @@ language: rust
 cache: cargo
 
 os:
-#- linux
+- linux
 - osx
 
 before_script:
@@ -19,7 +19,7 @@ script:
 - make test
 - if [[ $TRAVIS_OS_NAME == "linux" ]]; then make release_lnx; fi
 - if [[ $TRAVIS_OS_NAME == "osx"   ]]; then make release_mac; fi
-- if [[ $TRAVIS_OS_NAME == "osx"   ]]; then cd libproc-rs; cargo test; fi
+- if [[ $TRAVIS_OS_NAME == "osx"   ]]; then cd ./modified/libproc-rs; cargo test; fi
 
 after_success: |
     if [[ $TRAVIS_OS_NAME == "linux" ]]; then
