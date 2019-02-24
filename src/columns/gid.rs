@@ -42,6 +42,7 @@ impl Column for Gid {
     column_default!(i32);
 }
 
+#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 impl Column for Gid {
     fn add(&mut self, proc: &ProcessInfo) {

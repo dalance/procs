@@ -91,6 +91,7 @@ impl Column for UdpPort {
     crate::column_default_update_max_width!();
 }
 
+#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 impl Column for UdpPort {
     fn add(&mut self, proc: &ProcessInfo) {

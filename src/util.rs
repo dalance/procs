@@ -66,6 +66,7 @@ pub fn parse_time(x: u64) -> String {
     }
 }
 
+#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 pub fn change_endian(val: u32) -> u32 {
     let mut ret = 0;
@@ -76,6 +77,7 @@ pub fn change_endian(val: u32) -> u32 {
     ret
 }
 
+#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 pub unsafe fn get_sys_value(
     high: u32,

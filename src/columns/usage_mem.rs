@@ -33,6 +33,7 @@ fn get_mem_total() -> u64 {
     procfs::meminfo().unwrap().mem_total
 }
 
+#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 fn get_mem_total() -> u64 {
     let mut mem_total: u64 = 0;
@@ -65,6 +66,7 @@ impl Column for UsageMem {
     column_default!(u32);
 }
 
+#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 impl Column for UsageMem {
     fn add(&mut self, proc: &ProcessInfo) {

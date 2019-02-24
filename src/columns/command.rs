@@ -56,6 +56,7 @@ impl Column for Command {
     column_default!(String);
 }
 
+#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 impl Column for Command {
     fn add(&mut self, proc: &ProcessInfo) {

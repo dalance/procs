@@ -38,6 +38,7 @@ impl Column for Ppid {
     column_default!(i32);
 }
 
+#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 impl Column for Ppid {
     fn add(&mut self, proc: &ProcessInfo) {

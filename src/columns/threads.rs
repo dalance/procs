@@ -38,6 +38,7 @@ impl Column for Threads {
     column_default!(i64);
 }
 
+#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 impl Column for Threads {
     fn add(&mut self, proc: &ProcessInfo) {

@@ -79,6 +79,7 @@ pub struct ProcessInfo {
     pub interval: Duration,
 }
 
+#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
     let mut base_procs = Vec::new();
@@ -170,6 +171,7 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
     ret
 }
 
+#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 fn get_arg_max() -> size_t {
     let mut mib: [c_int; 2] = [libc::CTL_KERN, libc::KERN_ARGMAX];
@@ -198,6 +200,7 @@ pub struct PathInfo {
     pub env: Vec<String>,
 }
 
+#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 unsafe fn get_unchecked_str(cp: *mut u8, start: *mut u8) -> String {
     let len = cp as usize - start as usize;
@@ -207,6 +210,7 @@ unsafe fn get_unchecked_str(cp: *mut u8, start: *mut u8) -> String {
     tmp
 }
 
+#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 fn get_path_info(pid: i32, mut size: size_t) -> Option<PathInfo> {
     let mut proc_args = Vec::with_capacity(size as usize);
@@ -302,6 +306,7 @@ fn get_path_info(pid: i32, mut size: size_t) -> Option<PathInfo> {
     }
 }
 
+#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 fn clone_task_all_info(src: &TaskAllInfo) -> TaskAllInfo {
     let pbsd = BSDInfo {

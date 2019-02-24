@@ -42,6 +42,7 @@ impl Column for UidSaved {
     column_default!(i32);
 }
 
+#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 impl Column for UidSaved {
     fn add(&mut self, proc: &ProcessInfo) {

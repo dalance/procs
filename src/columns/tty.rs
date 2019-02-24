@@ -43,6 +43,7 @@ impl Column for Tty {
     column_default!(String);
 }
 
+#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 impl Column for Tty {
     fn add(&mut self, proc: &ProcessInfo) {

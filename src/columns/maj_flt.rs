@@ -38,6 +38,7 @@ impl Column for MajFlt {
     column_default!(u64);
 }
 
+#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 impl Column for MajFlt {
     fn add(&mut self, proc: &ProcessInfo) {

@@ -45,6 +45,7 @@ impl Column for UsageCpu {
     column_default!(u32);
 }
 
+#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 impl Column for UsageCpu {
     fn add(&mut self, proc: &ProcessInfo) {

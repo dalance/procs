@@ -38,6 +38,7 @@ impl Column for State {
     column_default!(String);
 }
 
+#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 impl Column for State {
     fn add(&mut self, proc: &ProcessInfo) {

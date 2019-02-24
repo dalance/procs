@@ -38,6 +38,7 @@ impl Column for Priority {
     column_default!(i64);
 }
 
+#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 impl Column for Priority {
     fn add(&mut self, proc: &ProcessInfo) {

@@ -50,6 +50,7 @@ impl Column for WriteBytes {
     column_default!(u64);
 }
 
+#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 impl Column for WriteBytes {
     fn add(&mut self, proc: &ProcessInfo) {

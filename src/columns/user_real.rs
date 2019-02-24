@@ -47,6 +47,7 @@ impl Column for UserReal {
     column_default!(String);
 }
 
+#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 impl Column for UserReal {
     fn add(&mut self, proc: &ProcessInfo) {

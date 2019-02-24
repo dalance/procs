@@ -47,6 +47,7 @@ impl Column for GroupReal {
     column_default!(String);
 }
 
+#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 impl Column for GroupReal {
     fn add(&mut self, proc: &ProcessInfo) {

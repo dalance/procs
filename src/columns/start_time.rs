@@ -42,6 +42,7 @@ impl Column for StartTime {
     column_default!(DateTime<Local>);
 }
 
+#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 impl Column for StartTime {
     fn add(&mut self, proc: &ProcessInfo) {
