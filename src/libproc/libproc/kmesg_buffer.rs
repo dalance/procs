@@ -6,7 +6,7 @@ use self::libc::{uint32_t, c_int};
 use std::{ptr, mem, env};
 use std::fmt;
 
-use crate::libproc::proc_pid;
+use crate::libproc::libproc::proc_pid;
 
 #[cfg(test)]
 use std::io;
