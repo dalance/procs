@@ -444,14 +444,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "libproc"
-version = "0.3.2"
-dependencies = [
- "errno 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)",
- "libc 0.2.48 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
 name = "lock_api"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -618,10 +610,10 @@ dependencies = [
  "console 0.7.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "dirs 1.0.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "dockworker 0.0.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "errno 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "failure 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 1.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.48 (registry+https://github.com/rust-lang/crates.io-index)",
- "libproc 0.3.2",
  "pager 0.15.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "procfs 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "quale 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
