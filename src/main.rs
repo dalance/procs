@@ -1,6 +1,8 @@
 mod column;
 mod columns;
 mod config;
+#[cfg(target_os = "macos")]
+mod libproc;
 mod process;
 mod style;
 mod util;

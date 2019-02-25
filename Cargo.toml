@@ -36,7 +36,8 @@ procfs       = "0.4.6"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 #libproc      = "0.3.2"
-libproc      = { version = "0.3.2", path = "./modified/libproc-rs" }
+#libproc      = { version = "0.3.2", path = "./modified/libproc-rs" }
+errno = "^0.1.8"
 
 [package.metadata.release]
 dev-version-ext            = "pre"

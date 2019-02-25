@@ -1,10 +1,10 @@
 #[cfg(target_os = "macos")]
-use libc::{c_int, c_void, size_t};
-#[cfg(target_os = "macos")]
-use libproc::libproc::proc_pid::{
+use crate::libproc::libproc::proc_pid::{
     self, BSDInfo, InSockInfo, ListFDs, ListThreads, ProcFDType, ProcType, RUsageInfoV2,
     SocketFDInfo, SocketInfoKind, TaskAllInfo, TaskInfo, TcpSockInfo, ThreadInfo,
 };
+#[cfg(target_os = "macos")]
+use libc::{c_int, c_void, size_t};
 #[cfg(target_os = "linux")]
 use procfs::{Io, Process, Status};
 #[cfg(target_os = "macos")]
