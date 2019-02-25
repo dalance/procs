@@ -751,7 +751,7 @@ fn pidfdinfo_test() {
                                             libc::IPPROTO_TCP);
                                             assert_eq!(info.tcpsi_ini.insi_lport as u32, 65535);
                                         }
-                                        x => assert!(false, "{}", x),
+                                        x => assert!(false, "{:?}", x),
                                     }
                                 }
                             },
