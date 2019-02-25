@@ -681,7 +681,7 @@ pub trait PIDFDInfo: Default {
 ///                                     // access to the member of `soi_proto` is unsafe becasuse of union type.
 ///                                     let info = unsafe { socket.psi.soi_proto.pri_tcp };
 ///
-///                                     // change endian and cut off because the member of insi_lport is network endian and 16bit witdh.
+///                                     // change endian and cut off because insi_lport is network endian and 16bit witdh.
 ///                                     let mut port = 0;
 ///                                     port |= info.tcpsi_ini.insi_lport >> 8 & 0x00ff;
 ///                                     port |= info.tcpsi_ini.insi_lport << 8 & 0xff00;
@@ -689,7 +689,7 @@ pub trait PIDFDInfo: Default {
 ///                                     // access to the member of `insi_laddr` is unsafe becasuse of union type.
 ///                                     let s_addr = unsafe { info.tcpsi_ini.insi_laddr.ina_46.i46a_addr4.s_addr };
 ///
-///                                     // change endian because the member of insi_laddr is network endian.
+///                                     // change endian because insi_laddr is network endian.
 ///                                     let mut addr = 0;
 ///                                     addr |= s_addr >> 24 & 0x000000ff;
 ///                                     addr |= s_addr >> 8  & 0x0000ff00;
@@ -751,7 +751,7 @@ fn pidfdinfo_test() {
                                             libc::IPPROTO_TCP);
                                             assert_eq!(info.tcpsi_ini.insi_lport as u32, 65535);
                                         }
-                                        _ => ,
+                                        x => assert!(false, "{}", x),
                                     }
                                 }
                             },
