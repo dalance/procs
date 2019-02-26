@@ -94,8 +94,8 @@ $ procs growi
 
 ![procs_docker](https://user-images.githubusercontent.com/4331004/52265847-4d3a6e00-2978-11e9-8186-ea8e934acbb1.png)
 
-Note that procs gets the container information through UNIX domain socket, so Docker Toolbox on macOS ( doesn't use UNIX domain socket ) is not supported.
-Docker Desktop for Mac is supported but not tested.
+Note that procs gets the container information through UNIX domain socket, so [Docker Toolbox](https://docs.docker.com/toolbox/) on macOS ( doesn't use UNIX domain socket ) is not supported.
+[Docker Desktop for Mac](https://docs.docker.com/docker-for-mac/) is supported but not tested.
 
 ### Pager
 
