@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.5.3...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/0.5.4...Unreleased) - ReleaseDate
+
+## [0.5.4](https://github.com/dalance/procs/compare/v0.5.3...0.5.4) - 2019-02-27
 
 * [Added] text align option
 
