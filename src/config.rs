@@ -14,6 +14,10 @@ fn default_false() -> bool {
     false
 }
 
+fn default_column_align_left() -> ConfigColumnAlign {
+    ConfigColumnAlign::Left
+}
+
 fn default_color_mode_auto() -> ConfigColorMode {
     ConfigColorMode::Auto
 }
@@ -43,6 +47,7 @@ pub struct ColumnInfo {
     pub style: ConfigColumnStyle,
     pub nonnumeric_search: bool,
     pub numeric_search: bool,
+    pub align: ConfigColumnAlign,
 }
 
 pub fn gen_column(kind: &ConfigColumnKind, docker_path: &str) -> Box<dyn Column> {
@@ -285,6 +290,13 @@ pub enum ConfigColumnStyle {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum ConfigColumnAlign {
+    Left,
+    Right,
+    Center,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ConfigColumn {
     pub kind: ConfigColumnKind,
     pub style: ConfigColumnStyle,
@@ -292,6 +304,8 @@ pub struct ConfigColumn {
     pub numeric_search: bool,
     #[serde(default = "default_false")]
     pub nonnumeric_search: bool,
+    #[serde(default = "default_column_align_left")]
+    pub align: ConfigColumnAlign,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -533,6 +547,7 @@ kind = "Nice"
 style = "BrightMagenta"
 numeric_search = false
 nonnumeric_search = false
+align = "Right"
 [[columns]]
 kind = "Tty"
 style = "BrightWhite"
@@ -543,26 +558,31 @@ kind = "UsageCpu"
 style = "ByPercentage"
 numeric_search = false
 nonnumeric_search = false
+align = "Right"
 [[columns]]
 kind = "UsageMem"
 style = "ByPercentage"
 numeric_search = false
 nonnumeric_search = false
+align = "Right"
 [[columns]]
 kind = "VmPeak"
 style = "ByUnit"
 numeric_search = false
 nonnumeric_search = false
+align = "Right"
 [[columns]]
 kind = "VmSize"
 style = "ByUnit"
 numeric_search = false
 nonnumeric_search = false
+align = "Right"
 [[columns]]
 kind = "VmRss"
 style = "ByUnit"
 numeric_search = false
 nonnumeric_search = false
+align = "Right"
 [[columns]]
 kind = "TcpPort"
 style = "BrightCyan"
@@ -578,11 +598,13 @@ kind = "ReadBytes"
 style = "ByUnit"
 numeric_search = false
 nonnumeric_search = false
+align = "Right"
 [[columns]]
 kind = "WriteBytes"
 style = "ByUnit"
 numeric_search = false
 nonnumeric_search = false
+align = "Right"
 [[columns]]
 kind = "Separator"
 style = "White"
@@ -642,6 +664,7 @@ kind = "Nice"
 style = "BrightMagenta"
 numeric_search = false
 nonnumeric_search = false
+align = "Right"
 [[columns]]
 kind = "Tty"
 style = "BrightWhite"
@@ -652,21 +675,25 @@ kind = "UsageCpu"
 style = "ByPercentage"
 numeric_search = false
 nonnumeric_search = false
+align = "Right"
 [[columns]]
 kind = "UsageMem"
 style = "ByPercentage"
 numeric_search = false
 nonnumeric_search = false
+align = "Right"
 [[columns]]
 kind = "VmSize"
 style = "ByUnit"
 numeric_search = false
 nonnumeric_search = false
+align = "Right"
 [[columns]]
 kind = "VmRss"
 style = "ByUnit"
 numeric_search = false
 nonnumeric_search = false
+align = "Right"
 [[columns]]
 kind = "TcpPort"
 style = "BrightCyan"
@@ -682,11 +709,13 @@ kind = "ReadBytes"
 style = "ByUnit"
 numeric_search = false
 nonnumeric_search = false
+align = "Right"
 [[columns]]
 kind = "WriteBytes"
 style = "ByUnit"
 numeric_search = false
 nonnumeric_search = false
+align = "Right"
 [[columns]]
 kind = "Separator"
 style = "White"

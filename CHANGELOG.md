@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.5.3...Unreleased) - ReleaseDate
 
+* [Added] text align option
+
 ## [v0.5.3](https://github.com/dalance/procs/compare/v0.5.2...v0.5.3) - 2019-02-27
 
 * [Fixed] panic by overflow

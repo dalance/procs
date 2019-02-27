@@ -119,6 +119,7 @@ kind = "Username"
 style = "BrightGreen"
 numeric_search = false
 nonnumeric_search = true
+align = "Right"
 
 [style]
 header = "BrightWhite"
@@ -178,6 +179,7 @@ mode = "Auto"
 The first `[[columns]]` is shown at left side, and the last is shown at right side.
 `kind` is column type and `style` is column color.
 `numeric_search` and `nonnumeric_search` mean whether this column can be matched by numeric/non-numeric search keyword.
+`align` means alignment of text. `align` can be `Left`, `Right` and `Center`, and `Left` is default.
 The available list of `kind` and `style` is below.
 
 There are some special styles like `ByPercentage`, `ByState`, `ByUnit`.

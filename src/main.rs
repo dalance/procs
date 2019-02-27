@@ -100,7 +100,7 @@ fn display_header(term: &Term, max_width: usize, cols: &[ColumnInfo], config: &C
         row = format!(
             "{} {}",
             row,
-            apply_color(c.column.display_header(), &config.style.header)
+            apply_color(c.column.display_header(&c.align), &config.style.header)
         );
     }
     row = row.trim_end().to_string();
@@ -114,7 +114,7 @@ fn display_unit(term: &Term, max_width: usize, cols: &[ColumnInfo], config: &Con
         row = format!(
             "{} {}",
             row,
-            apply_color(c.column.display_unit(), &config.style.unit)
+            apply_color(c.column.display_unit(&c.align), &config.style.unit)
         );
     }
     row = row.trim_end().to_string();
@@ -129,7 +129,7 @@ fn display_content(term: &Term, pid: i32, max_width: usize, cols: &[ColumnInfo],
             "{} {}",
             row,
             apply_style(
-                c.column.display_content(pid).unwrap(),
+                c.column.display_content(pid, &c.align).unwrap(),
                 &c.style,
                 &config.style
             )
@@ -214,6 +214,7 @@ fn run_opt_config(opt: Opt, config: Config) -> Result<(), Error> {
                 style: c.style.clone(),
                 nonnumeric_search: c.nonnumeric_search,
                 numeric_search: c.numeric_search,
+                align: c.align.clone(),
             });
         }
     }
@@ -412,12 +413,15 @@ mod tests {
 [[columns]]
 kind = "Command"
 style = "BrightRed"
+align = "Left"
 [[columns]]
 kind = "ContextSw"
 style = "BrightRed"
+align = "Right"
 [[columns]]
 kind = "CpuTime"
 style = "BrightGreen"
+align = "Center"
 [[columns]]
 kind = "Docker"
 style = "BrightMagenta"
@@ -596,12 +600,15 @@ style = "White"
 [[columns]]
 kind = "Command"
 style = "BrightRed"
+align = "Left"
 [[columns]]
 kind = "ContextSw"
 style = "BrightRed"
+align = "Right"
 [[columns]]
 kind = "CpuTime"
 style = "BrightGreen"
+align = "Center"
 [[columns]]
 kind = "Docker"
 style = "BrightMagenta"

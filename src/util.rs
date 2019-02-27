@@ -1,4 +1,5 @@
 use crate::column::Column;
+use crate::config::ConfigColumnAlign;
 
 pub enum KeywordClass {
     Numeric,
@@ -35,9 +36,17 @@ pub fn classify(keyword: &str) -> KeywordClass {
     }
 }
 
-pub fn expand(x: &str, len: usize) -> String {
-    let ret = format!("{}{}", x, " ".repeat(len - x.len()));
-    ret
+pub fn expand(x: &str, len: usize, align: &ConfigColumnAlign) -> String {
+    match align {
+        ConfigColumnAlign::Left => format!("{}{}", x, " ".repeat(len - x.len())),
+        ConfigColumnAlign::Right => format!("{}{}", " ".repeat(len - x.len()), x),
+        ConfigColumnAlign::Center => {
+            let space = len - x.len();
+            let left = space / 2;
+            let right = space / 2 + space % 2;
+            format!("{}{}{}", " ".repeat(left), x, " ".repeat(right))
+        }
+    }
 }
 
 pub fn parse_time(x: u64) -> String {

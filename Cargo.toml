@@ -45,3 +45,8 @@ pre-release-commit-message = "Prepare to v{{version}}"
 pro-release-commit-message = "Start next development iteration v{{version}}"
 tag-message                = "Bump version to {{version}}"
 tag-prefix                 = "v"
+pre-release-replacements = [
+    {file="CHANGELOG.md", search="Unreleased", replace="{{version}}"},
+    {file="CHANGELOG.md", search="ReleaseDate", replace="{{date}}"},
+    {file="CHANGELOG.md", search="Change Log", replace="Change Log\n\n## [Unreleased](https://github.com/dalance/procs/compare/{{version}}...Unreleased) - ReleaseDate"}
+]

@@ -1,4 +1,4 @@
-use crate::config::ConfigSortOrder;
+use crate::config::{ConfigColumnAlign, ConfigSortOrder};
 use crate::process::ProcessInfo;
 
 pub trait Column {
@@ -8,9 +8,9 @@ pub trait Column {
         true
     }
 
-    fn display_header(&self) -> String;
-    fn display_unit(&self) -> String;
-    fn display_content(&self, pid: i32) -> Option<String>;
+    fn display_header(&self, align: &ConfigColumnAlign) -> String;
+    fn display_unit(&self, align: &ConfigColumnAlign) -> String;
+    fn display_content(&self, pid: i32, align: &ConfigColumnAlign) -> Option<String>;
     fn find_partial(&self, pid: i32, keyword: &str) -> bool;
     fn find_exact(&self, pid: i32, keyword: &str) -> bool;
     fn sorted_pid(&self, order: &ConfigSortOrder) -> Vec<i32>;
@@ -21,8 +21,8 @@ pub trait Column {
 #[macro_export]
 macro_rules! column_default_display_header {
     () => {
-        fn display_header(&self) -> String {
-            crate::util::expand(&self.header, self.max_width)
+        fn display_header(&self, align: &crate::config::ConfigColumnAlign) -> String {
+            crate::util::expand(&self.header, self.max_width, align)
         }
     };
 }
@@ -30,8 +30,8 @@ macro_rules! column_default_display_header {
 #[macro_export]
 macro_rules! column_default_display_unit {
     () => {
-        fn display_unit(&self) -> String {
-            crate::util::expand(&self.unit, self.max_width)
+        fn display_unit(&self, align: &crate::config::ConfigColumnAlign) -> String {
+            crate::util::expand(&self.unit, self.max_width, align)
         }
     };
 }
@@ -39,9 +39,9 @@ macro_rules! column_default_display_unit {
 #[macro_export]
 macro_rules! column_default_display_content {
     () => {
-        fn display_content(&self, pid: i32) -> Option<String> {
+        fn display_content(&self, pid: i32, align: &crate::config::ConfigColumnAlign) -> Option<String> {
             if let Some(content) = self.fmt_contents.get(&pid) {
-                Some(crate::util::expand(content, self.max_width))
+                Some(crate::util::expand(content, self.max_width, align))
             } else {
                 None
             }
