@@ -705,6 +705,9 @@ style = "White"
 
     #[test]
     fn test_run_all() {
+        let _tcp = std::net::TcpListener::bind("127.0.0.1:10000");
+        let _udp = std::net::UdpSocket::bind("127.0.0.1:10000");
+
         let args = vec!["procs"];
         let opt = Opt::from_iter(args.iter());
         let mut config: Config = toml::from_str(CONFIG_ALL).unwrap();

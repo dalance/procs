@@ -16,6 +16,7 @@ before_cache: |
     fi
 
 script:
+- sudo -u '#20000' sleep 10m&
 - make test
 - if [[ $TRAVIS_OS_NAME == "linux" ]]; then make release_lnx; fi
 - if [[ $TRAVIS_OS_NAME == "osx"   ]]; then make release_mac; fi
