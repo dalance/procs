@@ -43,7 +43,7 @@ errno = "^0.1.8"
 dev-version-ext            = "pre"
 pre-release-commit-message = "Prepare to v{{version}}"
 pro-release-commit-message = "Start next development iteration v{{version}}"
-tag-message                = "Bump version to {{version}}"
+tag-message                = "Bump version to {{version}}: [CHANGELOG](https://github.com/dalance/procs/blob/master/CHANGELOG.md)"
 tag-prefix                 = "v"
 pre-release-replacements = [
     {file="CHANGELOG.md", search="Unreleased", replace="{{version}}"},
