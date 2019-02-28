@@ -34,6 +34,10 @@ fn default_search_kind_partial() -> ConfigSearchKind {
     ConfigSearchKind::Partial
 }
 
+fn default_search_logic_and() -> ConfigSearchLogic {
+    ConfigSearchLogic::And
+}
+
 fn default_sort_order_ascending() -> ConfigSortOrder {
     ConfigSortOrder::Ascending
 }
@@ -411,6 +415,8 @@ pub struct ConfigSearch {
     pub numeric_search: ConfigSearchKind,
     #[serde(default = "default_search_kind_partial")]
     pub nonnumeric_search: ConfigSearchKind,
+    #[serde(default = "default_search_logic_and")]
+    pub logic: ConfigSearchLogic,
 }
 
 impl Default for ConfigSearch {
@@ -418,6 +424,7 @@ impl Default for ConfigSearch {
         ConfigSearch {
             numeric_search: ConfigSearchKind::Exact,
             nonnumeric_search: ConfigSearchKind::Partial,
+            logic: ConfigSearchLogic::And,
         }
     }
 }
@@ -426,6 +433,14 @@ impl Default for ConfigSearch {
 pub enum ConfigSearchKind {
     Exact,
     Partial,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum ConfigSearchLogic {
+    And,
+    Or,
+    Nand,
+    Nor,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

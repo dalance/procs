@@ -78,12 +78,23 @@ If a numeric is used as the keyword, it is matched to `PID`, `TCP`, `UDP` by def
 Numeric is treated as exact match, and non-numeric is treated as partial match by default.
 
 ```console
-$ procs 6000 60000 60001 16723
+$ procs --or 6000 60000 60001 16723
 ```
 
 ![procs_port](https://user-images.githubusercontent.com/4331004/51976347-c09b3600-24c7-11e9-8d40-2c437efbd5e1.png)
 
 Note that procfs permissions only allow identifying listening ports for processes owned by the current user, so not all ports will show up unless run as root.
+
+### Logical operation of search keywords
+
+If there are some keywords, logical operation between the keywords can be specified by commandline option.
+
+- `--and` : The processes to match with all keywords are shown.
+- `--or`  : The processes to match with any keyword are shown.
+- `--nand`: The processes are shown unless these match with all keywords.
+- `--nor` : The processes are shown unless these match with any keyword.
+
+The default operation can be specified by `~/.procs.toml`. See `[search]` section.
 
 ### Show Docker container name
 
@@ -155,6 +166,7 @@ color_x = "BrightBlue"
 [search]
 numeric_search = "Exact"
 nonnumeric_search = "Partial"
+logic = "And"
 
 [display]
 show_self = false
@@ -302,7 +314,9 @@ The available list of color is the same as the list of `[style]` section.
 
 ### `[search]` section
 
-`[search]` section defines match policy. Policy can be `Exact` or `Partial`.
+`[search]` section defines option for search.
+`numeric_search` and `nonnumeric_search` mean match policy. Policy can be `Exact` or `Partial`.
+`logic` means logical operation between keywords. Operation can be `And`, `Or`, `Nand` or `Nor`.
 
 ### `[display]` section
 

@@ -1,31 +1,69 @@
 use crate::column::Column;
-use crate::config::ConfigColumnAlign;
+use crate::config::{ConfigColumnAlign, ConfigSearchLogic};
 
 pub enum KeywordClass {
     Numeric,
     NonNumeric,
 }
 
-pub fn find_partial<T: AsRef<str>>(columns: &[&Column], pid: i32, keyword: &[T]) -> bool {
+pub fn find_partial<T: AsRef<str>>(
+    columns: &[&Column],
+    pid: i32,
+    keyword: &[T],
+    logic: &ConfigSearchLogic,
+) -> bool {
+    let mut ret = match logic {
+        ConfigSearchLogic::And => true,
+        ConfigSearchLogic::Or => false,
+        ConfigSearchLogic::Nand => true,
+        ConfigSearchLogic::Nor => false,
+    };
     for w in keyword {
+        let mut hit = false;
         for c in columns {
             if c.find_partial(pid, w.as_ref()) {
-                return true;
+                hit = true;
+                break;
             }
         }
+        ret = match logic {
+            ConfigSearchLogic::And => ret & hit,
+            ConfigSearchLogic::Or => ret | hit,
+            ConfigSearchLogic::Nand => ret & hit,
+            ConfigSearchLogic::Nor => ret | hit,
+        };
     }
-    false
+    ret
 }
 
-pub fn find_exact<T: AsRef<str>>(columns: &[&Column], pid: i32, keyword: &[T]) -> bool {
+pub fn find_exact<T: AsRef<str>>(
+    columns: &[&Column],
+    pid: i32,
+    keyword: &[T],
+    logic: &ConfigSearchLogic,
+) -> bool {
+    let mut ret = match logic {
+        ConfigSearchLogic::And => true,
+        ConfigSearchLogic::Or => false,
+        ConfigSearchLogic::Nand => true,
+        ConfigSearchLogic::Nor => false,
+    };
     for w in keyword {
+        let mut hit = false;
         for c in columns {
             if c.find_exact(pid, w.as_ref()) {
-                return true;
+                hit = true;
+                break;
             }
         }
+        ret = match logic {
+            ConfigSearchLogic::And => ret & hit,
+            ConfigSearchLogic::Or => ret | hit,
+            ConfigSearchLogic::Nand => ret & hit,
+            ConfigSearchLogic::Nor => ret | hit,
+        };
     }
-    false
+    ret
 }
 
 pub fn classify(keyword: &str) -> KeywordClass {

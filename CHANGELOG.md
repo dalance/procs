@@ -2,6 +2,9 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/0.5.4...Unreleased) - ReleaseDate
 
+* [Added] logical operation for search keywords
+* [Changed] default logical operation for search keywords from OR to AND
+
 ## [0.5.4](https://github.com/dalance/procs/compare/v0.5.3...0.5.4) - 2019-02-27
 
 * [Added] text align option

@@ -31,9 +31,41 @@ use structopt::{clap, StructOpt};
 #[structopt(raw(setting = "clap::AppSettings::ColoredHelp"))]
 #[structopt(raw(setting = "clap::AppSettings::DeriveDisplayOrder"))]
 pub struct Opt {
-    /// Keyword for search
+    /// Keywords for search
     #[structopt(name = "KEYWORD")]
     pub keyword: Vec<String>,
+
+    /// AND  logic for multi-keyword
+    #[structopt(
+        short = "a",
+        long = "and",
+        raw(conflicts_with_all = "&[\"or\", \"nand\", \"nor\"]")
+    )]
+    pub and: bool,
+
+    /// OR   logic for multi-keyword
+    #[structopt(
+        short = "o",
+        long = "or",
+        raw(conflicts_with_all = "&[\"and\", \"nand\", \"nor\"]")
+    )]
+    pub or: bool,
+
+    /// NAND logic for multi-keyword
+    #[structopt(
+        short = "d",
+        long = "nand",
+        raw(conflicts_with_all = "&[\"and\", \"or\", \"nor\"]")
+    )]
+    pub nand: bool,
+
+    /// NOR  logic for multi-keyword
+    #[structopt(
+        short = "r",
+        long = "nor",
+        raw(conflicts_with_all = "&[\"and\", \"or\", \"nand\"]")
+    )]
+    pub nor: bool,
 
     /// Color mode
     #[structopt(
@@ -147,16 +179,26 @@ fn search<T: AsRef<str>>(
     cols_numeric: &[&Column],
     cols_nonnumeric: &[&Column],
     config: &Config,
+    logic: &ConfigSearchLogic,
 ) -> bool {
-    let mut ret = match config.search.nonnumeric_search {
-        ConfigSearchKind::Partial => util::find_partial(cols_nonnumeric, pid, keyword_nonnumeric),
-        ConfigSearchKind::Exact => util::find_exact(cols_nonnumeric, pid, keyword_nonnumeric),
+    let ret_nonnumeric = match config.search.nonnumeric_search {
+        ConfigSearchKind::Partial => {
+            util::find_partial(cols_nonnumeric, pid, keyword_nonnumeric, logic)
+        }
+        ConfigSearchKind::Exact => {
+            util::find_exact(cols_nonnumeric, pid, keyword_nonnumeric, logic)
+        }
     };
-    ret |= match config.search.numeric_search {
-        ConfigSearchKind::Partial => util::find_partial(cols_numeric, pid, keyword_numeric),
-        ConfigSearchKind::Exact => util::find_exact(cols_numeric, pid, keyword_numeric),
+    let ret_numeric = match config.search.numeric_search {
+        ConfigSearchKind::Partial => util::find_partial(cols_numeric, pid, keyword_numeric, logic),
+        ConfigSearchKind::Exact => util::find_exact(cols_numeric, pid, keyword_numeric, logic),
     };
-    ret
+    match logic {
+        ConfigSearchLogic::And => ret_nonnumeric & ret_numeric,
+        ConfigSearchLogic::Or => ret_nonnumeric | ret_numeric,
+        ConfigSearchLogic::Nand => !(ret_nonnumeric & ret_numeric),
+        ConfigSearchLogic::Nor => !(ret_nonnumeric | ret_numeric),
+    }
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -257,6 +299,18 @@ fn run_opt_config(opt: Opt, config: Config) -> Result<(), Error> {
 
     let self_pid = std::process::id() as i32;
 
+    let logic = if opt.and {
+        ConfigSearchLogic::And
+    } else if opt.or {
+        ConfigSearchLogic::Or
+    } else if opt.nand {
+        ConfigSearchLogic::Nand
+    } else if opt.nor {
+        ConfigSearchLogic::Nor
+    } else {
+        config.search.logic.clone()
+    };
+
     let mut visible_pids = Vec::new();
     for pid in pids {
         let visible = if !config.display.show_self && pid == self_pid {
@@ -271,6 +325,7 @@ fn run_opt_config(opt: Opt, config: Config) -> Result<(), Error> {
                 cols_numeric.as_slice(),
                 cols_nonnumeric.as_slice(),
                 &config,
+                &logic,
             )
         };
 
