@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/0.5.4...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/0.5.5...Unreleased) - ReleaseDate
+
+## [0.5.5](https://github.com/dalance/procs/compare/0.5.4...0.5.5) - 2019-02-28
 
 * [Added] logical operation for search keywords
 * [Changed] default logical operation for search keywords from OR to AND
