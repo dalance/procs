@@ -191,13 +191,13 @@ mode = "Auto"
 `[[columns]]` section defines which columns are used.
 The first `[[columns]]` is shown at left side, and the last is shown at right side.
 
-| Key                 | Value               | Default | Description                                                 |
-| ------------------- | ------------------- | ------- | ----------------------------------------------------------- |
-| `kind`              | See `kind` list     |         | Column type                                                 |
-| `style`             | See `style` list    |         | Column style                                                |
-| `numeric_search`    | true, false         | false   | Whether the column can be matched with numeric keywords     |
-| `nonnumeric_search` | true, false         | false   | Whether the column can be matched with non-numeric keywords |
-| `align`             | Left, Right, Center | Left    | Text alignment                                              |
+| Key               | Value               | Default | Description                                                 |
+| ----------------- | ------------------- | ------- | ----------------------------------------------------------- |
+| kind              | See `kind` list     |         | Column type                                                 |
+| style             | See `style` list    |         | Column style                                                |
+| numeric_search    | true, false         | false   | Whether the column can be matched with numeric keywords     |
+| nonnumeric_search | true, false         | false   | Whether the column can be matched with non-numeric keywords |
+| align             | Left, Right, Center | Left    | Text alignment                                              |
 
 #### `kind` list
 
@@ -294,30 +294,30 @@ The colors can be configured in `[style.by_unit]` section.
 `[style]` section defines colors of header, unit and each styles.
 The available list of color is below.
 
-| Subsection      | Key         | Value            | Default       | Description          |
-| ----------      | ----------- | ---------------- | ------------- | -------------------- |
-|                 | `header`    | See `color` list | BrightWhite   | Header color         |
-|                 | `unit`      | See `color` list | BrightWhite   | Unit color           |
-| `by_percentage` | `color_000` | See `color` list | BrightBlue    | Color at   0% -  25% |
-| `by_percentage` | `color_025` | See `color` list | BrightGreen   | Color at  25% -  50% |
-| `by_percentage` | `color_050` | See `color` list | BrightYellow  | Color at  50% -  75% |
-| `by_percentage` | `color_075` | See `color` list | BrightRed     | Color at  75% - 100% |
-| `by_percentage` | `color_100` | See `color` list | BrightRed     | Color at 100% -      |
-| `by_state`      | `color_d`   | See `color` list | BrightRed     | Color at `D` state   |
-| `by_state`      | `color_r`   | See `color` list | BrightGreen   | Color at `R` state   |
-| `by_state`      | `color_s`   | See `color` list | BrightBlue    | Color at `S` state   |
-| `by_state`      | `color_t`   | See `color` list | BrightCyan    | Color at `T` state   |
-| `by_state`      | `color_z`   | See `color` list | BrightMagenta | Color at `Z` state   |
-| `by_state`      | `color_x`   | See `color` list | BrightMagenta | Color at `X` state   |
-| `by_state`      | `color_k`   | See `color` list | BrightYellow  | Color at `K` state   |
-| `by_state`      | `color_w`   | See `color` list | BrightYellow  | Color at `W` state   |
-| `by_state`      | `color_p`   | See `color` list | BrightYellow  | Color at `P` state   |
-| `by_unit`       | `color_k`   | See `color` list | BrightBlue    | Color at unit `K`    |
-| `by_unit`       | `color_m`   | See `color` list | BrightGreen   | Color at unit `M`    |
-| `by_unit`       | `color_g`   | See `color` list | BrightYellow  | Color at unit `G`    |
-| `by_unit`       | `color_t`   | See `color` list | BrightRed     | Color at unit `T`    |
-| `by_unit`       | `color_p`   | See `color` list | BrightRed     | Color at unit `P`    |
-| `by_unit`       | `color_x`   | See `color` list | BrightBlue    | Color at other unit  |
+| Subsection    | Key       | Value            | Default       | Description          |
+| ------------- | --------- | ---------------- | ------------- | -------------------- |
+|               | header    | See `color` list | BrightWhite   | Header color         |
+|               | unit      | See `color` list | BrightWhite   | Unit color           |
+| by_percentage | color_000 | See `color` list | BrightBlue    | Color at   0% -  25% |
+| by_percentage | color_025 | See `color` list | BrightGreen   | Color at  25% -  50% |
+| by_percentage | color_050 | See `color` list | BrightYellow  | Color at  50% -  75% |
+| by_percentage | color_075 | See `color` list | BrightRed     | Color at  75% - 100% |
+| by_percentage | color_100 | See `color` list | BrightRed     | Color at 100% -      |
+| by_state      | color_d   | See `color` list | BrightRed     | Color at `D` state   |
+| by_state      | color_r   | See `color` list | BrightGreen   | Color at `R` state   |
+| by_state      | color_s   | See `color` list | BrightBlue    | Color at `S` state   |
+| by_state      | color_t   | See `color` list | BrightCyan    | Color at `T` state   |
+| by_state      | color_z   | See `color` list | BrightMagenta | Color at `Z` state   |
+| by_state      | color_x   | See `color` list | BrightMagenta | Color at `X` state   |
+| by_state      | color_k   | See `color` list | BrightYellow  | Color at `K` state   |
+| by_state      | color_w   | See `color` list | BrightYellow  | Color at `W` state   |
+| by_state      | color_p   | See `color` list | BrightYellow  | Color at `P` state   |
+| by_unit       | color_k   | See `color` list | BrightBlue    | Color at unit `K`    |
+| by_unit       | color_m   | See `color` list | BrightGreen   | Color at unit `M`    |
+| by_unit       | color_g   | See `color` list | BrightYellow  | Color at unit `G`    |
+| by_unit       | color_t   | See `color` list | BrightRed     | Color at unit `T`    |
+| by_unit       | color_p   | See `color` list | BrightRed     | Color at unit `P`    |
+| by_unit       | color_x   | See `color` list | BrightBlue    | Color at other unit  |
 
 #### `color` list
 
@@ -340,23 +340,23 @@ The available list of color is below.
 
 `[search]` section defines option for Keyword search.
 
-| Key                 | Value              | Default | Description                                             |
-| ------------------- | ------------------ | ------- | ------------------------------------------------------- |
-| `numeric_search`    | Exact, Partial     | Exact   | Whether numeric keywords match exactly or partially     |
-| `nonnumeric_search` | Exact, Partial     | Partial | Whether non-numeric keywords match exactly or partially |
-| `logic`             | And, Or, Nand, Nor | And     | Logical operation between keywords                      |
+| Key               | Value              | Default | Description                                             |
+| ----------------- | ------------------ | ------- | ------------------------------------------------------- |
+| numeric_search    | Exact, Partial     | Exact   | Whether numeric keywords match exactly or partially     |
+| nonnumeric_search | Exact, Partial     | Partial | Whether non-numeric keywords match exactly or partially |
+| logic             | And, Or, Nand, Nor | And     | Logical operation between keywords                      |
 
 ### `[display]` section
 
 `[display]` section defines option for output display.
 
-| Key                 | Value                 | Default | Description                                                                  |
-| ------------------- | --------------------- | ------- | ---------------------------------------------------------------------------- |
-| `show_self`         | true, false           | false   | Whether the self process ( `procs` ) is shown                                |
-| `cut_to_terminal`   | true, false           | true    | Whether output lines are truncated for output into terminal                  |
-| `cut_to_pager`      | true, false           | false   | Whether output lines are truncated for output into pager                     |
-| `cut_to_pipe`       | true, false           | false   | Whether output lines are truncated for output into pipe                      |
-| `color_mode`        | Auto, Always, Disable | Auto    | The default behavior of output coloring without `--color` commandline option |
+| Key             | Value                 | Default | Description                                                                  |
+| --------------- | --------------------- | ------- | ---------------------------------------------------------------------------- |
+| show_self       | true, false           | false   | Whether the self process ( `procs` ) is shown                                |
+| cut_to_terminal | true, false           | true    | Whether output lines are truncated for output into terminal                  |
+| cut_to_pager    | true, false           | false   | Whether output lines are truncated for output into pager                     |
+| cut_to_pipe     | true, false           | false   | Whether output lines are truncated for output into pipe                      |
+| color_mode      | Auto, Always, Disable | Auto    | The default behavior of output coloring without `--color` commandline option |
 
 If `color_mode` is `Auto`, color is enabled for terminal and pager, disabled for pipe.
 
@@ -364,10 +364,10 @@ If `color_mode` is `Auto`, color is enabled for terminal and pager, disabled for
 
 `[sort]` section defines the column used for sort and sort order.
 
-| Key      | Value                 | Default   | Description                     |
-| -------- | --------------------- | --------- | ------------------------------- |
-| `column` | [Number]              | 0         | Column number to used for sort  |
-| `order`  | Ascending, Descending | Ascending | Sort order                      |
+| Key    | Value                 | Default   | Description                     |
+| ------ | --------------------- | --------- | ------------------------------- |
+| column | [Number]              | 0         | Column number to used for sort  |
+| order  | Ascending, Descending | Ascending | Sort order                      |
 
 If `column` is 0, value is sorted by the left column.
 
@@ -375,18 +375,18 @@ If `column` is 0, value is sorted by the left column.
 
 `[docker]` section defines how to communicate to docker daemon.
 
-| Key      | Value  | Default                     | Description                         |
-| -------- | ------ | --------------------------- | ----------------------------------- |
-| `path`   | [Path] | unix:///var/run/docker.sock | UNIX domain socket to docker daemon |
+| Key  | Value  | Default                     | Description                         |
+| ---- | ------ | --------------------------- | ----------------------------------- |
+| path | [Path] | unix:///var/run/docker.sock | UNIX domain socket to docker daemon |
 
 ### `[pager]` section
 
 `[pager]` section defines the behavior of pager.
 
-| Key       | Value                 | Default  | Description                                                              |
-| --------- | --------------------- | -------- | ------------------------------------------------------------------------ |
-| `mode`    | Auto, Always, Disable | Auto     | The default behavior of pager usage without `--pager` commandline option |
-| `command` | [Command]             | less -SR | Pager command                                                            |
+| Key     | Value                 | Default  | Description                                                              |
+| ------- | --------------------- | -------- | ------------------------------------------------------------------------ |
+| mode    | Auto, Always, Disable | Auto     | The default behavior of pager usage without `--pager` commandline option |
+| command | [Command]             | less -SR | Pager command                                                            |
 
 If `mode` is `Auto`, pager is used only when output lines exceed terminal height.
 Default pager is `less -SR` ( if `less` is not found, `more -f` ).
