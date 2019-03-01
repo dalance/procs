@@ -67,6 +67,22 @@ pub struct Opt {
     )]
     pub nor: bool,
 
+    /// Sort column by Ascending
+    #[structopt(
+        value_name = "header",
+        long = "sorta",
+        raw(conflicts_with = "\"sortd\"")
+    )]
+    pub sorta: Option<String>,
+
+    /// Sort column by Descending
+    #[structopt(
+        value_name = "header",
+        long = "sortd",
+        raw(conflicts_with = "\"sorta\"")
+    )]
+    pub sortd: Option<String>,
+
     /// Color mode
     #[structopt(
         short = "c",
@@ -293,9 +309,28 @@ fn run_opt_config(opt: Opt, config: Config) -> Result<(), Error> {
         }
     }
 
-    let pids = cols[config.sort.column]
-        .column
-        .sorted_pid(&config.sort.order);
+    let sort_idx = match (&opt.sorta, &opt.sortd) {
+        (Some(sort), _) | (_, Some(sort)) => {
+            let mut ret = config.sort.column;
+            for (i, c) in cols.iter().enumerate() {
+                let header = c.column.get_header().to_lowercase();
+                if header.find(&sort.to_lowercase()).is_some() {
+                    ret = i;
+                    break;
+                }
+            }
+            ret
+        }
+        _ => config.sort.column,
+    };
+
+    let sort_order = match (&opt.sorta, &opt.sortd) {
+        (Some(_), _) => ConfigSortOrder::Ascending,
+        (_, Some(_)) => ConfigSortOrder::Descending,
+        _ => config.sort.order.clone(),
+    };
+
+    let pids = cols[sort_idx].column.sorted_pid(&sort_order);
 
     let self_pid = std::process::id() as i32;
 
@@ -334,8 +369,9 @@ fn run_opt_config(opt: Opt, config: Config) -> Result<(), Error> {
         }
     }
 
-    for pid in &visible_pids {
-        for c in &mut cols {
+    for c in &mut cols {
+        c.column.reset_max_width();
+        for pid in &visible_pids {
             c.column.update_max_width(*pid);
         }
     }

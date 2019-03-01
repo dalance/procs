@@ -114,6 +114,18 @@ Note that procs gets the container information through UNIX domain socket, so [D
 If output lines exceed terminal height, pager is used automatically.
 This behavior and pager command can be specified by configuration file.
 
+### Sort column
+
+Column sort order can be changed by `--sorta` or `--sortd` option.
+The last charactor of `--sorta` and `--sortd` means sort order: "a"scending and "d"escending.
+
+The column for sort is selected by the option keyword.
+If `--sorta cpu`, column is sorted by `CPU` with ascending order.
+If `--sortd rss`, column is sorted by `VmRss` with decending order.
+The keyword is matched partially and case is ignored.
+
+The default sort is specified by `[sort]` section in `~/.procs.toml`
+
 ## Configuration
 
 You can change configuration by `~/.procs.toml` like below.

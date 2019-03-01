@@ -16,6 +16,7 @@ pub trait Column {
     fn sorted_pid(&self, order: &ConfigSortOrder) -> Vec<i32>;
     fn reset_max_width(&mut self) -> ();
     fn update_max_width(&mut self, pid: i32) -> ();
+    fn get_header(&self) -> &str;
 }
 
 #[macro_export]
@@ -108,6 +109,15 @@ macro_rules! column_default_update_max_width {
 }
 
 #[macro_export]
+macro_rules! column_default_get_header {
+    () => {
+        fn get_header(&self) -> &str {
+            &self.header
+        }
+    };
+}
+
+#[macro_export]
 macro_rules! column_default {
     ($x:ty) => {
         crate::column_default_display_header!();
@@ -118,5 +128,6 @@ macro_rules! column_default {
         crate::column_default_sorted_pid!($x);
         crate::column_default_reset_max_width!();
         crate::column_default_update_max_width!();
+        crate::column_default_get_header!();
     };
 }

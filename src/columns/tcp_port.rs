@@ -93,6 +93,7 @@ impl Column for TcpPort {
     crate::column_default_sorted_pid!(String);
     crate::column_default_reset_max_width!();
     crate::column_default_update_max_width!();
+    crate::column_default_get_header!();
 }
 
 #[cfg_attr(tarpaulin, skip)]
@@ -141,4 +142,5 @@ impl Column for TcpPort {
     crate::column_default_sorted_pid!(String);
     crate::column_default_reset_max_width!();
     crate::column_default_update_max_width!();
+    crate::column_default_get_header!();
 }
