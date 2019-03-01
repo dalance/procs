@@ -309,25 +309,25 @@ fn run_opt_config(opt: Opt, config: Config) -> Result<(), Error> {
         }
     }
 
-    let sort_idx = match (&opt.sorta, &opt.sortd) {
+    let (sort_idx, sort_order) = match (&opt.sorta, &opt.sortd) {
         (Some(sort), _) | (_, Some(sort)) => {
-            let mut ret = config.sort.column;
+            let mut idx = config.sort.column;
+            let mut order = config.sort.order.clone();
             for (i, c) in cols.iter().enumerate() {
                 let header = c.column.get_header().to_lowercase();
                 if header.find(&sort.to_lowercase()).is_some() {
-                    ret = i;
+                    idx = i;
+                    order = if opt.sorta.is_some() {
+                        ConfigSortOrder::Ascending
+                    } else {
+                        ConfigSortOrder::Descending
+                    };
                     break;
                 }
             }
-            ret
+            (idx, order)
         }
-        _ => config.sort.column,
-    };
-
-    let sort_order = match (&opt.sorta, &opt.sortd) {
-        (Some(_), _) => ConfigSortOrder::Ascending,
-        (_, Some(_)) => ConfigSortOrder::Descending,
-        _ => config.sort.order.clone(),
+        _ => (config.sort.column, config.sort.order.clone()),
     };
 
     let pids = cols[sort_idx].column.sorted_pid(&sort_order);
