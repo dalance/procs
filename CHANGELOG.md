@@ -3,6 +3,7 @@
 ## [Unreleased](https://github.com/dalance/procs/compare/0.5.5...Unreleased) - ReleaseDate
 
 * [Added] Ssb column
+* [Added] sort option
 
 ## [0.5.5](https://github.com/dalance/procs/compare/0.5.4...0.5.5) - 2019-02-28
 
