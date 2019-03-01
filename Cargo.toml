@@ -49,5 +49,5 @@ pre-release-replacements = [
     {file="CHANGELOG.md", search="Unreleased", replace="{{version}}"},
     {file="CHANGELOG.md", search="ReleaseDate", replace="{{date}}"},
     {file="CHANGELOG.md", search="Change Log", replace="Change Log\n\n## [Unreleased](https://github.com/dalance/procs/compare/{{version}}...Unreleased) - ReleaseDate"},
-    {file="README.md", search = "changelog-v[0-9\\.]+", replace = "changelog-{{version}}" },
+    {file="README.md", search = "changelog-v[0-9\\.]+", replace = "changelog-v{{version}}" },
 ]
