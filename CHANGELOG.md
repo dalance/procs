@@ -1,16 +1,16 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/0.5.5...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.5.5...Unreleased) - ReleaseDate
 
 * [Added] Ssb column
 * [Added] sort option
 
-## [0.5.5](https://github.com/dalance/procs/compare/0.5.4...0.5.5) - 2019-02-28
+## [v0.5.5](https://github.com/dalance/procs/compare/v0.5.4...v0.5.5) - 2019-02-28
 
 * [Added] logical operation for search keywords
 * [Changed] default logical operation for search keywords from OR to AND
 
-## [0.5.4](https://github.com/dalance/procs/compare/v0.5.3...0.5.4) - 2019-02-27
+## [v0.5.4](https://github.com/dalance/procs/compare/v0.5.3...v0.5.4) - 2019-02-27
 
 * [Added] text align option
 
