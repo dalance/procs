@@ -559,6 +559,9 @@ style = "White"
 kind = "SigPnd"
 style = "White"
 [[columns]]
+kind = "Ssb"
+style = "White"
+[[columns]]
 kind = "StartTime"
 style = "White"
 [[columns]]

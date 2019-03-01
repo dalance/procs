@@ -233,6 +233,7 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | SigCgt       | caught                | Caught signal mask               | o     |       |
 | SigIgn       | ignored               | Ignored signal mask              | o     |       |
 | SigPnd       | pending               | Pending signal mask for thread   | o     |       |
+| Ssb          | -not supported-       | Speculative store bypass status  | o     |       |
 | StartTime    | start_time            | Starting time                    | o     | o     |
 | State        | s                     | Process State                    | o     | o     |
 | TcpPort      | -not supported-       | Bound TCP ports                  | o     | o     |

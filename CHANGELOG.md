@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/0.5.5...Unreleased) - ReleaseDate
 
+* [Added] Ssb column
+
 ## [0.5.5](https://github.com/dalance/procs/compare/0.5.4...0.5.5) - 2019-02-28
 
 * [Added] logical operation for search keywords

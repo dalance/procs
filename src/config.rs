@@ -97,6 +97,8 @@ pub fn gen_column(kind: &ConfigColumnKind, docker_path: &str) -> Box<dyn Column>
         ConfigColumnKind::SigIgn => Box::new(SigIgn::new()),
         #[cfg(target_os = "linux")]
         ConfigColumnKind::SigPnd => Box::new(SigPnd::new()),
+        #[cfg(target_os = "linux")]
+        ConfigColumnKind::Ssb => Box::new(Ssb::new()),
         ConfigColumnKind::StartTime => Box::new(StartTime::new()),
         ConfigColumnKind::State => Box::new(State::new()),
         ConfigColumnKind::TcpPort => Box::new(TcpPort::new()),
@@ -226,6 +228,8 @@ pub enum ConfigColumnKind {
     SigIgn,
     #[cfg(target_os = "linux")]
     SigPnd,
+    #[cfg(target_os = "linux")]
+    Ssb,
     StartTime,
     State,
     TcpPort,
