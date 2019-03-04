@@ -29,7 +29,7 @@ impl Column for SigBlk {
     fn add(&mut self, proc: &ProcessInfo) {
         let (fmt_content, raw_content) = if let Some(ref status) = proc.curr_status {
             let val = status.sigblk;
-            (format!("{:x}", val), val)
+            (format!("{:016x}", val), val)
         } else {
             (String::from(""), 0)
         };
