@@ -2,8 +2,10 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.5.6...Unreleased) - ReleaseDate
 
-* [Fixed] unmatched `--sort*` affects sort order
+* [Added] separator option to `~/.procs.toml` setting
 * [Changed] the first decimal place of day/year in CpuTime is shown
+* [Changed] default separator from "|" to "│" ( U+2502:Box Drawings Light Vertical )
+* [Fixed] unmatched `--sort*` affects sort order
 
 ## [v0.5.6](https://github.com/dalance/procs/compare/v0.5.5...v0.5.6) - 2019-03-01
 

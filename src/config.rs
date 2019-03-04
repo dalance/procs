@@ -42,6 +42,10 @@ fn default_sort_order_ascending() -> ConfigSortOrder {
     ConfigSortOrder::Ascending
 }
 
+fn default_separator() -> String {
+    String::from("│")
+}
+
 // ---------------------------------------------------------------------------------------------------------------------
 // ColumnInfo
 // ---------------------------------------------------------------------------------------------------------------------
@@ -54,7 +58,7 @@ pub struct ColumnInfo {
     pub align: ConfigColumnAlign,
 }
 
-pub fn gen_column(kind: &ConfigColumnKind, docker_path: &str) -> Box<dyn Column> {
+pub fn gen_column(kind: &ConfigColumnKind, docker_path: &str, separator: &str) -> Box<dyn Column> {
     match kind {
         ConfigColumnKind::Command => Box::new(Command::new()),
         ConfigColumnKind::ContextSw => Box::new(ContextSw::new()),
@@ -86,7 +90,7 @@ pub fn gen_column(kind: &ConfigColumnKind, docker_path: &str) -> Box<dyn Column>
         ConfigColumnKind::ReadBytes => Box::new(ReadBytes::new()),
         #[cfg(target_os = "linux")]
         ConfigColumnKind::RtPriority => Box::new(RtPriority::new()),
-        ConfigColumnKind::Separator => Box::new(Separator::new()),
+        ConfigColumnKind::Separator => Box::new(Separator::new(separator)),
         #[cfg(target_os = "linux")]
         ConfigColumnKind::ShdPnd => Box::new(ShdPnd::new()),
         #[cfg(target_os = "linux")]
@@ -459,6 +463,8 @@ pub struct ConfigDisplay {
     pub cut_to_pipe: bool,
     #[serde(default = "default_color_mode_auto")]
     pub color_mode: ConfigColorMode,
+    #[serde(default = "default_separator")]
+    pub separator: String,
 }
 
 impl Default for ConfigDisplay {
@@ -469,6 +475,7 @@ impl Default for ConfigDisplay {
             cut_to_pager: false,
             cut_to_pipe: false,
             color_mode: ConfigColorMode::Auto,
+            separator: String::from("│"),
         }
     }
 }
