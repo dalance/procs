@@ -3,20 +3,20 @@ use console::{Style, StyledObject};
 use lazy_static::lazy_static;
 
 lazy_static! {
-    static ref bright_red: Style = Style::new().red().bold();
-    static ref bright_green: Style = Style::new().green().bold();
-    static ref bright_yellow: Style = Style::new().yellow().bold();
-    static ref bright_blue: Style = Style::new().blue().bold();
-    static ref bright_magenta: Style = Style::new().magenta().bold();
-    static ref bright_cyan: Style = Style::new().cyan().bold();
-    static ref bright_white: Style = Style::new().white().bold();
-    static ref red: Style = Style::new().red();
-    static ref green: Style = Style::new().green();
-    static ref yellow: Style = Style::new().yellow();
-    static ref blue: Style = Style::new().blue();
-    static ref magenta: Style = Style::new().magenta();
-    static ref cyan: Style = Style::new().cyan();
-    static ref white: Style = Style::new().white();
+    static ref BRIGHT_RED: Style = Style::new().red().bold();
+    static ref BRIGHT_GREEN: Style = Style::new().green().bold();
+    static ref BRIGHT_YELLOW: Style = Style::new().yellow().bold();
+    static ref BRIGHT_BLUE: Style = Style::new().blue().bold();
+    static ref BRIGHT_MAGENTA: Style = Style::new().magenta().bold();
+    static ref BRIGHT_CYAN: Style = Style::new().cyan().bold();
+    static ref BRIGHT_WHITE: Style = Style::new().white().bold();
+    static ref RED: Style = Style::new().red();
+    static ref GREEN: Style = Style::new().green();
+    static ref YELLOW: Style = Style::new().yellow();
+    static ref BLUE: Style = Style::new().blue();
+    static ref MAGENTA: Style = Style::new().magenta();
+    static ref CYAN: Style = Style::new().cyan();
+    static ref WHITE: Style = Style::new().white();
 }
 
 fn apply_style_by_state(x: String, s: &ConfigStyle) -> StyledObject<String> {
@@ -63,20 +63,20 @@ fn apply_style_by_percentage(x: String, s: &ConfigStyle) -> StyledObject<String>
 
 pub fn apply_color(x: String, c: &ConfigColor) -> StyledObject<String> {
     match c {
-        ConfigColor::BrightRed => bright_red.apply_to(x),
-        ConfigColor::BrightGreen => bright_green.apply_to(x),
-        ConfigColor::BrightYellow => bright_yellow.apply_to(x),
-        ConfigColor::BrightBlue => bright_blue.apply_to(x),
-        ConfigColor::BrightMagenta => bright_magenta.apply_to(x),
-        ConfigColor::BrightCyan => bright_cyan.apply_to(x),
-        ConfigColor::BrightWhite => bright_white.apply_to(x),
-        ConfigColor::Red => red.apply_to(x),
-        ConfigColor::Green => green.apply_to(x),
-        ConfigColor::Yellow => yellow.apply_to(x),
-        ConfigColor::Blue => blue.apply_to(x),
-        ConfigColor::Magenta => magenta.apply_to(x),
-        ConfigColor::Cyan => cyan.apply_to(x),
-        ConfigColor::White => white.apply_to(x),
+        ConfigColor::BrightRed => BRIGHT_RED.apply_to(x),
+        ConfigColor::BrightGreen => BRIGHT_GREEN.apply_to(x),
+        ConfigColor::BrightYellow => BRIGHT_YELLOW.apply_to(x),
+        ConfigColor::BrightBlue => BRIGHT_BLUE.apply_to(x),
+        ConfigColor::BrightMagenta => BRIGHT_MAGENTA.apply_to(x),
+        ConfigColor::BrightCyan => BRIGHT_CYAN.apply_to(x),
+        ConfigColor::BrightWhite => BRIGHT_WHITE.apply_to(x),
+        ConfigColor::Red => RED.apply_to(x),
+        ConfigColor::Green => GREEN.apply_to(x),
+        ConfigColor::Yellow => YELLOW.apply_to(x),
+        ConfigColor::Blue => BLUE.apply_to(x),
+        ConfigColor::Magenta => MAGENTA.apply_to(x),
+        ConfigColor::Cyan => CYAN.apply_to(x),
+        ConfigColor::White => WHITE.apply_to(x),
     }
 }
 
