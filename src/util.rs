@@ -97,17 +97,14 @@ pub fn parse_time(x: u64) -> String {
     let rest = rest / 60;
 
     let hour = rest % 24;
-    let rest = rest / 24;
 
-    let day = rest % 365;
-    let rest = rest / 365;
+    let day = x as f64 / (60.0 * 60.0 * 24.0);
+    let year = x as f64 / (365.0 * 60.0 * 60.0 * 24.0);
 
-    let year = rest;
-
-    if year != 0 {
-        format!("{}years", year)
-    } else if day != 0 {
-        format!("{}days", day)
+    if year >= 1.0 {
+        format!("{:.1}years", year)
+    } else if day >= 1.0 {
+        format!("{:.1}days", day)
     } else {
         format!("{:02}:{:02}:{:02}", hour, min, sec)
     }

@@ -3,6 +3,7 @@
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.5.6...Unreleased) - ReleaseDate
 
 * [Fixed] unmatched `--sort*` affects sort order
+* [Changed] the first decimal place of day/year in CpuTime is shown
 
 ## [v0.5.6](https://github.com/dalance/procs/compare/v0.5.5...v0.5.6) - 2019-03-01
 
