@@ -265,7 +265,7 @@ fn run_opt_config(opt: Opt, config: Config) -> Result<(), Error> {
 
     let mut cols = Vec::new();
     for c in &config.columns {
-        let column = gen_column(&c.kind, &config.docker.path);
+        let column = gen_column(&c.kind, &config.docker.path, &config.display.separator);
         if column.available() {
             cols.push(ColumnInfo {
                 column,
