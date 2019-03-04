@@ -67,20 +67,26 @@ pub struct Opt {
     )]
     pub nor: bool,
 
-    /// Sort column by Ascending
+    /// Show list of kind
+    #[structopt(short = "l", long = "list")]
+    pub list: bool,
+
+    /// Insert column to slot
     #[structopt(
-        value_name = "header",
-        long = "sorta",
-        raw(conflicts_with = "\"sortd\"")
+        value_name = "kind",
+        short = "i",
+        long = "insert",
+        raw(multiple = "true"),
+        raw(number_of_values = "1")
     )]
+    pub insert: Vec<String>,
+
+    /// Sort column by ascending
+    #[structopt(value_name = "kind", long = "sorta", raw(conflicts_with = "\"sortd\""))]
     pub sorta: Option<String>,
 
-    /// Sort column by Descending
-    #[structopt(
-        value_name = "header",
-        long = "sortd",
-        raw(conflicts_with = "\"sorta\"")
-    )]
+    /// Sort column by descending
+    #[structopt(value_name = "kind", long = "sortd", raw(conflicts_with = "\"sorta\""))]
     pub sortd: Option<String>,
 
     /// Color mode
@@ -252,6 +258,34 @@ fn run() -> Result<(), Error> {
         return Ok(());
     }
 
+    if opt.list {
+        let mut list = Vec::new();
+        for (_, v) in KIND_LIST.iter() {
+            list.push(v);
+        }
+
+        list.sort();
+
+        let term = Term::stdout();
+        let (_, term_w) = term.size();
+
+        println!("Column kind list:");
+        print!("  ");
+
+        let mut width = 2;
+        for l in list {
+            if width + l.len() + 1 > term_w as usize {
+                println!();
+                print!("  ");
+                width = 2;
+            }
+            print!("{} ", l);
+            width += l.len() + 1;
+        }
+        println!();
+        return Ok(());
+    }
+
     let config = get_config()?;
 
     run_opt_config(opt, config)
@@ -263,17 +297,33 @@ fn run_opt_config(opt: Opt, config: Config) -> Result<(), Error> {
     // Generate column
     // -------------------------------------------------------------------------
 
+    let mut slot_idx = 0;
     let mut cols = Vec::new();
     for c in &config.columns {
-        let column = gen_column(&c.kind, &config.docker.path, &config.display.separator);
-        if column.available() {
-            cols.push(ColumnInfo {
-                column,
-                style: c.style.clone(),
-                nonnumeric_search: c.nonnumeric_search,
-                numeric_search: c.numeric_search,
-                align: c.align.clone(),
-            });
+        let kind = match &c.kind {
+            ConfigColumnKind::Slot => {
+                let kind = if let Some(insert) = opt.insert.get(slot_idx) {
+                    find_column_kind(insert)
+                } else {
+                    None
+                };
+                slot_idx += 1;
+                kind
+            }
+            x => Some(x.clone()),
+        };
+        if let Some(kind) = kind {
+            let column = gen_column(&kind, &config.docker.path, &config.display.separator);
+            if column.available() {
+                cols.push(ColumnInfo {
+                    column,
+                    kind,
+                    style: c.style.clone(),
+                    nonnumeric_search: c.nonnumeric_search,
+                    numeric_search: c.numeric_search,
+                    align: c.align.clone(),
+                });
+            }
         }
     }
 
@@ -314,8 +364,8 @@ fn run_opt_config(opt: Opt, config: Config) -> Result<(), Error> {
             let mut idx = config.sort.column;
             let mut order = config.sort.order.clone();
             for (i, c) in cols.iter().enumerate() {
-                let header = c.column.get_header().to_lowercase();
-                if header.find(&sort.to_lowercase()).is_some() {
+                let kind = KIND_LIST[&c.kind];
+                if kind.to_lowercase().find(&sort.to_lowercase()).is_some() {
                     idx = i;
                     order = if opt.sorta.is_some() {
                         ConfigSortOrder::Ascending

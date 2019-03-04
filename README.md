@@ -120,11 +120,21 @@ Column sort order can be changed by `--sorta` or `--sortd` option.
 The last charactor of `--sorta` and `--sortd` means sort order: "a"scending and "d"escending.
 
 The column for sort is selected by the option keyword.
-If `--sorta cpu`, column is sorted by `CPU` with ascending order.
+The keyword is matched with column kind that is shonw by `--list` option.
+If `--sorta cputime`, column is sorted by `CpuTime` with ascending order.
 If `--sortd rss`, column is sorted by `VmRss` with decending order.
 The keyword is matched partially and case is ignored.
 
 The default sort is specified by `[sort]` section in `~/.procs.toml`
+
+### Insert column
+
+`--insert` option inserts new column to the position of `Slot` column.
+The column for insert is selected by the option keyword.
+The keyword is the same as sort option.
+A `Slot` column can be used by a inserted column.
+If many insertion is required, many `Slot` should be added.
+Unused `Slot` is not shown.
 
 ## Configuration
 

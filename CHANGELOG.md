@@ -3,9 +3,12 @@
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.5.6...Unreleased) - ReleaseDate
 
 * [Added] separator option to `~/.procs.toml` setting
+* [Added] `--list` option to show column kind list
+* [Added] Slot column to insert column by `--insert` oprion
 * [Changed] the first decimal place of day/year in CpuTime is shown
 * [Changed] default separator from "|" to "│" ( U+2502:Box Drawings Light Vertical )
 * [Changed] eip/esp/sig* format to 16 hex digits
+* [Changed] sort keyword is matched with column kind
 * [Fixed] unmatched `--sort*` affects sort order
 
 ## [v0.5.6](https://github.com/dalance/procs/compare/v0.5.5...v0.5.6) - 2019-03-01

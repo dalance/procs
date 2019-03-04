@@ -1,6 +1,8 @@
 use crate::column::Column;
 use crate::columns::*;
+use lazy_static::lazy_static;
 use serde_derive::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Functions for serde defalut
@@ -47,11 +49,121 @@ fn default_separator() -> String {
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
+// KIND_LIST
+// ---------------------------------------------------------------------------------------------------------------------
+
+lazy_static! {
+    pub static ref KIND_LIST: HashMap<ConfigColumnKind, &'static str> = [
+        (ConfigColumnKind::Command, "Command"),
+        (ConfigColumnKind::ContextSw, "ContextSw"),
+        (ConfigColumnKind::CpuTime, "CpuTime"),
+        (ConfigColumnKind::Docker, "Docker"),
+        #[cfg(target_os = "linux")]
+        (ConfigColumnKind::Eip, "Eip"),
+        #[cfg(target_os = "linux")]
+        (ConfigColumnKind::Esp, "Esp"),
+        (ConfigColumnKind::Gid, "Gid"),
+        #[cfg(target_os = "linux")]
+        (ConfigColumnKind::GidFs, "GidFs"),
+        (ConfigColumnKind::GidReal, "GidReal"),
+        (ConfigColumnKind::GidSaved, "GidSaved"),
+        (ConfigColumnKind::Group, "Group"),
+        #[cfg(target_os = "linux")]
+        (ConfigColumnKind::GroupFs, "GroupFs"),
+        (ConfigColumnKind::GroupReal, "GroupReal"),
+        (ConfigColumnKind::GroupSaved, "GroupSaved"),
+        (ConfigColumnKind::MajFlt, "MajFlt"),
+        (ConfigColumnKind::MinFlt, "MinFlt"),
+        (ConfigColumnKind::Nice, "Nice"),
+        (ConfigColumnKind::Pid, "Pid"),
+        (ConfigColumnKind::Policy, "Policy"),
+        (ConfigColumnKind::Ppid, "Ppid"),
+        (ConfigColumnKind::Priority, "Priority"),
+        #[cfg(target_os = "linux")]
+        (ConfigColumnKind::Processor, "Processor"),
+        (ConfigColumnKind::ReadBytes, "ReadBytes"),
+        #[cfg(target_os = "linux")]
+        (ConfigColumnKind::RtPriority, "RtPriority"),
+        (ConfigColumnKind::Separator, "Separator"),
+        #[cfg(target_os = "linux")]
+        (ConfigColumnKind::ShdPnd, "ShdPnd"),
+        (ConfigColumnKind::Slot, "Slot"),
+        #[cfg(target_os = "linux")]
+        (ConfigColumnKind::SigBlk, "SigBlk"),
+        #[cfg(target_os = "linux")]
+        (ConfigColumnKind::SigCgt, "SigCgt"),
+        #[cfg(target_os = "linux")]
+        (ConfigColumnKind::SigIgn, "SigIgn"),
+        #[cfg(target_os = "linux")]
+        (ConfigColumnKind::SigPnd, "SigPnd"),
+        #[cfg(target_os = "linux")]
+        (ConfigColumnKind::Ssb, "Ssb"),
+        (ConfigColumnKind::StartTime, "StartTime"),
+        (ConfigColumnKind::State, "State"),
+        (ConfigColumnKind::TcpPort, "TcpPort"),
+        (ConfigColumnKind::Threads, "Threads"),
+        (ConfigColumnKind::Tty, "Tty"),
+        (ConfigColumnKind::UdpPort, "UdpPort"),
+        (ConfigColumnKind::Uid, "Uid"),
+        #[cfg(target_os = "linux")]
+        (ConfigColumnKind::UidFs, "UidFs"),
+        (ConfigColumnKind::UidReal, "UidReal"),
+        (ConfigColumnKind::UidSaved, "UidSaved"),
+        (ConfigColumnKind::UsageCpu, "UsageCpu"),
+        (ConfigColumnKind::UsageMem, "UsageMem"),
+        (ConfigColumnKind::User, "User"),
+        #[cfg(target_os = "linux")]
+        (ConfigColumnKind::UserFs, "UserFs"),
+        (ConfigColumnKind::UserReal, "UserReal"),
+        (ConfigColumnKind::UserSaved, "UserSaved"),
+        (ConfigColumnKind::Username, "Username"),
+        #[cfg(target_os = "linux")]
+        (ConfigColumnKind::VmData, "VmData"),
+        #[cfg(target_os = "linux")]
+        (ConfigColumnKind::VmExe, "VmExe"),
+        #[cfg(target_os = "linux")]
+        (ConfigColumnKind::VmHwm, "VmHwm"),
+        #[cfg(target_os = "linux")]
+        (ConfigColumnKind::VmLib, "VmLib"),
+        #[cfg(target_os = "linux")]
+        (ConfigColumnKind::VmLock, "VmLock"),
+        #[cfg(target_os = "linux")]
+        (ConfigColumnKind::VmPeak, "VmPeak"),
+        #[cfg(target_os = "linux")]
+        (ConfigColumnKind::VmPin, "VmPin"),
+        #[cfg(target_os = "linux")]
+        (ConfigColumnKind::VmPte, "VmPte"),
+        (ConfigColumnKind::VmRss, "VmRss"),
+        (ConfigColumnKind::VmSize, "VmSize"),
+        #[cfg(target_os = "linux")]
+        (ConfigColumnKind::VmStack, "VmStack"),
+        #[cfg(target_os = "linux")]
+        (ConfigColumnKind::VmSwap, "VmSwap"),
+        #[cfg(target_os = "linux")]
+        (ConfigColumnKind::Wchan, "Wchan"),
+        (ConfigColumnKind::WriteBytes, "WriteBytes"),
+    ]
+    .iter()
+    .cloned()
+    .collect();
+}
+
+pub fn find_column_kind(pat: &str) -> Option<ConfigColumnKind> {
+    for (k, v) in KIND_LIST.iter() {
+        if v.to_lowercase().find(&pat.to_lowercase()).is_some() {
+            return Some(k.clone());
+        }
+    }
+    None
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
 // ColumnInfo
 // ---------------------------------------------------------------------------------------------------------------------
 
 pub struct ColumnInfo {
     pub column: Box<dyn Column>,
+    pub kind: ConfigColumnKind,
     pub style: ConfigColumnStyle,
     pub nonnumeric_search: bool,
     pub numeric_search: bool,
@@ -93,6 +205,7 @@ pub fn gen_column(kind: &ConfigColumnKind, docker_path: &str, separator: &str) -
         ConfigColumnKind::Separator => Box::new(Separator::new(separator)),
         #[cfg(target_os = "linux")]
         ConfigColumnKind::ShdPnd => Box::new(ShdPnd::new()),
+        ConfigColumnKind::Slot => Box::new(Slot::new()),
         #[cfg(target_os = "linux")]
         ConfigColumnKind::SigBlk => Box::new(SigBlk::new()),
         #[cfg(target_os = "linux")]
@@ -189,7 +302,7 @@ pub enum ConfigColor {
     White,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum ConfigColumnKind {
     Command,
     ContextSw,
@@ -224,6 +337,7 @@ pub enum ConfigColumnKind {
     Separator,
     #[cfg(target_os = "linux")]
     ShdPnd,
+    Slot,
     #[cfg(target_os = "linux")]
     SigBlk,
     #[cfg(target_os = "linux")]
@@ -632,6 +746,12 @@ numeric_search = false
 nonnumeric_search = false
 align = "Right"
 [[columns]]
+kind = "Slot"
+style = "ByUnit"
+numeric_search = false
+nonnumeric_search = false
+align = "Right"
+[[columns]]
 kind = "Separator"
 style = "White"
 numeric_search = false
@@ -738,6 +858,12 @@ nonnumeric_search = false
 align = "Right"
 [[columns]]
 kind = "WriteBytes"
+style = "ByUnit"
+numeric_search = false
+nonnumeric_search = false
+align = "Right"
+[[columns]]
+kind = "Slot"
 style = "ByUnit"
 numeric_search = false
 nonnumeric_search = false

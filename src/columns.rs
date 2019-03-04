@@ -39,6 +39,7 @@ pub mod sig_cgt;
 pub mod sig_ign;
 #[cfg(target_os = "linux")]
 pub mod sig_pnd;
+pub mod slot;
 #[cfg(target_os = "linux")]
 pub mod ssb;
 pub mod start_time;
@@ -126,6 +127,7 @@ pub use self::sig_cgt::SigCgt;
 pub use self::sig_ign::SigIgn;
 #[cfg(target_os = "linux")]
 pub use self::sig_pnd::SigPnd;
+pub use self::slot::Slot;
 #[cfg(target_os = "linux")]
 pub use self::ssb::Ssb;
 pub use self::start_time::StartTime;
