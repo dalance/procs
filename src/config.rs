@@ -48,6 +48,14 @@ fn default_separator() -> String {
     String::from("│")
 }
 
+fn default_ascending() -> String {
+    String::from("▲")
+}
+
+fn default_descending() -> String {
+    String::from("▼")
+}
+
 // ---------------------------------------------------------------------------------------------------------------------
 // KIND_LIST
 // ---------------------------------------------------------------------------------------------------------------------
@@ -579,6 +587,10 @@ pub struct ConfigDisplay {
     pub color_mode: ConfigColorMode,
     #[serde(default = "default_separator")]
     pub separator: String,
+    #[serde(default = "default_ascending")]
+    pub ascending: String,
+    #[serde(default = "default_descending")]
+    pub descending: String,
 }
 
 impl Default for ConfigDisplay {
@@ -590,6 +602,8 @@ impl Default for ConfigDisplay {
             cut_to_pipe: false,
             color_mode: ConfigColorMode::Auto,
             separator: String::from("│"),
+            ascending: String::from("▲"),
+            descending: String::from("▼"),
         }
     }
 }

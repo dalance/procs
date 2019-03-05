@@ -381,6 +381,8 @@ The available list of color is below.
 | cut_to_pipe     | true, false           | false   | Whether output lines are truncated for output into pipe                      |
 | color_mode      | Auto, Always, Disable | Auto    | The default behavior of output coloring without `--color` commandline option |
 | separator       | [String]              | │       | String used as Separator                                                     |
+| ascending       | [String]              | ▲       | Ascending sort indicator                                                     |
+| descending      | [String]              | ▼       | Descending sort indicator                                                    |
 
 If `color_mode` is `Auto`, color is enabled for terminal and pager, disabled for pipe.
 

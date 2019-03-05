@@ -148,13 +148,28 @@ fn get_config() -> Result<Config, Error> {
     Ok(config)
 }
 
-fn display_header(term: &Term, max_width: usize, cols: &[ColumnInfo], config: &Config) {
+fn display_header(
+    term: &Term,
+    max_width: usize,
+    cols: &[ColumnInfo],
+    config: &Config,
+    sort_idx: usize,
+    sort_order: &ConfigSortOrder,
+) {
     let mut row = String::from("");
-    for c in cols.iter() {
+    for (i, c) in cols.iter().enumerate() {
+        let order = if i == sort_idx {
+            Some(sort_order.clone())
+        } else {
+            None
+        };
         row = format!(
             "{} {}",
             row,
-            apply_color(c.column.display_header(&c.align), &config.style.header)
+            apply_color(
+                c.column.display_header(&c.align, order, config),
+                &config.style.header
+            )
         );
     }
     row = row.trim_end().to_string();
@@ -419,8 +434,13 @@ fn run_opt_config(opt: Opt, config: Config) -> Result<(), Error> {
         }
     }
 
-    for c in &mut cols {
-        c.column.reset_max_width();
+    for (i, ref mut c) in cols.iter_mut().enumerate() {
+        let order = if i == sort_idx {
+            Some(sort_order.clone())
+        } else {
+            None
+        };
+        c.column.reset_max_width(order, &config);
         for pid in &visible_pids {
             c.column.update_max_width(*pid);
         }
@@ -484,7 +504,14 @@ fn run_opt_config(opt: Opt, config: Config) -> Result<(), Error> {
         _ => (),
     }
 
-    display_header(&term, term_w as usize, &cols, &config);
+    display_header(
+        &term,
+        term_w as usize,
+        &cols,
+        &config,
+        sort_idx,
+        &sort_order,
+    );
     display_unit(&term, term_w as usize, &cols, &config);
 
     for pid in &visible_pids {

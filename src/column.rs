@@ -1,4 +1,4 @@
-use crate::config::{ConfigColumnAlign, ConfigSortOrder};
+use crate::config::{Config, ConfigColumnAlign, ConfigSortOrder};
 use crate::process::ProcessInfo;
 
 pub trait Column {
@@ -8,22 +8,34 @@ pub trait Column {
         true
     }
 
-    fn display_header(&self, align: &ConfigColumnAlign) -> String;
+    fn display_header(
+        &self,
+        align: &ConfigColumnAlign,
+        order: Option<ConfigSortOrder>,
+        config: &Config,
+    ) -> String;
     fn display_unit(&self, align: &ConfigColumnAlign) -> String;
     fn display_content(&self, pid: i32, align: &ConfigColumnAlign) -> Option<String>;
     fn find_partial(&self, pid: i32, keyword: &str) -> bool;
     fn find_exact(&self, pid: i32, keyword: &str) -> bool;
     fn sorted_pid(&self, order: &ConfigSortOrder) -> Vec<i32>;
-    fn reset_max_width(&mut self) -> ();
+    fn reset_max_width(&mut self, order: Option<ConfigSortOrder>, config: &Config) -> ();
     fn update_max_width(&mut self, pid: i32) -> ();
-    fn get_header(&self) -> &str;
 }
 
 #[macro_export]
 macro_rules! column_default_display_header {
     () => {
-        fn display_header(&self, align: &crate::config::ConfigColumnAlign) -> String {
-            crate::util::expand(&self.header, self.max_width, align)
+        fn display_header(&self, align: &crate::config::ConfigColumnAlign, order: Option<crate::config::ConfigSortOrder>, config: &crate::config::Config) -> String {
+            if let Some(order) = order {
+                let header = match order {
+                    crate::config::ConfigSortOrder::Ascending => format!("{} {}", self.header, config.display.ascending),
+                    crate::config::ConfigSortOrder::Descending => format!("{} {}", self.header, config.display.descending),
+                };
+                crate::util::expand(&header, self.max_width, align)
+            } else {
+                crate::util::expand(&self.header, self.max_width, align)
+            }
         }
     };
 }
@@ -91,8 +103,17 @@ macro_rules! column_default_sorted_pid {
 #[macro_export]
 macro_rules! column_default_reset_max_width {
     () => {
-        fn reset_max_width(&mut self) {
-            self.max_width = std::cmp::max(self.header.len(), self.unit.len());
+        fn reset_max_width(&mut self, order: Option<crate::config::ConfigSortOrder>, config: &crate::config::Config) {
+            // +1 for spacing between header and sort indicator
+            let sorted_space = if let Some(order) = order {
+                match order {
+                    crate::config::ConfigSortOrder::Ascending => config.display.ascending.chars().count() + 1,
+                    crate::config::ConfigSortOrder::Descending => config.display.descending.chars().count() + 1,
+                }
+            } else {
+                0
+            };
+            self.max_width = std::cmp::max(self.header.chars().count()+sorted_space, self.unit.chars().count());
         }
     };
 }
