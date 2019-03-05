@@ -29,8 +29,8 @@ macro_rules! column_default_display_header {
         fn display_header(&self, align: &crate::config::ConfigColumnAlign, order: Option<crate::config::ConfigSortOrder>, config: &crate::config::Config) -> String {
             if let Some(order) = order {
                 let header = match order {
-                    crate::config::ConfigSortOrder::Ascending => format!("{} {}", self.header, config.display.ascending),
-                    crate::config::ConfigSortOrder::Descending => format!("{} {}", self.header, config.display.descending),
+                    crate::config::ConfigSortOrder::Ascending => format!("{}:{}", self.header, config.display.ascending),
+                    crate::config::ConfigSortOrder::Descending => format!("{}:{}", self.header, config.display.descending),
                 };
                 crate::util::expand(&header, self.max_width, align)
             } else {

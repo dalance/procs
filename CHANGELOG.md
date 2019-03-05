@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.5.7...Unreleased) - ReleaseDate
 
+* [Changed] sort indicator refine
+
 ## [v0.5.7](https://github.com/dalance/procs/compare/v0.5.6...v0.5.7) - 2019-03-05
 
 * [Added] separator option to `~/.procs.toml` setting
