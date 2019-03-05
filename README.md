@@ -251,13 +251,14 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | RtPriority   | rtprio                | Real-time priority               | o     |       |
 | Separator    | -not supported-       | Show `\|` for column separation  | o     | o     |
 | ShdPnd       | pending               | Pending signal mask for process  | o     |       |
+| Slot         | -not supported-       | Slot for `--insert` option       | o     | o     |
 | SigBlk       | blocked               | Blocked signal mask              | o     |       |
 | SigCgt       | caught                | Caught signal mask               | o     |       |
 | SigIgn       | ignored               | Ignored signal mask              | o     |       |
 | SigPnd       | pending               | Pending signal mask for thread   | o     |       |
 | Ssb          | -not supported-       | Speculative store bypass status  | o     |       |
 | StartTime    | start_time            | Starting time                    | o     | o     |
-| State        | s                     | Process State                    | o     | o     |
+| State        | s                     | Process state                    | o     | o     |
 | TcpPort      | -not supported-       | Bound TCP ports                  | o     | o     |
 | Threads      | nlwp                  | Thread count                     | o     | o     |
 | Tty          | tty                   | Controlling TTY                  | o     | o     |
