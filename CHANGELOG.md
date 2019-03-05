@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.5.7...Unreleased) - ReleaseDate
 
+* [Added] column description to `--list` output
 * [Changed] sort indicator refine
 
 ## [v0.5.7](https://github.com/dalance/procs/compare/v0.5.6...v0.5.7) - 2019-03-05

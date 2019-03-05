@@ -61,95 +61,170 @@ fn default_descending() -> String {
 // ---------------------------------------------------------------------------------------------------------------------
 
 lazy_static! {
-    pub static ref KIND_LIST: HashMap<ConfigColumnKind, &'static str> = [
-        (ConfigColumnKind::Command, "Command"),
-        (ConfigColumnKind::ContextSw, "ContextSw"),
-        (ConfigColumnKind::CpuTime, "CpuTime"),
-        (ConfigColumnKind::Docker, "Docker"),
+    pub static ref KIND_LIST: HashMap<ConfigColumnKind, (&'static str, &'static str)> = [
+        (
+            ConfigColumnKind::Command,
+            ("Command", "Command with all arguments")
+        ),
+        (
+            ConfigColumnKind::ContextSw,
+            ("ContextSw", "Context switch count")
+        ),
+        (
+            ConfigColumnKind::CpuTime,
+            ("CpuTime", "Cumulative CPU time")
+        ),
+        (
+            ConfigColumnKind::Docker,
+            ("Docker", "Docker container name")
+        ),
         #[cfg(target_os = "linux")]
-        (ConfigColumnKind::Eip, "Eip"),
+        (ConfigColumnKind::Eip, ("Eip", "Instruction pointer")),
         #[cfg(target_os = "linux")]
-        (ConfigColumnKind::Esp, "Esp"),
-        (ConfigColumnKind::Gid, "Gid"),
+        (ConfigColumnKind::Esp, ("Esp", "Stack pointer")),
+        (ConfigColumnKind::Gid, ("Gid", "Group ID")),
         #[cfg(target_os = "linux")]
-        (ConfigColumnKind::GidFs, "GidFs"),
-        (ConfigColumnKind::GidReal, "GidReal"),
-        (ConfigColumnKind::GidSaved, "GidSaved"),
-        (ConfigColumnKind::Group, "Group"),
+        (ConfigColumnKind::GidFs, ("GidFs", "File system group ID")),
+        (ConfigColumnKind::GidReal, ("GidReal", "Real group ID")),
+        (ConfigColumnKind::GidSaved, ("GidSaved", "Saved group ID")),
+        (ConfigColumnKind::Group, ("Group", "Group name")),
         #[cfg(target_os = "linux")]
-        (ConfigColumnKind::GroupFs, "GroupFs"),
-        (ConfigColumnKind::GroupReal, "GroupReal"),
-        (ConfigColumnKind::GroupSaved, "GroupSaved"),
-        (ConfigColumnKind::MajFlt, "MajFlt"),
-        (ConfigColumnKind::MinFlt, "MinFlt"),
-        (ConfigColumnKind::Nice, "Nice"),
-        (ConfigColumnKind::Pid, "Pid"),
-        (ConfigColumnKind::Policy, "Policy"),
-        (ConfigColumnKind::Ppid, "Ppid"),
-        (ConfigColumnKind::Priority, "Priority"),
+        (
+            ConfigColumnKind::GroupFs,
+            ("GroupFs", "File system group name")
+        ),
+        (
+            ConfigColumnKind::GroupReal,
+            ("GroupReal", "Real group name")
+        ),
+        (
+            ConfigColumnKind::GroupSaved,
+            ("GroupSaved", "Saved group name")
+        ),
+        (
+            ConfigColumnKind::MajFlt,
+            ("MajFlt", "Major page fault count")
+        ),
+        (
+            ConfigColumnKind::MinFlt,
+            ("MinFlt", "Minor page fault count")
+        ),
+        (ConfigColumnKind::Nice, ("Nice", "Nice value")),
+        (ConfigColumnKind::Pid, ("Pid", "Process ID")),
+        (ConfigColumnKind::Policy, ("Policy", "Scheduling policy")),
+        (ConfigColumnKind::Ppid, ("Ppid", "Parent process ID")),
+        (ConfigColumnKind::Priority, ("Priority", "Priority")),
         #[cfg(target_os = "linux")]
-        (ConfigColumnKind::Processor, "Processor"),
-        (ConfigColumnKind::ReadBytes, "ReadBytes"),
+        (
+            ConfigColumnKind::Processor,
+            ("Processor", "Currently assigned processor")
+        ),
+        (
+            ConfigColumnKind::ReadBytes,
+            ("ReadBytes", "Read bytes from storage")
+        ),
         #[cfg(target_os = "linux")]
-        (ConfigColumnKind::RtPriority, "RtPriority"),
-        (ConfigColumnKind::Separator, "Separator"),
+        (
+            ConfigColumnKind::RtPriority,
+            ("RtPriority", "Real-time priority")
+        ),
+        (
+            ConfigColumnKind::Separator,
+            ("Separator", "Show | for column separation")
+        ),
         #[cfg(target_os = "linux")]
-        (ConfigColumnKind::ShdPnd, "ShdPnd"),
-        (ConfigColumnKind::Slot, "Slot"),
+        (
+            ConfigColumnKind::ShdPnd,
+            ("ShdPnd", "Pending signal mask for process")
+        ),
+        (
+            ConfigColumnKind::Slot,
+            ("Slot", "Slot for `--insert` option")
+        ),
         #[cfg(target_os = "linux")]
-        (ConfigColumnKind::SigBlk, "SigBlk"),
+        (ConfigColumnKind::SigBlk, ("SigBlk", "Blocked signal mask")),
         #[cfg(target_os = "linux")]
-        (ConfigColumnKind::SigCgt, "SigCgt"),
+        (ConfigColumnKind::SigCgt, ("SigCgt", "Caught signal mask")),
         #[cfg(target_os = "linux")]
-        (ConfigColumnKind::SigIgn, "SigIgn"),
+        (ConfigColumnKind::SigIgn, ("SigIgn", "Ignored signal mask")),
         #[cfg(target_os = "linux")]
-        (ConfigColumnKind::SigPnd, "SigPnd"),
+        (
+            ConfigColumnKind::SigPnd,
+            ("SigPnd", "Pending signal mask for thread")
+        ),
         #[cfg(target_os = "linux")]
-        (ConfigColumnKind::Ssb, "Ssb"),
-        (ConfigColumnKind::StartTime, "StartTime"),
-        (ConfigColumnKind::State, "State"),
-        (ConfigColumnKind::TcpPort, "TcpPort"),
-        (ConfigColumnKind::Threads, "Threads"),
-        (ConfigColumnKind::Tty, "Tty"),
-        (ConfigColumnKind::UdpPort, "UdpPort"),
-        (ConfigColumnKind::Uid, "Uid"),
+        (
+            ConfigColumnKind::Ssb,
+            ("Ssb", "Speculative store bypass status")
+        ),
+        (ConfigColumnKind::StartTime, ("StartTime", "Starting time")),
+        (ConfigColumnKind::State, ("State", "Process state")),
+        (ConfigColumnKind::TcpPort, ("TcpPort", "Bound TCP ports")),
+        (ConfigColumnKind::Threads, ("Threads", "Thread count")),
+        (ConfigColumnKind::Tty, ("Tty", "Controlling TTY")),
+        (ConfigColumnKind::UdpPort, ("UdpPort", "Bound UDP ports")),
+        (ConfigColumnKind::Uid, ("Uid", "User ID")),
         #[cfg(target_os = "linux")]
-        (ConfigColumnKind::UidFs, "UidFs"),
-        (ConfigColumnKind::UidReal, "UidReal"),
-        (ConfigColumnKind::UidSaved, "UidSaved"),
-        (ConfigColumnKind::UsageCpu, "UsageCpu"),
-        (ConfigColumnKind::UsageMem, "UsageMem"),
-        (ConfigColumnKind::User, "User"),
+        (ConfigColumnKind::UidFs, ("UidFs", "File system user ID")),
+        (ConfigColumnKind::UidReal, ("UidReal", "Real user ID")),
+        (ConfigColumnKind::UidSaved, ("UidSaved", "Saved user ID")),
+        (ConfigColumnKind::UsageCpu, ("UsageCpu", "CPU utilization")),
+        (
+            ConfigColumnKind::UsageMem,
+            ("UsageMem", "Memory utilization")
+        ),
+        (ConfigColumnKind::User, ("User", "User name")),
         #[cfg(target_os = "linux")]
-        (ConfigColumnKind::UserFs, "UserFs"),
-        (ConfigColumnKind::UserReal, "UserReal"),
-        (ConfigColumnKind::UserSaved, "UserSaved"),
-        (ConfigColumnKind::Username, "Username"),
+        (
+            ConfigColumnKind::UserFs,
+            ("UserFs", "File system user name")
+        ),
+        (ConfigColumnKind::UserReal, ("UserReal", "Real user name")),
+        (
+            ConfigColumnKind::UserSaved,
+            ("UserSaved", "Saved user name")
+        ),
+        (ConfigColumnKind::Username, ("Username", "User name")),
         #[cfg(target_os = "linux")]
-        (ConfigColumnKind::VmData, "VmData"),
+        (ConfigColumnKind::VmData, ("VmData", "Data size")),
         #[cfg(target_os = "linux")]
-        (ConfigColumnKind::VmExe, "VmExe"),
+        (ConfigColumnKind::VmExe, ("VmExe", "Text segments size")),
         #[cfg(target_os = "linux")]
-        (ConfigColumnKind::VmHwm, "VmHwm"),
+        (ConfigColumnKind::VmHwm, ("VmHwm", "Peak resident set size")),
         #[cfg(target_os = "linux")]
-        (ConfigColumnKind::VmLib, "VmLib"),
+        (ConfigColumnKind::VmLib, ("VmLib", "Library code size")),
         #[cfg(target_os = "linux")]
-        (ConfigColumnKind::VmLock, "VmLock"),
+        (ConfigColumnKind::VmLock, ("VmLock", "Locked memory size")),
         #[cfg(target_os = "linux")]
-        (ConfigColumnKind::VmPeak, "VmPeak"),
+        (
+            ConfigColumnKind::VmPeak,
+            ("VmPeak", "Peak virtual memory size")
+        ),
         #[cfg(target_os = "linux")]
-        (ConfigColumnKind::VmPin, "VmPin"),
+        (ConfigColumnKind::VmPin, ("VmPin", "Pinned memory size")),
         #[cfg(target_os = "linux")]
-        (ConfigColumnKind::VmPte, "VmPte"),
-        (ConfigColumnKind::VmRss, "VmRss"),
-        (ConfigColumnKind::VmSize, "VmSize"),
+        (
+            ConfigColumnKind::VmPte,
+            ("VmPte", "Page table entries size")
+        ),
+        (ConfigColumnKind::VmRss, ("VmRss", "Resident set size")),
+        (ConfigColumnKind::VmSize, ("VmSize", "Physical page size")),
         #[cfg(target_os = "linux")]
-        (ConfigColumnKind::VmStack, "VmStack"),
+        (ConfigColumnKind::VmStack, ("VmStack", "Stack size")),
         #[cfg(target_os = "linux")]
-        (ConfigColumnKind::VmSwap, "VmSwap"),
+        (
+            ConfigColumnKind::VmSwap,
+            ("VmSwap", "Swapped-out virtual memory size")
+        ),
         #[cfg(target_os = "linux")]
-        (ConfigColumnKind::Wchan, "Wchan"),
-        (ConfigColumnKind::WriteBytes, "WriteBytes"),
+        (
+            ConfigColumnKind::Wchan,
+            ("Wchan", "Process sleeping kernel function")
+        ),
+        (
+            ConfigColumnKind::WriteBytes,
+            ("WriteBytes", "Write bytes to storage")
+        ),
     ]
     .iter()
     .cloned()
@@ -157,7 +232,7 @@ lazy_static! {
 }
 
 pub fn find_column_kind(pat: &str) -> Option<ConfigColumnKind> {
-    for (k, v) in KIND_LIST.iter() {
+    for (k, (v, _)) in KIND_LIST.iter() {
         if v.to_lowercase().find(&pat.to_lowercase()).is_some() {
             return Some(k.clone());
         }

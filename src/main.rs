@@ -11,10 +11,12 @@ use crate::column::Column;
 use crate::config::*;
 use crate::process::collect_proc;
 use crate::style::{apply_color, apply_style};
-use crate::util::KeywordClass;
+use crate::util::{expand, KeywordClass};
 use console::Term;
 use failure::{Error, ResultExt};
 use pager::Pager;
+use std::cmp;
+use std::collections::HashMap;
 use std::fs;
 use std::io::Read;
 use std::time::Duration;
@@ -274,30 +276,26 @@ fn run() -> Result<(), Error> {
     }
 
     if opt.list {
+        let mut max_width = 0;
         let mut list = Vec::new();
-        for (_, v) in KIND_LIST.iter() {
+        let mut desc = HashMap::new();
+        for (_, (v, d)) in KIND_LIST.iter() {
             list.push(v);
+            desc.insert(v, d);
+            max_width = cmp::max(max_width, v.chars().count());
         }
 
         list.sort();
 
-        let term = Term::stdout();
-        let (_, term_w) = term.size();
-
         println!("Column kind list:");
-        print!("  ");
-
-        let mut width = 2;
         for l in list {
-            if width + l.len() + 1 > term_w as usize {
-                println!();
-                print!("  ");
-                width = 2;
-            }
-            print!("{} ", l);
-            width += l.len() + 1;
+            println!(
+                "  {}: {}",
+                expand(l, max_width, &ConfigColumnAlign::Left),
+                desc[l]
+            );
         }
-        println!();
+
         return Ok(());
     }
 
@@ -379,7 +377,7 @@ fn run_opt_config(opt: Opt, config: Config) -> Result<(), Error> {
             let mut idx = config.sort.column;
             let mut order = config.sort.order.clone();
             for (i, c) in cols.iter().enumerate() {
-                let kind = KIND_LIST[&c.kind];
+                let (kind, _) = KIND_LIST[&c.kind];
                 if kind.to_lowercase().find(&sort.to_lowercase()).is_some() {
                     idx = i;
                     order = if opt.sorta.is_some() {
