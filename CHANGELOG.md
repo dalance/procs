@@ -5,6 +5,7 @@
 * [Added] column description to `--list` output
 * [Changed] sort indicator refine
 * [Fixed] wrong column width calculation about full-width charactors
+* [Fixed] wrong `By*` style on center/right aligned column
 
 ## [v0.5.7](https://github.com/dalance/procs/compare/v0.5.6...v0.5.7) - 2019-03-05
 

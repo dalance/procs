@@ -20,7 +20,7 @@ lazy_static! {
 }
 
 fn apply_style_by_state(x: String, s: &ConfigStyle) -> StyledObject<String> {
-    match x {
+    match x.trim() {
         ref x if x.starts_with('D') => apply_color(x.to_string(), &s.by_state.color_d),
         ref x if x.starts_with('R') => apply_color(x.to_string(), &s.by_state.color_r),
         ref x if x.starts_with('S') => apply_color(x.to_string(), &s.by_state.color_s),
@@ -36,7 +36,7 @@ fn apply_style_by_state(x: String, s: &ConfigStyle) -> StyledObject<String> {
 }
 
 fn apply_style_by_unit(x: String, s: &ConfigStyle) -> StyledObject<String> {
-    match x {
+    match x.trim() {
         ref x if x.contains('K') => apply_color(x.to_string(), &s.by_unit.color_k),
         ref x if x.contains('M') => apply_color(x.to_string(), &s.by_unit.color_m),
         ref x if x.contains('G') => apply_color(x.to_string(), &s.by_unit.color_g),
@@ -47,7 +47,7 @@ fn apply_style_by_unit(x: String, s: &ConfigStyle) -> StyledObject<String> {
 }
 
 fn apply_style_by_percentage(x: String, s: &ConfigStyle) -> StyledObject<String> {
-    let value: f64 = x.parse().unwrap_or(0.0);
+    let value: f64 = x.trim().parse().unwrap_or(0.0);
     if value > 100.0 {
         apply_color(x, &s.by_percentage.color_100)
     } else if value > 75.0 {
