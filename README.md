@@ -3,7 +3,7 @@
 **procs** is a replacement for `ps` written by [Rust](https://www.rust-lang.org/).
 
 [![Build Status](https://travis-ci.org/dalance/procs.svg?branch=master)](https://travis-ci.org/dalance/procs)
-[![Changelog](https://img.shields.io/badge/changelog-v0.5.7-green.svg)](https://github.com/dalance/procs/blob/master/CHANGELOG.md)
+[![Changelog](https://img.shields.io/badge/changelog-v0.5.8-green.svg)](https://github.com/dalance/procs/blob/master/CHANGELOG.md)
 [![Crates.io](https://img.shields.io/crates/v/procs.svg)](https://crates.io/crates/procs)
 [![codecov](https://codecov.io/gh/dalance/procs/branch/master/graph/badge.svg)](https://codecov.io/gh/dalance/procs)
 

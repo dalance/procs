@@ -604,7 +604,7 @@ dependencies = [
 
 [[package]]
 name = "procs"
-version = "0.5.8-pre"
+version = "0.5.8"
 dependencies = [
  "chrono 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "console 0.7.5 (registry+https://github.com/rust-lang/crates.io-index)",
