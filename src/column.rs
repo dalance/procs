@@ -107,13 +107,15 @@ macro_rules! column_default_reset_max_width {
             // +1 for spacing between header and sort indicator
             let sorted_space = if let Some(order) = order {
                 match order {
-                    crate::config::ConfigSortOrder::Ascending => config.display.ascending.chars().count() + 1,
-                    crate::config::ConfigSortOrder::Descending => config.display.descending.chars().count() + 1,
+                    crate::config::ConfigSortOrder::Ascending => unicode_width::UnicodeWidthStr::width(config.display.ascending.as_str()) + 1,
+                    crate::config::ConfigSortOrder::Descending => unicode_width::UnicodeWidthStr::width(config.display.descending.as_str()) + 1,
                 }
             } else {
                 0
             };
-            self.max_width = std::cmp::max(self.header.chars().count()+sorted_space, self.unit.chars().count());
+            let header_len = unicode_width::UnicodeWidthStr::width(self.header.as_str());
+            let unit_len = unicode_width::UnicodeWidthStr::width(self.unit.as_str());
+            self.max_width = std::cmp::max(header_len+sorted_space, unit_len);
         }
     };
 }
@@ -123,7 +125,8 @@ macro_rules! column_default_update_max_width {
     () => {
         fn update_max_width(&mut self, pid: i32) {
             if let Some(content) = self.fmt_contents.get(&pid) {
-                self.max_width = cmp::max(content.chars().count(), self.max_width);
+                let content_len = unicode_width::UnicodeWidthStr::width(content.as_str());
+                self.max_width = cmp::max(content_len, self.max_width);
             }
         }
     };

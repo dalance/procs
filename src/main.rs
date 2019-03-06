@@ -21,6 +21,7 @@ use std::fs;
 use std::io::Read;
 use std::time::Duration;
 use structopt::{clap, StructOpt};
+use unicode_width::UnicodeWidthStr;
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Opt
@@ -282,7 +283,7 @@ fn run() -> Result<(), Error> {
         for (_, (v, d)) in KIND_LIST.iter() {
             list.push(v);
             desc.insert(v, d);
-            max_width = cmp::max(max_width, v.chars().count());
+            max_width = cmp::max(max_width, UnicodeWidthStr::width(*v));
         }
 
         list.sort();

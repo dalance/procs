@@ -18,7 +18,7 @@ impl Ssb {
         Ssb {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
-            max_width: cmp::max(header.len(), unit.len()),
+            max_width: 0,
             header,
             unit,
         }
