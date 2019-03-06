@@ -20,23 +20,23 @@ lazy_static! {
 }
 
 fn apply_style_by_state(x: String, s: &ConfigStyle) -> StyledObject<String> {
-    match x.trim() {
-        ref x if x.starts_with('D') => apply_color(x.to_string(), &s.by_state.color_d),
-        ref x if x.starts_with('R') => apply_color(x.to_string(), &s.by_state.color_r),
-        ref x if x.starts_with('S') => apply_color(x.to_string(), &s.by_state.color_s),
-        ref x if x.starts_with('T') => apply_color(x.to_string(), &s.by_state.color_t),
-        ref x if x.starts_with('t') => apply_color(x.to_string(), &s.by_state.color_t),
-        ref x if x.starts_with('Z') => apply_color(x.to_string(), &s.by_state.color_z),
-        ref x if x.starts_with('X') => apply_color(x.to_string(), &s.by_state.color_x),
-        ref x if x.starts_with('K') => apply_color(x.to_string(), &s.by_state.color_k),
-        ref x if x.starts_with('W') => apply_color(x.to_string(), &s.by_state.color_w),
-        ref x if x.starts_with('P') => apply_color(x.to_string(), &s.by_state.color_p),
+    match x {
+        ref x if x.contains('D') => apply_color(x.to_string(), &s.by_state.color_d),
+        ref x if x.contains('R') => apply_color(x.to_string(), &s.by_state.color_r),
+        ref x if x.contains('S') => apply_color(x.to_string(), &s.by_state.color_s),
+        ref x if x.contains('T') => apply_color(x.to_string(), &s.by_state.color_t),
+        ref x if x.contains('t') => apply_color(x.to_string(), &s.by_state.color_t),
+        ref x if x.contains('Z') => apply_color(x.to_string(), &s.by_state.color_z),
+        ref x if x.contains('X') => apply_color(x.to_string(), &s.by_state.color_x),
+        ref x if x.contains('K') => apply_color(x.to_string(), &s.by_state.color_k),
+        ref x if x.contains('W') => apply_color(x.to_string(), &s.by_state.color_w),
+        ref x if x.contains('P') => apply_color(x.to_string(), &s.by_state.color_p),
         _ => apply_color(x.to_string(), &s.by_state.color_x),
     }
 }
 
 fn apply_style_by_unit(x: String, s: &ConfigStyle) -> StyledObject<String> {
-    match x.trim() {
+    match x {
         ref x if x.contains('K') => apply_color(x.to_string(), &s.by_unit.color_k),
         ref x if x.contains('M') => apply_color(x.to_string(), &s.by_unit.color_m),
         ref x if x.contains('G') => apply_color(x.to_string(), &s.by_unit.color_g),
