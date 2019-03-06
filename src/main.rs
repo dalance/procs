@@ -15,11 +15,13 @@ use crate::util::{expand, truncate, KeywordClass};
 use chrono::offset::Local;
 use console::Term;
 use failure::{Error, ResultExt};
+use getch::Getch;
 use pager::Pager;
 use std::cmp;
 use std::collections::HashMap;
 use std::fs;
 use std::io::Read;
+use std::sync::mpsc::channel;
 use std::thread;
 use std::time::Duration;
 use structopt::{clap, StructOpt};
@@ -312,6 +314,18 @@ fn run() -> Result<(), Error> {
     let config = get_config()?;
 
     if let Some(interval) = opt.watch {
+        let (tx, rx) = channel();
+        let _ = thread::spawn(move || {
+            let getch = Getch::new();
+            loop {
+                match getch.getch() {
+                    Ok(x) if char::from(x) == 'q' => break,
+                    _ => (),
+                }
+            }
+            let _ = tx.send(());
+        });
+
         let term = Term::stdout();
         let mut term_h_prev = 0;
         let mut term_w_prev = 0;
@@ -327,7 +341,12 @@ fn run() -> Result<(), Error> {
             run_opt_config(&opt, &config)?;
             let _ = term.move_cursor_up((term_h - 1) as usize);
             thread::sleep(Duration::new(interval, 0));
+
+            if rx.try_recv().is_ok() {
+                break;
+            }
         }
+        Ok(())
     } else {
         run_opt_config(&opt, &config)
     }
@@ -536,7 +555,7 @@ fn run_opt_config(opt: &Opt, config: &Config) -> Result<(), Error> {
         let _ = term.write_line(&format!(
             "{}\n",
             console::style(format!(
-                "Interval: {}s, Last Updated: {} ( Quit: Ctrl-C )",
+                " Interval: {}s, Last Updated: {} ( Quit: q or Ctrl-C )",
                 interval,
                 Local::now().format("%Y/%m/%d %H:%M:%S"),
             ))
