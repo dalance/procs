@@ -112,7 +112,7 @@ pub fn parse_time(x: u64) -> String {
     }
 }
 
-pub fn truncate<'a>(s: &'a str, width: usize) -> Cow<'a, str> {
+pub fn truncate(s: &'_ str, width: usize) -> Cow<'_, str> {
     let mut total_width = 0;
     let mut ret = None;
     let mut buf = String::new();
