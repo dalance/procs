@@ -11,7 +11,7 @@ use crate::column::Column;
 use crate::config::*;
 use crate::process::collect_proc;
 use crate::style::{apply_color, apply_style};
-use crate::util::{expand, KeywordClass};
+use crate::util::{expand, truncate, KeywordClass};
 use console::Term;
 use failure::{Error, ResultExt};
 use pager::Pager;
@@ -176,7 +176,8 @@ fn display_header(
         );
     }
     row = row.trim_end().to_string();
-    row = console::truncate_str(&row, max_width, "").to_string();
+    //row = console::truncate_str(&row, max_width, "").to_string();
+    row = truncate(&row, max_width).to_string();
     let _ = term.write_line(&row);
 }
 
@@ -190,7 +191,8 @@ fn display_unit(term: &Term, max_width: usize, cols: &[ColumnInfo], config: &Con
         );
     }
     row = row.trim_end().to_string();
-    row = console::truncate_str(&row, max_width, "").to_string();
+    //row = console::truncate_str(&row, max_width, "").to_string();
+    row = truncate(&row, max_width).to_string();
     let _ = term.write_line(&row);
 }
 
@@ -208,7 +210,8 @@ fn display_content(term: &Term, pid: i32, max_width: usize, cols: &[ColumnInfo],
         );
     }
     row = row.trim_end().to_string();
-    row = console::truncate_str(&row, max_width, "").to_string();
+    //row = console::truncate_str(&row, max_width, "").to_string();
+    row = truncate(&row, max_width).to_string();
     let _ = term.write_line(&row);
 }
 

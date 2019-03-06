@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.5.8...Unreleased) - ReleaseDate
 
+* [Fixed] panic by truncate inside multi-byte unicode charactor
+
 ## [v0.5.8](https://github.com/dalance/procs/compare/v0.5.7...v0.5.8) - 2019-03-06
 
 * [Added] column description to `--list` output

@@ -1,6 +1,7 @@
 use crate::column::Column;
 use crate::config::{ConfigColumnAlign, ConfigSearchLogic};
-use unicode_width::UnicodeWidthStr;
+use std::borrow::Cow;
+use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 
 pub enum KeywordClass {
     Numeric,
@@ -108,6 +109,40 @@ pub fn parse_time(x: u64) -> String {
         format!("{:.1}days", day)
     } else {
         format!("{:02}:{:02}:{:02}", hour, min, sec)
+    }
+}
+
+pub fn truncate<'a>(s: &'a str, width: usize) -> Cow<'a, str> {
+    let mut total_width = 0;
+    let mut ret = None;
+    let mut buf = String::new();
+    let mut escape = false;
+    for c in s.chars() {
+        if c == '\u{1b}' {
+            escape = true;
+        }
+        if escape {
+            if c == 'm' {
+                escape = false;
+            }
+            buf.push(c);
+            continue;
+        }
+        total_width += if let Some(x) = UnicodeWidthChar::width(c) {
+            x
+        } else {
+            0
+        };
+        if total_width > width {
+            ret = Some(buf);
+            break;
+        }
+        buf.push(c);
+    }
+    if let Some(buf) = ret {
+        Cow::Owned(buf)
+    } else {
+        Cow::Borrowed(s)
     }
 }
 
