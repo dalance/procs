@@ -17,6 +17,7 @@
     - Docker container name
     - More memory information
 - Pager support
+- Watch mode like `top`
 
 ## Platform
 
@@ -113,6 +114,11 @@ Note that procs gets the container information through UNIX domain socket, so [D
 
 If output lines exceed terminal height, pager is used automatically.
 This behavior and pager command can be specified by configuration file.
+
+### Watch mode
+
+If `--watch <second>` option is used, procs automatically updates output like `top`.
+The update interval can be specified by the option argument.
 
 ### Sort column
 

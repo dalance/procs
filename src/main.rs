@@ -12,6 +12,7 @@ use crate::config::*;
 use crate::process::collect_proc;
 use crate::style::{apply_color, apply_style};
 use crate::util::{expand, truncate, KeywordClass};
+use chrono::offset::Local;
 use console::Term;
 use failure::{Error, ResultExt};
 use pager::Pager;
@@ -19,6 +20,7 @@ use std::cmp;
 use std::collections::HashMap;
 use std::fs;
 use std::io::Read;
+use std::thread;
 use std::time::Duration;
 use structopt::{clap, StructOpt};
 use unicode_width::UnicodeWidthStr;
@@ -74,6 +76,10 @@ pub struct Opt {
     #[structopt(short = "l", long = "list")]
     pub list: bool,
 
+    /// Watch mode
+    #[structopt(short = "w", long = "watch", value_name = "second")]
+    pub watch: Option<u64>,
+
     /// Insert column to slot
     #[structopt(
         value_name = "kind",
@@ -113,7 +119,7 @@ pub struct Opt {
     pub pager: Option<String>,
 
     /// Interval to calculate throughput
-    #[structopt(long = "interval", default_value = "100", value_name = "ms")]
+    #[structopt(long = "interval", default_value = "100", value_name = "millisec")]
     pub interval: u64,
 
     /// Generate configuration sample file
@@ -305,11 +311,30 @@ fn run() -> Result<(), Error> {
 
     let config = get_config()?;
 
-    run_opt_config(opt, config)
+    if let Some(interval) = opt.watch {
+        let term = Term::stdout();
+        let mut term_h_prev = 0;
+        let mut term_w_prev = 0;
+        loop {
+            let (term_h, term_w) = term.size();
+            let term_changed = term_h != term_h_prev || term_w != term_w_prev;
+            if term_changed {
+                let _ = term.clear_screen();
+            }
+            term_h_prev = term_h;
+            term_w_prev = term_w;
+
+            run_opt_config(&opt, &config)?;
+            let _ = term.move_cursor_up((term_h - 1) as usize);
+            thread::sleep(Duration::new(interval, 0));
+        }
+    } else {
+        run_opt_config(&opt, &config)
+    }
 }
 
 #[allow(clippy::cyclomatic_complexity)]
-fn run_opt_config(opt: Opt, config: Config) -> Result<(), Error> {
+fn run_opt_config(opt: &Opt, config: &Config) -> Result<(), Error> {
     // -------------------------------------------------------------------------
     // Generate column
     // -------------------------------------------------------------------------
@@ -460,13 +485,14 @@ fn run_opt_config(opt: Opt, config: Config) -> Result<(), Error> {
     // +3 means header/unit line and next prompt
     let pager_threshold = visible_pids.len() as u16 + 3;
 
-    let use_pager = match (opt.pager.as_ref(), &config.pager.mode) {
-        (Some(x), _) if x == "auto" => term_h < pager_threshold,
-        (Some(x), _) if x == "always" => true,
-        (Some(x), _) if x == "disable" => false,
-        (None, ConfigPagerMode::Auto) => term_h < pager_threshold,
-        (None, ConfigPagerMode::Always) => true,
-        (None, ConfigPagerMode::Disable) => false,
+    let use_pager = match (opt.watch.as_ref(), opt.pager.as_ref(), &config.pager.mode) {
+        (Some(_), _, _) => false,
+        (None, Some(x), _) if x == "auto" => term_h < pager_threshold,
+        (None, Some(x), _) if x == "always" => true,
+        (None, Some(x), _) if x == "disable" => false,
+        (None, None, ConfigPagerMode::Auto) => term_h < pager_threshold,
+        (None, None, ConfigPagerMode::Always) => true,
+        (None, None, ConfigPagerMode::Disable) => false,
         _ => false,
     };
 
@@ -506,6 +532,20 @@ fn run_opt_config(opt: Opt, config: Config) -> Result<(), Error> {
         _ => (),
     }
 
+    if let Some(interval) = opt.watch {
+        let _ = term.write_line(&format!(
+            "{}\n",
+            console::style(format!(
+                "Interval: {}s, Last Updated: {} ( Quit: Ctrl-C )",
+                interval,
+                Local::now().format("%Y/%m/%d %H:%M:%S"),
+            ))
+            .white()
+            .bold()
+            .underlined()
+        ));
+    }
+
     display_header(
         &term,
         term_w as usize,
@@ -516,7 +556,10 @@ fn run_opt_config(opt: Opt, config: Config) -> Result<(), Error> {
     );
     display_unit(&term, term_w as usize, &cols, &config);
 
-    for pid in &visible_pids {
+    for (i, pid) in visible_pids.iter().enumerate() {
+        if opt.watch.is_some() && i >= (term_h - 5) as usize {
+            break;
+        }
         display_content(&term, *pid, term_w as usize, &cols, &config);
     }
 
