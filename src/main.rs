@@ -576,7 +576,7 @@ mod tests {
         let opt = Opt::from_iter(args.iter());
         let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
         config.pager.mode = ConfigPagerMode::Disable;
-        let ret = run_opt_config(opt, config);
+        let ret = run_opt_config(&opt, &config);
         assert!(ret.is_ok());
     }
 
@@ -586,7 +586,7 @@ mod tests {
         let opt = Opt::from_iter(args.iter());
         let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
         config.pager.mode = ConfigPagerMode::Disable;
-        let ret = run_opt_config(opt, config);
+        let ret = run_opt_config(&opt, &config);
         assert!(ret.is_ok());
     }
 
@@ -596,7 +596,7 @@ mod tests {
         let opt = Opt::from_iter(args.iter());
         let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
         config.pager.mode = ConfigPagerMode::Disable;
-        let ret = run_opt_config(opt, config);
+        let ret = run_opt_config(&opt, &config);
         assert!(ret.is_ok());
     }
 
@@ -606,7 +606,7 @@ mod tests {
         let opt = Opt::from_iter(args.iter());
         let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
         config.pager.mode = ConfigPagerMode::Disable;
-        let ret = run_opt_config(opt, config);
+        let ret = run_opt_config(&opt, &config);
         assert!(ret.is_ok());
     }
 
@@ -617,7 +617,7 @@ mod tests {
         let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
         config.display.cut_to_terminal = false;
         config.pager.mode = ConfigPagerMode::Disable;
-        let ret = run_opt_config(opt, config);
+        let ret = run_opt_config(&opt, &config);
         assert!(ret.is_ok());
     }
 
@@ -935,7 +935,7 @@ style = "White"
         let opt = Opt::from_iter(args.iter());
         let mut config: Config = toml::from_str(CONFIG_ALL).unwrap();
         config.pager.mode = ConfigPagerMode::Disable;
-        let ret = run_opt_config(opt, config);
+        let ret = run_opt_config(&opt, &config);
         assert!(ret.is_ok());
     }
 
