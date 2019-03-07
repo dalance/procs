@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.5.8...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.6.0...Unreleased) - ReleaseDate
+
+## [v0.6.0](https://github.com/dalance/procs/compare/v0.5.8...v0.6.0) - 2019-03-07
 
 * [Added] watch mode
 * [Fixed] panic by truncate inside multi-byte unicode charactor
