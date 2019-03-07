@@ -281,79 +281,106 @@ fn run() -> Result<(), Error> {
     let opt = Opt::from_args();
 
     if opt.config {
-        let config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
-        let toml = toml::to_string(&config)?;
-        println!("{}", toml);
-        return Ok(());
+        run_config()?;
     }
 
     if opt.list {
-        let mut max_width = 0;
-        let mut list = Vec::new();
-        let mut desc = HashMap::new();
-        for (_, (v, d)) in KIND_LIST.iter() {
-            list.push(v);
-            desc.insert(v, d);
-            max_width = cmp::max(max_width, UnicodeWidthStr::width(*v));
-        }
-
-        list.sort();
-
-        println!("Column kind list:");
-        for l in list {
-            println!(
-                "  {}: {}",
-                expand(l, max_width, &ConfigColumnAlign::Left),
-                desc[l]
-            );
-        }
-
-        return Ok(());
+        run_list()?;
     }
 
     let config = get_config()?;
 
     if let Some(interval) = opt.watch {
-        let (tx, rx) = channel();
-        let _ = thread::spawn(move || {
-            let getch = Getch::new();
-            loop {
-                match getch.getch() {
-                    Ok(x) if char::from(x) == 'q' => break,
-                    _ => (),
-                }
-            }
-            let _ = tx.send(());
-        });
+        run_watch(&opt, &config, interval)?;
+    } else {
+        run_default(&opt, &config)?;
+    }
 
-        let term = Term::stdout();
-        let mut term_h_prev = 0;
-        let mut term_w_prev = 0;
+    Ok(())
+}
+
+fn run_config() -> Result<(), Error> {
+    let config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
+    let toml = toml::to_string(&config)?;
+    println!("{}", toml);
+    Ok(())
+}
+
+fn run_list() -> Result<(), Error> {
+    let mut max_width = 0;
+    let mut list = Vec::new();
+    let mut desc = HashMap::new();
+    for (_, (v, d)) in KIND_LIST.iter() {
+        list.push(v);
+        desc.insert(v, d);
+        max_width = cmp::max(max_width, UnicodeWidthStr::width(*v));
+    }
+
+    list.sort();
+
+    println!("Column kind list:");
+    for l in list {
+        println!(
+            "  {}: {}",
+            expand(l, max_width, &ConfigColumnAlign::Left),
+            desc[l]
+        );
+    }
+
+    Ok(())
+}
+
+#[cfg_attr(tarpaulin, skip)]
+fn run_watch(opt: &Opt, config: &Config, interval: u64) -> Result<(), Error> {
+    let (tx, rx) = channel();
+    let _ = thread::spawn(move || {
+        let getch = Getch::new();
         loop {
-            let (term_h, term_w) = term.size();
-            let term_changed = term_h != term_h_prev || term_w != term_w_prev;
-            if term_changed {
-                let _ = term.clear_screen();
-            }
-            term_h_prev = term_h;
-            term_w_prev = term_w;
-
-            run_opt_config(&opt, &config)?;
-            let _ = term.move_cursor_up((term_h - 1) as usize);
-            thread::sleep(Duration::new(interval, 0));
-
-            if rx.try_recv().is_ok() {
-                break;
+            match getch.getch() {
+                Ok(x) if char::from(x) == 'q' => break,
+                _ => (),
             }
         }
-        Ok(())
-    } else {
-        run_opt_config(&opt, &config)
+        let _ = tx.send(());
+    });
+
+    let term = Term::stdout();
+    let mut term_h_prev = 0;
+    let mut term_w_prev = 0;
+    loop {
+        let (term_h, term_w) = term.size();
+        let term_changed = term_h != term_h_prev || term_w != term_w_prev;
+        if term_changed {
+            let _ = term.clear_screen();
+        }
+        term_h_prev = term_h;
+        term_w_prev = term_w;
+
+        let _ = term.write_line(&format!(
+            "{}\n",
+            console::style(format!(
+                " Interval: {}s, Last Updated: {} ( Quit: q or Ctrl-C )",
+                interval,
+                Local::now().format("%Y/%m/%d %H:%M:%S"),
+            ))
+            .white()
+            .bold()
+            .underlined()
+        ));
+
+        run_default(&opt, &config)?;
+        let _ = term.move_cursor_up((term_h - 1) as usize);
+        thread::sleep(Duration::new(interval, 0));
+
+        if rx.try_recv().is_ok() {
+            break;
+        }
     }
+    Ok(())
 }
 
 #[allow(clippy::cyclomatic_complexity)]
-fn run_opt_config(opt: &Opt, config: &Config) -> Result<(), Error> {
+fn run_default(opt: &Opt, config: &Config) -> Result<(), Error> {
     // -------------------------------------------------------------------------
     // Generate column
     // -------------------------------------------------------------------------
@@ -497,12 +524,14 @@ fn run_opt_config(opt: &Opt, config: &Config) -> Result<(), Error> {
     // -------------------------------------------------------------------------
 
     let term = Term::stdout();
-    let (term_h, mut term_w) = term.size();
+    let (term_h, term_w) = term.size();
+    let term_h = term_h as usize;
+    let mut term_w = term_w as usize;
 
     let use_terminal = console::user_attended();
 
     // +3 means header/unit line and next prompt
-    let pager_threshold = visible_pids.len() as u16 + 3;
+    let pager_threshold = visible_pids.len() + 3;
 
     let use_pager = match (opt.watch.as_ref(), opt.pager.as_ref(), &config.pager.mode) {
         (Some(_), _, _) => false,
@@ -520,7 +549,7 @@ fn run_opt_config(opt: &Opt, config: &Config) -> Result<(), Error> {
     truncate |= !use_terminal && config.display.cut_to_pipe;
 
     if !truncate {
-        term_w = std::u16::MAX;
+        term_w = std::usize::MAX;
     }
 
     if use_pager {
@@ -551,35 +580,14 @@ fn run_opt_config(opt: &Opt, config: &Config) -> Result<(), Error> {
         _ => (),
     }
 
-    if let Some(interval) = opt.watch {
-        let _ = term.write_line(&format!(
-            "{}\n",
-            console::style(format!(
-                " Interval: {}s, Last Updated: {} ( Quit: q or Ctrl-C )",
-                interval,
-                Local::now().format("%Y/%m/%d %H:%M:%S"),
-            ))
-            .white()
-            .bold()
-            .underlined()
-        ));
-    }
-
-    display_header(
-        &term,
-        term_w as usize,
-        &cols,
-        &config,
-        sort_idx,
-        &sort_order,
-    );
-    display_unit(&term, term_w as usize, &cols, &config);
+    display_header(&term, term_w, &cols, &config, sort_idx, &sort_order);
+    display_unit(&term, term_w, &cols, &config);
 
     for (i, pid) in visible_pids.iter().enumerate() {
-        if opt.watch.is_some() && i >= (term_h - 5) as usize {
+        if opt.watch.is_some() && i >= term_h - 5 {
             break;
         }
-        display_content(&term, *pid, term_w as usize, &cols, &config);
+        display_content(&term, *pid, term_w, &cols, &config);
     }
 
     Ok(())
@@ -591,52 +599,106 @@ mod tests {
 
     #[test]
     fn test_run() {
+        let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
+        config.pager.mode = ConfigPagerMode::Disable;
+
         let args = vec!["procs"];
         let opt = Opt::from_iter(args.iter());
-        let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
-        config.pager.mode = ConfigPagerMode::Disable;
-        let ret = run_opt_config(&opt, &config);
+        let ret = run_default(&opt, &config);
         assert!(ret.is_ok());
     }
 
     #[test]
-    fn test_run_with_nonnumeric() {
+    fn test_run_search() {
+        let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
+        config.pager.mode = ConfigPagerMode::Disable;
+
         let args = vec!["procs", "root"];
         let opt = Opt::from_iter(args.iter());
-        let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
-        config.pager.mode = ConfigPagerMode::Disable;
-        let ret = run_opt_config(&opt, &config);
+        let ret = run_default(&opt, &config);
         assert!(ret.is_ok());
-    }
 
-    #[test]
-    fn test_run_with_numeric() {
         let args = vec!["procs", "1"];
         let opt = Opt::from_iter(args.iter());
-        let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
-        config.pager.mode = ConfigPagerMode::Disable;
-        let ret = run_opt_config(&opt, &config);
+        let ret = run_default(&opt, &config);
+        assert!(ret.is_ok());
+
+        let args = vec!["procs", "--or", "root", "1"];
+        let opt = Opt::from_iter(args.iter());
+        let ret = run_default(&opt, &config);
+        assert!(ret.is_ok());
+
+        let args = vec!["procs", "--and", "root", "1"];
+        let opt = Opt::from_iter(args.iter());
+        let ret = run_default(&opt, &config);
+        assert!(ret.is_ok());
+
+        let args = vec!["procs", "--nor", "root", "1"];
+        let opt = Opt::from_iter(args.iter());
+        let ret = run_default(&opt, &config);
+        assert!(ret.is_ok());
+
+        let args = vec!["procs", "--nand", "root", "1"];
+        let opt = Opt::from_iter(args.iter());
+        let ret = run_default(&opt, &config);
+        assert!(ret.is_ok());
+
+        config.search.nonnumeric_search = ConfigSearchKind::Exact;
+        config.search.numeric_search = ConfigSearchKind::Partial;
+        let args = vec!["procs", "root", "1"];
+        let opt = Opt::from_iter(args.iter());
+        let ret = run_default(&opt, &config);
         assert!(ret.is_ok());
     }
 
     #[test]
     fn test_run_config() {
-        let args = vec!["procs", "--config"];
-        let opt = Opt::from_iter(args.iter());
-        let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
-        config.pager.mode = ConfigPagerMode::Disable;
-        let ret = run_opt_config(&opt, &config);
+        let ret = run_config();
+        assert!(ret.is_ok());
+    }
+
+    #[test]
+    fn test_run_list() {
+        let ret = run_list();
         assert!(ret.is_ok());
     }
 
     #[test]
     fn test_run_without_truncate() {
-        let args = vec!["procs"];
-        let opt = Opt::from_iter(args.iter());
         let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
         config.display.cut_to_terminal = false;
+
+        let args = vec!["procs"];
+        let opt = Opt::from_iter(args.iter());
         config.pager.mode = ConfigPagerMode::Disable;
-        let ret = run_opt_config(&opt, &config);
+        let ret = run_default(&opt, &config);
+        assert!(ret.is_ok());
+    }
+
+    #[test]
+    fn test_run_insert() {
+        let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
+        config.pager.mode = ConfigPagerMode::Disable;
+
+        let args = vec!["procs", "--insert", "ppid"];
+        let opt = Opt::from_iter(args.iter());
+        let ret = run_default(&opt, &config);
+        assert!(ret.is_ok());
+    }
+
+    #[test]
+    fn test_run_sort() {
+        let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
+        config.pager.mode = ConfigPagerMode::Disable;
+
+        let args = vec!["procs", "--sorta", "cpu"];
+        let opt = Opt::from_iter(args.iter());
+        let ret = run_default(&opt, &config);
+        assert!(ret.is_ok());
+
+        let args = vec!["procs", "--sortd", "cpu"];
+        let opt = Opt::from_iter(args.iter());
+        let ret = run_default(&opt, &config);
         assert!(ret.is_ok());
     }
 
@@ -947,14 +1009,15 @@ style = "White"
 
     #[test]
     fn test_run_all() {
+        let mut config: Config = toml::from_str(CONFIG_ALL).unwrap();
+        config.pager.mode = ConfigPagerMode::Disable;
+
         let _tcp = std::net::TcpListener::bind("127.0.0.1:10000");
         let _udp = std::net::UdpSocket::bind("127.0.0.1:10000");
 
         let args = vec!["procs"];
         let opt = Opt::from_iter(args.iter());
-        let mut config: Config = toml::from_str(CONFIG_ALL).unwrap();
-        config.pager.mode = ConfigPagerMode::Disable;
-        let ret = run_opt_config(&opt, &config);
+        let ret = run_default(&opt, &config);
         assert!(ret.is_ok());
     }
 

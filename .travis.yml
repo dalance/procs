@@ -5,6 +5,9 @@ os:
 - linux
 - osx
 
+services:
+- docker
+
 before_script:
 - if [[ $TRAVIS_OS_NAME == "linux" ]]; then rustup target add x86_64-unknown-linux-musl; fi
 - if [[ $TRAVIS_OS_NAME == "linux" ]]; then sudo apt-get -qq update; fi
