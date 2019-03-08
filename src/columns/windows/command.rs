@@ -88,3 +88,17 @@ impl Column for Command {
 
     column_default!(String);
 }
+
+#[cfg_attr(tarpaulin, skip)]
+#[cfg(target_os = "windows")]
+impl Column for Command {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let fmt_content = proc.command.clone();
+        let raw_content = fmt_content.clone();
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(String);
+}

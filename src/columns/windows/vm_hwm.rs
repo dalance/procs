@@ -3,7 +3,7 @@ use crate::{column_default, Column};
 use std::cmp;
 use std::collections::HashMap;
 
-pub struct VmSwap {
+pub struct VmHwm {
     header: String,
     unit: String,
     fmt_contents: HashMap<i32, String>,
@@ -11,11 +11,11 @@ pub struct VmSwap {
     max_width: usize,
 }
 
-impl VmSwap {
+impl VmHwm {
     pub fn new() -> Self {
-        let header = String::from("VmSwap");
+        let header = String::from("VmHwm");
         let unit = String::from("[bytes]");
-        VmSwap {
+        VmHwm {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
             max_width: 0,
@@ -25,10 +25,11 @@ impl VmSwap {
     }
 }
 
-impl Column for VmSwap {
+#[cfg(target_os = "linux")]
+impl Column for VmHwm {
     fn add(&mut self, proc: &ProcessInfo) {
         let (raw_content, fmt_content) = if let Some(ref curr_status) = proc.curr_status {
-            if let Some(val) = curr_status.vmswap {
+            if let Some(val) = curr_status.vmhwm {
                 let val = val.saturating_mul(1024);
                 let (size, unit) = unbytify::bytify(val);
                 (
@@ -40,6 +41,31 @@ impl Column for VmSwap {
             }
         } else {
             (0, String::from(""))
+        };
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(u64);
+}
+
+#[cfg_attr(tarpaulin, skip)]
+#[cfg(target_os = "windows")]
+impl Column for VmHwm {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let (raw_content, fmt_content) = if let Some(ref x) = proc.memory_info {
+            if let Some(x) = x.peak_working_set_size {
+                let (size, unit) = unbytify::bytify(x);
+                (
+                    x,
+                    format!("{}{}", size, unit.replace("i", "").replace("B", "")),
+                )
+            } else {
+                (0, String::default())
+            }
+        } else {
+            (0, String::default())
         };
 
         self.fmt_contents.insert(proc.pid, fmt_content);

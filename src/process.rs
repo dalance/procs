@@ -3,6 +3,10 @@ use crate::libproc::libproc::proc_pid::{
     self, BSDInfo, InSockInfo, ListFDs, ListThreads, ProcFDType, ProcType, RUsageInfoV2,
     SocketFDInfo, SocketInfoKind, TaskAllInfo, TaskInfo, TcpSockInfo, ThreadInfo,
 };
+#[cfg(target_os = "windows")]
+use chrono::offset::TimeZone;
+#[cfg(target_os = "windows")]
+use chrono::{Local, NaiveDate};
 #[cfg(target_os = "macos")]
 use libc::{c_int, c_void, size_t};
 #[cfg(target_os = "linux")]
@@ -13,6 +17,14 @@ use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::thread;
 use std::time::{Duration, Instant};
+#[cfg(target_os = "windows")]
+use winrt::windows::system::diagnostics::*;
+#[cfg(target_os = "windows")]
+use winrt::*;
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Linux
+// ---------------------------------------------------------------------------------------------------------------------
 
 #[cfg(target_os = "linux")]
 pub struct ProcessInfo {
@@ -64,6 +76,10 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
 
     ret
 }
+
+// ---------------------------------------------------------------------------------------------------------------------
+// macOS
+// ---------------------------------------------------------------------------------------------------------------------
 
 #[cfg(target_os = "macos")]
 pub struct ProcessInfo {
@@ -354,4 +370,232 @@ fn clone_task_all_info(src: &TaskAllInfo) -> TaskAllInfo {
         pti_priority: src.ptinfo.pti_priority,
     };
     TaskAllInfo { pbsd, ptinfo }
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Windows
+// ---------------------------------------------------------------------------------------------------------------------
+
+#[cfg(target_os = "windows")]
+pub struct ProcessInfo {
+    pub pid: i32,
+    pub command: String,
+    pub ppid: Option<i32>,
+    pub start_time: Option<chrono::DateTime<chrono::Local>>,
+    pub disk_info: DiskInfo,
+    pub memory_info: Option<MemoryInfo>,
+    pub cpu_info: CpuInfo,
+    pub interval: Duration,
+}
+
+#[cfg(target_os = "windows")]
+pub struct MemoryInfo {
+    pub non_paged_pool_size: Option<u64>,
+    pub page_fault: Option<u64>,
+    pub page_file_size: Option<u64>,
+    pub paged_pool_size: Option<u64>,
+    pub peak_non_paged_pool_size: Option<u64>,
+    pub peak_page_file_size: Option<u64>,
+    pub peak_paged_pool_size: Option<u64>,
+    pub peak_virtual_memory_size: Option<u64>,
+    pub peak_working_set_size: Option<u64>,
+    pub private_page: Option<u64>,
+    pub virtual_memory_size: Option<u64>,
+    pub working_set_size: Option<u64>,
+}
+
+#[cfg(target_os = "windows")]
+pub struct DiskInfo {
+    pub prev_read: Option<u64>,
+    pub prev_write: Option<u64>,
+    pub curr_read: Option<u64>,
+    pub curr_write: Option<u64>,
+}
+
+#[cfg(target_os = "windows")]
+pub struct CpuInfo {
+    pub prev_kernel: Option<u64>,
+    pub prev_user: Option<u64>,
+    pub curr_kernel: Option<u64>,
+    pub curr_user: Option<u64>,
+}
+
+#[cfg_attr(tarpaulin, skip)]
+#[cfg(target_os = "windows")]
+pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
+    let _rt = RuntimeContext::init();
+
+    let mut base_procs = Vec::new();
+    let mut ret = Vec::new();
+
+    if let Ok(Some(infos)) = ProcessDiagnosticInfo::get_for_processes() {
+        for p in &infos {
+            if let Some(p) = p {
+                if let Ok(pid) = p.get_process_id() {
+                    let pid = pid as i32;
+
+                    let (read, write) = if let Ok(Some(x)) = p.get_disk_usage() {
+                        if let Ok(Some(x)) = x.get_report() {
+                            (
+                                x.get_bytes_read_count().ok().map(|x| x as u64),
+                                x.get_bytes_written_count().ok().map(|x| x as u64),
+                            )
+                        } else {
+                            (None, None)
+                        }
+                    } else {
+                        (None, None)
+                    };
+
+                    let (kernel, user) = if let Ok(Some(x)) = p.get_cpu_usage() {
+                        if let Ok(Some(x)) = x.get_report() {
+                            (
+                                x.get_kernel_time().ok().map(|x| x.Duration as u64),
+                                x.get_user_time().ok().map(|x| x.Duration as u64),
+                            )
+                        } else {
+                            (None, None)
+                        }
+                    } else {
+                        (None, None)
+                    };
+
+                    let time = Instant::now();
+                    base_procs.push((pid, read, write, kernel, user, time));
+                }
+            }
+        }
+    }
+
+    thread::sleep(interval);
+
+    for (pid, prev_read, prev_write, prev_kernel, prev_user, prev_time) in base_procs {
+        if let Ok(Some(p)) = ProcessDiagnosticInfo::try_get_for_process_id(pid as u32) {
+            if let Ok(pid) = p.get_process_id() {
+                let pid = pid as i32;
+
+                let command = if let Ok(x) = p.get_executable_file_name() {
+                    String::from(format!("{}", x))
+                } else {
+                    String::default()
+                };
+
+                let ppid = if let Ok(Some(x)) = p.get_parent() {
+                    if let Ok(ppid) = x.get_process_id() {
+                        Some(ppid as i32)
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                };
+
+                let start_time = if let Ok(time) = p.get_process_start_time() {
+                    let time = chrono::Duration::seconds(time.UniversalTime / 10000000);
+                    let base = NaiveDate::from_ymd(1600, 1, 1).and_hms(0, 0, 0);
+                    let time = base + time;
+                    let local = Local.from_utc_datetime(&time);
+                    Some(local)
+                } else {
+                    None
+                };
+
+                let (curr_read, curr_write) = if let Ok(Some(x)) = p.get_disk_usage() {
+                    if let Ok(Some(x)) = x.get_report() {
+                        (
+                            x.get_bytes_read_count().ok().map(|x| x as u64),
+                            x.get_bytes_written_count().ok().map(|x| x as u64),
+                        )
+                    } else {
+                        (None, None)
+                    }
+                } else {
+                    (None, None)
+                };
+
+                let disk_info = DiskInfo {
+                    prev_read,
+                    prev_write,
+                    curr_read,
+                    curr_write,
+                };
+
+                let memory_info = if let Ok(Some(x)) = p.get_memory_usage() {
+                    if let Ok(Some(x)) = x.get_report() {
+                        let non_paged_pool_size = x.get_non_paged_pool_size_in_bytes().ok();
+                        let page_fault = x.get_page_fault_count().ok().map(|x| x as u64);
+                        let page_file_size = x.get_page_file_size_in_bytes().ok();
+                        let paged_pool_size = x.get_paged_pool_size_in_bytes().ok();
+                        let peak_non_paged_pool_size =
+                            x.get_peak_non_paged_pool_size_in_bytes().ok();
+                        let peak_page_file_size = x.get_peak_page_file_size_in_bytes().ok();
+                        let peak_paged_pool_size = x.get_peak_paged_pool_size_in_bytes().ok();
+                        let peak_virtual_memory_size =
+                            x.get_peak_virtual_memory_size_in_bytes().ok();
+                        let peak_working_set_size = x.get_peak_working_set_size_in_bytes().ok();
+                        let private_page = x.get_private_page_count().ok();
+                        let virtual_memory_size = x.get_virtual_memory_size_in_bytes().ok();
+                        let working_set_size = x.get_working_set_size_in_bytes().ok();
+
+                        Some(MemoryInfo {
+                            non_paged_pool_size,
+                            page_fault,
+                            page_file_size,
+                            paged_pool_size,
+                            peak_non_paged_pool_size,
+                            peak_page_file_size,
+                            peak_paged_pool_size,
+                            peak_virtual_memory_size,
+                            peak_working_set_size,
+                            private_page,
+                            virtual_memory_size,
+                            working_set_size,
+                        })
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                };
+
+                let (curr_kernel, curr_user) = if let Ok(Some(x)) = p.get_cpu_usage() {
+                    if let Ok(Some(x)) = x.get_report() {
+                        (
+                            x.get_kernel_time().ok().map(|x| x.Duration as u64),
+                            x.get_user_time().ok().map(|x| x.Duration as u64),
+                        )
+                    } else {
+                        (None, None)
+                    }
+                } else {
+                    (None, None)
+                };
+
+                let cpu_info = CpuInfo {
+                    prev_kernel,
+                    prev_user,
+                    curr_kernel,
+                    curr_user,
+                };
+
+                let curr_time = Instant::now();
+                let interval = curr_time - prev_time;
+
+                let proc = ProcessInfo {
+                    pid,
+                    command,
+                    ppid,
+                    start_time,
+                    disk_info,
+                    memory_info,
+                    cpu_info,
+                    interval,
+                };
+
+                ret.push(proc);
+            }
+        }
+    }
+
+    ret
 }

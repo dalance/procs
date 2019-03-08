@@ -8,14 +8,16 @@ mod style;
 mod util;
 
 use crate::column::Column;
+use crate::columns::*;
 use crate::config::*;
 use crate::process::collect_proc;
 use crate::style::{apply_color, apply_style};
-use crate::util::{expand, truncate, KeywordClass};
+use crate::util::{expand, find_column_kind, truncate, KeywordClass};
 use chrono::offset::Local;
 use console::Term;
 use failure::{Error, ResultExt};
 use getch::Getch;
+#[cfg(not(target_os = "windows"))]
 use pager::Pager;
 use std::cmp;
 use std::collections::HashMap;
@@ -251,6 +253,20 @@ fn search<T: AsRef<str>>(
         ConfigSearchLogic::Nor => !(ret_nonnumeric | ret_numeric),
     }
 }
+
+#[cfg(not(target_os = "windows"))]
+fn pager(config: &Config) {
+    if let Some(ref pager) = config.pager.command {
+        Pager::with_pager(&pager).setup();
+    } else if quale::which("less").is_some() {
+        Pager::with_pager("less -SR").setup();
+    } else {
+        Pager::with_pager("more -f").setup();
+    }
+}
+
+#[cfg(target_os = "windows")]
+fn pager(_config: &Config) {}
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Main
@@ -553,13 +569,7 @@ fn run_default(opt: &Opt, config: &Config) -> Result<(), Error> {
     }
 
     if use_pager {
-        if let Some(ref pager) = config.pager.command {
-            Pager::with_pager(&pager).setup();
-        } else if quale::which("less").is_some() {
-            Pager::with_pager("less -SR").setup();
-        } else {
-            Pager::with_pager("more -f").setup();
-        }
+        pager(&config);
     }
 
     match (opt.color.as_ref(), &config.display.color_mode) {

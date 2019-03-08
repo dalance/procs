@@ -51,3 +51,20 @@ impl Column for Ppid {
 
     column_default!(i32);
 }
+
+#[cfg_attr(tarpaulin, skip)]
+#[cfg(target_os = "windows")]
+impl Column for Ppid {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let (raw_content, fmt_content) = if let Some(ppid) = proc.ppid {
+            (ppid, format!("{}", ppid))
+        } else {
+            (0, String::default())
+        };
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(i32);
+}

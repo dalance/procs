@@ -66,3 +66,34 @@ impl Column for UsageCpu {
 
     column_default!(u32);
 }
+
+#[cfg_attr(tarpaulin, skip)]
+#[cfg(target_os = "windows")]
+impl Column for UsageCpu {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let (fmt_content, raw_content) =
+            if let (Some(prev_kernel), Some(prev_user), Some(curr_kernel), Some(curr_user)) = (
+                proc.cpu_info.prev_kernel,
+                proc.cpu_info.prev_user,
+                proc.cpu_info.curr_kernel,
+                proc.cpu_info.curr_user,
+            ) {
+                let curr_time = curr_kernel + curr_user;
+                let prev_time = prev_kernel + prev_user;
+
+                let usage_ms = (curr_time - prev_time) / 10000u64;
+                let interval_ms =
+                    proc.interval.as_secs() + u64::from(proc.interval.subsec_millis());
+                let usage = usage_ms as f64 * 100.0 / interval_ms as f64;
+
+                (format!("{:.1}", usage), (usage * 1000.0) as u32)
+            } else {
+                (String::default(), 0)
+            };
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(u32);
+}

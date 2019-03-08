@@ -1,4 +1,5 @@
 use crate::column::Column;
+use crate::columns::{ConfigColumnKind, KIND_LIST};
 use crate::config::{ConfigColumnAlign, ConfigSearchLogic};
 use std::borrow::Cow;
 use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
@@ -144,6 +145,15 @@ pub fn truncate(s: &'_ str, width: usize) -> Cow<'_, str> {
     } else {
         Cow::Borrowed(s)
     }
+}
+
+pub fn find_column_kind(pat: &str) -> Option<ConfigColumnKind> {
+    for (k, (v, _)) in KIND_LIST.iter() {
+        if v.to_lowercase().find(&pat.to_lowercase()).is_some() {
+            return Some(k.clone());
+        }
+    }
+    None
 }
 
 #[cfg_attr(tarpaulin, skip)]
