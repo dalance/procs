@@ -757,34 +757,24 @@ fn pidfdinfo_test() {
 
     let _listener = TcpListener::bind("127.0.0.1:65535");
 
-    match pidinfo::<BSDInfo>(pid, 0) {
-        Ok(info) => {
-            match listpidinfo::<ListFDs>(pid, info.pbi_nfiles as usize) {
-                Ok(fds) => {
-                    for fd in fds {
-                        match fd.proc_fdtype.into() {
-                            ProcFDType::Socket => {
-                                if let Ok(socket) = pidfdinfo::<SocketFDInfo>(pid, fd.proc_fd) {
-                                    match socket.psi.soi_kind.into() {
-                                        SocketInfoKind::Tcp => unsafe {
-                                            let info = socket.psi.soi_proto.pri_tcp;
-                                            assert_eq!(socket.psi.soi_protocol,
-                                            libc::IPPROTO_TCP);
-                                            assert_eq!(info.tcpsi_ini.insi_lport as u32, 65535);
-                                        }
-                                        _ => (),
-                                    }
-                                }
-                            },
-                            _ => (),
-                        }
+    let info = pidinfo::<BSDInfo>(pid, 0).unwrap();
+    let fds = listpidinfo::<ListFDs>(pid, info.pbi_nfiles as usize).unwrap();
+    for fd in fds {
+        match fd.proc_fdtype.into() {
+            ProcFDType::Socket => {
+                let socket = pidfdinfo::<SocketFDInfo>(pid, fd.proc_fd).unwrap();
+                match socket.psi.soi_kind.into() {
+                    SocketInfoKind::Tcp => unsafe {
+                        let info = socket.psi.soi_proto.pri_tcp;
+                        assert_eq!(socket.psi.soi_protocol, libc::IPPROTO_TCP);
+                        assert_eq!(info.tcpsi_ini.insi_lport as u32, 65535);
                     }
-                },
-                Err(err) => assert!(false, "Error retrieving process info: {}", err)
-            }
-        },
-        Err(err) => assert!(false, "Error retrieving process info: {}", err)
-    };
+                    _ => (),
+                }
+            },
+            _ => (),
+        }
+    }
 }
 
 #[repr(C)]
