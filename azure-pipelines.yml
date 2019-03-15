@@ -21,10 +21,10 @@ jobs:
 
             #- task: GitHubRelease@0
             #  inputs:
-            #      gitHubConnection: 
-            #      repositoryName: 
-            #      #action: 'create' # Options: create, edit, delete
-            #      #target: '$(Build.SourceVersion)' # Required when action == Create || Action == Edit
+            #      gitHubConnection: 'dalance'
+            #      repositoryName: 'dalance/procs'
+            #      action: 'create'
+            #      target: '$(Build.SourceVersion)'
             #      #tagSource: 'auto' # Required when action == Create# Options: auto, manual
             #      #tag: # Required when action == Edit || Action == Delete || TagSource == Manual
             #      #title: # Optional
@@ -36,6 +36,7 @@ jobs:
             #      #isDraft: false # Optional
             #      #isPreRelease: false # Optional
             #      #addChangeLog: true # Optional
+            #  displayName: Release to GitHub
 
     - job: macOS
       pool:
@@ -62,6 +63,10 @@ jobs:
               set PATH=%PATH%;%USERPROFILE%\.cargo\bin
               echo '##vso[task.setvariable variable=PATH]%PATH%;%USERPROFILE%\.cargo\bin'
             displayName: Install rustup
+
+          - script: |
+              grep
+              zip
 
           - script: make test
             displayName: Run test
