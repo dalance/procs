@@ -42,9 +42,10 @@ jobs:
                 gitHubConnection: 'dalance'
                 repositoryName: 'dalance/procs'
                 tagSource: 'auto'
-                releaseNotesSource: 'file'
-                releaseNotesFile: 'CHANGELOG.md'
-                isDraft: true
+                releaseNotesSource: 'input'
+                releaseNotes: '[Changelog](https://github.com/dalance/procs/blob/master/CHANGELOG.md)'
+                assetUploadMode: 'replace'
+                isDraft: false
                 isPreRelease: false
                 addChangeLog: false
             displayName: Release to GitHub
@@ -82,9 +83,10 @@ jobs:
                 gitHubConnection: 'dalance'
                 repositoryName: 'dalance/procs'
                 tagSource: 'auto'
-                releaseNotesSource: 'file'
-                releaseNotesFile: 'CHANGELOG.md'
-                isDraft: true
+                releaseNotesSource: 'input'
+                releaseNotes: '[Changelog](https://github.com/dalance/procs/blob/master/CHANGELOG.md)'
+                assetUploadMode: 'replace'
+                isDraft: false
                 isPreRelease: false
                 addChangeLog: false
             displayName: Release to GitHub
@@ -125,9 +127,10 @@ jobs:
                 gitHubConnection: 'dalance'
                 repositoryName: 'dalance/procs'
                 tagSource: 'auto'
-                releaseNotesSource: 'file'
-                releaseNotesFile: 'CHANGELOG.md'
-                isDraft: true
+                releaseNotesSource: 'input'
+                releaseNotes: '[Changelog](https://github.com/dalance/procs/blob/master/CHANGELOG.md)'
+                assetUploadMode: 'replace'
+                isDraft: false
                 isPreRelease: false
                 addChangeLog: false
             displayName: Release to GitHub
