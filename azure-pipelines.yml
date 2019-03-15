@@ -6,7 +6,7 @@ jobs:
           - script: |
               curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable
               export PATH=$PATH:$HOME/.cargo/bin
-              echo '##vso[task.setvariable variable=PATH;]$PATH:$HOME/.cargo/bin'
+              echo '##vso[task.setvariable variable=PATH]$PATH:$HOME/.cargo/bin'
               rustup target add x86_64-unknown-linux-musl
               sudo apt-get -qq install musl-tools
             displayName: Install rustup
@@ -26,7 +26,7 @@ jobs:
           - script: |
               curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable
               export PATH=$PATH:$HOME/.cargo/bin
-              echo '##vso[task.setvariable variable=PATH;]$PATH:$HOME/.cargo/bin'
+              echo '##vso[task.setvariable variable=PATH]$PATH:$HOME/.cargo/bin'
             displayName: Install rustup
 
           - script: |
