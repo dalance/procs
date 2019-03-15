@@ -26,6 +26,7 @@
     - macOS version is checked on Travis CI environment only.
     - The issues caused by real-machine are welcome.
 - Windows is experimentally supported.
+    - pager is not supported
 
 ## Installation
 
