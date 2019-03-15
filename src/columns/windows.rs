@@ -5,6 +5,7 @@ pub mod group;
 pub mod maj_flt;
 pub mod pid;
 pub mod ppid;
+pub mod priority;
 pub mod read_bytes;
 pub mod separator;
 pub mod slot;
@@ -28,6 +29,7 @@ pub use self::group::Group;
 pub use self::maj_flt::MajFlt;
 pub use self::pid::Pid;
 pub use self::ppid::Ppid;
+pub use self::priority::Priority;
 pub use self::read_bytes::ReadBytes;
 pub use self::separator::Separator;
 pub use self::slot::Slot;
@@ -62,6 +64,7 @@ pub enum ConfigColumnKind {
     MajFlt,
     Pid,
     Ppid,
+    Priority,
     ReadBytes,
     Separator,
     Slot,
@@ -97,6 +100,7 @@ pub fn gen_column(
         ConfigColumnKind::MajFlt => Box::new(MajFlt::new()),
         ConfigColumnKind::Pid => Box::new(Pid::new()),
         ConfigColumnKind::Ppid => Box::new(Ppid::new()),
+        ConfigColumnKind::Priority => Box::new(Priority::new()),
         ConfigColumnKind::ReadBytes => Box::new(ReadBytes::new()),
         ConfigColumnKind::Separator => Box::new(Separator::new(separator)),
         ConfigColumnKind::Slot => Box::new(Slot::new()),
@@ -137,6 +141,7 @@ lazy_static! {
         ),
         (ConfigColumnKind::Pid, ("Pid", "Process ID")),
         (ConfigColumnKind::Ppid, ("Ppid", "Parent process ID")),
+        (ConfigColumnKind::Priority, ("Priority", "Priority")),
         (
             ConfigColumnKind::ReadBytes,
             ("ReadBytes", "Read bytes from storage")
@@ -197,6 +202,11 @@ nonnumeric_search = true
 [[columns]]
 kind = "Separator"
 style = "White"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "Priority"
+style = "BrightMagenta"
 numeric_search = false
 nonnumeric_search = false
 [[columns]]

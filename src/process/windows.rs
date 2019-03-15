@@ -9,7 +9,7 @@ use std::time::{Duration, Instant};
 use winapi::shared::minwindef::{DWORD, FALSE, FILETIME, MAX_PATH};
 use winapi::um::handleapi::CloseHandle;
 use winapi::um::processthreadsapi::{
-    GetCurrentProcess, GetProcessTimes, OpenProcess, OpenProcessToken,
+    GetCurrentProcess, GetPriorityClass, GetProcessTimes, OpenProcess, OpenProcessToken,
 };
 use winapi::um::psapi::{
     EnumProcessModulesEx, GetModuleBaseNameW, GetProcessMemoryInfo, K32EnumProcesses,
@@ -36,6 +36,7 @@ pub struct ProcessInfo {
     pub disk_info: DiskInfo,
     pub user: SidName,
     pub groups: Vec<SidName>,
+    pub priority: u32,
     pub interval: Duration,
 }
 
@@ -137,6 +138,8 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
             let user = get_user(handle);
             let groups = get_groups(handle);
 
+            let priority = get_priority(handle);
+
             let curr_time = Instant::now();
             let interval = curr_time - prev_time;
 
@@ -169,6 +172,7 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
                     disk_info,
                     user,
                     groups,
+                    priority,
                     interval,
                 };
 
@@ -602,4 +606,9 @@ fn from_wide_ptr(ptr: *const u16) -> String {
         let slice = std::slice::from_raw_parts(ptr, len);
         OsString::from_wide(slice).to_string_lossy().into_owned()
     }
+}
+
+#[cfg_attr(tarpaulin, skip)]
+fn get_priority(handle: HANDLE) -> u32 {
+    unsafe { GetPriorityClass(handle) }
 }

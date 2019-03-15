@@ -252,7 +252,7 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | Pid          | pid                   | Process ID                       | o     | o     | o       |
 | Policy       | policy                | Scheduling policy                | o     | o     |         |
 | Ppid         | ppid                  | Parent process ID                | o     | o     | o       |
-| Priority     | pri                   | Priority                         | o     | o     |         |
+| Priority     | pri                   | Priority                         | o     | o     | o       |
 | Processor    | psr                   | Currently assigned processor     | o     |       |         |
 | ReadBytes    | -not supported-       | Read bytes from storage          | o     | o     | o       |
 | RtPriority   | rtprio                | Real-time priority               | o     |       |         |
