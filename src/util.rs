@@ -196,8 +196,8 @@ pub fn format_sid(sid: &[u64], abbr: bool) -> String {
         if abbr {
             ret = format!("{}-...-{}", ret, sid[sid.len() - 1]);
         } else {
-            for i in 3..sid.len() {
-                ret = format!("{}-{}", ret, sid[i]);
+            for s in sid.iter().skip(3) {
+                ret = format!("{}-{}", ret, s);
             }
         }
     }

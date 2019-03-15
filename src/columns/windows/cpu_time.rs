@@ -47,7 +47,7 @@ impl Column for CpuTime {
     fn add(&mut self, proc: &ProcessInfo) {
         let time_sec = (proc.curr_task.ptinfo.pti_total_user
             + proc.curr_task.ptinfo.pti_total_system)
-            / 1000000000u64;
+            / 1_000_000_000u64;
 
         let fmt_content = util::parse_time(time_sec).to_string();
         let raw_content = time_sec;
@@ -63,7 +63,7 @@ impl Column for CpuTime {
 #[cfg(target_os = "windows")]
 impl Column for CpuTime {
     fn add(&mut self, proc: &ProcessInfo) {
-        let time_sec = (proc.cpu_info.curr_sys + proc.cpu_info.curr_user) / 10000000u64;
+        let time_sec = (proc.cpu_info.curr_sys + proc.cpu_info.curr_user) / 10_000_000u64;
 
         let fmt_content = util::parse_time(time_sec).to_string();
         let raw_content = time_sec;

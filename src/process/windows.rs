@@ -215,6 +215,9 @@ fn set_privilege() -> bool {
             ptr::null::<TOKEN_PRIVILEGES>() as *mut TOKEN_PRIVILEGES,
             ptr::null::<u32>() as *mut u32,
         );
+        if ret == 0 {
+            return false;
+        }
 
         true
     }
@@ -304,10 +307,10 @@ fn get_times(handle: HANDLE) -> Option<(u64, u64, u64, u64)> {
             &mut user as *mut FILETIME,
         );
 
-        let start = (start.dwHighDateTime as u64) << 32 | (start.dwLowDateTime as u64);
-        let exit = (exit.dwHighDateTime as u64) << 32 | (exit.dwLowDateTime as u64);
-        let sys = (sys.dwHighDateTime as u64) << 32 | (sys.dwLowDateTime as u64);
-        let user = (user.dwHighDateTime as u64) << 32 | (user.dwLowDateTime as u64);
+        let start = u64::from(start.dwHighDateTime) << 32 | u64::from(start.dwLowDateTime);
+        let exit = u64::from(exit.dwHighDateTime) << 32 | u64::from(exit.dwLowDateTime);
+        let sys = u64::from(sys.dwHighDateTime) << 32 | u64::from(sys.dwLowDateTime);
+        let user = u64::from(user.dwHighDateTime) << 32 | u64::from(user.dwLowDateTime);
 
         if ret != 0 {
             Some((start, exit, sys, user))
@@ -330,7 +333,7 @@ fn get_memory_info(handle: HANDLE) -> Option<MemoryInfo> {
 
         if ret != 0 {
             let info = MemoryInfo {
-                page_fault_count: pmc.PageFaultCount as u64,
+                page_fault_count: u64::from(pmc.PageFaultCount),
                 peak_working_set_size: pmc.PeakWorkingSetSize as u64,
                 working_set_size: pmc.WorkingSetSize as u64,
                 quota_peak_paged_pool_usage: pmc.QuotaPeakPagedPoolUsage as u64,
@@ -438,6 +441,7 @@ fn get_user(handle: HANDLE) -> Option<SidName> {
             return None;
         }
 
+        #[allow(clippy::cast_ptr_alignment)]
         let token_user = buf.as_ptr() as *const TOKEN_USER;
         let psid = (*token_user).User.Sid;
 
@@ -490,6 +494,7 @@ fn get_groups(handle: HANDLE) -> Option<Vec<SidName>> {
             return None;
         }
 
+        #[allow(clippy::cast_ptr_alignment)]
         let token_groups = buf.as_ptr() as *const TOKEN_GROUPS;
 
         let mut ret = Vec::new();
@@ -522,19 +527,19 @@ fn get_sid(psid: PSID) -> Vec<u64> {
         let psid = psid as *const SID;
 
         let mut ia = 0;
-        ia |= ((*psid).IdentifierAuthority.Value[0] as u64) << (5 * 8);
-        ia |= ((*psid).IdentifierAuthority.Value[1] as u64) << (4 * 8);
-        ia |= ((*psid).IdentifierAuthority.Value[2] as u64) << (3 * 8);
-        ia |= ((*psid).IdentifierAuthority.Value[3] as u64) << (2 * 8);
-        ia |= ((*psid).IdentifierAuthority.Value[4] as u64) << (1 * 8);
-        ia |= ((*psid).IdentifierAuthority.Value[5] as u64) << (0 * 8);
+        ia |= u64::from((*psid).IdentifierAuthority.Value[0]) << 40;
+        ia |= u64::from((*psid).IdentifierAuthority.Value[1]) << 32;
+        ia |= u64::from((*psid).IdentifierAuthority.Value[2]) << 24;
+        ia |= u64::from((*psid).IdentifierAuthority.Value[3]) << 16;
+        ia |= u64::from((*psid).IdentifierAuthority.Value[4]) << 8;
+        ia |= u64::from((*psid).IdentifierAuthority.Value[5]);
 
-        ret.push((*psid).Revision as u64);
+        ret.push(u64::from((*psid).Revision));
         ret.push(ia);
         let cnt = (*psid).SubAuthorityCount;
         let sa = (*psid).SubAuthority.as_ptr();
         for i in 0..cnt {
-            ret.push(*sa.offset(i as isize) as u64);
+            ret.push(u64::from(*sa.offset(i as isize)));
         }
 
         ret
