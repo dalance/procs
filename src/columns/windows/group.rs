@@ -78,11 +78,9 @@ impl Column for Group {
         let mut sid_name = &proc.groups[0];
         let mut kind = std::u64::MAX;
         for g in &proc.groups {
-            if g.sid.len() > 3 && g.sid[1] == 5 && g.sid[2] == 32 {
-                if kind > g.sid[3] {
-                    sid_name = &g;
-                    kind = g.sid[3];
-                }
+            if g.sid.len() > 3 && g.sid[1] == 5 && g.sid[2] == 32 && kind > g.sid[3] {
+                sid_name = &g;
+                kind = g.sid[3];
             }
         }
 
