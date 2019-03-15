@@ -1,9 +1,0 @@
-[global]
-features = []
-format   = "JUnit"
-output   = "./test-results"
-
-[workflow.default]
-doc         = false
-unit        = true
-integration = ["*"]
