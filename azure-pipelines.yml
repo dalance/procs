@@ -1,3 +1,11 @@
+trigger:
+    branches:
+        include:
+            - *
+    tags:
+        include:
+            - *
+
 jobs:
     - job: Linux
       pool:
