@@ -363,7 +363,7 @@ fn run_watch(opt: &Opt, config: &Config, interval: u64) -> Result<(), Error> {
     let term = Term::stdout();
     let mut term_h_prev = 0;
     let mut term_w_prev = 0;
-    loop {
+    'outer: loop {
         let (term_h, term_w) = term.size();
         let term_changed = term_h != term_h_prev || term_w != term_w_prev;
         if term_changed {
@@ -386,10 +386,13 @@ fn run_watch(opt: &Opt, config: &Config, interval: u64) -> Result<(), Error> {
 
         run_default(&opt, &config)?;
         let _ = term.move_cursor_up((term_h - 1) as usize);
-        thread::sleep(Duration::new(interval, 0));
 
-        if rx.try_recv().is_ok() {
-            break;
+        for _ in 0..interval * 10 {
+            thread::sleep(Duration::from_millis(100));
+
+            if rx.try_recv().is_ok() {
+                break 'outer;
+            }
         }
     }
     Ok(())
