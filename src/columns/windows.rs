@@ -2,6 +2,7 @@ pub mod command;
 pub mod cpu_time;
 pub mod gid;
 pub mod group;
+pub mod maj_flt;
 pub mod pid;
 pub mod ppid;
 pub mod read_bytes;
@@ -24,6 +25,7 @@ pub use self::command::Command;
 pub use self::cpu_time::CpuTime;
 pub use self::gid::Gid;
 pub use self::group::Group;
+pub use self::maj_flt::MajFlt;
 pub use self::pid::Pid;
 pub use self::ppid::Ppid;
 pub use self::read_bytes::ReadBytes;
@@ -57,6 +59,7 @@ pub enum ConfigColumnKind {
     CpuTime,
     Gid,
     Group,
+    MajFlt,
     Pid,
     Ppid,
     ReadBytes,
@@ -91,6 +94,7 @@ pub fn gen_column(
         ConfigColumnKind::CpuTime => Box::new(CpuTime::new()),
         ConfigColumnKind::Gid => Box::new(Gid::new(abbr_sid)),
         ConfigColumnKind::Group => Box::new(Group::new(abbr_sid)),
+        ConfigColumnKind::MajFlt => Box::new(MajFlt::new()),
         ConfigColumnKind::Pid => Box::new(Pid::new()),
         ConfigColumnKind::Ppid => Box::new(Ppid::new()),
         ConfigColumnKind::ReadBytes => Box::new(ReadBytes::new()),
@@ -127,6 +131,10 @@ lazy_static! {
         ),
         (ConfigColumnKind::Gid, ("Gid", "Group ID")),
         (ConfigColumnKind::Group, ("Group", "Group name")),
+        (
+            ConfigColumnKind::MajFlt,
+            ("MajFlt", "Major page fault count")
+        ),
         (ConfigColumnKind::Pid, ("Pid", "Process ID")),
         (ConfigColumnKind::Ppid, ("Ppid", "Parent process ID")),
         (

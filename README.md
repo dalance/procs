@@ -246,7 +246,7 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | GroupFs      | fgroup                | File system group name           | o     |       |         |
 | GroupReal    | rgroup                | Real group name                  | o     | o     |         |
 | GroupSaved   | sgroup                | Saved group name                 | o     | o     |         |
-| MajFlt       | maj_flt               | Major page fault count           | o     | o     |         |
+| MajFlt       | maj_flt               | Major page fault count           | o     | o     | o       |
 | MinFlt       | min_flt               | Minor page fault count           | o     | o     |         |
 | Nice         | ni                    | Nice value                       | o     | o     |         |
 | Pid          | pid                   | Process ID                       | o     | o     | o       |
