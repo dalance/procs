@@ -18,7 +18,7 @@ jobs:
       steps:
           - script: |
               curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable
-              source ~/.cargo/env
+              source $HOME/.cargo/env
             displayName: install rustup on macOS
 
           - script: cargo run
