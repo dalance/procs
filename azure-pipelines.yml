@@ -9,7 +9,7 @@ jobs:
           vmImage: 'ubuntu-16.04'
       container: rust
       steps:
-          - script: cargo run
+          - script: cargo test
             displayName: run test
 
     - job: macOS
@@ -22,7 +22,7 @@ jobs:
 
           - script: |
               source $HOME/.cargo/env
-              cargo run
+              cargo test
             displayName: run test
 
     - job: Windows
@@ -36,5 +36,5 @@ jobs:
               echo '##vso[task.setvariable variable=PATH;]%PATH%;%USERPROFILE%\.cargo\bin'
             displayName: install rustup on Windows
 
-          - script: cargo run
+          - script: cargo test
             displayName: run test
