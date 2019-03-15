@@ -1,4 +1,5 @@
 use crate::column::Column;
+use crate::columns::{ConfigColumnKind, KIND_LIST};
 use crate::config::{ConfigColumnAlign, ConfigSearchLogic};
 use std::borrow::Cow;
 use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
@@ -146,6 +147,15 @@ pub fn truncate(s: &'_ str, width: usize) -> Cow<'_, str> {
     }
 }
 
+pub fn find_column_kind(pat: &str) -> Option<ConfigColumnKind> {
+    for (k, (v, _)) in KIND_LIST.iter() {
+        if v.to_lowercase().find(&pat.to_lowercase()).is_some() {
+            return Some(k.clone());
+        }
+    }
+    None
+}
+
 #[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 pub fn change_endian(val: u32) -> u32 {
@@ -176,4 +186,21 @@ pub unsafe fn get_sys_value(
         ::std::ptr::null_mut(),
         0,
     ) == 0
+}
+
+#[cfg_attr(tarpaulin, skip)]
+#[cfg(target_os = "windows")]
+pub fn format_sid(sid: &[u64], abbr: bool) -> String {
+    let mut ret = format!("S-{}-{}-{}", sid[0], sid[1], sid[2]);
+    if sid.len() > 3 {
+        if abbr {
+            ret = format!("{}-...-{}", ret, sid[sid.len() - 1]);
+        } else {
+            for s in sid.iter().skip(3) {
+                ret = format!("{}-{}", ret, s);
+            }
+        }
+    }
+
+    ret
 }

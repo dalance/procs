@@ -3,7 +3,7 @@ use crate::{column_default, Column};
 use std::cmp;
 use std::collections::HashMap;
 
-pub struct VmSwap {
+pub struct VmPin {
     header: String,
     unit: String,
     fmt_contents: HashMap<i32, String>,
@@ -11,11 +11,11 @@ pub struct VmSwap {
     max_width: usize,
 }
 
-impl VmSwap {
+impl VmPin {
     pub fn new() -> Self {
-        let header = String::from("VmSwap");
+        let header = String::from("VmPin");
         let unit = String::from("[bytes]");
-        VmSwap {
+        VmPin {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
             max_width: 0,
@@ -25,10 +25,11 @@ impl VmSwap {
     }
 }
 
-impl Column for VmSwap {
+#[cfg(target_os = "linux")]
+impl Column for VmPin {
     fn add(&mut self, proc: &ProcessInfo) {
         let (raw_content, fmt_content) = if let Some(ref curr_status) = proc.curr_status {
-            if let Some(val) = curr_status.vmswap {
+            if let Some(val) = curr_status.vmpin {
                 let val = val.saturating_mul(1024);
                 let (size, unit) = unbytify::bytify(val);
                 (
@@ -41,6 +42,22 @@ impl Column for VmSwap {
         } else {
             (0, String::from(""))
         };
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(u64);
+}
+
+#[cfg_attr(tarpaulin, skip)]
+#[cfg(target_os = "windows")]
+impl Column for VmPin {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let x = proc.memory_info.quota_non_paged_pool_usage;
+        let (size, unit) = unbytify::bytify(x);
+        let fmt_content = format!("{}{}", size, unit.replace("i", "").replace("B", ""));
+        let raw_content = x;
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);

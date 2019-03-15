@@ -75,3 +75,21 @@ impl Column for ReadBytes {
 
     column_default!(u64);
 }
+
+#[cfg_attr(tarpaulin, skip)]
+#[cfg(target_os = "windows")]
+impl Column for ReadBytes {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let interval_ms = proc.interval.as_secs() + u64::from(proc.interval.subsec_millis());
+        let io = (proc.disk_info.curr_read - proc.disk_info.prev_read) * 1000 / interval_ms;
+        let (size, unit) = unbytify::bytify(io);
+
+        let fmt_content = format!("{}{}", size, unit.replace("i", "").replace("B", ""));
+        let raw_content = io;
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(u64);
+}

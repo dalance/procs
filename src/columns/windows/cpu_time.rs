@@ -47,7 +47,23 @@ impl Column for CpuTime {
     fn add(&mut self, proc: &ProcessInfo) {
         let time_sec = (proc.curr_task.ptinfo.pti_total_user
             + proc.curr_task.ptinfo.pti_total_system)
-            / 1000000000u64;
+            / 1_000_000_000u64;
+
+        let fmt_content = util::parse_time(time_sec).to_string();
+        let raw_content = time_sec;
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(u64);
+}
+
+#[cfg_attr(tarpaulin, skip)]
+#[cfg(target_os = "windows")]
+impl Column for CpuTime {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let time_sec = (proc.cpu_info.curr_sys + proc.cpu_info.curr_user) / 10_000_000u64;
 
         let fmt_content = util::parse_time(time_sec).to_string();
         let raw_content = time_sec;

@@ -8,14 +8,16 @@ mod style;
 mod util;
 
 use crate::column::Column;
+use crate::columns::*;
 use crate::config::*;
 use crate::process::collect_proc;
 use crate::style::{apply_color, apply_style};
-use crate::util::{expand, truncate, KeywordClass};
+use crate::util::{expand, find_column_kind, truncate, KeywordClass};
 use chrono::offset::Local;
 use console::Term;
 use failure::{Error, ResultExt};
 use getch::Getch;
+#[cfg(not(target_os = "windows"))]
 use pager::Pager;
 use std::cmp;
 use std::collections::HashMap;
@@ -252,6 +254,20 @@ fn search<T: AsRef<str>>(
     }
 }
 
+#[cfg(not(target_os = "windows"))]
+fn pager(config: &Config) {
+    if let Some(ref pager) = config.pager.command {
+        Pager::with_pager(&pager).setup();
+    } else if quale::which("less").is_some() {
+        Pager::with_pager("less -SR").setup();
+    } else {
+        Pager::with_pager("more -f").setup();
+    }
+}
+
+#[cfg(target_os = "windows")]
+fn pager(_config: &Config) {}
+
 // ---------------------------------------------------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------------------------------------------------
@@ -347,7 +363,7 @@ fn run_watch(opt: &Opt, config: &Config, interval: u64) -> Result<(), Error> {
     let term = Term::stdout();
     let mut term_h_prev = 0;
     let mut term_w_prev = 0;
-    loop {
+    'outer: loop {
         let (term_h, term_w) = term.size();
         let term_changed = term_h != term_h_prev || term_w != term_w_prev;
         if term_changed {
@@ -370,10 +386,13 @@ fn run_watch(opt: &Opt, config: &Config, interval: u64) -> Result<(), Error> {
 
         run_default(&opt, &config)?;
         let _ = term.move_cursor_up((term_h - 1) as usize);
-        thread::sleep(Duration::new(interval, 0));
 
-        if rx.try_recv().is_ok() {
-            break;
+        for _ in 0..interval * 10 {
+            thread::sleep(Duration::from_millis(100));
+
+            if rx.try_recv().is_ok() {
+                break 'outer;
+            }
         }
     }
     Ok(())
@@ -401,7 +420,12 @@ fn run_default(opt: &Opt, config: &Config) -> Result<(), Error> {
             x => Some(x.clone()),
         };
         if let Some(kind) = kind {
-            let column = gen_column(&kind, &config.docker.path, &config.display.separator);
+            let column = gen_column(
+                &kind,
+                &config.docker.path,
+                &config.display.separator,
+                config.display.abbr_sid,
+            );
             if column.available() {
                 cols.push(ColumnInfo {
                     column,
@@ -533,15 +557,19 @@ fn run_default(opt: &Opt, config: &Config) -> Result<(), Error> {
     // +3 means header/unit line and next prompt
     let pager_threshold = visible_pids.len() + 3;
 
-    let use_pager = match (opt.watch.as_ref(), opt.pager.as_ref(), &config.pager.mode) {
-        (Some(_), _, _) => false,
-        (None, Some(x), _) if x == "auto" => term_h < pager_threshold,
-        (None, Some(x), _) if x == "always" => true,
-        (None, Some(x), _) if x == "disable" => false,
-        (None, None, ConfigPagerMode::Auto) => term_h < pager_threshold,
-        (None, None, ConfigPagerMode::Always) => true,
-        (None, None, ConfigPagerMode::Disable) => false,
-        _ => false,
+    let use_pager = if cfg!(target_os = "windows") {
+        false
+    } else {
+        match (opt.watch.as_ref(), opt.pager.as_ref(), &config.pager.mode) {
+            (Some(_), _, _) => false,
+            (None, Some(x), _) if x == "auto" => term_h < pager_threshold,
+            (None, Some(x), _) if x == "always" => true,
+            (None, Some(x), _) if x == "disable" => false,
+            (None, None, ConfigPagerMode::Auto) => term_h < pager_threshold,
+            (None, None, ConfigPagerMode::Always) => true,
+            (None, None, ConfigPagerMode::Disable) => false,
+            _ => false,
+        }
     };
 
     let mut truncate = use_terminal && use_pager && config.display.cut_to_pager;
@@ -553,13 +581,7 @@ fn run_default(opt: &Opt, config: &Config) -> Result<(), Error> {
     }
 
     if use_pager {
-        if let Some(ref pager) = config.pager.command {
-            Pager::with_pager(&pager).setup();
-        } else if quale::which("less").is_some() {
-            Pager::with_pager("less -SR").setup();
-        } else {
-            Pager::with_pager("more -f").setup();
-        }
+        pager(&config);
     }
 
     match (opt.color.as_ref(), &config.display.color_mode) {
@@ -701,311 +723,6 @@ mod tests {
         let ret = run_default(&opt, &config);
         assert!(ret.is_ok());
     }
-
-    #[cfg(target_os = "linux")]
-    pub static CONFIG_ALL: &'static str = r#"
-[[columns]]
-kind = "Command"
-style = "BrightRed"
-align = "Left"
-[[columns]]
-kind = "ContextSw"
-style = "BrightRed"
-align = "Right"
-[[columns]]
-kind = "CpuTime"
-style = "BrightGreen"
-align = "Center"
-[[columns]]
-kind = "Docker"
-style = "BrightMagenta"
-[[columns]]
-kind = "Eip"
-style = "BrightYellow"
-[[columns]]
-kind = "Esp"
-style = "BrightBlue"
-[[columns]]
-kind = "Gid"
-style = "White"
-[[columns]]
-kind = "GidFs"
-style = "White"
-[[columns]]
-kind = "GidReal"
-style = "White"
-[[columns]]
-kind = "GidSaved"
-style = "White"
-[[columns]]
-kind = "Group"
-style = "White"
-[[columns]]
-kind = "GroupFs"
-style = "White"
-[[columns]]
-kind = "GroupReal"
-style = "White"
-[[columns]]
-kind = "GroupSaved"
-style = "White"
-[[columns]]
-kind = "MajFlt"
-style = "BrightCyan"
-[[columns]]
-kind = "MinFlt"
-style = "BrightWhite"
-[[columns]]
-kind = "Nice"
-style = "Red"
-[[columns]]
-kind = "Pid"
-style = "Green"
-[[columns]]
-kind = "Policy"
-style = "Green"
-[[columns]]
-kind = "Ppid"
-style = "Yellow"
-[[columns]]
-kind = "Priority"
-style = "Blue"
-[[columns]]
-kind = "Processor"
-style = "Magenta"
-[[columns]]
-kind = "ReadBytes"
-style = "Cyan"
-[[columns]]
-kind = "RtPriority"
-style = "White"
-[[columns]]
-kind = "Separator"
-style = "White"
-[[columns]]
-kind = "ShdPnd"
-style = "White"
-[[columns]]
-kind = "SigBlk"
-style = "White"
-[[columns]]
-kind = "SigCgt"
-style = "White"
-[[columns]]
-kind = "SigIgn"
-style = "White"
-[[columns]]
-kind = "SigPnd"
-style = "White"
-[[columns]]
-kind = "Ssb"
-style = "White"
-[[columns]]
-kind = "StartTime"
-style = "White"
-[[columns]]
-kind = "State"
-style = "White"
-[[columns]]
-kind = "TcpPort"
-style = "White"
-[[columns]]
-kind = "Threads"
-style = "White"
-[[columns]]
-kind = "Tty"
-style = "White"
-[[columns]]
-kind = "UdpPort"
-style = "White"
-[[columns]]
-kind = "Uid"
-style = "White"
-[[columns]]
-kind = "UidFs"
-style = "White"
-[[columns]]
-kind = "UidReal"
-style = "White"
-[[columns]]
-kind = "UidSaved"
-style = "White"
-[[columns]]
-kind = "UsageCpu"
-style = "White"
-[[columns]]
-kind = "UsageMem"
-style = "White"
-[[columns]]
-kind = "User"
-style = "White"
-[[columns]]
-kind = "UserFs"
-style = "White"
-[[columns]]
-kind = "UserReal"
-style = "White"
-[[columns]]
-kind = "UserSaved"
-style = "White"
-[[columns]]
-kind = "VmData"
-style = "ByUnit"
-[[columns]]
-kind = "VmExe"
-style = "ByUnit"
-[[columns]]
-kind = "VmHwm"
-style = "ByUnit"
-[[columns]]
-kind = "VmLib"
-style = "ByUnit"
-[[columns]]
-kind = "VmLock"
-style = "ByUnit"
-[[columns]]
-kind = "VmPeak"
-style = "ByUnit"
-[[columns]]
-kind = "VmPin"
-style = "ByUnit"
-[[columns]]
-kind = "VmPte"
-style = "ByUnit"
-[[columns]]
-kind = "VmRss"
-style = "ByUnit"
-[[columns]]
-kind = "VmSize"
-style = "ByUnit"
-[[columns]]
-kind = "VmStack"
-style = "ByUnit"
-[[columns]]
-kind = "VmSwap"
-style = "ByUnit"
-[[columns]]
-kind = "Wchan"
-style = "White"
-[[columns]]
-kind = "WriteBytes"
-style = "White"
-"#;
-
-    #[cfg(target_os = "macos")]
-    pub static CONFIG_ALL: &'static str = r#"
-[[columns]]
-kind = "Command"
-style = "BrightRed"
-align = "Left"
-[[columns]]
-kind = "ContextSw"
-style = "BrightRed"
-align = "Right"
-[[columns]]
-kind = "CpuTime"
-style = "BrightGreen"
-align = "Center"
-[[columns]]
-kind = "Docker"
-style = "BrightMagenta"
-[[columns]]
-kind = "Gid"
-style = "White"
-[[columns]]
-kind = "GidReal"
-style = "White"
-[[columns]]
-kind = "GidSaved"
-style = "White"
-[[columns]]
-kind = "Group"
-style = "White"
-[[columns]]
-kind = "GroupReal"
-style = "White"
-[[columns]]
-kind = "GroupSaved"
-style = "White"
-[[columns]]
-kind = "MajFlt"
-style = "BrightCyan"
-[[columns]]
-kind = "MinFlt"
-style = "BrightWhite"
-[[columns]]
-kind = "Nice"
-style = "Red"
-[[columns]]
-kind = "Pid"
-style = "Green"
-[[columns]]
-kind = "Policy"
-style = "Green"
-[[columns]]
-kind = "Ppid"
-style = "Yellow"
-[[columns]]
-kind = "Priority"
-style = "Blue"
-[[columns]]
-kind = "ReadBytes"
-style = "Cyan"
-[[columns]]
-kind = "Separator"
-style = "White"
-[[columns]]
-kind = "StartTime"
-style = "White"
-[[columns]]
-kind = "State"
-style = "White"
-[[columns]]
-kind = "TcpPort"
-style = "White"
-[[columns]]
-kind = "Threads"
-style = "White"
-[[columns]]
-kind = "Tty"
-style = "White"
-[[columns]]
-kind = "UdpPort"
-style = "White"
-[[columns]]
-kind = "Uid"
-style = "White"
-[[columns]]
-kind = "UidReal"
-style = "White"
-[[columns]]
-kind = "UidSaved"
-style = "White"
-[[columns]]
-kind = "UsageCpu"
-style = "White"
-[[columns]]
-kind = "UsageMem"
-style = "White"
-[[columns]]
-kind = "User"
-style = "White"
-[[columns]]
-kind = "UserReal"
-style = "White"
-[[columns]]
-kind = "UserSaved"
-style = "White"
-[[columns]]
-kind = "VmRss"
-style = "ByUnit"
-[[columns]]
-kind = "VmSize"
-style = "ByUnit"
-[[columns]]
-kind = "WriteBytes"
-style = "White"
-"#;
 
     #[test]
     fn test_run_all() {

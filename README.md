@@ -3,6 +3,7 @@
 **procs** is a replacement for `ps` written by [Rust](https://www.rust-lang.org/).
 
 [![Build Status](https://travis-ci.org/dalance/procs.svg?branch=master)](https://travis-ci.org/dalance/procs)
+[![Build Status](https://dev.azure.com/dalance/procs/_apis/build/status/dalance.procs?branchName=master)](https://dev.azure.com/dalance/procs/_build/latest?definitionId=1&branchName=master)
 [![Changelog](https://img.shields.io/badge/changelog-v0.6.0-green.svg)](https://github.com/dalance/procs/blob/master/CHANGELOG.md)
 [![Crates.io](https://img.shields.io/crates/v/procs.svg)](https://crates.io/crates/procs)
 [![codecov](https://codecov.io/gh/dalance/procs/branch/master/graph/badge.svg)](https://codecov.io/gh/dalance/procs)
@@ -25,6 +26,8 @@
 - macOS is experimentally supported.
     - macOS version is checked on Travis CI environment only.
     - The issues caused by real-machine are welcome.
+- Windows is experimentally supported.
+    - pager is not supported
 
 ## Installation
 
@@ -229,70 +232,70 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 
 #### `kind` list
 
-| procs `kind` | `ps` STANDARD FORMAT  | Description                      | Linux | macOS |
-| ------------ | --------------------- | -------------------------------- | ----- | ----- |
-| Command      | args                  | Command with all arguments       | o     | o     |
-| ContextSw    | -not supported-       | Context switch count             | o     | o     |
-| CpuTime      | cputime               | Cumulative CPU time              | o     | o     |
-| Docker       | -not supported-       | Docker container name            | o     | o     |
-| Eip          | eip                   | Instruction pointer              | o     |       |
-| Esp          | esp                   | Stack pointer                    | o     |       |
-| Gid          | egid                  | Group ID                         | o     | o     |
-| GidFs        | fgid                  | File system group ID             | o     |       |
-| GidReal      | rgid                  | Real group ID                    | o     | o     |
-| GidSaved     | sgid                  | Saved group ID                   | o     | o     |
-| Group        | egroup                | Group name                       | o     | o     |
-| GroupFs      | fgroup                | File system group name           | o     |       |
-| GroupReal    | rgroup                | Real group name                  | o     | o     |
-| GroupSaved   | sgroup                | Saved group name                 | o     | o     |
-| MajFlt       | maj_flt               | Major page fault count           | o     | o     |
-| MinFlt       | min_flt               | Minor page fault count           | o     | o     |
-| Nice         | ni                    | Nice value                       | o     | o     |
-| Pid          | pid                   | Process ID                       | o     | o     |
-| Policy       | policy                | Scheduling policy                | o     | o     |
-| Ppid         | ppid                  | Parent process ID                | o     | o     |
-| Priority     | pri                   | Priority                         | o     | o     |
-| Processor    | psr                   | Currently assigned processor     | o     |       |
-| ReadBytes    | -not supported-       | Read bytes from storage          | o     | o     |
-| RtPriority   | rtprio                | Real-time priority               | o     |       |
-| Separator    | -not supported-       | Show `\|` for column separation  | o     | o     |
-| ShdPnd       | pending               | Pending signal mask for process  | o     |       |
-| Slot         | -not supported-       | Slot for `--insert` option       | o     | o     |
-| SigBlk       | blocked               | Blocked signal mask              | o     |       |
-| SigCgt       | caught                | Caught signal mask               | o     |       |
-| SigIgn       | ignored               | Ignored signal mask              | o     |       |
-| SigPnd       | pending               | Pending signal mask for thread   | o     |       |
-| Ssb          | -not supported-       | Speculative store bypass status  | o     |       |
-| StartTime    | start_time            | Starting time                    | o     | o     |
-| State        | s                     | Process state                    | o     | o     |
-| TcpPort      | -not supported-       | Bound TCP ports                  | o     | o     |
-| Threads      | nlwp                  | Thread count                     | o     | o     |
-| Tty          | tty                   | Controlling TTY                  | o     | o     |
-| UdpPort      | -not supported-       | Bound UDP ports                  | o     | o     |
-| Uid          | euid                  | User ID                          | o     | o     |
-| UidFs        | fuid                  | File system user ID              | o     |       |
-| UidReal      | ruid                  | Real user ID                     | o     | o     |
-| UidSaved     | suid                  | Saved user ID                    | o     | o     |
-| UsageCpu     | %cpu                  | CPU utilization                  | o     | o     |
-| UsageMem     | %mem                  | Memory utilization               | o     | o     |
-| User         | euser                 | User name                        | o     | o     |
-| UserFs       | fuser                 | File system user name            | o     |       |
-| UserReal     | ruser                 | Real user name                   | o     | o     |
-| UserSaved    | suser                 | Saved user name                  | o     | o     |
-| VmData       | -not supported-       | Data size                        | o     |       |
-| VmExe        | trs                   | Text segments size               | o     |       |
-| VmHwm        | -not supported-       | Peak resident set size           | o     |       |
-| VmLib        | -not supported-       | Library code size                | o     |       |
-| VmLock       | -not supported-       | Locked memory size               | o     |       |
-| VmPeak       | -not supported-       | Peak virtual memory size         | o     |       |
-| VmPin        | -not supported-       | Pinned memory size               | o     |       |
-| VmPte        | -not supported-       | Page table entries size          | o     |       |
-| VmRss        | rss                   | Resident set size                | o     | o     |
-| VmSize       | vsz                   | Physical page size               | o     | o     |
-| VmStack      | -not supported-       | Stack size                       | o     |       |
-| VmSwap       | -not supported-       | Swapped-out virtual memory size  | o     |       |
-| Wchan        | wchan                 | Process sleeping kernel function | o     |       |
-| WriteByte    | -not supported-       | Write bytes to storage           | o     | o     |
+| procs `kind` | `ps` STANDARD FORMAT  | Description                      | Linux | macOS | Windows |
+| ------------ | --------------------- | -------------------------------- | ----- | ----- | ------- |
+| Command      | args                  | Command with all arguments       | o     | o     | o       |
+| ContextSw    | -not supported-       | Context switch count             | o     | o     |         |
+| CpuTime      | cputime               | Cumulative CPU time              | o     | o     | o       |
+| Docker       | -not supported-       | Docker container name            | o     | o     |         |
+| Eip          | eip                   | Instruction pointer              | o     |       |         |
+| Esp          | esp                   | Stack pointer                    | o     |       |         |
+| Gid          | egid                  | Group ID                         | o     | o     | o       |
+| GidFs        | fgid                  | File system group ID             | o     |       |         |
+| GidReal      | rgid                  | Real group ID                    | o     | o     |         |
+| GidSaved     | sgid                  | Saved group ID                   | o     | o     |         |
+| Group        | egroup                | Group name                       | o     | o     | o       |
+| GroupFs      | fgroup                | File system group name           | o     |       |         |
+| GroupReal    | rgroup                | Real group name                  | o     | o     |         |
+| GroupSaved   | sgroup                | Saved group name                 | o     | o     |         |
+| MajFlt       | maj_flt               | Major page fault count           | o     | o     | o       |
+| MinFlt       | min_flt               | Minor page fault count           | o     | o     |         |
+| Nice         | ni                    | Nice value                       | o     | o     |         |
+| Pid          | pid                   | Process ID                       | o     | o     | o       |
+| Policy       | policy                | Scheduling policy                | o     | o     |         |
+| Ppid         | ppid                  | Parent process ID                | o     | o     | o       |
+| Priority     | pri                   | Priority                         | o     | o     | o       |
+| Processor    | psr                   | Currently assigned processor     | o     |       |         |
+| ReadBytes    | -not supported-       | Read bytes from storage          | o     | o     | o       |
+| RtPriority   | rtprio                | Real-time priority               | o     |       |         |
+| Separator    | -not supported-       | Show `\|` for column separation  | o     | o     | o       |
+| ShdPnd       | pending               | Pending signal mask for process  | o     |       |         |
+| Slot         | -not supported-       | Slot for `--insert` option       | o     | o     | o       |
+| SigBlk       | blocked               | Blocked signal mask              | o     |       |         |
+| SigCgt       | caught                | Caught signal mask               | o     |       |         |
+| SigIgn       | ignored               | Ignored signal mask              | o     |       |         |
+| SigPnd       | pending               | Pending signal mask for thread   | o     |       |         |
+| Ssb          | -not supported-       | Speculative store bypass status  | o     |       |         |
+| StartTime    | start_time            | Starting time                    | o     | o     | o       |
+| State        | s                     | Process state                    | o     | o     |         |
+| TcpPort      | -not supported-       | Bound TCP ports                  | o     | o     |         |
+| Threads      | nlwp                  | Thread count                     | o     | o     |         |
+| Tty          | tty                   | Controlling TTY                  | o     | o     |         |
+| UdpPort      | -not supported-       | Bound UDP ports                  | o     | o     |         |
+| Uid          | euid                  | User ID                          | o     | o     | o       |
+| UidFs        | fuid                  | File system user ID              | o     |       |         |
+| UidReal      | ruid                  | Real user ID                     | o     | o     |         |
+| UidSaved     | suid                  | Saved user ID                    | o     | o     |         |
+| UsageCpu     | %cpu                  | CPU utilization                  | o     | o     | o       |
+| UsageMem     | %mem                  | Memory utilization               | o     | o     | o       |
+| User         | euser                 | User name                        | o     | o     | o       |
+| UserFs       | fuser                 | File system user name            | o     |       |         |
+| UserReal     | ruser                 | Real user name                   | o     | o     |         |
+| UserSaved    | suser                 | Saved user name                  | o     | o     |         |
+| VmData       | -not supported-       | Data size                        | o     |       |         |
+| VmExe        | trs                   | Text segments size               | o     |       |         |
+| VmHwm        | -not supported-       | Peak resident set size           | o     |       | o       |
+| VmLib        | -not supported-       | Library code size                | o     |       |         |
+| VmLock       | -not supported-       | Locked memory size               | o     |       |         |
+| VmPeak       | -not supported-       | Peak virtual memory size         | o     |       | o       |
+| VmPin        | -not supported-       | Pinned memory size               | o     |       | o       |
+| VmPte        | -not supported-       | Page table entries size          | o     |       |         |
+| VmRss        | rss                   | Resident set size                | o     | o     | o       |
+| VmSize       | vsz                   | Physical page size               | o     | o     | o       |
+| VmStack      | -not supported-       | Stack size                       | o     |       |         |
+| VmSwap       | -not supported-       | Swapped-out virtual memory size  | o     |       | o       |
+| Wchan        | wchan                 | Process sleeping kernel function | o     |       |         |
+| WriteByte    | -not supported-       | Write bytes to storage           | o     | o     | o       |
 
 #### `style` list
 
@@ -390,8 +393,25 @@ The available list of color is below.
 | separator       | [String]              | │       | String used as Separator                                                     |
 | ascending       | [String]              | ▲       | Ascending sort indicator                                                     |
 | descending      | [String]              | ▼       | Descending sort indicator                                                    |
+| abbr_sid        | true, false           | true    | Whether machine SID is abbreviated ( windows only )                          |
 
 If `color_mode` is `Auto`, color is enabled for terminal and pager, disabled for pipe.
+
+#### `abbr_sid`
+
+Windows SID is too long, so it is abbreviated by default.
+If `abbr_sid` is `false`, SID is fully shown like below:
+
+```
+S-1-5-21-789457439-2186958450-1652286173-1001
+```
+
+If `abbr_sid` is `true`, SID is shown like below:
+
+```
+S-1-5-21-...-1001
+```
+
 
 ### `[sort]` section
 

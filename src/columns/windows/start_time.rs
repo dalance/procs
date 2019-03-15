@@ -56,3 +56,17 @@ impl Column for StartTime {
 
     column_default!(DateTime<Local>);
 }
+
+#[cfg_attr(tarpaulin, skip)]
+#[cfg(target_os = "windows")]
+impl Column for StartTime {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let raw_content = proc.start_time;
+        let fmt_content = format!("{}", proc.start_time.format("%Y/%m/%d %H:%M"));
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(DateTime<Local>);
+}

@@ -1,0 +1,103 @@
+jobs:
+    - job: Linux
+      pool:
+          vmImage: 'ubuntu-16.04'
+      steps:
+          - script: |
+              curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable
+              echo '##vso[task.setvariable variable=PATH]$(PATH):$(HOME)/.cargo/bin'
+            displayName: Install rustup
+
+          - script: |
+              cargo install cargo2junit
+              rustup target add x86_64-unknown-linux-musl
+              sudo apt-get -qq install musl-tools
+            displayName: Install tools
+
+          - script: |
+              cargo test -- -Z unstable-options --format json | cargo2junit > results.xml
+            displayName: Run test
+
+          - task: PublishTestResults@2
+            inputs:
+                testResultsFormat: 'JUnit'
+                testResultsFiles: 'results.xml'
+            condition: succeededOrFailed()
+
+          - script: make release_lnx
+            displayName: Build release binary
+
+            #- task: GitHubRelease@0
+            #  inputs:
+            #      gitHubConnection: 'dalance'
+            #      repositoryName: 'dalance/procs'
+            #      action: 'create'
+            #      target: '$(Build.SourceVersion)'
+            #      #tagSource: 'auto' # Required when action == Create# Options: auto, manual
+            #      #tag: # Required when action == Edit || Action == Delete || TagSource == Manual
+            #      #title: # Optional
+            #      #releaseNotesSource: 'file' # Optional. Options: file, input
+            #      #releaseNotesFile: # Optional
+            #      #releaseNotes: # Optional
+            #      #assets: '$(Build.ArtifactStagingDirectory)/*' # Optional
+            #      #assetUploadMode: 'delete' # Optional. Options: delete, replace
+            #      #isDraft: false # Optional
+            #      #isPreRelease: false # Optional
+            #      #addChangeLog: true # Optional
+            #  displayName: Release to GitHub
+
+    - job: macOS
+      pool:
+          vmImage: 'macos-10.13'
+      steps:
+          - script: |
+              curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable
+              echo '##vso[task.setvariable variable=PATH]$(PATH):$(HOME)/.cargo/bin'
+            displayName: Install rustup
+
+          - script: |
+              cargo install cargo2junit
+            displayName: Install tools
+
+          - script: |
+              cargo test -- -Z unstable-options --format json | cargo2junit > results.xml
+            displayName: Run test
+
+          - task: PublishTestResults@2
+            inputs:
+                testResultsFormat: 'JUnit'
+                testResultsFiles: 'results.xml'
+            condition: succeededOrFailed()
+
+          - script: make release_mac
+            displayName: Build release binary
+
+    - job: Windows
+      pool:
+          vmImage: 'vs2017-win2016'
+      steps:
+          - script: |
+              curl -sSf -o rustup-init.exe https://win.rustup.rs
+              rustup-init.exe -y --default-toolchain stable
+              set PATH=%PATH%;%USERPROFILE%\.cargo\bin
+              echo '##vso[task.setvariable variable=PATH]%PATH%;%USERPROFILE%\.cargo\bin'
+            displayName: Install rustup
+
+          - script: |
+              choco install -y zip
+              cargo install cargo2junit
+            displayName: Install tools
+
+          - script: |
+              cargo test -- -Z unstable-options --format json | cargo2junit > results.xml
+            displayName: Run test
+
+          - task: PublishTestResults@2
+            inputs:
+                testResultsFormat: 'JUnit'
+                testResultsFiles: 'results.xml'
+            condition: succeededOrFailed()
+
+          - script: make release_win
+            displayName: Build release binary
+

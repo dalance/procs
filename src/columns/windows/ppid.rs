@@ -3,7 +3,7 @@ use crate::{column_default, Column};
 use std::cmp;
 use std::collections::HashMap;
 
-pub struct Uid {
+pub struct Ppid {
     header: String,
     unit: String,
     fmt_contents: HashMap<i32, String>,
@@ -11,11 +11,11 @@ pub struct Uid {
     max_width: usize,
 }
 
-impl Uid {
+impl Ppid {
     pub fn new() -> Self {
-        let header = String::from("UID");
+        let header = String::from("Parent PID");
         let unit = String::from("");
-        Uid {
+        Ppid {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
             max_width: 0,
@@ -26,14 +26,10 @@ impl Uid {
 }
 
 #[cfg(target_os = "linux")]
-impl Column for Uid {
+impl Column for Ppid {
     fn add(&mut self, proc: &ProcessInfo) {
-        let (fmt_content, raw_content) = if let Some(ref status) = proc.curr_status {
-            let uid = status.euid;
-            (format!("{}", uid), uid)
-        } else {
-            (String::from(""), 0)
-        };
+        let raw_content = proc.curr_proc.stat.ppid;
+        let fmt_content = format!("{}", raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);
@@ -44,11 +40,24 @@ impl Column for Uid {
 
 #[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
-impl Column for Uid {
+impl Column for Ppid {
     fn add(&mut self, proc: &ProcessInfo) {
-        let uid = proc.curr_task.pbsd.pbi_uid as i32;
-        let fmt_content = format!("{}", uid);
-        let raw_content = uid;
+        let raw_content = proc.curr_task.pbsd.pbi_ppid as i32;
+        let fmt_content = format!("{}", raw_content);
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(i32);
+}
+
+#[cfg_attr(tarpaulin, skip)]
+#[cfg(target_os = "windows")]
+impl Column for Ppid {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let raw_content = proc.ppid;
+        let fmt_content = format!("{}", raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);
