@@ -67,11 +67,6 @@ jobs:
           - script: choco install -y zip
             displayName: Install zip
 
-          - script: |
-              chocolatey
-              grep
-              zip
-
           - script: make test
             displayName: Run test
 
