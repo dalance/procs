@@ -24,27 +24,22 @@ jobs:
                 testResultsFiles: 'results.xml'
             condition: succeededOrFailed()
 
-          - script: make release_lnx
+          - script: |
+              make release_lnx
+              cp *.zip $(Build.ArtifactStagingDirectory)/
             displayName: Build release binary
 
-            #- task: GitHubRelease@0
-            #  inputs:
-            #      gitHubConnection: 'dalance'
-            #      repositoryName: 'dalance/procs'
-            #      action: 'create'
-            #      target: '$(Build.SourceVersion)'
-            #      #tagSource: 'auto' # Required when action == Create# Options: auto, manual
-            #      #tag: # Required when action == Edit || Action == Delete || TagSource == Manual
-            #      #title: # Optional
-            #      #releaseNotesSource: 'file' # Optional. Options: file, input
-            #      #releaseNotesFile: # Optional
-            #      #releaseNotes: # Optional
-            #      #assets: '$(Build.ArtifactStagingDirectory)/*' # Optional
-            #      #assetUploadMode: 'delete' # Optional. Options: delete, replace
-            #      #isDraft: false # Optional
-            #      #isPreRelease: false # Optional
-            #      #addChangeLog: true # Optional
-            #  displayName: Release to GitHub
+          - task: GitHubRelease@0
+            inputs:
+                gitHubConnection: 'dalance'
+                repositoryName: 'dalance/procs'
+                tagSource: 'Git tag'
+                releaseNotesSource: 'file'
+                releaseNotesFile: 'CHANGELOG.md'
+                isDraft: true
+                isPreRelease: false
+                addChangeLog: false
+            displayName: Release to GitHub
 
     - job: macOS
       pool:
@@ -69,8 +64,22 @@ jobs:
                 testResultsFiles: 'results.xml'
             condition: succeededOrFailed()
 
-          - script: make release_mac
+          - script: |
+              make release_mac
+              cp *.zip $(Build.ArtifactStagingDirectory)/
             displayName: Build release binary
+
+          - task: GitHubRelease@0
+            inputs:
+                gitHubConnection: 'dalance'
+                repositoryName: 'dalance/procs'
+                tagSource: 'Git tag'
+                releaseNotesSource: 'file'
+                releaseNotesFile: 'CHANGELOG.md'
+                isDraft: true
+                isPreRelease: false
+                addChangeLog: false
+            displayName: Release to GitHub
 
     - job: Windows
       pool:
@@ -98,6 +107,19 @@ jobs:
                 testResultsFiles: 'results.xml'
             condition: succeededOrFailed()
 
-          - script: make release_win
+          - script: |
+              make release_win
+              cp *.zip $(Build.ArtifactStagingDirectory)/
             displayName: Build release binary
 
+          - task: GitHubRelease@0
+            inputs:
+                gitHubConnection: 'dalance'
+                repositoryName: 'dalance/procs'
+                tagSource: 'Git tag'
+                releaseNotesSource: 'file'
+                releaseNotesFile: 'CHANGELOG.md'
+                isDraft: true
+                isPreRelease: false
+                addChangeLog: false
+            displayName: Release to GitHub
