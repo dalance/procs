@@ -2,6 +2,9 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.6.0...Unreleased) - ReleaseDate
 
+* [Added] windows support
+* [Changed] fast exit of watch mode
+
 ## [v0.6.0](https://github.com/dalance/procs/compare/v0.5.8...v0.6.0) - 2019-03-07
 
 * [Added] watch mode
