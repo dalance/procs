@@ -1,7 +1,10 @@
 trigger:
+    branchess:
+        include:
+            - '*'
     tags:
         include:
-            - v*
+            - '*'
 
 jobs:
     - job: Linux
