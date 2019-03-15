@@ -9,6 +9,7 @@ license = "MIT"
 readme = "README.md"
 description = "A modern replacement for ps"
 edition = "2018"
+build = "build.rs"
 
 [badges]
 travis-ci = { repository = "dalance/procs" }
@@ -29,6 +30,9 @@ structopt     = "0.2.14"
 toml          = "0.4.5"
 unbytify      = "0.2.0"
 unicode-width = "0.1.5"
+
+[build-dependencies]
+fs_extra      = "1.1.0"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 pager         = "0.15.0"
