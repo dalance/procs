@@ -6,17 +6,36 @@ jobs:
           - script: |
               curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable
               echo '##vso[task.setvariable variable=PATH]$(PATH):$(HOME)/.cargo/bin'
-              rustup target add x86_64-unknown-linux-musl
-              sudo apt-get -qq install musl-tools
             displayName: Install rustup
 
           - script: |
-              make test
+              rustup target add x86_64-unknown-linux-musl
+              sudo apt-get -qq install musl-tools
+            displayName: Install musl
+
+          - script: make test
             displayName: Run test
 
-          - script: |
-              make release_lnx
+          - script: make release_lnx
             displayName: Build release binary
+
+            #- task: GitHubRelease@0
+            #  inputs:
+            #      gitHubConnection: 
+            #      repositoryName: 
+            #      #action: 'create' # Options: create, edit, delete
+            #      #target: '$(Build.SourceVersion)' # Required when action == Create || Action == Edit
+            #      #tagSource: 'auto' # Required when action == Create# Options: auto, manual
+            #      #tag: # Required when action == Edit || Action == Delete || TagSource == Manual
+            #      #title: # Optional
+            #      #releaseNotesSource: 'file' # Optional. Options: file, input
+            #      #releaseNotesFile: # Optional
+            #      #releaseNotes: # Optional
+            #      #assets: '$(Build.ArtifactStagingDirectory)/*' # Optional
+            #      #assetUploadMode: 'delete' # Optional. Options: delete, replace
+            #      #isDraft: false # Optional
+            #      #isPreRelease: false # Optional
+            #      #addChangeLog: true # Optional
 
     - job: macOS
       pool:
@@ -27,12 +46,10 @@ jobs:
               echo '##vso[task.setvariable variable=PATH]$(PATH):$(HOME)/.cargo/bin'
             displayName: Install rustup
 
-          - script: |
-              make test
+          - script: make test
             displayName: Run test
 
-          - script: |
-              make release_mac
+          - script: make release_mac
             displayName: Build release binary
 
     - job: Windows
