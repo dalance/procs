@@ -33,7 +33,7 @@ jobs:
             inputs:
                 gitHubConnection: 'dalance'
                 repositoryName: 'dalance/procs'
-                tagSource: 'Git tag'
+                tagSource: 'auto'
                 releaseNotesSource: 'file'
                 releaseNotesFile: 'CHANGELOG.md'
                 isDraft: true
@@ -73,7 +73,7 @@ jobs:
             inputs:
                 gitHubConnection: 'dalance'
                 repositoryName: 'dalance/procs'
-                tagSource: 'Git tag'
+                tagSource: 'auto'
                 releaseNotesSource: 'file'
                 releaseNotesFile: 'CHANGELOG.md'
                 isDraft: true
@@ -116,7 +116,7 @@ jobs:
             inputs:
                 gitHubConnection: 'dalance'
                 repositoryName: 'dalance/procs'
-                tagSource: 'Git tag'
+                tagSource: 'auto'
                 releaseNotesSource: 'file'
                 releaseNotesFile: 'CHANGELOG.md'
                 isDraft: true
