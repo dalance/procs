@@ -5,6 +5,8 @@ use crate::libproc::libproc::proc_pid::{
 use libc::{c_int, c_void, size_t};
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
+use std::thread;
+use std::time::{Duration, Instant};
 
 pub struct ProcessInfo {
     pub pid: i32,
