@@ -71,7 +71,7 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
     let mut base_procs = Vec::new();
     let mut ret = Vec::new();
 
-    set_privilege();
+    let _ = set_privilege();
 
     for pid in get_pids() {
         let handle = get_handle(pid);
@@ -195,7 +195,7 @@ fn set_privilege() -> bool {
         }
 
         let mut tps: TOKEN_PRIVILEGES = zeroed();
-        let se_debug_name: Vec<u16> = SE_DEBUG_NAME.encode_utf16().collect();
+        let se_debug_name: Vec<u16> = format!("{}\0", SE_DEBUG_NAME).encode_utf16().collect();
         tps.PrivilegeCount = 1;
         let ret = LookupPrivilegeValueW(
             ptr::null(),
