@@ -31,7 +31,7 @@ jobs:
 
           - task: GitHubRelease@0
             inputs:
-                gitHubConnection: 'dalance'
+                gitHubConnection: 'dalance (1)'
                 repositoryName: 'dalance/procs'
                 tagSource: 'Git tag'
                 releaseNotesSource: 'file'
@@ -71,7 +71,7 @@ jobs:
 
           - task: GitHubRelease@0
             inputs:
-                gitHubConnection: 'dalance'
+                gitHubConnection: 'dalance (1)'
                 repositoryName: 'dalance/procs'
                 tagSource: 'Git tag'
                 releaseNotesSource: 'file'
@@ -114,7 +114,7 @@ jobs:
 
           - task: GitHubRelease@0
             inputs:
-                gitHubConnection: 'dalance'
+                gitHubConnection: 'dalance (1)'
                 repositoryName: 'dalance/procs'
                 tagSource: 'Git tag'
                 releaseNotesSource: 'file'
