@@ -5,6 +5,7 @@ jobs:
       steps:
           - script: |
               curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable
+              source $HOME/.cargo/env
               rustup target add x86_64-unknown-linux-musl
               sudo apt-get -qq install musl-tools
             displayName: install rustup
