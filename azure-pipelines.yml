@@ -2,11 +2,11 @@ jobs:
     - job: Linux
       pool:
           vmImage: 'ubuntu-16.04'
+      env:
+          PATH: $PATH:$HOME/.cargo/bin
       steps:
           - script: |
               curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable
-              export PATH=$PATH:$HOME/.cargo/bin
-              echo '##vso[task.setvariable variable=PATH]$PATH:$HOME/.cargo/bin'
               rustup target add x86_64-unknown-linux-musl
               sudo apt-get -qq install musl-tools
             displayName: Install rustup
@@ -22,11 +22,11 @@ jobs:
     - job: macOS
       pool:
           vmImage: 'macos-10.13'
+      env:
+          PATH: $PATH:$HOME/.cargo/bin
       steps:
           - script: |
               curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable
-              export PATH=$PATH:$HOME/.cargo/bin
-              echo '##vso[task.setvariable variable=PATH]$PATH:$HOME/.cargo/bin'
             displayName: Install rustup
 
           - script: |
