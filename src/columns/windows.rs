@@ -1,5 +1,7 @@
 pub mod command;
 pub mod cpu_time;
+pub mod gid;
+pub mod group;
 pub mod pid;
 pub mod ppid;
 pub mod read_bytes;
@@ -20,6 +22,8 @@ pub mod write_bytes;
 
 pub use self::command::Command;
 pub use self::cpu_time::CpuTime;
+pub use self::gid::Gid;
+pub use self::group::Group;
 pub use self::pid::Pid;
 pub use self::ppid::Ppid;
 pub use self::read_bytes::ReadBytes;
@@ -51,6 +55,8 @@ use std::collections::HashMap;
 pub enum ConfigColumnKind {
     Command,
     CpuTime,
+    Gid,
+    Group,
     Pid,
     Ppid,
     ReadBytes,
@@ -83,6 +89,8 @@ pub fn gen_column(
     match kind {
         ConfigColumnKind::Command => Box::new(Command::new()),
         ConfigColumnKind::CpuTime => Box::new(CpuTime::new()),
+        ConfigColumnKind::Gid => Box::new(Gid::new(abbr_sid)),
+        ConfigColumnKind::Group => Box::new(Group::new(abbr_sid)),
         ConfigColumnKind::Pid => Box::new(Pid::new()),
         ConfigColumnKind::Ppid => Box::new(Ppid::new()),
         ConfigColumnKind::ReadBytes => Box::new(ReadBytes::new()),
@@ -117,6 +125,8 @@ lazy_static! {
             ConfigColumnKind::CpuTime,
             ("CpuTime", "Cumulative CPU time")
         ),
+        (ConfigColumnKind::Gid, ("Gid", "Group ID")),
+        (ConfigColumnKind::Group, ("Group", "Group name")),
         (ConfigColumnKind::Pid, ("Pid", "Process ID")),
         (ConfigColumnKind::Ppid, ("Ppid", "Parent process ID")),
         (

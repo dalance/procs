@@ -238,11 +238,11 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | Docker       | -not supported-       | Docker container name            | o     | o     |         |
 | Eip          | eip                   | Instruction pointer              | o     |       |         |
 | Esp          | esp                   | Stack pointer                    | o     |       |         |
-| Gid          | egid                  | Group ID                         | o     | o     |         |
+| Gid          | egid                  | Group ID                         | o     | o     | o       |
 | GidFs        | fgid                  | File system group ID             | o     |       |         |
 | GidReal      | rgid                  | Real group ID                    | o     | o     |         |
 | GidSaved     | sgid                  | Saved group ID                   | o     | o     |         |
-| Group        | egroup                | Group name                       | o     | o     |         |
+| Group        | egroup                | Group name                       | o     | o     | o       |
 | GroupFs      | fgroup                | File system group name           | o     |       |         |
 | GroupReal    | rgroup                | Real group name                  | o     | o     |         |
 | GroupSaved   | sgroup                | Saved group name                 | o     | o     |         |
