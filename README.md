@@ -270,13 +270,13 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | Threads      | nlwp                  | Thread count                     | o     | o     |         |
 | Tty          | tty                   | Controlling TTY                  | o     | o     |         |
 | UdpPort      | -not supported-       | Bound UDP ports                  | o     | o     |         |
-| Uid          | euid                  | User ID                          | o     | o     |         |
+| Uid          | euid                  | User ID                          | o     | o     | o       |
 | UidFs        | fuid                  | File system user ID              | o     |       |         |
 | UidReal      | ruid                  | Real user ID                     | o     | o     |         |
 | UidSaved     | suid                  | Saved user ID                    | o     | o     |         |
 | UsageCpu     | %cpu                  | CPU utilization                  | o     | o     | o       |
-| UsageMem     | %mem                  | Memory utilization               | o     | o     |         |
-| User         | euser                 | User name                        | o     | o     |         |
+| UsageMem     | %mem                  | Memory utilization               | o     | o     | o       |
+| User         | euser                 | User name                        | o     | o     | o       |
 | UserFs       | fuser                 | File system user name            | o     |       |         |
 | UserReal     | ruser                 | Real user name                   | o     | o     |         |
 | UserSaved    | suser                 | Saved user name                  | o     | o     |         |
@@ -391,8 +391,25 @@ The available list of color is below.
 | separator       | [String]              | │       | String used as Separator                                                     |
 | ascending       | [String]              | ▲       | Ascending sort indicator                                                     |
 | descending      | [String]              | ▼       | Descending sort indicator                                                    |
+| abbr_sid        | true, false           | true    | Whether machine SID is abbreviated ( windows only )                          |
 
 If `color_mode` is `Auto`, color is enabled for terminal and pager, disabled for pipe.
+
+#### `abbr_sid`
+
+Windows SID is too long, so it is abbreviated by default.
+If `abbr_sid` is `false`, SID is fully shown like below:
+
+```
+S-1-5-21-789457439-2186958450-1652286173-1001
+```
+
+If `abbr_sid` is `true`, SID is shown like below:
+
+```
+S-1-5-21-...-1001
+```
+
 
 ### `[sort]` section
 

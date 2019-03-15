@@ -187,3 +187,20 @@ pub unsafe fn get_sys_value(
         0,
     ) == 0
 }
+
+#[cfg_attr(tarpaulin, skip)]
+#[cfg(target_os = "windows")]
+pub fn format_sid(sid: &[u64], abbr: bool) -> String {
+    let mut ret = format!("S-{}-{}-{}", sid[0], sid[1], sid[2]);
+    if sid.len() > 3 {
+        if abbr {
+            ret = format!("{}-...-{}", ret, sid[sid.len() - 1]);
+        } else {
+            for i in 3..sid.len() {
+                ret = format!("{}-{}", ret, sid[i]);
+            }
+        }
+    }
+
+    ret
+}

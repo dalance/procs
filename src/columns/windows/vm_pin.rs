@@ -54,19 +54,10 @@ impl Column for VmPin {
 #[cfg(target_os = "windows")]
 impl Column for VmPin {
     fn add(&mut self, proc: &ProcessInfo) {
-        let (raw_content, fmt_content) = if let Some(ref x) = proc.memory_info {
-            if let Some(x) = x.non_paged_pool_size {
-                let (size, unit) = unbytify::bytify(x);
-                (
-                    x,
-                    format!("{}{}", size, unit.replace("i", "").replace("B", "")),
-                )
-            } else {
-                (0, String::default())
-            }
-        } else {
-            (0, String::default())
-        };
+        let x = proc.memory_info.quota_non_paged_pool_usage;
+        let (size, unit) = unbytify::bytify(x);
+        let fmt_content = format!("{}{}", size, unit.replace("i", "").replace("B", ""));
+        let raw_content = x;
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);

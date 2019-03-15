@@ -56,11 +56,8 @@ impl Column for Ppid {
 #[cfg(target_os = "windows")]
 impl Column for Ppid {
     fn add(&mut self, proc: &ProcessInfo) {
-        let (raw_content, fmt_content) = if let Some(ppid) = proc.ppid {
-            (ppid, format!("{}", ppid))
-        } else {
-            (0, String::default())
-        };
+        let raw_content = proc.ppid;
+        let fmt_content = format!("{}", raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);

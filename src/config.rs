@@ -295,6 +295,8 @@ pub struct ConfigDisplay {
     pub ascending: String,
     #[serde(default = "default_descending")]
     pub descending: String,
+    #[serde(default = "default_true")]
+    pub abbr_sid: bool,
 }
 
 impl Default for ConfigDisplay {
@@ -308,6 +310,7 @@ impl Default for ConfigDisplay {
             separator: String::from("│"),
             ascending: String::from("▲"),
             descending: String::from("▼"),
+            abbr_sid: true,
         }
     }
 }

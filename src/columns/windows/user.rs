@@ -1,4 +1,6 @@
 use crate::process::ProcessInfo;
+#[cfg(target_os = "windows")]
+use crate::util::format_sid;
 use crate::{column_default, Column};
 use std::cmp;
 use std::collections::HashMap;
@@ -9,10 +11,12 @@ pub struct User {
     fmt_contents: HashMap<i32, String>,
     raw_contents: HashMap<i32, String>,
     max_width: usize,
+    #[allow(dead_code)]
+    abbr_sid: bool,
 }
 
 impl User {
-    pub fn new() -> Self {
+    pub fn new(abbr_sid: bool) -> Self {
         let header = String::from("User");
         let unit = String::from("");
         User {
@@ -21,6 +25,7 @@ impl User {
             max_width: 0,
             header,
             unit,
+            abbr_sid,
         }
     }
 }
@@ -52,6 +57,24 @@ impl Column for User {
             format!("{}", user.name().to_string_lossy())
         } else {
             format!("{}", uid)
+        };
+        let raw_content = fmt_content.clone();
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(String);
+}
+
+#[cfg_attr(tarpaulin, skip)]
+#[cfg(target_os = "windows")]
+impl Column for User {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let fmt_content = if let Some(name) = &proc.user.name {
+            name.clone()
+        } else {
+            format_sid(&proc.user.sid, self.abbr_sid)
         };
         let raw_content = fmt_content.clone();
 

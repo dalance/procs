@@ -61,11 +61,8 @@ impl Column for StartTime {
 #[cfg(target_os = "windows")]
 impl Column for StartTime {
     fn add(&mut self, proc: &ProcessInfo) {
-        let (raw_content, fmt_content) = if let Some(t) = proc.start_time {
-            (t, format!("{}", t.format("%Y/%m/%d %H:%M")))
-        } else {
-            (Local::now(), String::default())
-        };
+        let raw_content = proc.start_time;
+        let fmt_content = format!("{}", proc.start_time.format("%Y/%m/%d %H:%M"));
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);

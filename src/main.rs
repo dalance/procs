@@ -417,7 +417,12 @@ fn run_default(opt: &Opt, config: &Config) -> Result<(), Error> {
             x => Some(x.clone()),
         };
         if let Some(kind) = kind {
-            let column = gen_column(&kind, &config.docker.path, &config.display.separator);
+            let column = gen_column(
+                &kind,
+                &config.docker.path,
+                &config.display.separator,
+                config.display.abbr_sid,
+            );
             if column.available() {
                 cols.push(ColumnInfo {
                     column,
@@ -549,15 +554,19 @@ fn run_default(opt: &Opt, config: &Config) -> Result<(), Error> {
     // +3 means header/unit line and next prompt
     let pager_threshold = visible_pids.len() + 3;
 
-    let use_pager = match (opt.watch.as_ref(), opt.pager.as_ref(), &config.pager.mode) {
-        (Some(_), _, _) => false,
-        (None, Some(x), _) if x == "auto" => term_h < pager_threshold,
-        (None, Some(x), _) if x == "always" => true,
-        (None, Some(x), _) if x == "disable" => false,
-        (None, None, ConfigPagerMode::Auto) => term_h < pager_threshold,
-        (None, None, ConfigPagerMode::Always) => true,
-        (None, None, ConfigPagerMode::Disable) => false,
-        _ => false,
+    let use_pager = if cfg!(target_os = "windows") {
+        false
+    } else {
+        match (opt.watch.as_ref(), opt.pager.as_ref(), &config.pager.mode) {
+            (Some(_), _, _) => false,
+            (None, Some(x), _) if x == "auto" => term_h < pager_threshold,
+            (None, Some(x), _) if x == "always" => true,
+            (None, Some(x), _) if x == "disable" => false,
+            (None, None, ConfigPagerMode::Auto) => term_h < pager_threshold,
+            (None, None, ConfigPagerMode::Always) => true,
+            (None, None, ConfigPagerMode::Disable) => false,
+            _ => false,
+        }
     };
 
     let mut truncate = use_terminal && use_pager && config.display.cut_to_pager;

@@ -45,7 +45,7 @@ quale         = "1.0.0"
 users         = "0.8.1"
 
 [target.'cfg(target_os = "windows")'.dependencies]
-winrt         = { version = "0.5.1", features = ["windows-system"] }
+winapi        = { version = "0.3.6", features = ["handleapi", "minwindef", "psapi", "securitybaseapi", "tlhelp32", "winbase", "winnt"] }
 
 [package.metadata.release]
 dev-version-ext            = "pre"

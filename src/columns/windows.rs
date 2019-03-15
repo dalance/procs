@@ -6,7 +6,10 @@ pub mod read_bytes;
 pub mod separator;
 pub mod slot;
 pub mod start_time;
+pub mod uid;
 pub mod usage_cpu;
+pub mod usage_mem;
+pub mod user;
 pub mod vm_hwm;
 pub mod vm_peak;
 pub mod vm_pin;
@@ -23,7 +26,10 @@ pub use self::read_bytes::ReadBytes;
 pub use self::separator::Separator;
 pub use self::slot::Slot;
 pub use self::start_time::StartTime;
+pub use self::uid::Uid;
 pub use self::usage_cpu::UsageCpu;
+pub use self::usage_mem::UsageMem;
+pub use self::user::User;
 pub use self::vm_hwm::VmHwm;
 pub use self::vm_peak::VmPeak;
 pub use self::vm_pin::VmPin;
@@ -51,7 +57,10 @@ pub enum ConfigColumnKind {
     Separator,
     Slot,
     StartTime,
+    Uid,
     UsageCpu,
+    UsageMem,
+    User,
     VmHwm,
     VmPeak,
     VmPin,
@@ -65,7 +74,12 @@ pub enum ConfigColumnKind {
 // gen_column
 // ---------------------------------------------------------------------------------------------------------------------
 
-pub fn gen_column(kind: &ConfigColumnKind, _docker_path: &str, separator: &str) -> Box<dyn Column> {
+pub fn gen_column(
+    kind: &ConfigColumnKind,
+    _docker_path: &str,
+    separator: &str,
+    abbr_sid: bool,
+) -> Box<dyn Column> {
     match kind {
         ConfigColumnKind::Command => Box::new(Command::new()),
         ConfigColumnKind::CpuTime => Box::new(CpuTime::new()),
@@ -75,7 +89,10 @@ pub fn gen_column(kind: &ConfigColumnKind, _docker_path: &str, separator: &str) 
         ConfigColumnKind::Separator => Box::new(Separator::new(separator)),
         ConfigColumnKind::Slot => Box::new(Slot::new()),
         ConfigColumnKind::StartTime => Box::new(StartTime::new()),
+        ConfigColumnKind::Uid => Box::new(Uid::new(abbr_sid)),
         ConfigColumnKind::UsageCpu => Box::new(UsageCpu::new()),
+        ConfigColumnKind::UsageMem => Box::new(UsageMem::new()),
+        ConfigColumnKind::User => Box::new(User::new(abbr_sid)),
         ConfigColumnKind::VmHwm => Box::new(VmHwm::new()),
         ConfigColumnKind::VmPeak => Box::new(VmPeak::new()),
         ConfigColumnKind::VmPin => Box::new(VmPin::new()),
@@ -115,7 +132,13 @@ lazy_static! {
             ("Slot", "Slot for `--insert` option")
         ),
         (ConfigColumnKind::StartTime, ("StartTime", "Starting time")),
+        (ConfigColumnKind::Uid, ("Uid", "User ID")),
         (ConfigColumnKind::UsageCpu, ("UsageCpu", "CPU utilization")),
+        (
+            ConfigColumnKind::UsageMem,
+            ("UsageMem", "Memory utilization")
+        ),
+        (ConfigColumnKind::User, ("User", "User name")),
         (ConfigColumnKind::VmHwm, ("VmHwm", "Peak resident set size")),
         (
             ConfigColumnKind::VmPeak,
@@ -149,6 +172,11 @@ style = "BrightYellow"
 numeric_search = true
 nonnumeric_search = false
 [[columns]]
+kind = "User"
+style = "BrightGreen"
+numeric_search = false
+nonnumeric_search = true
+[[columns]]
 kind = "Separator"
 style = "White"
 numeric_search = false
@@ -160,8 +188,8 @@ numeric_search = false
 nonnumeric_search = false
 align = "Right"
 [[columns]]
-kind = "VmPeak"
-style = "ByUnit"
+kind = "UsageMem"
+style = "ByPercentage"
 numeric_search = false
 nonnumeric_search = false
 align = "Right"

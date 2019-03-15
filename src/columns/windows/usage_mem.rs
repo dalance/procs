@@ -2,6 +2,10 @@ use crate::process::ProcessInfo;
 use crate::{column_default, Column};
 use std::cmp;
 use std::collections::HashMap;
+#[cfg(target_os = "windows")]
+use std::mem::{size_of, zeroed};
+#[cfg(target_os = "windows")]
+use winapi::um::psapi::{GetPerformanceInfo, PERFORMANCE_INFORMATION};
 
 pub struct UsageMem {
     header: String,
@@ -52,6 +56,20 @@ fn get_mem_total() -> u64 {
     mem_total
 }
 
+#[cfg(target_os = "windows")]
+fn get_mem_total() -> u64 {
+    unsafe {
+        let mut info: PERFORMANCE_INFORMATION = zeroed();
+        let ret = GetPerformanceInfo(&mut info, size_of::<PERFORMANCE_INFORMATION>() as u32);
+
+        if ret != 0 {
+            (info.PhysicalTotal * info.PageSize) as u64
+        } else {
+            0
+        }
+    }
+}
+
 #[cfg(target_os = "linux")]
 impl Column for UsageMem {
     fn add(&mut self, proc: &ProcessInfo) {
@@ -71,6 +89,21 @@ impl Column for UsageMem {
 impl Column for UsageMem {
     fn add(&mut self, proc: &ProcessInfo) {
         let usage = proc.curr_task.ptinfo.pti_resident_size as f64 * 100.0 / self.mem_total as f64;
+        let fmt_content = format!("{:.1}", usage);
+        let raw_content = (usage * 1000.0) as u32;
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(u32);
+}
+
+#[cfg_attr(tarpaulin, skip)]
+#[cfg(target_os = "windows")]
+impl Column for UsageMem {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let usage = proc.memory_info.working_set_size as f64 * 100.0 / self.mem_total as f64;
         let fmt_content = format!("{:.1}", usage);
         let raw_content = (usage * 1000.0) as u32;
 

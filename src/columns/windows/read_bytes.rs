@@ -80,20 +80,12 @@ impl Column for ReadBytes {
 #[cfg(target_os = "windows")]
 impl Column for ReadBytes {
     fn add(&mut self, proc: &ProcessInfo) {
-        let (fmt_content, raw_content) = if let (Some(prev), Some(curr)) =
-            (proc.disk_info.prev_read, proc.disk_info.curr_read)
-        {
-            let interval_ms = proc.interval.as_secs() + u64::from(proc.interval.subsec_millis());
-            let io = (curr - prev) * 1000 / interval_ms;
+        let interval_ms = proc.interval.as_secs() + u64::from(proc.interval.subsec_millis());
+        let io = (proc.disk_info.curr_read - proc.disk_info.prev_read) * 1000 / interval_ms;
+        let (size, unit) = unbytify::bytify(io);
 
-            let (size, unit) = unbytify::bytify(io);
-            (
-                format!("{}{}", size, unit.replace("i", "").replace("B", "")),
-                io,
-            )
-        } else {
-            (String::default(), 0)
-        };
+        let fmt_content = format!("{}{}", size, unit.replace("i", "").replace("B", ""));
+        let raw_content = io;
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);

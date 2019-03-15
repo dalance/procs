@@ -204,7 +204,12 @@ pub enum ConfigColumnKind {
 // gen_column
 // ---------------------------------------------------------------------------------------------------------------------
 
-pub fn gen_column(kind: &ConfigColumnKind, docker_path: &str, separator: &str) -> Box<dyn Column> {
+pub fn gen_column(
+    kind: &ConfigColumnKind,
+    docker_path: &str,
+    separator: &str,
+    abbr_sid: bool,
+) -> Box<dyn Column> {
     match kind {
         ConfigColumnKind::Command => Box::new(Command::new()),
         ConfigColumnKind::ContextSw => Box::new(ContextSw::new()),
@@ -244,17 +249,17 @@ pub fn gen_column(kind: &ConfigColumnKind, docker_path: &str, separator: &str) -
         ConfigColumnKind::Threads => Box::new(Threads::new()),
         ConfigColumnKind::Tty => Box::new(Tty::new()),
         ConfigColumnKind::UdpPort => Box::new(UdpPort::new()),
-        ConfigColumnKind::Uid => Box::new(Uid::new()),
+        ConfigColumnKind::Uid => Box::new(Uid::new(abbr_sid)),
         ConfigColumnKind::UidFs => Box::new(UidFs::new()),
         ConfigColumnKind::UidReal => Box::new(UidReal::new()),
         ConfigColumnKind::UidSaved => Box::new(UidSaved::new()),
         ConfigColumnKind::UsageCpu => Box::new(UsageCpu::new()),
         ConfigColumnKind::UsageMem => Box::new(UsageMem::new()),
-        ConfigColumnKind::User => Box::new(User::new()),
+        ConfigColumnKind::User => Box::new(User::new(abbr_sid)),
         ConfigColumnKind::UserFs => Box::new(UserFs::new()),
         ConfigColumnKind::UserReal => Box::new(UserReal::new()),
         ConfigColumnKind::UserSaved => Box::new(UserSaved::new()),
-        ConfigColumnKind::Username => Box::new(User::new()),
+        ConfigColumnKind::Username => Box::new(User::new(abbr_sid)),
         ConfigColumnKind::VmData => Box::new(VmData::new()),
         ConfigColumnKind::VmExe => Box::new(VmExe::new()),
         ConfigColumnKind::VmHwm => Box::new(VmHwm::new()),

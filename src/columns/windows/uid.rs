@@ -1,4 +1,6 @@
 use crate::process::ProcessInfo;
+#[cfg(target_os = "windows")]
+use crate::util::format_sid;
 use crate::{column_default, Column};
 use std::cmp;
 use std::collections::HashMap;
@@ -9,10 +11,12 @@ pub struct Uid {
     fmt_contents: HashMap<i32, String>,
     raw_contents: HashMap<i32, i32>,
     max_width: usize,
+    #[allow(dead_code)]
+    abbr_sid: bool,
 }
 
 impl Uid {
-    pub fn new() -> Self {
+    pub fn new(abbr_sid: bool) -> Self {
         let header = String::from("UID");
         let unit = String::from("");
         Uid {
@@ -21,6 +25,7 @@ impl Uid {
             max_width: 0,
             header,
             unit,
+            abbr_sid,
         }
     }
 }
@@ -49,6 +54,20 @@ impl Column for Uid {
         let uid = proc.curr_task.pbsd.pbi_uid as i32;
         let fmt_content = format!("{}", uid);
         let raw_content = uid;
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(i32);
+}
+
+#[cfg_attr(tarpaulin, skip)]
+#[cfg(target_os = "windows")]
+impl Column for Uid {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let fmt_content = format_sid(&proc.user.sid, self.abbr_sid);
+        let raw_content = proc.user.sid[proc.user.sid.len() - 1] as i32;
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);
