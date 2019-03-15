@@ -2,7 +2,7 @@ jobs:
     - job: Linux
       pool:
           vmImage: 'ubuntu-16.04'
-      env:
+      variables:
           PATH: $PATH:$HOME/.cargo/bin
       steps:
           - script: |
@@ -22,7 +22,7 @@ jobs:
     - job: macOS
       pool:
           vmImage: 'macos-10.13'
-      env:
+      variables:
           PATH: $PATH:$HOME/.cargo/bin
       steps:
           - script: |
