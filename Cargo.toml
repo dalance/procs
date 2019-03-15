@@ -10,6 +10,11 @@ readme = "README.md"
 description = "A modern replacement for ps"
 edition = "2018"
 build = "build.rs"
+exclude = [
+    "src/columns/linux",
+    "src/columns/macos",
+    "src/columns/windows",
+]
 
 [badges]
 travis-ci = { repository = "dalance/procs" }
