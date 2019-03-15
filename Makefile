@@ -25,7 +25,7 @@ release_lnx:
 	zip -j ${BIN_NAME}-v${VERSION}-x86_64-lnx.zip target/x86_64-unknown-linux-musl/release/${BIN_NAME}
 
 release_win:
-	cargo build --release --target=x86_64-pc-windows-gnu
+	cargo build --release --target=x86_64-pc-windows-msvc
 	zip -j ${BIN_NAME}-v${VERSION}-x86_64-win.zip target/x86_64-pc-windows-gnu/release/${BIN_NAME}.exe
 
 release_mac:

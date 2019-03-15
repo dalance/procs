@@ -1,13 +1,13 @@
 resources:
     containers:
-        - container: rust
-          image: rust:latest
+        - container: rust-musl
+          image: ekidd/rust-musl-builder:latest
 
 jobs:
     - job: Linux
       pool:
           vmImage: 'ubuntu-16.04'
-      container: rust
+      container: rust-musl
       steps:
           - script: make test
             displayName: run test
@@ -28,7 +28,9 @@ jobs:
               make test
             displayName: run test
 
-          - script: make release_mac
+          - script: |
+              source $HOME/.cargo/env
+              make release_mac
             displayName: release build
 
     - job: Windows
