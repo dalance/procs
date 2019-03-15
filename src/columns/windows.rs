@@ -282,3 +282,82 @@ style = "BrightWhite"
 numeric_search = false
 nonnumeric_search = true
 "#;
+
+// ---------------------------------------------------------------------------------------------------------------------
+// CONFIG_ALL
+// ---------------------------------------------------------------------------------------------------------------------
+
+#[cfg(test)]
+pub static CONFIG_ALL: &'static str = r#"
+[[columns]]
+kind = "Command"
+style = "BrightRed"
+align = "Left"
+[[columns]]
+kind = "CpuTime"
+style = "BrightGreen"
+align = "Center"
+[[columns]]
+kind = "Gid"
+style = "White"
+[[columns]]
+kind = "Group"
+style = "White"
+[[columns]]
+kind = "MajFlt"
+style = "BrightCyan"
+[[columns]]
+kind = "Pid"
+style = "Green"
+[[columns]]
+kind = "Ppid"
+style = "Yellow"
+[[columns]]
+kind = "Priority"
+style = "Blue"
+[[columns]]
+kind = "ReadBytes"
+style = "Cyan"
+[[columns]]
+kind = "Separator"
+style = "White"
+[[columns]]
+kind = "StartTime"
+style = "White"
+[[columns]]
+kind = "Threads"
+style = "White"
+[[columns]]
+kind = "Uid"
+style = "White"
+[[columns]]
+kind = "UsageCpu"
+style = "White"
+[[columns]]
+kind = "UsageMem"
+style = "White"
+[[columns]]
+kind = "User"
+style = "White"
+[[columns]]
+kind = "VmHwm"
+style = "ByUnit"
+[[columns]]
+kind = "VmPeak"
+style = "ByUnit"
+[[columns]]
+kind = "VmPin"
+style = "ByUnit"
+[[columns]]
+kind = "VmRss"
+style = "ByUnit"
+[[columns]]
+kind = "VmSize"
+style = "ByUnit"
+[[columns]]
+kind = "VmSwap"
+style = "ByUnit"
+[[columns]]
+kind = "WriteBytes"
+style = "White"
+"#;

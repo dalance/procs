@@ -388,3 +388,122 @@ style = "BrightWhite"
 numeric_search = false
 nonnumeric_search = true
 "#;
+
+// ---------------------------------------------------------------------------------------------------------------------
+// CONFIG_ALL
+// ---------------------------------------------------------------------------------------------------------------------
+
+#[cfg(test)]
+pub static CONFIG_ALL: &'static str = r#"
+[[columns]]
+kind = "Command"
+style = "BrightRed"
+align = "Left"
+[[columns]]
+kind = "ContextSw"
+style = "BrightRed"
+align = "Right"
+[[columns]]
+kind = "CpuTime"
+style = "BrightGreen"
+align = "Center"
+[[columns]]
+kind = "Docker"
+style = "BrightMagenta"
+[[columns]]
+kind = "Gid"
+style = "White"
+[[columns]]
+kind = "GidReal"
+style = "White"
+[[columns]]
+kind = "GidSaved"
+style = "White"
+[[columns]]
+kind = "Group"
+style = "White"
+[[columns]]
+kind = "GroupReal"
+style = "White"
+[[columns]]
+kind = "GroupSaved"
+style = "White"
+[[columns]]
+kind = "MajFlt"
+style = "BrightCyan"
+[[columns]]
+kind = "MinFlt"
+style = "BrightWhite"
+[[columns]]
+kind = "Nice"
+style = "Red"
+[[columns]]
+kind = "Pid"
+style = "Green"
+[[columns]]
+kind = "Policy"
+style = "Green"
+[[columns]]
+kind = "Ppid"
+style = "Yellow"
+[[columns]]
+kind = "Priority"
+style = "Blue"
+[[columns]]
+kind = "ReadBytes"
+style = "Cyan"
+[[columns]]
+kind = "Separator"
+style = "White"
+[[columns]]
+kind = "StartTime"
+style = "White"
+[[columns]]
+kind = "State"
+style = "White"
+[[columns]]
+kind = "TcpPort"
+style = "White"
+[[columns]]
+kind = "Threads"
+style = "White"
+[[columns]]
+kind = "Tty"
+style = "White"
+[[columns]]
+kind = "UdpPort"
+style = "White"
+[[columns]]
+kind = "Uid"
+style = "White"
+[[columns]]
+kind = "UidReal"
+style = "White"
+[[columns]]
+kind = "UidSaved"
+style = "White"
+[[columns]]
+kind = "UsageCpu"
+style = "White"
+[[columns]]
+kind = "UsageMem"
+style = "White"
+[[columns]]
+kind = "User"
+style = "White"
+[[columns]]
+kind = "UserReal"
+style = "White"
+[[columns]]
+kind = "UserSaved"
+style = "White"
+[[columns]]
+kind = "VmRss"
+style = "ByUnit"
+[[columns]]
+kind = "VmSize"
+style = "ByUnit"
+[[columns]]
+kind = "WriteBytes"
+style = "White"
+"#;
