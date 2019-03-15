@@ -1,14 +1,14 @@
-resources:
-    containers:
-        - container: rust-musl
-          image: ekidd/rust-musl-builder:latest
-
 jobs:
     - job: Linux
       pool:
           vmImage: 'ubuntu-16.04'
-      container: rust-musl
       steps:
+          - script: |
+              curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable
+              rustup target add x86_64-unknown-linux-musl
+              apt-get -qq install musl-tools
+            displayName: install rustup on macOS
+
           - script: make test
             displayName: run test
 
