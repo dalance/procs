@@ -9,8 +9,11 @@ jobs:
           vmImage: 'ubuntu-16.04'
       container: rust
       steps:
-          - script: cargo test
+          - script: make test
             displayName: run test
+
+          - script: make release_lnx
+            displayName: release build
 
     - job: macOS
       pool:
@@ -22,8 +25,11 @@ jobs:
 
           - script: |
               source $HOME/.cargo/env
-              cargo test
+              make test
             displayName: run test
+
+          - script: make release_mac
+            displayName: release build
 
     - job: Windows
       pool:
@@ -36,5 +42,9 @@ jobs:
               echo '##vso[task.setvariable variable=PATH;]%PATH%;%USERPROFILE%\.cargo\bin'
             displayName: install rustup on Windows
 
-          - script: cargo test
+          - script: make test
             displayName: run test
+
+          - script: make release_win
+            displayName: release build
+
