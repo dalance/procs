@@ -9,10 +9,14 @@ jobs:
               sudo apt-get -qq install musl-tools
             displayName: install rustup
 
-          - script: make test
+          - script: |
+              source $HOME/.cargo/env
+              make test
             displayName: run test
 
-          - script: make release_lnx
+          - script: |
+              source $HOME/.cargo/env
+              make release_lnx
             displayName: release build
 
     - job: macOS
