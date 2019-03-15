@@ -64,6 +64,9 @@ jobs:
               echo '##vso[task.setvariable variable=PATH]%PATH%;%USERPROFILE%\.cargo\bin'
             displayName: Install rustup
 
+          - script: choco install 7zip
+            displayName: Install 7zip
+
           - script: |
               chocolatey
               grep
