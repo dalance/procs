@@ -65,6 +65,7 @@ jobs:
             displayName: Install rustup
 
           - script: |
+              chocolatey
               grep
               zip
 
