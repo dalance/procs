@@ -5,20 +5,18 @@ jobs:
       steps:
           - script: |
               curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable
-              source $HOME/.cargo/env
+              echo '##vso[task.prependpath]$HOME/.cargo/bin'
               rustup target add x86_64-unknown-linux-musl
               sudo apt-get -qq install musl-tools
-            displayName: install rustup
+            displayName: Install rustup
 
           - script: |
-              source $HOME/.cargo/env
               make test
-            displayName: run test
+            displayName: Run test
 
           - script: |
-              source $HOME/.cargo/env
               make release_lnx
-            displayName: release build
+            displayName: Build release binary
 
     - job: macOS
       pool:
@@ -26,17 +24,16 @@ jobs:
       steps:
           - script: |
               curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable
-            displayName: install rustup
+              echo '##vso[task.prependpath]$HOME/.cargo/bin'
+            displayName: Install rustup
 
           - script: |
-              source $HOME/.cargo/env
               make test
-            displayName: run test
+            displayName: Run test
 
           - script: |
-              source $HOME/.cargo/env
               make release_mac
-            displayName: release build
+            displayName: Build release binary
 
     - job: Windows
       pool:
@@ -45,13 +42,12 @@ jobs:
           - script: |
               curl -sSf -o rustup-init.exe https://win.rustup.rs
               rustup-init.exe -y --default-toolchain stable
-              set PATH=%PATH%;%USERPROFILE%\.cargo\bin
-              echo '##vso[task.setvariable variable=PATH;]%PATH%;%USERPROFILE%\.cargo\bin'
-            displayName: install rustup
+              echo '##vso[task.prependpath]%USERPROFILE%\.cargo\bin'
+            displayName: Install rustup
 
           - script: make test
-            displayName: run test
+            displayName: Run test
 
           - script: make release_win
-            displayName: release build
+            displayName: Build release binary
 
