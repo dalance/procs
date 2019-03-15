@@ -10,6 +10,7 @@ pub mod read_bytes;
 pub mod separator;
 pub mod slot;
 pub mod start_time;
+pub mod threads;
 pub mod uid;
 pub mod usage_cpu;
 pub mod usage_mem;
@@ -34,6 +35,7 @@ pub use self::read_bytes::ReadBytes;
 pub use self::separator::Separator;
 pub use self::slot::Slot;
 pub use self::start_time::StartTime;
+pub use self::threads::Threads;
 pub use self::uid::Uid;
 pub use self::usage_cpu::UsageCpu;
 pub use self::usage_mem::UsageMem;
@@ -69,6 +71,7 @@ pub enum ConfigColumnKind {
     Separator,
     Slot,
     StartTime,
+    Threads,
     Uid,
     UsageCpu,
     UsageMem,
@@ -105,6 +108,7 @@ pub fn gen_column(
         ConfigColumnKind::Separator => Box::new(Separator::new(separator)),
         ConfigColumnKind::Slot => Box::new(Slot::new()),
         ConfigColumnKind::StartTime => Box::new(StartTime::new()),
+        ConfigColumnKind::Threads => Box::new(Threads::new()),
         ConfigColumnKind::Uid => Box::new(Uid::new(abbr_sid)),
         ConfigColumnKind::UsageCpu => Box::new(UsageCpu::new()),
         ConfigColumnKind::UsageMem => Box::new(UsageMem::new()),
@@ -155,6 +159,7 @@ lazy_static! {
             ("Slot", "Slot for `--insert` option")
         ),
         (ConfigColumnKind::StartTime, ("StartTime", "Starting time")),
+        (ConfigColumnKind::Threads, ("Threads", "Thread count")),
         (ConfigColumnKind::Uid, ("Uid", "User ID")),
         (ConfigColumnKind::UsageCpu, ("UsageCpu", "CPU utilization")),
         (

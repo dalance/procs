@@ -51,3 +51,17 @@ impl Column for Threads {
 
     column_default!(i64);
 }
+
+#[cfg_attr(tarpaulin, skip)]
+#[cfg(target_os = "windows")]
+impl Column for Threads {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let raw_content = i64::from(proc.thread);
+        let fmt_content = format!("{}", raw_content);
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(i64);
+}

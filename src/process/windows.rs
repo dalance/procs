@@ -37,6 +37,7 @@ pub struct ProcessInfo {
     pub user: SidName,
     pub groups: Vec<SidName>,
     pub priority: u32,
+    pub thread: i32,
     pub interval: Duration,
 }
 
@@ -91,10 +92,11 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
 
     thread::sleep(interval);
 
-    let mut ppids = get_ppids();
+    let (mut ppids, mut threads) = get_ppid_threads();
 
     for (pid, prev_sys, prev_user, prev_read, prev_write, prev_time) in base_procs {
         let ppid = ppids.remove(&pid);
+        let thread = threads.remove(&pid);
         let handle = get_handle(pid);
 
         if let Some(handle) = handle {
@@ -151,6 +153,7 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
             all_ok &= disk_info.is_some();
             all_ok &= user.is_some();
             all_ok &= groups.is_some();
+            all_ok &= thread.is_some();
 
             if all_ok {
                 let command = command.unwrap();
@@ -161,6 +164,7 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
                 let disk_info = disk_info.unwrap();
                 let user = user.unwrap();
                 let groups = groups.unwrap();
+                let thread = thread.unwrap();
 
                 let proc = ProcessInfo {
                     pid,
@@ -173,6 +177,7 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
                     user,
                     groups,
                     priority,
+                    thread,
                     interval,
                 };
 
@@ -251,8 +256,9 @@ fn get_pids() -> Vec<i32> {
 }
 
 #[cfg_attr(tarpaulin, skip)]
-fn get_ppids() -> HashMap<i32, i32> {
-    let mut ret = HashMap::new();
+fn get_ppid_threads() -> (HashMap<i32, i32>, HashMap<i32, i32>) {
+    let mut ppids = HashMap::new();
+    let mut threads = HashMap::new();
 
     unsafe {
         let snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
@@ -261,17 +267,15 @@ fn get_ppids() -> HashMap<i32, i32> {
         let mut not_the_end = Process32First(snapshot, &mut entry);
 
         while not_the_end != 0 {
-            ret.insert(
-                entry.th32ParentProcessID as i32,
-                entry.th32ParentProcessID as i32,
-            );
+            ppids.insert(entry.th32ProcessID as i32, entry.th32ParentProcessID as i32);
+            threads.insert(entry.th32ProcessID as i32, entry.cntThreads as i32);
             not_the_end = Process32Next(snapshot, &mut entry);
         }
 
         CloseHandle(snapshot);
     }
 
-    ret
+    (ppids, threads)
 }
 
 #[cfg_attr(tarpaulin, skip)]
