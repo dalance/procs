@@ -1,4 +1,17 @@
+resources:
+    containers:
+        - container: rust
+          image: rust:latest
+
 jobs:
+    - job: Linux
+      pool:
+          vmImage: 'ubuntu-16.04'
+      container: rust
+      steps:
+          - script: cargo run
+            displayName: run test
+
     - job: macOS
       pool:
           vmImage: 'macos-10.13'
