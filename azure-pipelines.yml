@@ -32,12 +32,14 @@ jobs:
                 testResultsFiles: 'results.xml'
             condition: succeededOrFailed()
 
-          - script: make release_lnx
+          - script: |
+              make release_lnx
+              cp *.zip $(Build.ArtifactStagingDirectory)
             displayName: Build release binary
 
           - task: PublishPipelineArtifact@0
             inputs:
-                targetPath: '*.zip'
+                targetPath: $(Build.ArtifactStagingDirectory)
 
     - job: macOS
       pool:
@@ -62,12 +64,14 @@ jobs:
                 testResultsFiles: 'results.xml'
             condition: succeededOrFailed()
 
-          - script: make release_mac
+          - script: |
+              make release_mac
+              cp *.zip $(Build.ArtifactStagingDirectory)
             displayName: Build release binary
 
           - task: PublishPipelineArtifact@0
             inputs:
-                targetPath: '*.zip'
+                targetPath: $(Build.ArtifactStagingDirectory)
 
     - job: Windows
       pool:
@@ -95,12 +99,14 @@ jobs:
                 testResultsFiles: 'results.xml'
             condition: succeededOrFailed()
 
-          - script: make release_win
+          - script: |
+              make release_win
+              cp *.zip $(Build.ArtifactStagingDirectory)
             displayName: Build release binary
 
           - task: PublishPipelineArtifact@0
             inputs:
-                targetPath: '*.zip'
+                targetPath: $(Build.ArtifactStagingDirectory)
 
     - job: Release
       dependsOn:
@@ -110,9 +116,9 @@ jobs:
       steps:
           - task: DownloadPipelineArtifact@1
             inputs:
-                targetPath: './'
+                targetPath: $(Build.ArtifactStagingDirectory)
 
-          - script: ls
+          - script: ls $(Build.ArtifactStagingDirectory)
 
           - task: GitHubRelease@0
             inputs:
