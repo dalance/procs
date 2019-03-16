@@ -39,6 +39,7 @@ jobs:
 
           - task: PublishPipelineArtifact@0
             inputs:
+                artifactName: 'Linux'
                 targetPath: $(Build.ArtifactStagingDirectory)
 
     - job: macOS
@@ -71,6 +72,7 @@ jobs:
 
           - task: PublishPipelineArtifact@0
             inputs:
+                artifactName: 'macOS'
                 targetPath: $(Build.ArtifactStagingDirectory)
 
     - job: Windows
@@ -106,6 +108,7 @@ jobs:
 
           - task: PublishPipelineArtifact@0
             inputs:
+                artifactName: 'Windows'
                 targetPath: $(Build.ArtifactStagingDirectory)
 
     - job: Release
