@@ -37,10 +37,10 @@ jobs:
               cp *.zip $(Build.ArtifactStagingDirectory)
             displayName: Build release binary
 
-          - task: PublishPipelineArtifact@0
+          - task: PublishBuildArtifacts@1
             inputs:
                 artifactName: 'Linux'
-                targetPath: $(Build.ArtifactStagingDirectory)
+                pathtoPublish: $(Build.ArtifactStagingDirectory)
 
     - job: macOS
       pool:
@@ -70,10 +70,10 @@ jobs:
               cp *.zip $(Build.ArtifactStagingDirectory)
             displayName: Build release binary
 
-          - task: PublishPipelineArtifact@0
+          - task: PublishBuildArtifacts@1
             inputs:
                 artifactName: 'macOS'
-                targetPath: $(Build.ArtifactStagingDirectory)
+                pathtoPublish: $(Build.ArtifactStagingDirectory)
 
     - job: Windows
       pool:
@@ -106,10 +106,10 @@ jobs:
               cp *.zip $(Build.ArtifactStagingDirectory)
             displayName: Build release binary
 
-          - task: PublishPipelineArtifact@0
+          - task: PublishBuildArtifacts@1
             inputs:
                 artifactName: 'Windows'
-                targetPath: $(Build.ArtifactStagingDirectory)
+                pathtoPublish: $(Build.ArtifactStagingDirectory)
 
     - job: Release
       dependsOn:
@@ -117,9 +117,11 @@ jobs:
           - macOS
           - Windows
       steps:
-          - task: DownloadPipelineArtifact@1
+          - task: DownloadBuildArtifacts@0
             inputs:
-                targetPath: $(Build.ArtifactStagingDirectory)
+                downloadType: 'specific'
+                itemPattern: '**'
+                downloadPath: $(Build.ArtifactStagingDirectory)
 
           - script: ls $(Build.ArtifactStagingDirectory)
 
