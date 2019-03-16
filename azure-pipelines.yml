@@ -32,23 +32,12 @@ jobs:
                 testResultsFiles: 'results.xml'
             condition: succeededOrFailed()
 
-          - script: |
-              make release_lnx
-              cp *.zip $(Build.ArtifactStagingDirectory)/
+          - script: make release_lnx
             displayName: Build release binary
 
-          - task: GitHubRelease@0
+          - task: PublishPipelineArtifact@0
             inputs:
-                gitHubConnection: 'dalance'
-                repositoryName: 'dalance/procs'
-                tagSource: 'auto'
-                releaseNotesSource: 'input'
-                releaseNotes: '[Changelog](https://github.com/dalance/procs/blob/master/CHANGELOG.md)'
-                assetUploadMode: 'replace'
-                isDraft: false
-                isPreRelease: false
-                addChangeLog: false
-            displayName: Release to GitHub
+                targetPath: '*.zip'
 
     - job: macOS
       pool:
@@ -73,23 +62,12 @@ jobs:
                 testResultsFiles: 'results.xml'
             condition: succeededOrFailed()
 
-          - script: |
-              make release_mac
-              cp *.zip $(Build.ArtifactStagingDirectory)/
+          - script: make release_mac
             displayName: Build release binary
 
-          - task: GitHubRelease@0
+          - task: PublishPipelineArtifact@0
             inputs:
-                gitHubConnection: 'dalance'
-                repositoryName: 'dalance/procs'
-                tagSource: 'auto'
-                releaseNotesSource: 'input'
-                releaseNotes: '[Changelog](https://github.com/dalance/procs/blob/master/CHANGELOG.md)'
-                assetUploadMode: 'replace'
-                isDraft: false
-                isPreRelease: false
-                addChangeLog: false
-            displayName: Release to GitHub
+                targetPath: '*.zip'
 
     - job: Windows
       pool:
@@ -117,10 +95,24 @@ jobs:
                 testResultsFiles: 'results.xml'
             condition: succeededOrFailed()
 
-          - script: |
-              make release_win
-              cp *.zip $(Build.ArtifactStagingDirectory)/
+          - script: make release_win
             displayName: Build release binary
+
+          - task: PublishPipelineArtifact@0
+            inputs:
+                targetPath: '*.zip'
+
+    - job: Release
+      dependsOn:
+          - Linux
+          - macOS
+          - Windows
+      steps:
+          - task: DownloadPipelineArtifact@1
+            inputs:
+                targetPath: './'
+
+          - script: ls
 
           - task: GitHubRelease@0
             inputs:
