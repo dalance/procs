@@ -132,6 +132,7 @@ jobs:
                 tagSource: 'auto'
                 releaseNotesSource: 'input'
                 releaseNotes: '[Changelog](https://github.com/dalance/procs/blob/master/CHANGELOG.md)'
+                assets: '$(Build.ArtifactStagingDirectory)/*/*'
                 assetUploadMode: 'replace'
                 isDraft: false
                 isPreRelease: false
