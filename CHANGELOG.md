@@ -2,15 +2,7 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.7.4...Unreleased) - ReleaseDate
 
-## [v0.7.4](https://github.com/dalance/procs/compare/v0.7.3...v0.7.4) - 2019-03-16
-
-## [v0.7.3](https://github.com/dalance/procs/compare/v0.7.2...v0.7.3) - 2019-03-16
-
-## [v0.7.2](https://github.com/dalance/procs/compare/v0.7.1...v0.7.2) - 2019-03-16
-
-## [v0.7.1](https://github.com/dalance/procs/compare/v0.7.0...v0.7.1) - 2019-03-16
-
-## [v0.7.0](https://github.com/dalance/procs/compare/v0.6.0...v0.7.0) - 2019-03-16
+## [v0.7.4](https://github.com/dalance/procs/compare/v0.6.0...v0.7.4) - 2019-03-16
 
 * [Added] windows support
 * [Changed] fast exit of watch mode
