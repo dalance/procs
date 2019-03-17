@@ -1,5 +1,3 @@
 /target
 **/*.rs.bk
-/src/columns/linux
-/src/columns/macos
-/src/columns/windows
+/src/columns/common.rs

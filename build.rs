@@ -1,14 +1,12 @@
-use fs_extra::dir;
 use std::fs;
 
 fn main() -> std::io::Result<()> {
-    let _ = fs::remove_dir_all("./src/columns/linux");
-    let _ = fs::remove_dir_all("./src/columns/macos");
-    let _ = fs::remove_dir_all("./src/columns/windows");
-    let mut options = dir::CopyOptions::new();
-    options.copy_inside = true;
-    let _ = dir::copy("./src/columns/common", "./src/columns/linux", &options);
-    let _ = dir::copy("./src/columns/common", "./src/columns/macos", &options);
-    let _ = dir::copy("./src/columns/common", "./src/columns/windows", &options);
+    if cfg!(target_os = "linux") {
+        let _ = fs::copy("./src/columns/linux.rs", "./src/columns/common.rs");
+    } else if cfg!(target_os = "macos") {
+        let _ = fs::copy("./src/columns/macos.rs", "./src/columns/common.rs");
+    } else if cfg!(target_os = "windows") {
+        let _ = fs::copy("./src/columns/windows.rs", "./src/columns/common.rs");
+    }
     Ok(())
 }
