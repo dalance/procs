@@ -13,10 +13,10 @@ before_script:
 - if [[ $TRAVIS_OS_NAME == "linux" ]]; then sudo apt-get -qq update; fi
 - if [[ $TRAVIS_OS_NAME == "linux" ]]; then sudo apt-get -qq install musl-tools libssl-dev; fi
 
-before_cache: |
-    if [[ $TRAVIS_OS_NAME == "linux" ]]; then
-        RUSTFLAGS="--cfg procmacro2_semver_exempt" cargo install cargo-tarpaulin -f
-    fi
+#before_cache: |
+#    if [[ $TRAVIS_OS_NAME == "linux" ]]; then
+#        RUSTFLAGS="--cfg procmacro2_semver_exempt" cargo install cargo-tarpaulin -f
+#    fi
 
 script:
 - sudo -u '#20000' -g '#30000' sleep 30m&
@@ -24,11 +24,11 @@ script:
 - if [[ $TRAVIS_OS_NAME == "linux" ]]; then make release_lnx; fi
 - if [[ $TRAVIS_OS_NAME == "osx"   ]]; then make release_mac; fi
 
-after_success: |
-    if [[ $TRAVIS_OS_NAME == "linux" ]]; then
-        cargo tarpaulin --out Xml
-        bash <(curl -s https://codecov.io/bash)
-    fi
+#after_success: |
+#    if [[ $TRAVIS_OS_NAME == "linux" ]]; then
+#        cargo tarpaulin --out Xml
+#        bash <(curl -s https://codecov.io/bash)
+#    fi
 
 #deploy:
 #  provider: releases

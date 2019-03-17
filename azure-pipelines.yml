@@ -6,6 +6,12 @@ trigger:
         include:
             - '*'
 
+resources:
+    containers:
+        - container: tarpaulin
+          image: xd009642/tarpaulin:latest-nightly
+          options: --security-opt seccomp=unconfined
+
 jobs:
     - job: Linux
       pool:
@@ -110,6 +116,23 @@ jobs:
             inputs:
                 artifactName: 'Windows'
                 pathtoPublish: $(Build.ArtifactStagingDirectory)
+
+    - job: Coverage
+      pool:
+          vmImage: 'ubuntu-16.04'
+      container: tarpaulin
+      steps:
+          - script: |
+              cargo tarpaulin -v --out Xml
+              curl -s https://codecov.io/bash -o .codecov && chmod +x .codecov
+              ./.codecov -B "${BUILD_SOURCEBRANCHNAME:-}" \
+                         -C "${BUILD_SOURCEVERSION:-}" \
+                         -P "${SYSTEM_PULLREQUEST_PULLREQUESTNUMBER:-}" \
+                         -b "${BUILD_BUILDID:-}" \
+                         -K -n "report name"
+            displayName: Run tarpaulin
+            env:
+                CODECOV_TOKEN: ${CodecovToken}
 
     - job: Release
       dependsOn:
