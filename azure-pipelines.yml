@@ -132,7 +132,7 @@ jobs:
                          -K -n "report name"
             displayName: Run tarpaulin
             env:
-                CODECOV_TOKEN: ${CodecovToken}
+                CODECOV_TOKEN: $(CODECOV_TOKEN)
 
     - job: Release
       dependsOn:
