@@ -42,11 +42,13 @@ jobs:
               make release_lnx
               cp *.zip $(Build.ArtifactStagingDirectory)
             displayName: Build release binary
+            condition: eq(variables['Build.SourceBranch'], 'refs/heads/*')
 
           - task: PublishBuildArtifacts@1
             inputs:
                 artifactName: 'Linux'
                 pathtoPublish: $(Build.ArtifactStagingDirectory)
+            condition: eq(variables['Build.SourceBranch'], 'refs/heads/*')
 
     - job: macOS
       pool:
