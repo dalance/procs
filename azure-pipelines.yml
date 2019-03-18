@@ -93,7 +93,6 @@ jobs:
             displayName: Install rustup
 
           - script: |
-              choco install -y zip
               cargo install cargo2junit
             displayName: Install tools
 
