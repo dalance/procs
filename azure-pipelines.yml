@@ -42,13 +42,13 @@ jobs:
               make release_lnx
               cp *.zip $(Build.ArtifactStagingDirectory)
             displayName: Build release binary
-            condition: startsWith(variables['Build.SourceBranch'], 'refs/heads/')
+            condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
 
           - task: PublishBuildArtifacts@1
             inputs:
                 artifactName: 'Linux'
                 pathtoPublish: $(Build.ArtifactStagingDirectory)
-            condition: startsWith(variables['Build.SourceBranch'], 'refs/heads/')
+            condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
 
     - job: macOS
       pool:
@@ -77,11 +77,13 @@ jobs:
               make release_mac
               cp *.zip $(Build.ArtifactStagingDirectory)
             displayName: Build release binary
+            condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
 
           - task: PublishBuildArtifacts@1
             inputs:
                 artifactName: 'macOS'
                 pathtoPublish: $(Build.ArtifactStagingDirectory)
+            condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
 
     - job: Windows
       pool:
@@ -112,11 +114,13 @@ jobs:
               make release_win
               cp *.zip $(Build.ArtifactStagingDirectory)
             displayName: Build release binary
+            condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
 
           - task: PublishBuildArtifacts@1
             inputs:
                 artifactName: 'Windows'
                 pathtoPublish: $(Build.ArtifactStagingDirectory)
+            condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
 
     - job: Coverage
       pool:
@@ -140,14 +144,13 @@ jobs:
           - Linux
           - macOS
           - Windows
+      condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
       steps:
           - task: DownloadBuildArtifacts@0
             inputs:
                 downloadType: 'specific'
                 itemPattern: '**'
                 downloadPath: $(Build.ArtifactStagingDirectory)
-
-          - script: ls $(Build.ArtifactStagingDirectory)
 
           - task: GitHubRelease@0
             inputs:
