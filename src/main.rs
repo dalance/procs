@@ -137,17 +137,13 @@ pub struct Opt {
 
 #[cfg_attr(tarpaulin, skip)]
 fn get_config() -> Result<Config, Error> {
-    let cfg_path = match dirs::home_dir() {
-        Some(mut path) => {
-            path.push(".procs.toml");
-            if path.exists() {
-                Some(path)
-            } else {
-                None
-            }
-        }
-        None => None,
-    };
+    let dot_cfg_path = directories::BaseDirs::new()
+        .map(|base| base.home_dir().join(".procs.toml"))
+        .filter(|path| path.exists());
+    let app_cfg_path = directories::ProjectDirs::from("com.github", "dalance", "procs")
+        .map(|proj| proj.config_dir().join("config.toml"))
+        .filter(|path| path.exists());
+    let cfg_path = dot_cfg_path.or(app_cfg_path);
 
     let config: Config = if let Some(path) = cfg_path {
         let mut f = fs::File::open(&path).context(format!("failed to open file ({:?})", path))?;
