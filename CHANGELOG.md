@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.7.4...Unreleased) - ReleaseDate
 
+* [Changed] Use OS-specific location for the configuration file [#14](https://github.com/dalance/procs/pull/14)
+
 ## [v0.7.4](https://github.com/dalance/procs/compare/v0.6.0...v0.7.4) - 2019-03-16
 
 * [Added] windows support
