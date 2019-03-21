@@ -293,22 +293,18 @@ fn run() -> Result<(), Error> {
     let opt = Opt::from_args();
 
     if opt.config {
-        run_config()?;
-    }
-
-    if opt.list {
-        run_list()?;
-    }
-
-    let config = get_config()?;
-
-    if let Some(interval) = opt.watch {
-        run_watch(&opt, &config, interval)?;
+        run_config()
+    } else if opt.list {
+        run_list()
     } else {
-        run_default(&opt, &config)?;
-    }
+        let config = get_config()?;
 
-    Ok(())
+        if let Some(interval) = opt.watch {
+            run_watch(&opt, &config, interval)
+        } else {
+            run_default(&opt, &config)
+        }
+    }
 }
 
 fn run_config() -> Result<(), Error> {
