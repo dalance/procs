@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.7.4...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.7.5...Unreleased) - ReleaseDate
+
+## [v0.7.5](https://github.com/dalance/procs/compare/v0.7.4...v0.7.5) - 2019-03-21
 
 * [Changed] Use OS-specific location for the configuration file [#14](https://github.com/dalance/procs/pull/14)
 
