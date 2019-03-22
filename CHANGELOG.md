@@ -4,7 +4,7 @@
 
 ## [v0.7.6](https://github.com/dalance/procs/compare/v0.7.5...v0.7.6) - 2019-03-22
 
-* [Fixed] don’t show process list on --config and --list [#15](https://github.com/dalance/procs/pull/15)
+* [Fixed] show process list on --config and --list [#15](https://github.com/dalance/procs/pull/15)
 
 ## [v0.7.5](https://github.com/dalance/procs/compare/v0.7.4...v0.7.5) - 2019-03-21
 
