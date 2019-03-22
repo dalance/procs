@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.7.5...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.7.6...Unreleased) - ReleaseDate
+
+## [v0.7.6](https://github.com/dalance/procs/compare/v0.7.5...v0.7.6) - 2019-03-22
 
 * [Fixed] don’t show process list on --config and --list [#15](https://github.com/dalance/procs/pull/15)
 
