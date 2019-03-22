@@ -2,9 +2,11 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.7.5...Unreleased) - ReleaseDate
 
+* [Fixed] don’t show process list on --config and --list [#15](https://github.com/dalance/procs/pull/15)
+
 ## [v0.7.5](https://github.com/dalance/procs/compare/v0.7.4...v0.7.5) - 2019-03-21
 
-* [Changed] Use OS-specific location for the configuration file [#14](https://github.com/dalance/procs/pull/14)
+* [Changed] use OS-specific location for the configuration file [#14](https://github.com/dalance/procs/pull/14)
 
 ## [v0.7.4](https://github.com/dalance/procs/compare/v0.6.0...v0.7.4) - 2019-03-16
 
