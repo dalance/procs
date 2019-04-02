@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.7.6...Unreleased) - ReleaseDate
 
+* [Added] tree view
+
 ## [v0.7.6](https://github.com/dalance/procs/compare/v0.7.5...v0.7.6) - 2019-03-22
 
 * [Fixed] show process list on --config and --list [#15](https://github.com/dalance/procs/pull/15)

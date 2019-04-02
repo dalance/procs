@@ -19,6 +19,7 @@
     - More memory information
 - Pager support
 - Watch mode like `top`
+- Tree view
 
 ## Platform
 
@@ -122,6 +123,10 @@ This behavior and pager command can be specified by configuration file.
 
 If `--watch <second>` option is used, procs automatically updates output like `top`.
 The update interval can be specified by the option argument.
+
+### Tree view
+
+If `--tree` option is used, processes are sorted by dependency order and dependency tree is shown at left side.
 
 ### Sort column
 
@@ -393,17 +398,18 @@ The available list of color is below.
 
 `[display]` section defines option for output display.
 
-| Key             | Value                 | Default | Description                                                                  |
-| --------------- | --------------------- | ------- | ---------------------------------------------------------------------------- |
-| show_self       | true, false           | false   | Whether the self process ( `procs` ) is shown                                |
-| cut_to_terminal | true, false           | true    | Whether output lines are truncated for output into terminal                  |
-| cut_to_pager    | true, false           | false   | Whether output lines are truncated for output into pager                     |
-| cut_to_pipe     | true, false           | false   | Whether output lines are truncated for output into pipe                      |
-| color_mode      | Auto, Always, Disable | Auto    | The default behavior of output coloring without `--color` commandline option |
-| separator       | [String]              | │       | String used as Separator                                                     |
-| ascending       | [String]              | ▲       | Ascending sort indicator                                                     |
-| descending      | [String]              | ▼       | Descending sort indicator                                                    |
-| abbr_sid        | true, false           | true    | Whether machine SID is abbreviated ( windows only )                          |
+| Key             | Value                 | Default          | Description                                                                  |
+| --------------- | --------------------- | ---------------- | ---------------------------------------------------------------------------- |
+| show_self       | true, false           | false            | Whether the self process ( `procs` ) is shown                                |
+| cut_to_terminal | true, false           | true             | Whether output lines are truncated for output into terminal                  |
+| cut_to_pager    | true, false           | false            | Whether output lines are truncated for output into pager                     |
+| cut_to_pipe     | true, false           | false            | Whether output lines are truncated for output into pipe                      |
+| color_mode      | Auto, Always, Disable | Auto             | The default behavior of output coloring without `--color` commandline option |
+| separator       | [String]              | │                | String used as Separator                                                     |
+| ascending       | [String]              | ▲                | Ascending sort indicator                                                     |
+| descending      | [String]              | ▼                | Descending sort indicator                                                    |
+| tree_symbols    | [String; 5]           |  [│, ─, ┬, ├, └] | Symbols used by tree view                                                    |
+| abbr_sid        | true, false           | true             | Whether machine SID is abbreviated ( windows only )                          |
 
 If `color_mode` is `Auto`, color is enabled for terminal and pager, disabled for pipe.
 

@@ -4,6 +4,7 @@ use std::time::{Duration, Instant};
 
 pub struct ProcessInfo {
     pub pid: i32,
+    pub ppid: i32,
     pub curr_proc: Process,
     pub prev_proc: Process,
     pub curr_io: Option<Io>,
@@ -34,9 +35,11 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
         let curr_status = curr_proc.status().ok();
         let curr_time = Instant::now();
         let interval = curr_time - prev_time;
+        let ppid = curr_proc.stat.ppid;
 
         let proc = ProcessInfo {
             pid,
+            ppid,
             curr_proc,
             prev_proc,
             curr_io,
