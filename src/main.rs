@@ -751,6 +751,17 @@ mod tests {
     }
 
     #[test]
+    fn test_run_tree() {
+        let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
+        config.pager.mode = ConfigPagerMode::Disable;
+
+        let args = vec!["procs", "--tree"];
+        let opt = Opt::from_iter(args.iter());
+        let ret = run_default(&opt, &config);
+        assert!(ret.is_ok());
+    }
+
+    #[test]
     fn test_run_all() {
         let mut config: Config = toml::from_str(CONFIG_ALL).unwrap();
         config.pager.mode = ConfigPagerMode::Disable;
