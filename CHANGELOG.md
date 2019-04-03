@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.8.0...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.8.1...Unreleased) - ReleaseDate
+
+## [v0.8.1](https://github.com/dalance/procs/compare/v0.8.0...v0.8.1) - 2019-04-03
 
 * [Fixed] watch mode with search is broken
 
