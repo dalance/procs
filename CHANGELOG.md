@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.7.6...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.8.0...Unreleased) - ReleaseDate
+
+## [v0.8.0](https://github.com/dalance/procs/compare/v0.7.6...v0.8.0) - 2019-04-03
 
 * [Added] tree view
 
