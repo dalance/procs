@@ -539,7 +539,7 @@ fn run_default(opt: &Opt, config: &Config) -> Result<(), Error> {
     };
 
     let mut visible_pids = Vec::new();
-    for (i, pid) in pids.iter().enumerate() {
+    for pid in &pids {
         let visible = if !config.display.show_self && *pid == self_pid {
             false
         } else if opt.keyword.is_empty() {
@@ -560,7 +560,7 @@ fn run_default(opt: &Opt, config: &Config) -> Result<(), Error> {
             visible_pids.push(*pid);
         }
 
-        if opt.watch.is_some() && i >= term_h - 6 {
+        if opt.watch.is_some() && visible_pids.len() >= term_h - 5 {
             break;
         }
     }
