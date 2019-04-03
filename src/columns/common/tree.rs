@@ -60,15 +60,13 @@ impl Column for Tree {
             mut string: String,
         ) -> String {
             if let Some(ppid) = rev_tree.get(&pid) {
-                if *ppid != 0 {
-                    let pppid = rev_tree.get(ppid).unwrap();
+                if let Some(pppid) = rev_tree.get(ppid) {
                     let brother = tree.get(pppid).unwrap();
                     let is_last = brother.binary_search(&ppid).unwrap() == brother.len() - 1;
 
                     if is_last {
                         string.push(' ');
                     } else {
-                        //string.push('│');
                         string.push_str(&symbols[0]);
                     }
                     gen_root(tree, rev_tree, symbols, *ppid, string)
@@ -127,7 +125,14 @@ impl Column for Tree {
     }
 
     fn sorted_pid(&self, _order: &crate::config::ConfigSortOrder) -> Vec<i32> {
-        let pids = push_pid(&self.tree, Vec::new(), 0);
+        let mut root_pids = Vec::new();
+        for p in self.rev_tree.values() {
+            if !self.rev_tree.contains_key(p) {
+                root_pids.push(*p);
+            }
+        }
+        root_pids.sort();
+        root_pids.dedup();
 
         fn push_pid(tree: &HashMap<i32, Vec<i32>>, mut pids: Vec<i32>, pid: i32) -> Vec<i32> {
             if let Some(leafs) = tree.get(&pid) {
@@ -137,6 +142,11 @@ impl Column for Tree {
                 }
             }
             pids
+        }
+
+        let mut pids = Vec::new();
+        for r in &root_pids {
+            pids = push_pid(&self.tree, pids, *r);
         }
 
         pids
@@ -153,11 +163,7 @@ impl Column for Tree {
     fn update_max_width(&mut self, pid: i32) {
         fn get_depth(rev_tree: &HashMap<i32, i32>, pid: i32, depth: i32) -> i32 {
             if let Some(ppid) = rev_tree.get(&pid) {
-                if *ppid != 0 {
-                    get_depth(rev_tree, *ppid, depth + 1)
-                } else {
-                    depth
-                }
+                get_depth(rev_tree, *ppid, depth + 1)
             } else {
                 depth
             }
