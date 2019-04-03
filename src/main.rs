@@ -80,6 +80,10 @@ pub struct Opt {
     #[structopt(short = "l", long = "list")]
     pub list: bool,
 
+    /// Tree view
+    #[structopt(short = "t", long = "tree")]
+    pub tree: bool,
+
     /// Watch mode
     #[structopt(short = "w", long = "watch", value_name = "second")]
     pub watch: Option<u64>,
@@ -393,11 +397,40 @@ fn run_watch(opt: &Opt, config: &Config, interval: u64) -> Result<(), Error> {
 #[allow(clippy::cyclomatic_complexity)]
 fn run_default(opt: &Opt, config: &Config) -> Result<(), Error> {
     // -------------------------------------------------------------------------
+    // Terminal
+    // -------------------------------------------------------------------------
+
+    let term = Term::stdout();
+    let (term_h, term_w) = term.size();
+    let term_h = term_h as usize;
+    let mut term_w = term_w as usize;
+
+    // -------------------------------------------------------------------------
     // Generate column
     // -------------------------------------------------------------------------
 
     let mut slot_idx = 0;
     let mut cols = Vec::new();
+    if opt.tree {
+        let kind = ConfigColumnKind::Tree;
+        let column = gen_column(
+            &kind,
+            &config.docker.path,
+            &config.display.separator,
+            config.display.abbr_sid,
+            &config.display.tree_symbols,
+        );
+        if column.available() {
+            cols.push(ColumnInfo {
+                column,
+                kind,
+                style: ConfigColumnStyle::BrightWhite,
+                nonnumeric_search: false,
+                numeric_search: false,
+                align: ConfigColumnAlign::Left,
+            });
+        }
+    }
     for c in &config.columns {
         let kind = match &c.kind {
             ConfigColumnKind::Slot => {
@@ -417,6 +450,7 @@ fn run_default(opt: &Opt, config: &Config) -> Result<(), Error> {
                 &config.docker.path,
                 &config.display.separator,
                 config.display.abbr_sid,
+                &config.display.tree_symbols,
             );
             if column.available() {
                 cols.push(ColumnInfo {
@@ -463,7 +497,7 @@ fn run_default(opt: &Opt, config: &Config) -> Result<(), Error> {
         }
     }
 
-    let (sort_idx, sort_order) = match (&opt.sorta, &opt.sortd) {
+    let (mut sort_idx, sort_order) = match (&opt.sorta, &opt.sortd) {
         (Some(sort), _) | (_, Some(sort)) => {
             let mut idx = config.sort.column;
             let mut order = config.sort.order.clone();
@@ -484,6 +518,10 @@ fn run_default(opt: &Opt, config: &Config) -> Result<(), Error> {
         _ => (config.sort.column, config.sort.order.clone()),
     };
 
+    if opt.tree {
+        sort_idx = 0;
+    }
+
     let pids = cols[sort_idx].column.sorted_pid(&sort_order);
 
     let self_pid = std::process::id() as i32;
@@ -501,14 +539,14 @@ fn run_default(opt: &Opt, config: &Config) -> Result<(), Error> {
     };
 
     let mut visible_pids = Vec::new();
-    for pid in pids {
-        let visible = if !config.display.show_self && pid == self_pid {
+    for (i, pid) in pids.iter().enumerate() {
+        let visible = if !config.display.show_self && *pid == self_pid {
             false
         } else if opt.keyword.is_empty() {
             true
         } else {
             search(
-                pid,
+                *pid,
                 &keyword_numeric,
                 &keyword_nonnumeric,
                 cols_numeric.as_slice(),
@@ -519,7 +557,11 @@ fn run_default(opt: &Opt, config: &Config) -> Result<(), Error> {
         };
 
         if visible {
-            visible_pids.push(pid);
+            visible_pids.push(*pid);
+        }
+
+        if opt.watch.is_some() && i >= term_h - 6 {
+            break;
         }
     }
 
@@ -538,11 +580,6 @@ fn run_default(opt: &Opt, config: &Config) -> Result<(), Error> {
     // -------------------------------------------------------------------------
     // Display
     // -------------------------------------------------------------------------
-
-    let term = Term::stdout();
-    let (term_h, term_w) = term.size();
-    let term_h = term_h as usize;
-    let mut term_w = term_w as usize;
 
     let use_terminal = console::user_attended();
 
@@ -597,10 +634,7 @@ fn run_default(opt: &Opt, config: &Config) -> Result<(), Error> {
     display_header(&term, term_w, &cols, &config, sort_idx, &sort_order);
     display_unit(&term, term_w, &cols, &config);
 
-    for (i, pid) in visible_pids.iter().enumerate() {
-        if opt.watch.is_some() && i >= term_h - 5 {
-            break;
-        }
+    for pid in &visible_pids {
         display_content(&term, *pid, term_w, &cols, &config);
     }
 
@@ -711,6 +745,17 @@ mod tests {
         assert!(ret.is_ok());
 
         let args = vec!["procs", "--sortd", "cpu"];
+        let opt = Opt::from_iter(args.iter());
+        let ret = run_default(&opt, &config);
+        assert!(ret.is_ok());
+    }
+
+    #[test]
+    fn test_run_tree() {
+        let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
+        config.pager.mode = ConfigPagerMode::Disable;
+
+        let args = vec!["procs", "--tree"];
         let opt = Opt::from_iter(args.iter());
         let ret = run_default(&opt, &config);
         assert!(ret.is_ok());

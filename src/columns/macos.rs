@@ -22,6 +22,7 @@ pub mod start_time;
 pub mod state;
 pub mod tcp_port;
 pub mod threads;
+pub mod tree;
 pub mod tty;
 pub mod udp_port;
 pub mod uid;
@@ -60,6 +61,7 @@ pub use self::start_time::StartTime;
 pub use self::state::State;
 pub use self::tcp_port::TcpPort;
 pub use self::threads::Threads;
+pub use self::tree::Tree;
 pub use self::tty::Tty;
 pub use self::udp_port::UdpPort;
 pub use self::uid::Uid;
@@ -109,6 +111,7 @@ pub enum ConfigColumnKind {
     State,
     TcpPort,
     Threads,
+    Tree,
     Tty,
     UdpPort,
     Uid,
@@ -134,6 +137,7 @@ pub fn gen_column(
     docker_path: &str,
     separator: &str,
     abbr_sid: bool,
+    tree_symbols: &[String; 5],
 ) -> Box<dyn Column> {
     match kind {
         ConfigColumnKind::Command => Box::new(Command::new()),
@@ -160,6 +164,7 @@ pub fn gen_column(
         ConfigColumnKind::State => Box::new(State::new()),
         ConfigColumnKind::TcpPort => Box::new(TcpPort::new()),
         ConfigColumnKind::Threads => Box::new(Threads::new()),
+        ConfigColumnKind::Tree => Box::new(Tree::new(tree_symbols)),
         ConfigColumnKind::Tty => Box::new(Tty::new()),
         ConfigColumnKind::UdpPort => Box::new(UdpPort::new()),
         ConfigColumnKind::Uid => Box::new(Uid::new(abbr_sid)),
@@ -256,7 +261,6 @@ lazy_static! {
             ConfigColumnKind::UserSaved,
             ("UserSaved", "Saved user name")
         ),
-        (ConfigColumnKind::Username, ("Username", "User name")),
         (ConfigColumnKind::VmRss, ("VmRss", "Resident set size")),
         (ConfigColumnKind::VmSize, ("VmSize", "Physical page size")),
         (

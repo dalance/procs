@@ -19,6 +19,7 @@
     - More memory information
 - Pager support
 - Watch mode like `top`
+- Tree view
 
 ## Platform
 
@@ -64,7 +65,7 @@ Type `procs` only. It shows the information of all processes.
 $ procs
 ```
 
-![procs](https://user-images.githubusercontent.com/4331004/51976289-9f3a4a00-24c7-11e9-8573-8f746ccf1ed4.png)
+![procs](https://user-images.githubusercontent.com/4331004/55446625-5e5fce00-55fb-11e9-8914-69e8640d89d7.png)
 
 ### Search by non-numeric keyword
 
@@ -74,7 +75,7 @@ If you add any keyword as argument, it is matched to `USER`, `Command`, `Docker`
 $ procs zsh
 ```
 
-![procs_zsh](https://user-images.githubusercontent.com/4331004/51976319-b24d1a00-24c7-11e9-8060-09e71d18e5ec.png)
+![procs_zsh](https://user-images.githubusercontent.com/4331004/55446648-71729e00-55fb-11e9-8e12-1ca63911c568.png)
 
 ### Search by numeric keyword
 
@@ -85,7 +86,7 @@ Numeric is treated as exact match, and non-numeric is treated as partial match b
 $ procs --or 6000 60000 60001 16723
 ```
 
-![procs_port](https://user-images.githubusercontent.com/4331004/51976347-c09b3600-24c7-11e9-8d40-2c437efbd5e1.png)
+![procs_port](https://user-images.githubusercontent.com/4331004/55446667-83ecd780-55fb-11e9-8959-53209837c4ee.png)
 
 Note that procfs permissions only allow identifying listening ports for processes owned by the current user, so not all ports will show up unless run as root.
 
@@ -108,7 +109,7 @@ If you have access permission to docker daemon ( `unix:///var/run/docker.sock` )
 $ procs growi
 ```
 
-![procs_docker](https://user-images.githubusercontent.com/4331004/52265847-4d3a6e00-2978-11e9-8186-ea8e934acbb1.png)
+![procs_docker](https://user-images.githubusercontent.com/4331004/55446681-91a25d00-55fb-11e9-943d-5b5caeb23c62.png)
 
 Note that procs gets the container information through UNIX domain socket, so [Docker Toolbox](https://docs.docker.com/toolbox/) on macOS ( doesn't use UNIX domain socket ) is not supported.
 [Docker Desktop for Mac](https://docs.docker.com/docker-for-mac/) is supported but not tested.
@@ -123,6 +124,16 @@ This behavior and pager command can be specified by configuration file.
 If `--watch <second>` option is used, procs automatically updates output like `top`.
 The update interval can be specified by the option argument.
 
+### Tree view
+
+If `--tree` option is used, processes are sorted by dependency order and dependency tree is shown at left side.
+
+```console
+$ procs --tree
+```
+
+![procs_tree](https://user-images.githubusercontent.com/4331004/55446692-9ff07900-55fb-11e9-8b66-a8432df0a8e1.png)
+
 ### Sort column
 
 Column sort order can be changed by `--sorta` or `--sortd` option.
@@ -135,6 +146,12 @@ If `--sortd rss`, column is sorted by `VmRss` with decending order.
 The keyword is matched partially and case is ignored.
 
 The default sort is specified by `[sort]` section in the [configuration file](#configuration).
+
+```console
+$ procs --sortd cpu
+```
+
+![procs_sort](https://user-images.githubusercontent.com/4331004/55446704-ab43a480-55fb-11e9-81dc-e3ac1a1e2507.png)
 
 ### Insert column
 
@@ -393,17 +410,18 @@ The available list of color is below.
 
 `[display]` section defines option for output display.
 
-| Key             | Value                 | Default | Description                                                                  |
-| --------------- | --------------------- | ------- | ---------------------------------------------------------------------------- |
-| show_self       | true, false           | false   | Whether the self process ( `procs` ) is shown                                |
-| cut_to_terminal | true, false           | true    | Whether output lines are truncated for output into terminal                  |
-| cut_to_pager    | true, false           | false   | Whether output lines are truncated for output into pager                     |
-| cut_to_pipe     | true, false           | false   | Whether output lines are truncated for output into pipe                      |
-| color_mode      | Auto, Always, Disable | Auto    | The default behavior of output coloring without `--color` commandline option |
-| separator       | [String]              | │       | String used as Separator                                                     |
-| ascending       | [String]              | ▲       | Ascending sort indicator                                                     |
-| descending      | [String]              | ▼       | Descending sort indicator                                                    |
-| abbr_sid        | true, false           | true    | Whether machine SID is abbreviated ( windows only )                          |
+| Key             | Value                 | Default          | Description                                                                  |
+| --------------- | --------------------- | ---------------- | ---------------------------------------------------------------------------- |
+| show_self       | true, false           | false            | Whether the self process ( `procs` ) is shown                                |
+| cut_to_terminal | true, false           | true             | Whether output lines are truncated for output into terminal                  |
+| cut_to_pager    | true, false           | false            | Whether output lines are truncated for output into pager                     |
+| cut_to_pipe     | true, false           | false            | Whether output lines are truncated for output into pipe                      |
+| color_mode      | Auto, Always, Disable | Auto             | The default behavior of output coloring without `--color` commandline option |
+| separator       | [String]              | │                | String used as Separator                                                     |
+| ascending       | [String]              | ▲                | Ascending sort indicator                                                     |
+| descending      | [String]              | ▼                | Descending sort indicator                                                    |
+| tree_symbols    | [String; 5]           |  [│, ─, ┬, ├, └] | Symbols used by tree view                                                    |
+| abbr_sid        | true, false           | true             | Whether machine SID is abbreviated ( windows only )                          |
 
 If `color_mode` is `Auto`, color is enabled for terminal and pager, disabled for pipe.
 

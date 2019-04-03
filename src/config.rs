@@ -54,6 +54,16 @@ fn default_descending() -> String {
     String::from("▼")
 }
 
+fn default_tree_symbols() -> [String; 5] {
+    [
+        String::from("│"),
+        String::from("─"),
+        String::from("┬"),
+        String::from("├"),
+        String::from("└"),
+    ]
+}
+
 // ---------------------------------------------------------------------------------------------------------------------
 // ColumnInfo
 // ---------------------------------------------------------------------------------------------------------------------
@@ -295,6 +305,8 @@ pub struct ConfigDisplay {
     pub ascending: String,
     #[serde(default = "default_descending")]
     pub descending: String,
+    #[serde(default = "default_tree_symbols")]
+    pub tree_symbols: [String; 5],
     #[serde(default = "default_true")]
     pub abbr_sid: bool,
 }
@@ -310,6 +322,13 @@ impl Default for ConfigDisplay {
             separator: String::from("│"),
             ascending: String::from("▲"),
             descending: String::from("▼"),
+            tree_symbols: [
+                String::from("│"),
+                String::from("─"),
+                String::from("┬"),
+                String::from("├"),
+                String::from("└"),
+            ],
             abbr_sid: true,
         }
     }
