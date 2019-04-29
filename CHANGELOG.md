@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.8.1...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.8.2...Unreleased) - ReleaseDate
+
+## [v0.8.2](https://github.com/dalance/procs/compare/v0.8.1...v0.8.2) - 2019-04-30
 
 * [Fixed] panic caused by procfs
 
