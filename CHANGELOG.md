@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.8.2...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.8.3...Unreleased) - ReleaseDate
+
+## [v0.8.3](https://github.com/dalance/procs/compare/v0.8.2...v0.8.3) - 2019-05-03
 
 * [Fixed] panic caused by --tree and --sort
 
