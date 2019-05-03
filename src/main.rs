@@ -99,11 +99,19 @@ pub struct Opt {
     pub insert: Vec<String>,
 
     /// Sort column by ascending
-    #[structopt(value_name = "kind", long = "sorta", raw(conflicts_with = "\"sortd\""))]
+    #[structopt(
+        value_name = "kind",
+        long = "sorta",
+        raw(conflicts_with_all = "&[\"sortd\", \"tree\"]")
+    )]
     pub sorta: Option<String>,
 
     /// Sort column by descending
-    #[structopt(value_name = "kind", long = "sortd", raw(conflicts_with = "\"sorta\""))]
+    #[structopt(
+        value_name = "kind",
+        long = "sortd",
+        raw(conflicts_with_all = "&[\"sorta\", \"tree\"]")
+    )]
     pub sortd: Option<String>,
 
     /// Color mode
