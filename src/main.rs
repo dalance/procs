@@ -141,6 +141,10 @@ pub struct Opt {
     /// Generate configuration sample file
     #[structopt(long = "config")]
     pub config: bool,
+
+    /// Set suid bit and change binary owner to root
+    #[structopt(long = "suid")]
+    pub suid: bool,
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -589,6 +593,8 @@ fn run() -> Result<(), Error> {
         run_config()
     } else if opt.list {
         run_list()
+    } else if opt.suid {
+        run_suid()
     } else {
         let config = get_config()?;
 
@@ -628,6 +634,26 @@ fn run_list() -> Result<(), Error> {
         );
     }
 
+    Ok(())
+}
+
+#[cfg(not(target_os = "windows"))]
+#[cfg_attr(tarpaulin, skip)]
+fn run_suid() -> Result<(), Error> {
+    let path = fs::read_link(palaver::env::exe_path()?)?;
+    let path = path.to_string_lossy();
+
+    let cmd = format!("sudo sh -c \"chown root {}; chmod u+s {}\"", path, path);
+    println!("{}", cmd);
+    runas::Command::new("sh").arg("-c").arg(cmd).status()?;
+
+    Ok(())
+}
+
+#[cfg(target_os = "windows")]
+#[cfg_attr(tarpaulin, skip)]
+fn run_suid() -> Result<(), Error> {
+    println!("--suid option is not supported on Windows");
     Ok(())
 }
 

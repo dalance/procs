@@ -36,8 +36,10 @@ unicode-width = "0.1.5"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 pager         = "0.15.0"
+palaver       = { version = "0.2.1", default-features = false }
 procfs        = "0.5.0"
 quale         = "1.0.0"
+runas         = "0.1.4"
 users         = "0.8.1"
 
 [target.'cfg(target_os = "macos")'.dependencies]
@@ -45,7 +47,9 @@ users         = "0.8.1"
 #libproc       = { version = "0.3.2", path = "./modified/libproc-rs" }
 errno         = "^0.1.8"
 pager         = "0.15.0"
+palaver       = { version = "0.2.1", default-features = false }
 quale         = "1.0.0"
+runas         = "0.1.4"
 users         = "0.8.1"
 
 [target.'cfg(target_os = "windows")'.dependencies]

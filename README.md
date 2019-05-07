@@ -44,16 +44,23 @@ You can install by [cargo](https://crates.io).
 cargo install procs
 ```
 
-### macOS permission issue
+### Permission issue
 
-In macOS, normal user can't access the process information of other users.
-So `procs` requires SUID as the same as `ps` command.
-If you add SUID to `procs`, do like below:
+On macOS, normal user can't access all process information of other users.
+On Linux, normal user can't access some information (ex. Read/Write throughput) of other users.
+
+If you want to show all information, SUID bit must be set to `procs` binary.
+You can use `--suid` option to set it.
 
 ```console
-$ sudo chown root [procs binary path]
-$ sudo chmod u+s  [procs binary path]
+$ procs --suid
+chown root [procs binary path]; chmod u+s [procs binary path]
+[sudo] password for ...:
 ```
+
+`procs --suid` does `chown` and `chmod` with `sudo`.
+
+`--suid` is not supported on Windows.
 
 ## Usage
 

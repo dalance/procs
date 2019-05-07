@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.8.3...Unreleased) - ReleaseDate
 
+* [Added] suid option
 * [Fixed] some characters remain over refresh in watch mode
 
 ## [v0.8.3](https://github.com/dalance/procs/compare/v0.8.2...v0.8.3) - 2019-05-03
