@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.8.3...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.8.4...Unreleased) - ReleaseDate
+
+## [v0.8.4](https://github.com/dalance/procs/compare/v0.8.3...v0.8.4) - 2019-05-07
 
 * [Added] suid option
 * [Fixed] some characters remain over refresh in watch mode
