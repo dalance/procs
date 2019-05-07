@@ -170,17 +170,15 @@ fn get_config() -> Result<Config, Error> {
 }
 
 fn display_header(
-    term: &Term,
-    max_width: usize,
+    term_info: &TermInfo,
     cols: &[ColumnInfo],
     config: &Config,
-    sort_idx: usize,
-    sort_order: &ConfigSortOrder,
+    sort_info: &SortInfo,
 ) {
     let mut row = String::from("");
     for (i, c) in cols.iter().enumerate() {
-        let order = if i == sort_idx {
-            Some(sort_order.clone())
+        let order = if i == sort_info.idx {
+            Some(sort_info.order.clone())
         } else {
             None
         };
@@ -194,12 +192,11 @@ fn display_header(
         );
     }
     row = row.trim_end().to_string();
-    //row = console::truncate_str(&row, max_width, "").to_string();
-    row = truncate(&row, max_width).to_string();
-    let _ = term.write_line(&row);
+    row = truncate(&row, term_info.width).to_string();
+    let _ = term_info.term.write_line(&row);
 }
 
-fn display_unit(term: &Term, max_width: usize, cols: &[ColumnInfo], config: &Config) {
+fn display_unit(term_info: &TermInfo, cols: &[ColumnInfo], config: &Config) {
     let mut row = String::from("");
     for c in cols.iter() {
         row = format!(
@@ -209,12 +206,11 @@ fn display_unit(term: &Term, max_width: usize, cols: &[ColumnInfo], config: &Con
         );
     }
     row = row.trim_end().to_string();
-    //row = console::truncate_str(&row, max_width, "").to_string();
-    row = truncate(&row, max_width).to_string();
-    let _ = term.write_line(&row);
+    row = truncate(&row, term_info.width).to_string();
+    let _ = term_info.term.write_line(&row);
 }
 
-fn display_content(term: &Term, pid: i32, max_width: usize, cols: &[ColumnInfo], config: &Config) {
+fn display_content(term_info: &TermInfo, pid: i32, cols: &[ColumnInfo], config: &Config) {
     let mut row = String::from("");
     for c in cols.iter() {
         row = format!(
@@ -228,9 +224,8 @@ fn display_content(term: &Term, pid: i32, max_width: usize, cols: &[ColumnInfo],
         );
     }
     row = row.trim_end().to_string();
-    //row = console::truncate_str(&row, max_width, "").to_string();
-    row = truncate(&row, max_width).to_string();
-    let _ = term.write_line(&row);
+    row = truncate(&row, term_info.width).to_string();
+    let _ = term_info.term.write_line(&row);
 }
 
 fn search<T: AsRef<str>>(
@@ -260,6 +255,292 @@ fn search<T: AsRef<str>>(
         ConfigSearchLogic::Nand => !(ret_nonnumeric & ret_numeric),
         ConfigSearchLogic::Nor => !(ret_nonnumeric | ret_numeric),
     }
+}
+
+struct SortInfo {
+    idx: usize,
+    order: ConfigSortOrder,
+}
+
+fn sort_info(opt: &Opt, config: &Config, cols: &[ColumnInfo]) -> SortInfo {
+    let (mut sort_idx, sort_order) = match (&opt.sorta, &opt.sortd) {
+        (Some(sort), _) | (_, Some(sort)) => {
+            let mut idx = config.sort.column;
+            let mut order = config.sort.order.clone();
+            for (i, c) in cols.iter().enumerate() {
+                let (kind, _) = KIND_LIST[&c.kind];
+                if kind.to_lowercase().find(&sort.to_lowercase()).is_some() {
+                    idx = i;
+                    order = if opt.sorta.is_some() {
+                        ConfigSortOrder::Ascending
+                    } else {
+                        ConfigSortOrder::Descending
+                    };
+                    break;
+                }
+            }
+            (idx, order)
+        }
+        _ => (config.sort.column, config.sort.order.clone()),
+    };
+
+    if opt.tree {
+        sort_idx = 0;
+    }
+
+    SortInfo {
+        idx: sort_idx,
+        order: sort_order,
+    }
+}
+
+struct TermInfo {
+    term: Term,
+    height: usize,
+    width: usize,
+}
+
+fn term_info() -> TermInfo {
+    let term = Term::stdout();
+    let (term_h, term_w) = term.size();
+    let height = term_h as usize;
+    let width = term_w as usize;
+
+    TermInfo {
+        term,
+        height,
+        width,
+    }
+}
+
+fn gen_columns(opt: &Opt, config: &Config) -> Vec<ColumnInfo> {
+    let mut slot_idx = 0;
+    let mut cols = Vec::new();
+    if opt.tree {
+        let kind = ConfigColumnKind::Tree;
+        let column = gen_column(
+            &kind,
+            &config.docker.path,
+            &config.display.separator,
+            config.display.abbr_sid,
+            &config.display.tree_symbols,
+        );
+        if column.available() {
+            cols.push(ColumnInfo {
+                column,
+                kind,
+                style: ConfigColumnStyle::BrightWhite,
+                nonnumeric_search: false,
+                numeric_search: false,
+                align: ConfigColumnAlign::Left,
+            });
+        }
+    }
+    for c in &config.columns {
+        let kind = match &c.kind {
+            ConfigColumnKind::Slot => {
+                let kind = if let Some(insert) = opt.insert.get(slot_idx) {
+                    find_column_kind(insert)
+                } else {
+                    None
+                };
+                slot_idx += 1;
+                kind
+            }
+            x => Some(x.clone()),
+        };
+        if let Some(kind) = kind {
+            let column = gen_column(
+                &kind,
+                &config.docker.path,
+                &config.display.separator,
+                config.display.abbr_sid,
+                &config.display.tree_symbols,
+            );
+            if column.available() {
+                cols.push(ColumnInfo {
+                    column,
+                    kind,
+                    style: c.style.clone(),
+                    nonnumeric_search: c.nonnumeric_search,
+                    numeric_search: c.numeric_search,
+                    align: c.align.clone(),
+                });
+            }
+        }
+    }
+
+    let proc = collect_proc(Duration::from_millis(opt.interval));
+    for c in cols.iter_mut() {
+        for p in &proc {
+            c.column.add(&p);
+        }
+    }
+
+    cols
+}
+
+fn filter_columns(
+    opt: &Opt,
+    config: &Config,
+    cols: &[ColumnInfo],
+    term_info: &TermInfo,
+    sort_info: &SortInfo,
+) -> Vec<i32> {
+    let mut cols_nonnumeric = Vec::new();
+    let mut cols_numeric = Vec::new();
+    for c in cols {
+        if c.nonnumeric_search {
+            cols_nonnumeric.push(c.column.as_ref());
+        }
+        if c.numeric_search {
+            cols_numeric.push(c.column.as_ref());
+        }
+    }
+
+    let mut keyword_nonnumeric = Vec::new();
+    let mut keyword_numeric = Vec::new();
+
+    for k in &opt.keyword {
+        match util::classify(k) {
+            KeywordClass::Numeric => keyword_numeric.push(k),
+            KeywordClass::NonNumeric => keyword_nonnumeric.push(k),
+        }
+    }
+
+    let pids = cols[sort_info.idx].column.sorted_pid(&sort_info.order);
+
+    let self_pid = std::process::id() as i32;
+
+    let logic = if opt.and {
+        ConfigSearchLogic::And
+    } else if opt.or {
+        ConfigSearchLogic::Or
+    } else if opt.nand {
+        ConfigSearchLogic::Nand
+    } else if opt.nor {
+        ConfigSearchLogic::Nor
+    } else {
+        config.search.logic.clone()
+    };
+
+    let mut visible_pids = Vec::new();
+    for pid in &pids {
+        let visible = if !config.display.show_self && *pid == self_pid {
+            false
+        } else if opt.keyword.is_empty() {
+            true
+        } else {
+            search(
+                *pid,
+                &keyword_numeric,
+                &keyword_nonnumeric,
+                cols_numeric.as_slice(),
+                cols_nonnumeric.as_slice(),
+                &config,
+                &logic,
+            )
+        };
+
+        if visible {
+            visible_pids.push(*pid);
+        }
+
+        if opt.watch.is_some() && visible_pids.len() >= term_info.height - 5 {
+            break;
+        }
+    }
+
+    visible_pids
+}
+
+fn resize_columns(
+    config: &Config,
+    mut cols: Vec<ColumnInfo>,
+    visible_pids: &[i32],
+    sort_info: &SortInfo,
+) -> Vec<ColumnInfo> {
+    for (i, ref mut c) in cols.iter_mut().enumerate() {
+        let order = if i == sort_info.idx {
+            Some(sort_info.order.clone())
+        } else {
+            None
+        };
+        c.column.reset_max_width(order, &config);
+        for pid in visible_pids {
+            c.column.update_max_width(*pid);
+        }
+    }
+
+    cols
+}
+
+fn display(
+    opt: &Opt,
+    config: &Config,
+    cols: Vec<ColumnInfo>,
+    visible_pids: Vec<i32>,
+    mut term_info: TermInfo,
+    sort_info: &SortInfo,
+) -> TermInfo {
+    let use_terminal = console::user_attended();
+
+    // +3 means header/unit line and next prompt
+    let pager_threshold = visible_pids.len() + 3;
+
+    let use_pager = if cfg!(target_os = "windows") {
+        false
+    } else {
+        match (opt.watch.as_ref(), opt.pager.as_ref(), &config.pager.mode) {
+            (Some(_), _, _) => false,
+            (None, Some(x), _) if x == "auto" => term_info.height < pager_threshold,
+            (None, Some(x), _) if x == "always" => true,
+            (None, Some(x), _) if x == "disable" => false,
+            (None, None, ConfigPagerMode::Auto) => term_info.height < pager_threshold,
+            (None, None, ConfigPagerMode::Always) => true,
+            (None, None, ConfigPagerMode::Disable) => false,
+            _ => false,
+        }
+    };
+
+    let mut truncate = use_terminal && use_pager && config.display.cut_to_pager;
+    truncate |= use_terminal && !use_pager && config.display.cut_to_terminal;
+    truncate |= !use_terminal && config.display.cut_to_pipe;
+
+    if !truncate {
+        term_info.width = std::usize::MAX;
+    }
+
+    if use_pager {
+        pager(&config);
+    }
+
+    match (opt.color.as_ref(), &config.display.color_mode) {
+        (Some(x), _) if x == "auto" => {
+            if use_pager && use_terminal {
+                console::set_colors_enabled(true);
+            }
+        }
+        (Some(x), _) if x == "always" => console::set_colors_enabled(true),
+        (Some(x), _) if x == "disable" => console::set_colors_enabled(false),
+        (None, ConfigColorMode::Auto) => {
+            if use_pager && use_terminal {
+                console::set_colors_enabled(true);
+            }
+        }
+        (None, ConfigColorMode::Always) => console::set_colors_enabled(true),
+        (None, ConfigColorMode::Disable) => console::set_colors_enabled(false),
+        _ => (),
+    }
+
+    display_header(&term_info, &cols, &config, sort_info);
+    display_unit(&term_info, &cols, &config);
+
+    for pid in &visible_pids {
+        display_content(&term_info, *pid, &cols, &config);
+    }
+
+    term_info
 }
 
 #[cfg(not(target_os = "windows"))]
@@ -364,19 +645,15 @@ fn run_watch(opt: &Opt, config: &Config, interval: u64) -> Result<(), Error> {
         let _ = tx.send(());
     });
 
-    let term = Term::stdout();
-    let mut term_h_prev = 0;
-    let mut term_w_prev = 0;
     'outer: loop {
-        let (term_h, term_w) = term.size();
-        let term_changed = term_h != term_h_prev || term_w != term_w_prev;
-        if term_changed {
-            let _ = term.clear_screen();
-        }
-        term_h_prev = term_h;
-        term_w_prev = term_w;
+        let term_info = term_info();
+        let cols = gen_columns(opt, config);
+        let sort_info = sort_info(opt, config, &cols);
+        let visible_pids = filter_columns(opt, config, &cols, &term_info, &sort_info);
+        let cols = resize_columns(config, cols, &visible_pids, &sort_info);
 
-        let _ = term.write_line(&format!(
+        let _ = term_info.term.clear_screen();
+        let _ = term_info.term.write_line(&format!(
             "{}\n",
             console::style(format!(
                 " Interval: {}s, Last Updated: {} ( Quit: q or Ctrl-C )",
@@ -388,8 +665,11 @@ fn run_watch(opt: &Opt, config: &Config, interval: u64) -> Result<(), Error> {
             .underlined()
         ));
 
-        run_default(&opt, &config)?;
-        let _ = term.move_cursor_up((term_h - 1) as usize);
+        let term_info = display(opt, config, cols, visible_pids, term_info, &sort_info);
+
+        let _ = term_info
+            .term
+            .move_cursor_up((term_info.height - 1) as usize);
 
         for _ in 0..interval * 10 {
             thread::sleep(Duration::from_millis(100));
@@ -402,250 +682,13 @@ fn run_watch(opt: &Opt, config: &Config, interval: u64) -> Result<(), Error> {
     Ok(())
 }
 
-#[allow(clippy::cyclomatic_complexity)]
 fn run_default(opt: &Opt, config: &Config) -> Result<(), Error> {
-    // -------------------------------------------------------------------------
-    // Terminal
-    // -------------------------------------------------------------------------
-
-    let term = Term::stdout();
-    let (term_h, term_w) = term.size();
-    let term_h = term_h as usize;
-    let mut term_w = term_w as usize;
-
-    // -------------------------------------------------------------------------
-    // Generate column
-    // -------------------------------------------------------------------------
-
-    let mut slot_idx = 0;
-    let mut cols = Vec::new();
-    if opt.tree {
-        let kind = ConfigColumnKind::Tree;
-        let column = gen_column(
-            &kind,
-            &config.docker.path,
-            &config.display.separator,
-            config.display.abbr_sid,
-            &config.display.tree_symbols,
-        );
-        if column.available() {
-            cols.push(ColumnInfo {
-                column,
-                kind,
-                style: ConfigColumnStyle::BrightWhite,
-                nonnumeric_search: false,
-                numeric_search: false,
-                align: ConfigColumnAlign::Left,
-            });
-        }
-    }
-    for c in &config.columns {
-        let kind = match &c.kind {
-            ConfigColumnKind::Slot => {
-                let kind = if let Some(insert) = opt.insert.get(slot_idx) {
-                    find_column_kind(insert)
-                } else {
-                    None
-                };
-                slot_idx += 1;
-                kind
-            }
-            x => Some(x.clone()),
-        };
-        if let Some(kind) = kind {
-            let column = gen_column(
-                &kind,
-                &config.docker.path,
-                &config.display.separator,
-                config.display.abbr_sid,
-                &config.display.tree_symbols,
-            );
-            if column.available() {
-                cols.push(ColumnInfo {
-                    column,
-                    kind,
-                    style: c.style.clone(),
-                    nonnumeric_search: c.nonnumeric_search,
-                    numeric_search: c.numeric_search,
-                    align: c.align.clone(),
-                });
-            }
-        }
-    }
-
-    let proc = collect_proc(Duration::from_millis(opt.interval));
-    for c in cols.iter_mut() {
-        for p in &proc {
-            c.column.add(&p);
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    // Search column
-    // -------------------------------------------------------------------------
-
-    let mut cols_nonnumeric = Vec::new();
-    let mut cols_numeric = Vec::new();
-    for c in &cols {
-        if c.nonnumeric_search {
-            cols_nonnumeric.push(c.column.as_ref());
-        }
-        if c.numeric_search {
-            cols_numeric.push(c.column.as_ref());
-        }
-    }
-
-    let mut keyword_nonnumeric = Vec::new();
-    let mut keyword_numeric = Vec::new();
-
-    for k in &opt.keyword {
-        match util::classify(k) {
-            KeywordClass::Numeric => keyword_numeric.push(k),
-            KeywordClass::NonNumeric => keyword_nonnumeric.push(k),
-        }
-    }
-
-    let (mut sort_idx, sort_order) = match (&opt.sorta, &opt.sortd) {
-        (Some(sort), _) | (_, Some(sort)) => {
-            let mut idx = config.sort.column;
-            let mut order = config.sort.order.clone();
-            for (i, c) in cols.iter().enumerate() {
-                let (kind, _) = KIND_LIST[&c.kind];
-                if kind.to_lowercase().find(&sort.to_lowercase()).is_some() {
-                    idx = i;
-                    order = if opt.sorta.is_some() {
-                        ConfigSortOrder::Ascending
-                    } else {
-                        ConfigSortOrder::Descending
-                    };
-                    break;
-                }
-            }
-            (idx, order)
-        }
-        _ => (config.sort.column, config.sort.order.clone()),
-    };
-
-    if opt.tree {
-        sort_idx = 0;
-    }
-
-    let pids = cols[sort_idx].column.sorted_pid(&sort_order);
-
-    let self_pid = std::process::id() as i32;
-
-    let logic = if opt.and {
-        ConfigSearchLogic::And
-    } else if opt.or {
-        ConfigSearchLogic::Or
-    } else if opt.nand {
-        ConfigSearchLogic::Nand
-    } else if opt.nor {
-        ConfigSearchLogic::Nor
-    } else {
-        config.search.logic.clone()
-    };
-
-    let mut visible_pids = Vec::new();
-    for pid in &pids {
-        let visible = if !config.display.show_self && *pid == self_pid {
-            false
-        } else if opt.keyword.is_empty() {
-            true
-        } else {
-            search(
-                *pid,
-                &keyword_numeric,
-                &keyword_nonnumeric,
-                cols_numeric.as_slice(),
-                cols_nonnumeric.as_slice(),
-                &config,
-                &logic,
-            )
-        };
-
-        if visible {
-            visible_pids.push(*pid);
-        }
-
-        if opt.watch.is_some() && visible_pids.len() >= term_h - 5 {
-            break;
-        }
-    }
-
-    for (i, ref mut c) in cols.iter_mut().enumerate() {
-        let order = if i == sort_idx {
-            Some(sort_order.clone())
-        } else {
-            None
-        };
-        c.column.reset_max_width(order, &config);
-        for pid in &visible_pids {
-            c.column.update_max_width(*pid);
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    // Display
-    // -------------------------------------------------------------------------
-
-    let use_terminal = console::user_attended();
-
-    // +3 means header/unit line and next prompt
-    let pager_threshold = visible_pids.len() + 3;
-
-    let use_pager = if cfg!(target_os = "windows") {
-        false
-    } else {
-        match (opt.watch.as_ref(), opt.pager.as_ref(), &config.pager.mode) {
-            (Some(_), _, _) => false,
-            (None, Some(x), _) if x == "auto" => term_h < pager_threshold,
-            (None, Some(x), _) if x == "always" => true,
-            (None, Some(x), _) if x == "disable" => false,
-            (None, None, ConfigPagerMode::Auto) => term_h < pager_threshold,
-            (None, None, ConfigPagerMode::Always) => true,
-            (None, None, ConfigPagerMode::Disable) => false,
-            _ => false,
-        }
-    };
-
-    let mut truncate = use_terminal && use_pager && config.display.cut_to_pager;
-    truncate |= use_terminal && !use_pager && config.display.cut_to_terminal;
-    truncate |= !use_terminal && config.display.cut_to_pipe;
-
-    if !truncate {
-        term_w = std::usize::MAX;
-    }
-
-    if use_pager {
-        pager(&config);
-    }
-
-    match (opt.color.as_ref(), &config.display.color_mode) {
-        (Some(x), _) if x == "auto" => {
-            if use_pager && use_terminal {
-                console::set_colors_enabled(true);
-            }
-        }
-        (Some(x), _) if x == "always" => console::set_colors_enabled(true),
-        (Some(x), _) if x == "disable" => console::set_colors_enabled(false),
-        (None, ConfigColorMode::Auto) => {
-            if use_pager && use_terminal {
-                console::set_colors_enabled(true);
-            }
-        }
-        (None, ConfigColorMode::Always) => console::set_colors_enabled(true),
-        (None, ConfigColorMode::Disable) => console::set_colors_enabled(false),
-        _ => (),
-    }
-
-    display_header(&term, term_w, &cols, &config, sort_idx, &sort_order);
-    display_unit(&term, term_w, &cols, &config);
-
-    for pid in &visible_pids {
-        display_content(&term, *pid, term_w, &cols, &config);
-    }
-
+    let term_info = term_info();
+    let cols = gen_columns(opt, config);
+    let sort_info = sort_info(opt, config, &cols);
+    let visible_pids = filter_columns(opt, config, &cols, &term_info, &sort_info);
+    let cols = resize_columns(config, cols, &visible_pids, &sort_info);
+    let _ = display(opt, config, cols, visible_pids, term_info, &sort_info);
     Ok(())
 }
 
