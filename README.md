@@ -54,7 +54,7 @@ You can use `--suid` option to set it.
 
 ```console
 $ procs --suid
-chown root [procs binary path]; chmod u+s [procs binary path]
+sudo sh -c "chown root [procs binary path]; chmod u+s [procs binary path]"
 [sudo] password for ...:
 ```
 
