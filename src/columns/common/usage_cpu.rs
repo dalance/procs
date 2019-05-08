@@ -32,7 +32,7 @@ impl Column for UsageCpu {
         let prev_time = proc.prev_proc.stat.utime + proc.prev_proc.stat.stime;
         let usage_ms =
             (curr_time - prev_time) * 1000 / procfs::ticks_per_second().unwrap_or(100) as u64;
-        let interval_ms = proc.interval.as_secs() + u64::from(proc.interval.subsec_millis());
+        let interval_ms = proc.interval.as_secs() * 1000 + u64::from(proc.interval.subsec_millis());
         let usage = usage_ms as f64 * 100.0 / interval_ms as f64;
 
         let fmt_content = format!("{:.1}", usage);
@@ -54,7 +54,7 @@ impl Column for UsageCpu {
         let prev_time =
             proc.prev_task.ptinfo.pti_total_user + proc.prev_task.ptinfo.pti_total_system;
         let usage_ms = (curr_time - prev_time) / 1000000u64;
-        let interval_ms = proc.interval.as_secs() + u64::from(proc.interval.subsec_millis());
+        let interval_ms = proc.interval.as_secs() * 1000 + u64::from(proc.interval.subsec_millis());
         let usage = usage_ms as f64 * 100.0 / interval_ms as f64;
 
         let fmt_content = format!("{:.1}", usage);
@@ -75,7 +75,7 @@ impl Column for UsageCpu {
         let prev_time = proc.cpu_info.prev_sys + proc.cpu_info.prev_user;
 
         let usage_ms = (curr_time - prev_time) / 10000u64;
-        let interval_ms = proc.interval.as_secs() + u64::from(proc.interval.subsec_millis());
+        let interval_ms = proc.interval.as_secs() * 1000 + u64::from(proc.interval.subsec_millis());
         let usage = usage_ms as f64 * 100.0 / interval_ms as f64;
 
         let fmt_content = format!("{:.1}", usage);

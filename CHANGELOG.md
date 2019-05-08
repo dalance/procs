@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.8.4...Unreleased) - ReleaseDate
 
+* [Fixed] usage_cpu calculation mistake when interval is larger than 1s.
+
 ## [v0.8.4](https://github.com/dalance/procs/compare/v0.8.3...v0.8.4) - 2019-05-07
 
 * [Added] suid option
