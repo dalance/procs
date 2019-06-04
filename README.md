@@ -36,6 +36,22 @@
 
 Download from [release page](https://github.com/dalance/procs/releases/latest), and extract to the directory in PATH.
 
+### Nixpkgs
+
+You can install from [Nixpkgs](https://github.com/NixOS/nixpkgs/blob/master/pkgs/tools/admin/procs/default.nix)
+
+```
+nix-env --install procs
+```
+
+### snapcraft
+
+You can install from [snapcraft](https://snapcraft.io/procs)
+
+```
+sudo snap install procs
+```
+
 ### Cargo
 
 You can install by [cargo](https://crates.io).
