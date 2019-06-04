@@ -1,0 +1,24 @@
+name: procs
+version: &version v0.8.5
+summary: A modern replacement for ps written in Rust
+description: |
+  procs is a tool to display process information.
+base: core18
+license: MIT
+
+confinement: strict
+
+apps:
+  procs:
+    command: procs
+
+parts:
+  procs:
+    source: https://github.com/dalance/procs.git
+    source-tag: *version
+    plugin: rust
+    stage-packages:
+      - libc6
+      - libgcc1
+      - libstdc++6
+      - zlib1g
