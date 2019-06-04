@@ -1,6 +1,6 @@
 # procs
 
-**procs** is a replacement for `ps` written by [Rust](https://www.rust-lang.org/).
+**procs** is a replacement for `ps` written in [Rust](https://www.rust-lang.org/).
 
 [![Build Status](https://travis-ci.org/dalance/procs.svg?branch=master)](https://travis-ci.org/dalance/procs)
 [![Build Status](https://dev.azure.com/dalance/procs/_apis/build/status/dalance.procs?branchName=master)](https://dev.azure.com/dalance/procs/_build/latest?definitionId=1&branchName=master)
