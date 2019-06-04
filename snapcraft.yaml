@@ -23,4 +23,4 @@ parts:
       - libstdc++6
       - zlib1g
     build-packages:
-      - gcc-multilib
+      - gcc-multilib on i386
