@@ -17,6 +17,12 @@ parts:
     source: https://github.com/dalance/procs.git
     source-tag: *version
     plugin: rust
+    architectures:
+      - build-on: amd64
+      - build-on: i386
+      - build-on: ppc64el
+      - build-on: arm64
+      - build-on: armhf
     stage-packages:
       - libc6
       - libgcc1
