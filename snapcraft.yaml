@@ -32,3 +32,4 @@ parts:
     build-packages:
       - on i386:
         - gcc-multilib
+        - g++-multilib
