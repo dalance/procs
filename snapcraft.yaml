@@ -33,5 +33,5 @@ parts:
       - on i386:
         - gcc-multilib
         - g++-multilib
-    prepare: |
+    override-build: |
       ls /usr/bin
