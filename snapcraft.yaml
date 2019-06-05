@@ -29,9 +29,3 @@ parts:
       - libgcc1
       - libstdc++6
       - zlib1g
-    build-packages:
-      - on i386:
-        - gcc-multilib
-        - g++-multilib
-    override-build: |
-      ls /usr/bin
