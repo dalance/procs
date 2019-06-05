@@ -29,3 +29,5 @@ parts:
       - libgcc1
       - libstdc++6
       - zlib1g
+    build-environment:
+        - RUSTUP_USE_HYPER: 1
