@@ -30,4 +30,4 @@ parts:
       - libstdc++6
       - zlib1g
     build-environment:
-        - RUSTUP_USE_HYPER: 1
+        - RUSTUP_USE_HYPER: "1"
