@@ -23,7 +23,7 @@ parts:
   procs:
     source: https://github.com/dalance/procs.git
     source-tag: *version
-    plugin: go
+    plugin: rust
     stage-packages:
       - libc6
       - libgcc1
