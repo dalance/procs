@@ -4,6 +4,7 @@
 
 [![Build Status](https://travis-ci.org/dalance/procs.svg?branch=master)](https://travis-ci.org/dalance/procs)
 [![Build Status](https://dev.azure.com/dalance/procs/_apis/build/status/dalance.procs?branchName=master)](https://dev.azure.com/dalance/procs/_build/latest?definitionId=1&branchName=master)
+[![Snap Status](https://build.snapcraft.io/badge/dalance/procs.svg)](https://build.snapcraft.io/user/dalance/procs)
 [![codecov](https://codecov.io/gh/dalance/procs/branch/master/graph/badge.svg)](https://codecov.io/gh/dalance/procs)
 
 [![Changelog](https://img.shields.io/badge/changelog-v0.8.5-green.svg)](https://github.com/dalance/procs/blob/master/CHANGELOG.md)
