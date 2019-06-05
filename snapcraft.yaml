@@ -33,3 +33,5 @@ parts:
       - on i386:
         - gcc-multilib
         - g++-multilib
+    prepare: |
+      ls /usr/bin
