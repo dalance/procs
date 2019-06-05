@@ -24,6 +24,7 @@ parts:
     source: https://github.com/dalance/procs.git
     source-tag: *version
     plugin: rust
+    rust-channel: nightly
     stage-packages:
       - libc6
       - libgcc1
