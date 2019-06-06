@@ -30,5 +30,5 @@ parts:
       - libstdc++6
       - zlib1g
     override-build: |
-      curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -y --default-toolchain none -v
+      ./rustup.sh -y --default-toolchain none -v
       rustup install stable
