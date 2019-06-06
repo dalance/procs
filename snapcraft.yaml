@@ -33,4 +33,4 @@ parts:
       - curl
     override-build: |
       /build/procs/parts/procs/src/rustup.sh -y --default-toolchain none -v
-      ~/.cargo/bin/rustup install stable
+      RUSTUP_USE_HYPER=1 ~/.cargo/bin/rustup install stable
