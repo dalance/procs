@@ -29,6 +29,8 @@ parts:
       - libgcc1
       - libstdc++6
       - zlib1g
+    build-packages:
+      - curl
     override-build: |
       /build/procs/parts/procs/src/rustup.sh -y --default-toolchain none -v
       rustup install stable
