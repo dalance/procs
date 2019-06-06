@@ -8,12 +8,12 @@ license: MIT
 
 confinement: strict
 
-architectures:
-# - build-on: amd64
-# - build-on: i386
-# - build-on: ppc64el
-# - build-on: arm64
-  - build-on: armhf
+#architectures:
+#  - build-on: amd64
+#  - build-on: i386
+#  - build-on: ppc64el
+#  - build-on: arm64
+#  - build-on: armhf
 
 apps:
   procs:
@@ -22,20 +22,10 @@ apps:
 parts:
   procs:
     source: https://github.com/dalance/procs.git
-#   source-tag: *version
-    plugin: make
+    source-tag: *version
+    plugin: rust
     stage-packages:
       - libc6
       - libgcc1
       - libstdc++6
       - zlib1g
-    build-packages:
-      - curl
-    override-build: |
-      /build/procs/parts/procs/src/rustup.sh -y --default-toolchain none -v
-      unset http_proxy
-      unset https_proxy
-      curl https://static.rust-lang.org/dist/channel-rust-stable.toml.sha256
-      echo $http_proxy
-      echo $https_proxy
-      RUSTUP_USE_CURL=1 ~/.cargo/bin/rustup install stable
