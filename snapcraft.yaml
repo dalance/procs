@@ -22,7 +22,7 @@ apps:
 parts:
   procs:
     source: https://github.com/dalance/procs.git
-    source-tag: *version
+#   source-tag: *version
     plugin: make
     stage-packages:
       - libc6
@@ -30,5 +30,5 @@ parts:
       - libstdc++6
       - zlib1g
     override-build: |
-      ./rustup.sh -y --default-toolchain none -v
+      /build/procs/parts/procs/src/rustup.sh -y --default-toolchain none -v
       rustup install stable
