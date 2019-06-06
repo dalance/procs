@@ -86,6 +86,7 @@ main() {
         esac
     done
 
+    printf '%s\n' '$_url' 1>&2
     if $_ansi_escapes_are_valid; then
         printf "\33[1minfo:\33[0m downloading installer\n" 1>&2
     else
