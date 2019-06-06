@@ -23,11 +23,9 @@ parts:
   procs:
     source: https://github.com/dalance/procs.git
     source-tag: *version
-    plugin: rust
+    plugin: make
     stage-packages:
       - libc6
       - libgcc1
       - libstdc++6
       - zlib1g
-    build-environment:
-        - RUSTUP_USE_HYPER: "1"
