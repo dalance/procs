@@ -10,6 +10,7 @@
 [![Changelog](https://img.shields.io/badge/changelog-v0.8.5-green.svg)](https://github.com/dalance/procs/blob/master/CHANGELOG.md)
 [![Crates.io](https://img.shields.io/crates/v/procs.svg)](https://crates.io/crates/procs)
 [![procs](https://snapcraft.io/procs/badge.svg)](https://snapcraft.io/procs)
+[![homebrew](https://img.shields.io/homebrew/v/procs.svg)](https://formulae.brew.sh/formula/procs)
 
 ## Features
 
@@ -55,9 +56,17 @@ You can install from [snapcraft](https://snapcraft.io/procs)
 sudo snap install procs
 ```
 
+### homebrew
+
+You can install from [homebrew](https://formulae.brew.sh/formula/procs)
+
+```
+sudo brew install procs
+```
+
 ### Cargo
 
-You can install by [cargo](https://crates.io).
+You can install by [cargo](https://crates.io/crates/procs).
 
 ```
 cargo install procs
