@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.8.5...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.8.6...Unreleased) - ReleaseDate
+
+## [v0.8.6](https://github.com/dalance/procs/compare/v0.8.5...v0.8.6) - 2019-06-10
 
 * [Fixed] compile failure on i686
 
