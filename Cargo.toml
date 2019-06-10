@@ -37,7 +37,7 @@ unicode-width = "0.1.5"
 [target.'cfg(target_os = "linux")'.dependencies]
 pager         = "0.15.0"
 palaver       = { version = "0.2.1", default-features = false }
-procfs        = "0.5.0"
+procfs        = "0.5.3"
 quale         = "1.0.0"
 runas         = "0.1.4"
 users         = "0.8.1"

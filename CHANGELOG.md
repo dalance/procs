@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.8.5...Unreleased) - ReleaseDate
 
+* [Fixed] compile failure on i686
+
 ## [v0.8.5](https://github.com/dalance/procs/compare/v0.8.4...v0.8.5) - 2019-05-08
 
 * [Fixed] usage_cpu calculation mistake when interval is larger than 1s.
