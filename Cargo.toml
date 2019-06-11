@@ -9,10 +9,6 @@ license = "MIT"
 readme = "README.md"
 description = "A modern replacement for ps"
 edition = "2018"
-build = "build.rs"
-exclude = [
-    "src/columns/common.rs",
-]
 
 [badges]
 travis-ci = { repository = "dalance/procs" }
