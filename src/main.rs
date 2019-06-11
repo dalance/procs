@@ -15,7 +15,7 @@ use crate::style::{apply_color, apply_style};
 use crate::util::{expand, find_column_kind, truncate, KeywordClass};
 use chrono::offset::Local;
 use console::Term;
-use failure::{Error, ResultExt};
+use failure::{format_err, Error, ResultExt};
 use getch::Getch;
 #[cfg(not(target_os = "windows"))]
 use pager::Pager;
@@ -640,7 +640,8 @@ fn run_list() -> Result<(), Error> {
 #[cfg(not(target_os = "windows"))]
 #[cfg_attr(tarpaulin, skip)]
 fn run_suid() -> Result<(), Error> {
-    let path = fs::read_link(palaver::env::exe_path()?)?;
+    let path = process_path::get_executable_path()
+        .ok_or_else(|| format_err!("failed to find executable"))?;
     let path = path.to_string_lossy();
 
     let cmd = format!("sudo sh -c \"chown root {}; chmod u+s {}\"", path, path);

@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.8.6...Unreleased) - ReleaseDate
 
+* [Changed] the crate to get executable from palaver to process_path
+
 ## [v0.8.6](https://github.com/dalance/procs/compare/v0.8.5...v0.8.6) - 2019-06-10
 
 * [Fixed] compile failure on i686
