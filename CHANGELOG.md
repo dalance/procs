@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.8.6...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.8.7...Unreleased) - ReleaseDate
+
+## [v0.8.7](https://github.com/dalance/procs/compare/v0.8.6...v0.8.7) - 2019-06-18
 
 * [Fixed] watch mode panic on Windows
 * [Changed] the crate to get executable from palaver to process_path
