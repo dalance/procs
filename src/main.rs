@@ -15,7 +15,9 @@ use crate::style::{apply_color, apply_style};
 use crate::util::{expand, find_column_kind, truncate, KeywordClass};
 use chrono::offset::Local;
 use console::Term;
-use failure::{format_err, Error, ResultExt};
+#[cfg(not(target_os = "windows"))]
+use failure::format_err;
+use failure::{Error, ResultExt};
 use getch::Getch;
 #[cfg(not(target_os = "windows"))]
 use pager::Pager;
