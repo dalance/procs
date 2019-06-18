@@ -15,7 +15,7 @@ travis-ci = { repository = "dalance/procs" }
 codecov   = { repository = "dalance/procs", branch = "master", service = "github" }
 
 [dependencies]
-console       = "0.7.5"
+console       = "0.7.6"
 chrono        = "0.4.6"
 directories   = "1.0.2"
 dockworker    = "0.0.8"

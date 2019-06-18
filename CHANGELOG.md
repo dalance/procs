@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.8.6...Unreleased) - ReleaseDate
 
+* [Fixed] watch mode panic on Windows
 * [Changed] the crate to get executable from palaver to process_path
 * [Changed] remove build.rs
 
