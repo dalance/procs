@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.8.7...Unreleased) - ReleaseDate
 
+* [Fixed] SIGSEGV at parallel test caused by non-threadsafe function call of rust-users
+
 ## [v0.8.7](https://github.com/dalance/procs/compare/v0.8.6...v0.8.7) - 2019-06-18
 
 * [Fixed] watch mode panic on Windows
