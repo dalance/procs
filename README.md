@@ -81,7 +81,7 @@ You can install by [cargo](https://crates.io/crates/procs).
 cargo install procs
 ```
 
-### Permission issue
+## Permission issue
 
 On macOS, normal user can't access all process information of other users.
 On Linux, normal user can't access some information (ex. Read/Write throughput) of other users.
