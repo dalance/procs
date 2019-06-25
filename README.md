@@ -64,6 +64,15 @@ You can install from [homebrew](https://formulae.brew.sh/formula/procs)
 sudo brew install procs
 ```
 
+### Alpine Linux
+
+You can install from [Apline Linux repository](https://pkgs.alpinelinux.org/packages?name=procs)
+The correct repository (see above link for the most up-to-date information) should be enabled before `apk add`.
+
+```
+sudo apk add procs
+```
+
 ### Cargo
 
 You can install by [cargo](https://crates.io/crates/procs).
