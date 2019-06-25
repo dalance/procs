@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.8.7...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.8.8...Unreleased) - ReleaseDate
+
+## [v0.8.8](https://github.com/dalance/procs/compare/v0.8.7...v0.8.8) - 2019-06-25
 
 * [Fixed] SIGSEGV at parallel test caused by non-threadsafe function call of rust-users
 

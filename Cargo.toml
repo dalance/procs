@@ -1,6 +1,6 @@
 [package]
 name = "procs"
-version = "0.8.8-pre"
+version = "0.8.8"
 authors = ["dalance@gmail.com"]
 repository = "https://github.com/dalance/procs"
 keywords = ["process"]
