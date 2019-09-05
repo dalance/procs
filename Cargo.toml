@@ -1,6 +1,6 @@
 [package]
 name = "procs"
-version = "0.8.9-pre"
+version = "0.8.9"
 authors = ["dalance@gmail.com"]
 repository = "https://github.com/dalance/procs"
 keywords = ["process"]
@@ -9,6 +9,20 @@ license = "MIT"
 readme = "README.md"
 description = "A modern replacement for ps"
 edition = "2018"
+
+[package.metadata.release]
+dev-version-ext            = "pre"
+pre-release-commit-message = "Prepare to v{{version}}"
+pro-release-commit-message = "Start next development iteration v{{version}}"
+tag-message                = "Bump version to {{version}}"
+tag-prefix                 = "v"
+pre-release-replacements = [
+    {file="CHANGELOG.md", search="Unreleased", replace="v{{version}}"},
+    {file="CHANGELOG.md", search="ReleaseDate", replace="{{date}}"},
+    {file="CHANGELOG.md", search="Change Log", replace="Change Log\n\n## [Unreleased](https://github.com/dalance/procs/compare/v{{version}}...Unreleased) - ReleaseDate"},
+    {file="README.md", search = "changelog-v[0-9\\.]+", replace = "changelog-v{{version}}" },
+    {file="snapcraft.yaml", search="version v[0-9\\.]+", replace="version v{{version}}"},
+]
 
 [badges]
 travis-ci = { repository = "dalance/procs" }
@@ -50,17 +64,3 @@ users         = "0.9.1"
 
 [target.'cfg(target_os = "windows")'.dependencies]
 winapi        = { version = "0.3.6", features = ["handleapi", "minwindef", "psapi", "securitybaseapi", "tlhelp32", "winbase", "winnt"] }
-
-[package.metadata.release]
-dev-version-ext            = "pre"
-pre-release-commit-message = "Prepare to v{{version}}"
-pro-release-commit-message = "Start next development iteration v{{version}}"
-tag-message                = "Bump version to {{version}}"
-tag-prefix                 = "v"
-pre-release-replacements = [
-    {file="CHANGELOG.md", search="Unreleased", replace="v{{version}}"},
-    {file="CHANGELOG.md", search="ReleaseDate", replace="{{date}}"},
-    {file="CHANGELOG.md", search="Change Log", replace="Change Log\n\n## [Unreleased](https://github.com/dalance/procs/compare/v{{version}}...Unreleased) - ReleaseDate"},
-    {file="README.md", search = "changelog-v[0-9\\.]+", replace = "changelog-v{{version}}" },
-    {file="snapcraft.yaml", search="version v[0-9\\.]+", replace="version v{{version}}"},
-]
