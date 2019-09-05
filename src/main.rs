@@ -238,8 +238,8 @@ fn search<T: AsRef<str>>(
     pid: i32,
     keyword_numeric: &[T],
     keyword_nonnumeric: &[T],
-    cols_numeric: &[&Column],
-    cols_nonnumeric: &[&Column],
+    cols_numeric: &[&dyn Column],
+    cols_nonnumeric: &[&dyn Column],
     config: &Config,
     logic: &ConfigSearchLogic,
 ) -> bool {

@@ -198,7 +198,7 @@ lazy_static! {
 // CONFIG_DEFAULT
 // ---------------------------------------------------------------------------------------------------------------------
 
-pub static CONFIG_DEFAULT: &'static str = r#"
+pub static CONFIG_DEFAULT: &str = r#"
 [[columns]]
 kind = "Pid"
 style = "BrightYellow"
@@ -293,7 +293,7 @@ nonnumeric_search = true
 // ---------------------------------------------------------------------------------------------------------------------
 
 #[cfg(test)]
-pub static CONFIG_ALL: &'static str = r#"
+pub static CONFIG_ALL: &str = r#"
 [[columns]]
 kind = "Command"
 style = "BrightRed"

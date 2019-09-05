@@ -10,7 +10,7 @@ pub enum KeywordClass {
 }
 
 pub fn find_partial<T: AsRef<str>>(
-    columns: &[&Column],
+    columns: &[&dyn Column],
     pid: i32,
     keyword: &[T],
     logic: &ConfigSearchLogic,
@@ -40,7 +40,7 @@ pub fn find_partial<T: AsRef<str>>(
 }
 
 pub fn find_exact<T: AsRef<str>>(
-    columns: &[&Column],
+    columns: &[&dyn Column],
     pid: i32,
     keyword: &[T],
     logic: &ConfigSearchLogic,
