@@ -8,7 +8,7 @@ pub struct RtPriority {
     unit: String,
     fmt_contents: HashMap<i32, String>,
     raw_contents: HashMap<i32, u32>,
-    max_width: usize,
+    width: usize,
 }
 
 impl RtPriority {
@@ -18,7 +18,7 @@ impl RtPriority {
         RtPriority {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
-            max_width: 0,
+            width: 0,
             header,
             unit,
         }

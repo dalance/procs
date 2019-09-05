@@ -12,7 +12,7 @@ use crate::columns::*;
 use crate::config::*;
 use crate::process::collect_proc;
 use crate::style::{apply_color, apply_style};
-use crate::util::{expand, find_column_kind, truncate, KeywordClass};
+use crate::util::{adjust, find_column_kind, truncate, KeywordClass};
 use chrono::offset::Local;
 use console::Term;
 #[cfg(not(target_os = "windows"))]
@@ -339,6 +339,8 @@ fn gen_columns(opt: &Opt, config: &Config) -> Vec<ColumnInfo> {
                 nonnumeric_search: false,
                 numeric_search: false,
                 align: ConfigColumnAlign::Left,
+                max_width: None,
+                min_width: None,
             });
         }
     }
@@ -371,6 +373,8 @@ fn gen_columns(opt: &Opt, config: &Config) -> Vec<ColumnInfo> {
                     nonnumeric_search: c.nonnumeric_search,
                     numeric_search: c.numeric_search,
                     align: c.align.clone(),
+                    max_width: c.max_width,
+                    min_width: c.min_width,
                 });
             }
         }
@@ -472,9 +476,10 @@ fn resize_columns(
         } else {
             None
         };
-        c.column.reset_max_width(order, &config);
+        c.column
+            .reset_width(order, &config, c.max_width, c.min_width);
         for pid in visible_pids {
-            c.column.update_max_width(*pid);
+            c.column.update_width(*pid, c.max_width);
         }
     }
 
@@ -616,13 +621,13 @@ fn run_config() -> Result<(), Error> {
 }
 
 fn run_list() -> Result<(), Error> {
-    let mut max_width = 0;
+    let mut width = 0;
     let mut list = Vec::new();
     let mut desc = HashMap::new();
     for (_, (v, d)) in KIND_LIST.iter() {
         list.push(v);
         desc.insert(v, d);
-        max_width = cmp::max(max_width, UnicodeWidthStr::width(*v));
+        width = cmp::max(width, UnicodeWidthStr::width(*v));
     }
 
     list.sort();
@@ -631,7 +636,7 @@ fn run_list() -> Result<(), Error> {
     for l in list {
         println!(
             "  {}: {}",
-            expand(l, max_width, &ConfigColumnAlign::Left),
+            adjust(l, width, &ConfigColumnAlign::Left),
             desc[l]
         );
     }

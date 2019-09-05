@@ -11,7 +11,7 @@ pub struct StartTime {
     unit: String,
     fmt_contents: HashMap<i32, String>,
     raw_contents: HashMap<i32, DateTime<Local>>,
-    max_width: usize,
+    width: usize,
 }
 
 impl StartTime {
@@ -21,7 +21,7 @@ impl StartTime {
         StartTime {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
-            max_width: 0,
+            width: 0,
             header,
             unit,
         }

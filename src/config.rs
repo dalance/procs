@@ -75,6 +75,8 @@ pub struct ColumnInfo {
     pub nonnumeric_search: bool,
     pub numeric_search: bool,
     pub align: ConfigColumnAlign,
+    pub max_width: Option<usize>,
+    pub min_width: Option<usize>,
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -154,6 +156,8 @@ pub struct ConfigColumn {
     pub nonnumeric_search: bool,
     #[serde(default = "default_column_align_left")]
     pub align: ConfigColumnAlign,
+    pub max_width: Option<usize>,
+    pub min_width: Option<usize>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

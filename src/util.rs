@@ -77,15 +77,23 @@ pub fn classify(keyword: &str) -> KeywordClass {
     }
 }
 
-pub fn expand(x: &str, len: usize, align: &ConfigColumnAlign) -> String {
-    match align {
-        ConfigColumnAlign::Left => format!("{}{}", x, " ".repeat(len - UnicodeWidthStr::width(x))),
-        ConfigColumnAlign::Right => format!("{}{}", " ".repeat(len - UnicodeWidthStr::width(x)), x),
-        ConfigColumnAlign::Center => {
-            let space = len - UnicodeWidthStr::width(x);
-            let left = space / 2;
-            let right = space / 2 + space % 2;
-            format!("{}{}{}", " ".repeat(left), x, " ".repeat(right))
+pub fn adjust(x: &str, len: usize, align: &ConfigColumnAlign) -> String {
+    if len < UnicodeWidthStr::width(x) {
+        String::from(truncate(x, len))
+    } else {
+        match align {
+            ConfigColumnAlign::Left => {
+                format!("{}{}", x, " ".repeat(len - UnicodeWidthStr::width(x)))
+            }
+            ConfigColumnAlign::Right => {
+                format!("{}{}", " ".repeat(len - UnicodeWidthStr::width(x)), x)
+            }
+            ConfigColumnAlign::Center => {
+                let space = len - UnicodeWidthStr::width(x);
+                let left = space / 2;
+                let right = space / 2 + space % 2;
+                format!("{}{}{}", " ".repeat(left), x, " ".repeat(right))
+            }
         }
     }
 }

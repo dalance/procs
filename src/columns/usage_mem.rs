@@ -12,7 +12,7 @@ pub struct UsageMem {
     unit: String,
     fmt_contents: HashMap<i32, String>,
     raw_contents: HashMap<i32, u32>,
-    max_width: usize,
+    width: usize,
     mem_total: u64,
 }
 
@@ -24,7 +24,7 @@ impl UsageMem {
         UsageMem {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
-            max_width: 0,
+            width: 0,
             header,
             unit,
             mem_total: get_mem_total(),

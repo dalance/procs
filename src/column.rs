@@ -19,8 +19,14 @@ pub trait Column {
     fn find_partial(&self, pid: i32, keyword: &str) -> bool;
     fn find_exact(&self, pid: i32, keyword: &str) -> bool;
     fn sorted_pid(&self, order: &ConfigSortOrder) -> Vec<i32>;
-    fn reset_max_width(&mut self, order: Option<ConfigSortOrder>, config: &Config) -> ();
-    fn update_max_width(&mut self, pid: i32) -> ();
+    fn reset_width(
+        &mut self,
+        order: Option<ConfigSortOrder>,
+        config: &Config,
+        max_width: Option<usize>,
+        min_width: Option<usize>,
+    ) -> ();
+    fn update_width(&mut self, pid: i32, max_width: Option<usize>) -> ();
 }
 
 #[macro_export]
@@ -32,9 +38,9 @@ macro_rules! column_default_display_header {
                     crate::config::ConfigSortOrder::Ascending => format!("{}:{}", self.header, config.display.ascending),
                     crate::config::ConfigSortOrder::Descending => format!("{}:{}", self.header, config.display.descending),
                 };
-                crate::util::expand(&header, self.max_width, align)
+                crate::util::adjust(&header, self.width, align)
             } else {
-                crate::util::expand(&self.header, self.max_width, align)
+                crate::util::adjust(&self.header, self.width, align)
             }
         }
     };
@@ -44,7 +50,7 @@ macro_rules! column_default_display_header {
 macro_rules! column_default_display_unit {
     () => {
         fn display_unit(&self, align: &crate::config::ConfigColumnAlign) -> String {
-            crate::util::expand(&self.unit, self.max_width, align)
+            crate::util::adjust(&self.unit, self.width, align)
         }
     };
 }
@@ -54,7 +60,7 @@ macro_rules! column_default_display_content {
     () => {
         fn display_content(&self, pid: i32, align: &crate::config::ConfigColumnAlign) -> Option<String> {
             if let Some(content) = self.fmt_contents.get(&pid) {
-                Some(crate::util::expand(content, self.max_width, align))
+                Some(crate::util::adjust(content, self.width, align))
             } else {
                 None
             }
@@ -101,9 +107,9 @@ macro_rules! column_default_sorted_pid {
 }
 
 #[macro_export]
-macro_rules! column_default_reset_max_width {
+macro_rules! column_default_reset_width {
     () => {
-        fn reset_max_width(&mut self, order: Option<crate::config::ConfigSortOrder>, config: &crate::config::Config) {
+        fn reset_width(&mut self, order: Option<crate::config::ConfigSortOrder>, config: &crate::config::Config, max_width: Option<usize>, min_width: Option<usize>) {
             // +1 for spacing between header and sort indicator
             let sorted_space = if let Some(order) = order {
                 match order {
@@ -115,18 +121,27 @@ macro_rules! column_default_reset_max_width {
             };
             let header_len = unicode_width::UnicodeWidthStr::width(self.header.as_str());
             let unit_len = unicode_width::UnicodeWidthStr::width(self.unit.as_str());
-            self.max_width = std::cmp::max(header_len+sorted_space, unit_len);
+            self.width = std::cmp::max(header_len+sorted_space, unit_len);
+            if let Some(min_width) = min_width {
+                self.width = std::cmp::max(self.width, min_width);
+            }
+            if let Some(max_width) = max_width {
+                self.width = std::cmp::min(self.width, max_width);
+            }
         }
     };
 }
 
 #[macro_export]
-macro_rules! column_default_update_max_width {
+macro_rules! column_default_update_width {
     () => {
-        fn update_max_width(&mut self, pid: i32) {
+        fn update_width(&mut self, pid: i32, max_width: Option<usize>) {
             if let Some(content) = self.fmt_contents.get(&pid) {
                 let content_len = unicode_width::UnicodeWidthStr::width(content.as_str());
-                self.max_width = cmp::max(content_len, self.max_width);
+                self.width = cmp::max(content_len, self.width);
+                if let Some(max_width) = max_width {
+                    self.width = std::cmp::min(self.width, max_width);
+                }
             }
         }
     };
@@ -141,7 +156,7 @@ macro_rules! column_default {
         crate::column_default_find_partial!();
         crate::column_default_find_exact!();
         crate::column_default_sorted_pid!($x);
-        crate::column_default_reset_max_width!();
-        crate::column_default_update_max_width!();
+        crate::column_default_reset_width!();
+        crate::column_default_update_width!();
     };
 }

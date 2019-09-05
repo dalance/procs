@@ -10,7 +10,7 @@ pub struct Uid {
     unit: String,
     fmt_contents: HashMap<i32, String>,
     raw_contents: HashMap<i32, i32>,
-    max_width: usize,
+    width: usize,
     #[allow(dead_code)]
     abbr_sid: bool,
 }
@@ -22,7 +22,7 @@ impl Uid {
         Uid {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
-            max_width: 0,
+            width: 0,
             header,
             unit,
             abbr_sid,

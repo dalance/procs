@@ -8,7 +8,7 @@ pub struct VmPeak {
     unit: String,
     fmt_contents: HashMap<i32, String>,
     raw_contents: HashMap<i32, u64>,
-    max_width: usize,
+    width: usize,
 }
 
 impl VmPeak {
@@ -18,7 +18,7 @@ impl VmPeak {
         VmPeak {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
-            max_width: 0,
+            width: 0,
             header,
             unit,
         }

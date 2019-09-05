@@ -12,7 +12,7 @@ pub struct TcpPort {
     unit: String,
     fmt_contents: HashMap<i32, String>,
     raw_contents: HashMap<i32, String>,
-    max_width: usize,
+    width: usize,
     #[cfg(target_os = "linux")]
     tcp_entry: Vec<TcpNetEntry>,
     #[cfg(target_os = "linux")]
@@ -26,7 +26,7 @@ impl TcpPort {
         TcpPort {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
-            max_width: 0,
+            width: 0,
             header,
             unit,
             #[cfg(target_os = "linux")]
@@ -91,8 +91,8 @@ impl Column for TcpPort {
     crate::column_default_display_content!();
     crate::column_default_find_partial!();
     crate::column_default_sorted_pid!(String);
-    crate::column_default_reset_max_width!();
-    crate::column_default_update_max_width!();
+    crate::column_default_reset_width!();
+    crate::column_default_update_width!();
 }
 
 #[cfg_attr(tarpaulin, skip)]
@@ -139,6 +139,6 @@ impl Column for TcpPort {
     crate::column_default_display_content!();
     crate::column_default_find_partial!();
     crate::column_default_sorted_pid!(String);
-    crate::column_default_reset_max_width!();
-    crate::column_default_update_max_width!();
+    crate::column_default_reset_width!();
+    crate::column_default_update_width!();
 }

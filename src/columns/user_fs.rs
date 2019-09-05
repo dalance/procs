@@ -8,7 +8,7 @@ pub struct UserFs {
     unit: String,
     fmt_contents: HashMap<i32, String>,
     raw_contents: HashMap<i32, String>,
-    max_width: usize,
+    width: usize,
 }
 
 impl UserFs {
@@ -18,7 +18,7 @@ impl UserFs {
         UserFs {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
-            max_width: 0,
+            width: 0,
             header,
             unit,
         }

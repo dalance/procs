@@ -9,7 +9,7 @@ pub struct Docker {
     unit: String,
     fmt_contents: HashMap<i32, String>,
     raw_contents: HashMap<i32, String>,
-    max_width: usize,
+    width: usize,
     #[cfg(target_os = "linux")]
     containers: HashMap<String, String>,
     #[cfg(target_os = "macos")]
@@ -40,7 +40,7 @@ impl Docker {
         Docker {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
-            max_width: 0,
+            width: 0,
             header,
             unit,
             containers,
@@ -79,7 +79,7 @@ impl Docker {
         Docker {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
-            max_width: 0,
+            width: 0,
             header,
             unit,
             containers,

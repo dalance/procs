@@ -6,7 +6,7 @@ use std::collections::HashMap;
 pub struct Tree {
     header: String,
     unit: String,
-    max_width: usize,
+    width: usize,
     tree: HashMap<i32, Vec<i32>>,
     rev_tree: HashMap<i32, i32>,
     symbols: [String; 5],
@@ -17,7 +17,7 @@ impl Tree {
         let header = String::from("");
         let unit = String::from("");
         Tree {
-            max_width: 0,
+            width: 0,
             header,
             unit,
             tree: HashMap::new(),
@@ -44,7 +44,7 @@ impl Column for Tree {
         _order: Option<crate::config::ConfigSortOrder>,
         _config: &crate::config::Config,
     ) -> String {
-        crate::util::expand(&self.header, self.max_width, align)
+        crate::util::adjust(&self.header, self.width, align)
     }
 
     fn display_content(
@@ -108,9 +108,9 @@ impl Column for Tree {
                 root,
                 parent_connector,
                 child_connector,
-                self.symbols[1].repeat(self.max_width - root.chars().count() - 2)
+                self.symbols[1].repeat(self.width - root.chars().count() - 2)
             );
-            Some(crate::util::expand(&string, self.max_width, align))
+            Some(crate::util::adjust(&string, self.width, align))
         } else {
             None
         }
@@ -152,15 +152,17 @@ impl Column for Tree {
         pids
     }
 
-    fn reset_max_width(
+    fn reset_width(
         &mut self,
         _order: Option<crate::config::ConfigSortOrder>,
         _config: &crate::config::Config,
+        _max_width: Option<usize>,
+        _min_width: Option<usize>,
     ) {
-        self.max_width = 0;
+        self.width = 0;
     }
 
-    fn update_max_width(&mut self, pid: i32) {
+    fn update_width(&mut self, pid: i32, _max_width: Option<usize>) {
         fn get_depth(rev_tree: &HashMap<i32, i32>, pid: i32, depth: i32) -> i32 {
             if let Some(ppid) = rev_tree.get(&pid) {
                 get_depth(rev_tree, *ppid, depth + 1)
@@ -170,7 +172,7 @@ impl Column for Tree {
         }
 
         let depth = get_depth(&self.rev_tree, pid, 0) as usize;
-        self.max_width = cmp::max(depth + 4, self.max_width);
+        self.width = cmp::max(depth + 4, self.width);
     }
 
     crate::column_default_display_unit!();

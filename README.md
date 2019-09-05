@@ -301,6 +301,8 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | numeric_search    | true, false         | false   | Whether the column can be matched with numeric keywords     |
 | nonnumeric_search | true, false         | false   | Whether the column can be matched with non-numeric keywords |
 | align             | Left, Right, Center | Left    | Text alignment                                              |
+| max_width         | [Number]            |         | Maximum column width                                        |
+| min_width         | [Number]            |         | Minimum column width                                        |
 
 #### `kind` list
 

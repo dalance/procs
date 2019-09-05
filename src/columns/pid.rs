@@ -8,7 +8,7 @@ pub struct Pid {
     unit: String,
     fmt_contents: HashMap<i32, String>,
     raw_contents: HashMap<i32, i32>,
-    max_width: usize,
+    width: usize,
 }
 
 impl Pid {
@@ -18,7 +18,7 @@ impl Pid {
         Pid {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
-            max_width: 0,
+            width: 0,
             header,
             unit,
         }

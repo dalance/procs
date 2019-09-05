@@ -338,11 +338,13 @@ kind = "TcpPort"
 style = "BrightCyan"
 numeric_search = true
 nonnumeric_search = false
+max_width = 20
 [[columns]]
 kind = "UdpPort"
 style = "BrightCyan"
 numeric_search = true
 nonnumeric_search = false
+max_width = 20
 [[columns]]
 kind = "ReadBytes"
 style = "ByUnit"

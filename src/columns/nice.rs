@@ -8,7 +8,7 @@ pub struct Nice {
     unit: String,
     fmt_contents: HashMap<i32, String>,
     raw_contents: HashMap<i32, i64>,
-    max_width: usize,
+    width: usize,
 }
 
 impl Nice {
@@ -18,7 +18,7 @@ impl Nice {
         Nice {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
-            max_width: 0,
+            width: 0,
             header,
             unit,
         }
