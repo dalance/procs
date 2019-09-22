@@ -82,7 +82,9 @@ You can install by [cargo](https://crates.io/crates/procs).
 cargo install procs
 ```
 
-## Permission issue
+## Installation Notes
+
+### Permission issue
 
 On macOS, normal user can't access all process information of other users.
 On Linux, normal user can't access some information (ex. Read/Write throughput) of other users.
@@ -99,6 +101,17 @@ sudo sh -c "chown root [procs binary path]; chmod u+s [procs binary path]"
 `procs --suid` does `chown` and `chmod` with `sudo`.
 
 `--suid` is not supported on Windows.
+
+### `less` setting
+
+On some environments, `less` can't show UTF-8 charactors with default setting.
+In this case, the following environment variable may resolve it.
+
+```
+export LESSCHARSET=utf-8
+```
+
+The detail of the issue is [#21](https://github.com/dalance/procs/issues/21).
 
 ## Usage
 
