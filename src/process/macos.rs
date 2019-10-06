@@ -1,11 +1,11 @@
 use libc::{c_int, c_void, size_t};
+use libproc::libproc::bsd_info::BSDInfo;
 use libproc::libproc::file_info::{pidfdinfo, ListFDs, ProcFDType};
 use libproc::libproc::net_info::{InSockInfo, SocketFDInfo, SocketInfoKind, TcpSockInfo};
 use libproc::libproc::pid_rusage::{pidrusage, RUsageInfoV2};
-use libproc::libproc::proc_pid::{
-    listpidinfo, listpids, pidinfo, BSDInfo, ListThreads, ProcType, TaskAllInfo, TaskInfo,
-    ThreadInfo,
-};
+use libproc::libproc::proc_pid::{listpidinfo, listpids, pidinfo, ListThreads, ProcType};
+use libproc::libproc::task_info::{TaskAllInfo, TaskInfo};
+use libproc::libproc::thread_info::ThreadInfo;
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::thread;
