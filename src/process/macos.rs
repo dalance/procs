@@ -1,8 +1,8 @@
-use crate::libproc::libproc::proc_pid::{
+use libc::{c_int, c_void, size_t};
+use libproc::libproc::proc_pid::{
     self, BSDInfo, InSockInfo, ListFDs, ListThreads, ProcFDType, ProcType, RUsageInfoV2,
     SocketFDInfo, SocketInfoKind, TaskAllInfo, TaskInfo, TcpSockInfo, ThreadInfo,
 };
-use libc::{c_int, c_void, size_t};
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::thread;

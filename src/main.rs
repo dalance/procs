@@ -1,8 +1,6 @@
 mod column;
 mod columns;
 mod config;
-#[cfg(target_os = "macos")]
-mod libproc;
 mod process;
 mod style;
 mod util;
@@ -859,5 +857,4 @@ mod tests {
         let ret = run_default(&opt, &config);
         assert!(ret.is_ok());
     }
-
 }
