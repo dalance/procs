@@ -1,7 +1,7 @@
 use crate::process::ProcessInfo;
 use crate::Column;
 #[cfg(target_os = "macos")]
-use libproc::libproc::proc_pid::TcpSIState;
+use libproc::libproc::net_info::TcpSIState;
 #[cfg(target_os = "linux")]
 use procfs::{FDTarget, TcpNetEntry, TcpState};
 use std::cmp;
