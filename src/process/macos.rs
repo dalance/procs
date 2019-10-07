@@ -1,8 +1,11 @@
-use crate::libproc::libproc::proc_pid::{
-    self, BSDInfo, InSockInfo, ListFDs, ListThreads, ProcFDType, ProcType, RUsageInfoV2,
-    SocketFDInfo, SocketInfoKind, TaskAllInfo, TaskInfo, TcpSockInfo, ThreadInfo,
-};
 use libc::{c_int, c_void, size_t};
+use libproc::libproc::bsd_info::BSDInfo;
+use libproc::libproc::file_info::{pidfdinfo, ListFDs, ProcFDType};
+use libproc::libproc::net_info::{InSockInfo, SocketFDInfo, SocketInfoKind, TcpSockInfo};
+use libproc::libproc::pid_rusage::{pidrusage, RUsageInfoV2};
+use libproc::libproc::proc_pid::{listpidinfo, listpids, pidinfo, ListThreads, ProcType};
+use libproc::libproc::task_info::{TaskAllInfo, TaskInfo};
+use libproc::libproc::thread_info::ThreadInfo;
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::thread;
@@ -28,10 +31,10 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
     let mut ret = Vec::new();
     let arg_max = get_arg_max();
 
-    if let Ok(procs) = proc_pid::listpids(ProcType::ProcAllPIDS) {
+    if let Ok(procs) = listpids(ProcType::ProcAllPIDS) {
         for p in procs {
-            if let Ok(task) = proc_pid::pidinfo::<TaskAllInfo>(p as i32, 0) {
-                let res = proc_pid::pidrusage::<RUsageInfoV2>(p as i32).ok();
+            if let Ok(task) = pidinfo::<TaskAllInfo>(p as i32, 0) {
+                let res = pidrusage::<RUsageInfoV2>(p as i32).ok();
                 let time = Instant::now();
                 base_procs.push((p as i32, task, res, time));
             }
@@ -41,7 +44,7 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
     thread::sleep(interval);
 
     for (pid, prev_task, prev_res, prev_time) in base_procs {
-        let curr_task = if let Ok(task) = proc_pid::pidinfo::<TaskAllInfo>(pid, 0) {
+        let curr_task = if let Ok(task) = pidinfo::<TaskAllInfo>(pid, 0) {
             task
         } else {
             clone_task_all_info(&prev_task)
@@ -49,12 +52,11 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
 
         let curr_path = get_path_info(pid, arg_max);
 
-        let threadids =
-            proc_pid::listpidinfo::<ListThreads>(pid, curr_task.ptinfo.pti_threadnum as usize);
+        let threadids = listpidinfo::<ListThreads>(pid, curr_task.ptinfo.pti_threadnum as usize);
         let mut curr_threads = Vec::new();
         if let Ok(threadids) = threadids {
             for t in threadids {
-                if let Ok(thread) = proc_pid::pidinfo::<ThreadInfo>(pid, t) {
+                if let Ok(thread) = pidinfo::<ThreadInfo>(pid, t) {
                     curr_threads.push(thread);
                 }
             }
@@ -63,12 +65,12 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
         let mut curr_tcps = Vec::new();
         let mut curr_udps = Vec::new();
 
-        let fds = proc_pid::listpidinfo::<ListFDs>(pid, curr_task.pbsd.pbi_nfiles as usize);
+        let fds = listpidinfo::<ListFDs>(pid, curr_task.pbsd.pbi_nfiles as usize);
         if let Ok(fds) = fds {
             for fd in fds {
                 match fd.proc_fdtype.into() {
                     ProcFDType::Socket => {
-                        if let Ok(socket) = proc_pid::pidfdinfo::<SocketFDInfo>(pid, fd.proc_fd) {
+                        if let Ok(socket) = pidfdinfo::<SocketFDInfo>(pid, fd.proc_fd) {
                             match socket.psi.soi_kind.into() {
                                 SocketInfoKind::In => {
                                     if socket.psi.soi_protocol == libc::IPPROTO_UDP {
@@ -89,7 +91,7 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
             }
         }
 
-        let curr_res = proc_pid::pidrusage::<RUsageInfoV2>(pid).ok();
+        let curr_res = pidrusage::<RUsageInfoV2>(pid).ok();
 
         let curr_time = Instant::now();
         let interval = curr_time - prev_time;
