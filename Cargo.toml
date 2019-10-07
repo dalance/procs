@@ -54,8 +54,7 @@ users         = "0.9.1"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 libproc       = "0.5.0"
-#libproc       = { version = "0.3.2", path = "./modified/libproc-rs" }
-errno         = "^0.1.8"
+errno         = "0.1.8"
 pager         = "0.15.0"
 process_path  = "0.1.1"
 quale         = "1.0.0"
