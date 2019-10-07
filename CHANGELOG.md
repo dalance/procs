@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.8.9...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.8.10...Unreleased) - ReleaseDate
+
+## [v0.8.10](https://github.com/dalance/procs/compare/v0.8.9...v0.8.10) - 2019-10-07
 
 * [Changed] use libproc v0.5
 
