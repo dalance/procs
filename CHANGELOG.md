@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.8.9...Unreleased) - ReleaseDate
 
+* [Changed] use libproc v0.5
+
 ## [v0.8.9](https://github.com/dalance/procs/compare/v0.8.8...v0.8.9) - 2019-09-05
 
 * [Added] max_width/min_width option
