@@ -34,11 +34,9 @@ use unicode_width::UnicodeWidthStr;
 // ---------------------------------------------------------------------------------------------------------------------
 
 #[derive(Debug, StructOpt)]
-#[structopt(raw(
-    long_version = "option_env!(\"LONG_VERSION\").unwrap_or(env!(\"CARGO_PKG_VERSION\"))"
-))]
-#[structopt(raw(setting = "clap::AppSettings::ColoredHelp"))]
-#[structopt(raw(setting = "clap::AppSettings::DeriveDisplayOrder"))]
+#[structopt(long_version(option_env!("LONG_VERSION").unwrap_or(env!("CARGO_PKG_VERSION"))))]
+#[structopt(setting(clap::AppSettings::ColoredHelp))]
+#[structopt(setting(clap::AppSettings::DeriveDisplayOrder))]
 pub struct Opt {
     /// Keywords for search
     #[structopt(name = "KEYWORD")]
@@ -48,7 +46,7 @@ pub struct Opt {
     #[structopt(
         short = "a",
         long = "and",
-        raw(conflicts_with_all = "&[\"or\", \"nand\", \"nor\"]")
+        conflicts_with_all(&["or", "nand", "nor"])
     )]
     pub and: bool,
 
@@ -56,7 +54,7 @@ pub struct Opt {
     #[structopt(
         short = "o",
         long = "or",
-        raw(conflicts_with_all = "&[\"and\", \"nand\", \"nor\"]")
+        conflicts_with_all(&["and", "nand", "nor"])
     )]
     pub or: bool,
 
@@ -64,7 +62,7 @@ pub struct Opt {
     #[structopt(
         short = "d",
         long = "nand",
-        raw(conflicts_with_all = "&[\"and\", \"or\", \"nor\"]")
+        conflicts_with_all(&["and", "or", "nor"])
     )]
     pub nand: bool,
 
@@ -72,7 +70,7 @@ pub struct Opt {
     #[structopt(
         short = "r",
         long = "nor",
-        raw(conflicts_with_all = "&[\"and\", \"or\", \"nand\"]")
+        conflicts_with_all(&["and", "or", "nand"])
     )]
     pub nor: bool,
 
@@ -93,8 +91,8 @@ pub struct Opt {
         value_name = "kind",
         short = "i",
         long = "insert",
-        raw(multiple = "true"),
-        raw(number_of_values = "1")
+        multiple(true),
+        number_of_values(1)
     )]
     pub insert: Vec<String>,
 
@@ -102,7 +100,7 @@ pub struct Opt {
     #[structopt(
         value_name = "kind",
         long = "sorta",
-        raw(conflicts_with_all = "&[\"sortd\", \"tree\"]")
+        conflicts_with_all(&["sortd", "tree"])
     )]
     pub sorta: Option<String>,
 
@@ -110,7 +108,7 @@ pub struct Opt {
     #[structopt(
         value_name = "kind",
         long = "sortd",
-        raw(conflicts_with_all = "&[\"sorta\", \"tree\"]")
+        conflicts_with_all(&["sorta", "tree"])
     )]
     pub sortd: Option<String>,
 
