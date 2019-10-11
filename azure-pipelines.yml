@@ -65,6 +65,8 @@ jobs:
 
           - script: |
               cargo test -- -Z unstable-options --format json | cargo2junit > results.xml
+              cargo build
+              sudo ./target/debug/procs --tree
             displayName: Run test
 
           - task: PublishTestResults@2
