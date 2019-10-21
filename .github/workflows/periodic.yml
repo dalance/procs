@@ -5,12 +5,12 @@ name: Periodic
 #  - cron: 0 0 * * SUN
 on: [push]
 
-strategy:
-  matrix:
-    rust: [stable, beta, nightly]
-
 jobs:
   build:
+
+    strategy:
+      matrix:
+        rust: [stable, beta, nightly]
 
     runs-on: ubuntu-latest
 
