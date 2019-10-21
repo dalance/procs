@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: xd009642/tarpaulin
+      image: xd009642/tarpaulin:develop-nightly
       volumes:
         - $GITHUB_WORKSPACE:/volume
       options: --security-opt seccomp=unconfined
@@ -17,9 +17,6 @@ jobs:
     - uses: actions/checkout@v1
     - name: Run tests
       run: |
-        ls
-        which cargo
-        which cargo-tarpaulin
         cargo tarpaulin -v --out Xml
         ls *.xml
     - name: Upload coverage
