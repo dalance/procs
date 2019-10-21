@@ -9,6 +9,8 @@ jobs:
       image: xd009642/tarpaulin:latest-nightly
       options: --security-opt seccomp=unconfined
 
+    runs-on: ubuntu-latest
+
     steps:
     - uses: actions/checkout@v1
     - name: Run tests
