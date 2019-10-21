@@ -2,8 +2,8 @@
 
 **procs** is a replacement for `ps` written in [Rust](https://www.rust-lang.org/).
 
+[![Actions Status](https://github.com/dalance/procs/workflows/Regression/badge.svg)](https://github.com/dalance/procs/actions)
 [![Build Status](https://travis-ci.org/dalance/procs.svg?branch=master)](https://travis-ci.org/dalance/procs)
-[![Build Status](https://dev.azure.com/dalance/procs/_apis/build/status/dalance.procs?branchName=master)](https://dev.azure.com/dalance/procs/_build/latest?definitionId=1&branchName=master)
 [![Snap Status](https://build.snapcraft.io/badge/dalance/procs.svg)](https://build.snapcraft.io/user/dalance/procs)
 [![codecov](https://codecov.io/gh/dalance/procs/branch/master/graph/badge.svg)](https://codecov.io/gh/dalance/procs)
 
