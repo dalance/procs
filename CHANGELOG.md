@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.8.11...Unreleased) - ReleaseDate
 
+* [Added] UidLogin/UserLogin column
 * [Changed] update procfs to v0.6.0
 
 ## [v0.8.11](https://github.com/dalance/procs/compare/v0.8.10...v0.8.11) - 2019-10-08

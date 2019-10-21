@@ -361,12 +361,14 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | UdpPort      | -not supported-       | Bound UDP ports                  | o     | o     |         |
 | Uid          | euid                  | User ID                          | o     | o     | o       |
 | UidFs        | fuid                  | File system user ID              | o     |       |         |
+| UidLogin     | -not supported-       | Login user ID                    | o     |       |         |
 | UidReal      | ruid                  | Real user ID                     | o     | o     |         |
 | UidSaved     | suid                  | Saved user ID                    | o     | o     |         |
 | UsageCpu     | %cpu                  | CPU utilization                  | o     | o     | o       |
 | UsageMem     | %mem                  | Memory utilization               | o     | o     | o       |
 | User         | euser                 | User name                        | o     | o     | o       |
 | UserFs       | fuser                 | File system user name            | o     |       |         |
+| UserLogin    | -not supported-       | Login user name                  | o     |       |         |
 | UserReal     | ruser                 | Real user name                   | o     | o     |         |
 | UserSaved    | suser                 | Saved user name                  | o     | o     |         |
 | VmData       | -not supported-       | Data size                        | o     |       |         |

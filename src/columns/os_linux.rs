@@ -39,12 +39,14 @@ pub mod tty;
 pub mod udp_port;
 pub mod uid;
 pub mod uid_fs;
+pub mod uid_login;
 pub mod uid_real;
 pub mod uid_saved;
 pub mod usage_cpu;
 pub mod usage_mem;
 pub mod user;
 pub mod user_fs;
+pub mod user_login;
 pub mod user_real;
 pub mod user_saved;
 pub mod vm_data;
@@ -103,12 +105,14 @@ pub use self::tty::Tty;
 pub use self::udp_port::UdpPort;
 pub use self::uid::Uid;
 pub use self::uid_fs::UidFs;
+pub use self::uid_login::UidLogin;
 pub use self::uid_real::UidReal;
 pub use self::uid_saved::UidSaved;
 pub use self::usage_cpu::UsageCpu;
 pub use self::usage_mem::UsageMem;
 pub use self::user::User;
 pub use self::user_fs::UserFs;
+pub use self::user_login::UserLogin;
 pub use self::user_real::UserReal;
 pub use self::user_saved::UserSaved;
 pub use self::vm_data::VmData;
@@ -178,12 +182,14 @@ pub enum ConfigColumnKind {
     UdpPort,
     Uid,
     UidFs,
+    UidLogin,
     UidReal,
     UidSaved,
     UsageCpu,
     UsageMem,
     User,
     UserFs,
+    UserLogin,
     UserReal,
     UserSaved,
     Username,
@@ -256,12 +262,14 @@ pub fn gen_column(
         ConfigColumnKind::UdpPort => Box::new(UdpPort::new()),
         ConfigColumnKind::Uid => Box::new(Uid::new(abbr_sid)),
         ConfigColumnKind::UidFs => Box::new(UidFs::new()),
+        ConfigColumnKind::UidLogin => Box::new(UidLogin::new()),
         ConfigColumnKind::UidReal => Box::new(UidReal::new()),
         ConfigColumnKind::UidSaved => Box::new(UidSaved::new()),
         ConfigColumnKind::UsageCpu => Box::new(UsageCpu::new()),
         ConfigColumnKind::UsageMem => Box::new(UsageMem::new()),
         ConfigColumnKind::User => Box::new(User::new(abbr_sid)),
         ConfigColumnKind::UserFs => Box::new(UserFs::new()),
+        ConfigColumnKind::UserLogin => Box::new(UserLogin::new()),
         ConfigColumnKind::UserReal => Box::new(UserReal::new()),
         ConfigColumnKind::UserSaved => Box::new(UserSaved::new()),
         ConfigColumnKind::Username => Box::new(User::new(abbr_sid)),
@@ -379,6 +387,7 @@ lazy_static! {
         (ConfigColumnKind::UdpPort, ("UdpPort", "Bound UDP ports")),
         (ConfigColumnKind::Uid, ("Uid", "User ID")),
         (ConfigColumnKind::UidFs, ("UidFs", "File system user ID")),
+        (ConfigColumnKind::UidLogin, ("UidLogin", "Login user ID")),
         (ConfigColumnKind::UidReal, ("UidReal", "Real user ID")),
         (ConfigColumnKind::UidSaved, ("UidSaved", "Saved user ID")),
         (ConfigColumnKind::UsageCpu, ("UsageCpu", "CPU utilization")),
@@ -390,6 +399,10 @@ lazy_static! {
         (
             ConfigColumnKind::UserFs,
             ("UserFs", "File system user name")
+        ),
+        (
+            ConfigColumnKind::UserLogin,
+            ("UserLogin", "Login user name")
         ),
         (ConfigColumnKind::UserReal, ("UserReal", "Real user name")),
         (
@@ -686,6 +699,9 @@ style = "White"
 kind = "UidFs"
 style = "White"
 [[columns]]
+kind = "UidLogin"
+style = "White"
+[[columns]]
 kind = "UidReal"
 style = "White"
 [[columns]]
@@ -702,6 +718,9 @@ kind = "User"
 style = "White"
 [[columns]]
 kind = "UserFs"
+style = "White"
+[[columns]]
+kind = "UserLogin"
 style = "White"
 [[columns]]
 kind = "UserReal"
