@@ -10,18 +10,15 @@ jobs:
 
     strategy:
       matrix:
+        os: [ubuntu-latest]
         rust: [stable, beta, nightly]
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v1
-    - name: Install toolchain
-      uses: actions-rs/toolchain@v1
+    - uses: hecrj/setup-rust-action@v1
       with:
-        toolchain: ${{ matrix.rust }}
-        override: true
+        rust-version: ${{ matrix.rust }}
+    - uses: actions/checkout@v1
     - name: Run tests
-      run: |
-        cargo --version
-        cargo test
+      run: cargo test
