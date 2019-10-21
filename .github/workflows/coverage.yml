@@ -1,0 +1,24 @@
+name: Coverage
+
+on: [push]
+
+jobs:
+  build:
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        rust: [stable]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: hecrj/setup-rust-action@v1
+      with:
+        rust-version: ${{ matrix.rust }}
+    - uses: actions/checkout@v1
+    - name: Run tests
+      run: |
+        cargo install cargo-tarpaulin
+        cargo tarpaulin -v --out Xml
+        ls *.xml
