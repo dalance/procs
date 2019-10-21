@@ -14,12 +14,11 @@ jobs:
       options: --security-opt seccomp=unconfined
 
     steps:
-    - uses: actions/checkout@v1
+    - name: Checkout
+      uses: actions/checkout@v1
     - name: Run tests
       run: cargo tarpaulin -v --out Xml -- --test-threads=1
-      continue-on-error: true
     - name: Upload coverage
       uses: codecov/codecov-action@v1.0.3
       with:
         token: ${{secrets.CODECOV_TOKEN}}
-      if: success()

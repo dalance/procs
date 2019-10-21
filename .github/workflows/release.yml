@@ -16,22 +16,24 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: hecrj/setup-rust-action@v1
+    - name: Setup Rust
+      uses: hecrj/setup-rust-action@v1
       with:
         rust-version: ${{ matrix.rust }}
-    - uses: actions/checkout@v1
+    - name: Checkout
+      uses: actions/checkout@v1
     - name: Setup MUSL
       if: matrix.os == 'ubuntu-latest'
       run: |
         rustup target add x86_64-unknown-linux-musl
         sudo apt-get -qq install musl-tools
-    - name: Release linux
+    - name: Build for linux
       if: matrix.os == 'ubuntu-latest'
       run: make release_lnx
-    - name: Release macOS
+    - name: Build for macOS
       if: matrix.os == 'macOS-latest'
       run: make release_mac
-    - name: Release Windows
+    - name: Build for Windows
       if: matrix.os == 'windows-latest'
       run: make release_win
     - name: Release

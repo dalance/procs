@@ -13,9 +13,11 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: hecrj/setup-rust-action@v1
+    - name: Setup Rust
+      uses: hecrj/setup-rust-action@v1
       with:
         rust-version: ${{ matrix.rust }}
-    - uses: actions/checkout@v1
+    - name: Checkout
+      uses: actions/checkout@v1
     - name: Run tests
       run: cargo test
