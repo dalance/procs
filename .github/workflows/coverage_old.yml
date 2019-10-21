@@ -1,0 +1,27 @@
+name: Coverage tarpaulin0.8.7
+
+on: [push]
+
+jobs:
+  build:
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        rust: [stable]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Setup Rust
+      uses: hecrj/setup-rust-action@v1
+      with:
+        rust-version: ${{ matrix.rust }}
+    - name: Checkout
+      uses: actions/checkout@v1
+    - name: Install tarpaulin
+      run: |
+          sudo apt-get update && sudo apt-get install -y libssl-dev pkg-config cmake zlib1g-dev
+          cargo install cargo-tarpaulin -f  --version 0.8.7
+    - name: Run tests
+      run: cargo tarpaulin -v --out Xml -- --test-threads=1
