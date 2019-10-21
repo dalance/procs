@@ -17,10 +17,12 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
     let mut base_procs = Vec::new();
     let mut ret = Vec::new();
 
-    for proc in procfs::all_processes() {
-        let io = proc.io().ok();
-        let time = Instant::now();
-        base_procs.push((proc.pid(), proc, io, time));
+    if let Ok(all_proc) = procfs::all_processes() {
+        for proc in all_proc {
+            let io = proc.io().ok();
+            let time = Instant::now();
+            base_procs.push((proc.pid(), proc, io, time));
+        }
     }
 
     thread::sleep(interval);

@@ -1,5 +1,7 @@
 use crate::process::ProcessInfo;
 use crate::{column_default, Column};
+#[cfg(target_os = "linux")]
+use procfs::Meminfo;
 use std::cmp;
 use std::collections::HashMap;
 #[cfg(target_os = "windows")]
@@ -34,7 +36,12 @@ impl UsageMem {
 
 #[cfg(target_os = "linux")]
 fn get_mem_total() -> u64 {
-    procfs::meminfo().unwrap().mem_total
+    let meminfo = Meminfo::new();
+    if let Ok(meminfo) = meminfo {
+        meminfo.mem_total
+    } else {
+        0
+    }
 }
 
 #[cfg_attr(tarpaulin, skip)]
