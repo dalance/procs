@@ -1,0 +1,27 @@
+name: Periodic
+
+#on:
+#  schedule:
+#  - cron: 0 0 * * SUN
+on: [push]
+
+strategy:
+  matrix:
+    rust: [stable, beta, nightly]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: ${{ matrix.rust }}
+        override: true
+    - name: Run tests
+      run: |
+        cargo --version
+        cargo test
