@@ -5,20 +5,17 @@ on: [push]
 jobs:
   build:
 
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        rust: [stable]
-
-    runs-on: ${{ matrix.os }}
+    container:
+      image: xd009642/tarpaulin:latest-nightly
+      options: --security-opt seccomp=unconfined
 
     steps:
-    - uses: hecrj/setup-rust-action@v1
-      with:
-        rust-version: ${{ matrix.rust }}
     - uses: actions/checkout@v1
     - name: Run tests
       run: |
-        cargo install cargo-tarpaulin
         cargo tarpaulin -v --out Xml
         ls *.xml
+    - name: Upload coverage
+      uses: codecov/codecov-action@v1.0.3
+      with:
+        token: ${{secrets.CODECOV_TOKEN}}
