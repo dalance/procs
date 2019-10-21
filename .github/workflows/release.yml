@@ -39,6 +39,7 @@ jobs:
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
+        body: '[Changelog](https://github.com/dalance/procs/blob/master/CHANGELOG.md)'
         files: '*.zip'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
