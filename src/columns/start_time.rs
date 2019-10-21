@@ -1,5 +1,6 @@
 use crate::process::ProcessInfo;
 use crate::{column_default, Column};
+#[cfg(not(target_os = "windows"))]
 use chrono::offset::TimeZone;
 use chrono::{DateTime, Local};
 use std::cmp;
