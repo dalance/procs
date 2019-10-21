@@ -16,9 +16,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Run tests
-      run: |
-        cargo tarpaulin -v --out Xml
-        ls *.xml
+      run: cargo tarpaulin -v --out Xml
     - name: Upload coverage
       uses: codecov/codecov-action@v1.0.3
       with:
