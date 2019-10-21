@@ -1,6 +1,9 @@
 name: Release
 
-on: [push]
+on:
+  push:
+    tags:
+      - 'v*.*.*'
 
 jobs:
   build:
@@ -31,3 +34,9 @@ jobs:
     - name: Release Windows
       if: matrix.os == 'windows-latest'
       run: make release_win
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: '*.zip'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
