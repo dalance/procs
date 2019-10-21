@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.8.11...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.8.12...Unreleased) - ReleaseDate
+
+## [v0.8.12](https://github.com/dalance/procs/compare/v0.8.11...v0.8.12) - 2019-10-21
 
 * [Added] UidLogin/UserLogin column
 * [Changed] update procfs to v0.6.0
