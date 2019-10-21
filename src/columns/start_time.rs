@@ -1,6 +1,5 @@
 use crate::process::ProcessInfo;
 use crate::{column_default, Column};
-#[cfg(target_os = "macos")]
 use chrono::offset::TimeZone;
 use chrono::{DateTime, Local};
 use std::cmp;
@@ -31,7 +30,11 @@ impl StartTime {
 #[cfg(target_os = "linux")]
 impl Column for StartTime {
     fn add(&mut self, proc: &ProcessInfo) {
-        let start_time = proc.curr_proc.stat.starttime();
+        let start_time = proc
+            .curr_proc
+            .stat
+            .starttime()
+            .unwrap_or(Local.timestamp(0, 0));
         let raw_content = start_time;
         let fmt_content = format!("{}", start_time.format("%Y/%m/%d %H:%M"));
 
