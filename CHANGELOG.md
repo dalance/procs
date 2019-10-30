@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.8.12...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.8.13...Unreleased) - ReleaseDate
+
+## [v0.8.13](https://github.com/dalance/procs/compare/v0.8.12...v0.8.13) - 2019-10-30
 
 * [Changed] update procfs to v0.7.0
 
