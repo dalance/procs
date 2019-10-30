@@ -2,6 +2,7 @@ use crate::process::ProcessInfo;
 use crate::Column;
 #[cfg(target_os = "linux")]
 use procfs::net::UdpNetEntry;
+#[cfg(target_os = "linux")]
 use procfs::process::FDTarget;
 use std::cmp;
 use std::collections::HashMap;

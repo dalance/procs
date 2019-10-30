@@ -4,6 +4,7 @@ use crate::Column;
 use libproc::libproc::net_info::TcpSIState;
 #[cfg(target_os = "linux")]
 use procfs::net::{TcpNetEntry, TcpState};
+#[cfg(target_os = "linux")]
 use procfs::process::FDTarget;
 use std::cmp;
 use std::collections::HashMap;
