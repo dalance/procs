@@ -61,7 +61,7 @@ sudo snap install procs
 You can install from [homebrew](https://formulae.brew.sh/formula/procs)
 
 ```
-sudo brew install procs
+brew install procs
 ```
 
 ### Alpine Linux
