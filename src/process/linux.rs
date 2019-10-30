@@ -1,4 +1,4 @@
-use procfs::{Io, Process, Status};
+use procfs::process::{Io, Process, Status};
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -17,7 +17,7 @@ pub fn collect_proc(interval: Duration) -> Vec<ProcessInfo> {
     let mut base_procs = Vec::new();
     let mut ret = Vec::new();
 
-    if let Ok(all_proc) = procfs::all_processes() {
+    if let Ok(all_proc) = procfs::process::all_processes() {
         for proc in all_proc {
             let io = proc.io().ok();
             let time = Instant::now();

@@ -1,7 +1,8 @@
 use crate::process::ProcessInfo;
 use crate::Column;
 #[cfg(target_os = "linux")]
-use procfs::{FDTarget, UdpNetEntry};
+use procfs::net::UdpNetEntry;
+use procfs::process::FDTarget;
 use std::cmp;
 use std::collections::HashMap;
 
@@ -28,9 +29,9 @@ impl UdpPort {
             header,
             unit,
             #[cfg(target_os = "linux")]
-            udp_entry: procfs::udp().unwrap_or_default(),
+            udp_entry: procfs::net::udp().unwrap_or_default(),
             #[cfg(target_os = "linux")]
-            udp6_entry: procfs::udp6().unwrap_or_default(),
+            udp6_entry: procfs::net::udp6().unwrap_or_default(),
         }
     }
 }

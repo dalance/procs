@@ -3,7 +3,8 @@ use crate::Column;
 #[cfg(target_os = "macos")]
 use libproc::libproc::net_info::TcpSIState;
 #[cfg(target_os = "linux")]
-use procfs::{FDTarget, TcpNetEntry, TcpState};
+use procfs::net::{TcpNetEntry, TcpState};
+use procfs::process::FDTarget;
 use std::cmp;
 use std::collections::HashMap;
 
@@ -30,9 +31,9 @@ impl TcpPort {
             header,
             unit,
             #[cfg(target_os = "linux")]
-            tcp_entry: procfs::tcp().unwrap_or_default(),
+            tcp_entry: procfs::net::tcp().unwrap_or_default(),
             #[cfg(target_os = "linux")]
-            tcp6_entry: procfs::tcp6().unwrap_or_default(),
+            tcp6_entry: procfs::net::tcp6().unwrap_or_default(),
         }
     }
 }

@@ -816,7 +816,7 @@ dependencies = [
 
 [[package]]
 name = "procfs"
-version = "0.6.0"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "bitflags 1.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -844,7 +844,7 @@ dependencies = [
  "libproc 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "pager 0.15.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "process_path 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "procfs 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "procfs 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "quale 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "runas 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.101 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1592,7 +1592,7 @@ dependencies = [
 "checksum proc-macro2 0.4.30 (registry+https://github.com/rust-lang/crates.io-index)" = "cf3d2011ab5c909338f7887f4fc896d35932e29146c12c8d01da6b22a80ba759"
 "checksum proc-macro2 1.0.5 (registry+https://github.com/rust-lang/crates.io-index)" = "90cf5f418035b98e655e9cdb225047638296b862b42411c4e45bb88d700f7fc0"
 "checksum process_path 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "f9bdceb3b6b44ee28251e5ac737472de60c9e706e8f5483730d4f6f61d3a0526"
-"checksum procfs 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)" = "911881246ca41baceae6921e32f9f5542c83713e3825b57adedb6afeb48a23a1"
+"checksum procfs 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)" = "cf06ae4575b4aabb2dd5141c0206e49b37a60eef6cd04b33cb3b75eddb140657"
 "checksum quale 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "c46811c513cc64cceb23adc27892b3b3470c1790de117610221b97071de8bc8c"
 "checksum quote 0.6.13 (registry+https://github.com/rust-lang/crates.io-index)" = "6ce23b6b870e8f94f81fb0a363d65d86675884b34a09043c81e5562f11c1f8e1"
 "checksum quote 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)" = "053a8c8bcc71fcce321828dc897a98ab9760bef03a4fc36693c231e5b3216cfe"
