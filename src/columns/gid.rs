@@ -9,7 +9,7 @@ pub struct Gid {
     header: String,
     unit: String,
     fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, i32>,
+    raw_contents: HashMap<i32, u32>,
     width: usize,
     #[allow(dead_code)]
     abbr_sid: bool,
@@ -44,14 +44,14 @@ impl Column for Gid {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(i32);
+    column_default!(u32);
 }
 
 #[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 impl Column for Gid {
     fn add(&mut self, proc: &ProcessInfo) {
-        let gid = proc.curr_task.pbsd.pbi_gid as i32;
+        let gid = proc.curr_task.pbsd.pbi_gid;
         let fmt_content = format!("{}", gid);
         let raw_content = gid;
 
@@ -59,7 +59,7 @@ impl Column for Gid {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(i32);
+    column_default!(u32);
 }
 
 #[cfg_attr(tarpaulin, skip)]
@@ -76,11 +76,11 @@ impl Column for Gid {
         }
 
         let fmt_content = format_sid(&sid, self.abbr_sid);
-        let raw_content = sid[sid.len() - 1] as i32;
+        let raw_content = sid[sid.len() - 1] as u32;
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(i32);
+    column_default!(u32);
 }

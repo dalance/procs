@@ -9,7 +9,7 @@ pub struct Uid {
     header: String,
     unit: String,
     fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, i32>,
+    raw_contents: HashMap<i32, u32>,
     width: usize,
     #[allow(dead_code)]
     abbr_sid: bool,
@@ -44,14 +44,14 @@ impl Column for Uid {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(i32);
+    column_default!(u32);
 }
 
 #[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 impl Column for Uid {
     fn add(&mut self, proc: &ProcessInfo) {
-        let uid = proc.curr_task.pbsd.pbi_uid as i32;
+        let uid = proc.curr_task.pbsd.pbi_uid;
         let fmt_content = format!("{}", uid);
         let raw_content = uid;
 
@@ -59,7 +59,7 @@ impl Column for Uid {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(i32);
+    column_default!(u32);
 }
 
 #[cfg_attr(tarpaulin, skip)]
@@ -67,11 +67,11 @@ impl Column for Uid {
 impl Column for Uid {
     fn add(&mut self, proc: &ProcessInfo) {
         let fmt_content = format_sid(&proc.user.sid, self.abbr_sid);
-        let raw_content = proc.user.sid[proc.user.sid.len() - 1] as i32;
+        let raw_content = proc.user.sid[proc.user.sid.len() - 1] as u32;
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(i32);
+    column_default!(u32);
 }

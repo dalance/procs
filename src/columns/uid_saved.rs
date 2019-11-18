@@ -7,7 +7,7 @@ pub struct UidSaved {
     header: String,
     unit: String,
     fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, i32>,
+    raw_contents: HashMap<i32, u32>,
     width: usize,
 }
 
@@ -39,14 +39,14 @@ impl Column for UidSaved {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(i32);
+    column_default!(u32);
 }
 
 #[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 impl Column for UidSaved {
     fn add(&mut self, proc: &ProcessInfo) {
-        let uid = proc.curr_task.pbsd.pbi_svuid as i32;
+        let uid = proc.curr_task.pbsd.pbi_svuid;
         let fmt_content = format!("{}", uid);
         let raw_content = uid;
 
@@ -54,5 +54,5 @@ impl Column for UidSaved {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(i32);
+    column_default!(u32);
 }

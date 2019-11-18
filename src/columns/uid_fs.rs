@@ -7,7 +7,7 @@ pub struct UidFs {
     header: String,
     unit: String,
     fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, i32>,
+    raw_contents: HashMap<i32, u32>,
     width: usize,
 }
 
@@ -38,5 +38,5 @@ impl Column for UidFs {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(i32);
+    column_default!(u32);
 }

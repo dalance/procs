@@ -7,7 +7,7 @@ pub struct GidReal {
     header: String,
     unit: String,
     fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, i32>,
+    raw_contents: HashMap<i32, u32>,
     width: usize,
 }
 
@@ -39,14 +39,14 @@ impl Column for GidReal {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(i32);
+    column_default!(u32);
 }
 
 #[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 impl Column for GidReal {
     fn add(&mut self, proc: &ProcessInfo) {
-        let gid = proc.curr_task.pbsd.pbi_rgid as i32;
+        let gid = proc.curr_task.pbsd.pbi_rgid;
         let fmt_content = format!("{}", gid);
         let raw_content = gid;
 
@@ -54,5 +54,5 @@ impl Column for GidReal {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(i32);
+    column_default!(u32);
 }
