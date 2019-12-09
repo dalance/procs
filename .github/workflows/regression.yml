@@ -22,4 +22,4 @@ jobs:
     - name: Run tests
       run: |
         cargo test
-        cargo build; sudo ./target/debug/procs --tree
+        cargo build; sudo ./target/debug/procs -t
