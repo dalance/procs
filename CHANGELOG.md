@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.8.15...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.8.16...Unreleased) - ReleaseDate
+
+## [v0.8.16](https://github.com/dalance/procs/compare/v0.8.15...v0.8.16) - 2019-12-09
 
 * [Fixed] refine PPID == PID case
 

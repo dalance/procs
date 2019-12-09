@@ -840,7 +840,7 @@ dependencies = [
 
 [[package]]
 name = "procs"
-version = "0.8.16-pre"
+version = "0.8.16"
 dependencies = [
  "chrono 0.4.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "console 0.9.1 (registry+https://github.com/rust-lang/crates.io-index)",
