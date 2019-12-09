@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.8.14...Unreleased) - ReleaseDate
 
+* [Fixed] Tree view failure caused by PPID == PID
+
 ## [v0.8.14](https://github.com/dalance/procs/compare/v0.8.13...v0.8.14) - 2019-11-18
 
 * [Changed] update procfs to v0.7.1

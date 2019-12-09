@@ -29,6 +29,11 @@ impl Tree {
 
 impl Column for Tree {
     fn add(&mut self, proc: &ProcessInfo) {
+        // If PID == PPID, tree view can't be generated.
+        if proc.pid == proc.ppid {
+            return;
+        }
+
         if let Some(node) = self.tree.get_mut(&proc.ppid) {
             node.push(proc.pid);
             node.sort();
