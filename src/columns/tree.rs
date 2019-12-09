@@ -191,6 +191,7 @@ impl Column for Tree {
 }
 
 #[cfg(test)]
+#[cfg(target_os = "linux")]
 mod tests {
     use super::*;
     use procfs::process::Process;
