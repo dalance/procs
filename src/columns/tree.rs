@@ -29,11 +29,6 @@ impl Tree {
 
 impl Column for Tree {
     fn add(&mut self, proc: &ProcessInfo) {
-        // If PID == PPID, tree view can't be generated.
-        if proc.pid == proc.ppid {
-            return;
-        }
-
         if let Some(node) = self.tree.get_mut(&proc.ppid) {
             node.push(proc.pid);
             node.sort();
@@ -65,7 +60,9 @@ impl Column for Tree {
             mut string: String,
         ) -> String {
             if let Some(ppid) = rev_tree.get(&pid) {
-                if let Some(pppid) = rev_tree.get(ppid) {
+                if *ppid == pid {
+                    string
+                } else if let Some(pppid) = rev_tree.get(ppid) {
                     let brother = tree.get(pppid).unwrap();
                     let is_last = brother.binary_search(&ppid).unwrap() == brother.len() - 1;
 
@@ -134,6 +131,10 @@ impl Column for Tree {
         for p in self.rev_tree.values() {
             if !self.rev_tree.contains_key(p) {
                 root_pids.push(*p);
+            } else if let Some(ppid) = self.rev_tree.get(p) {
+                if *ppid == *p {
+                    root_pids.push(*p);
+                }
             }
         }
         root_pids.sort();
@@ -143,7 +144,9 @@ impl Column for Tree {
             if let Some(leafs) = tree.get(&pid) {
                 for p in leafs {
                     pids.push(*p);
-                    pids = push_pid(tree, pids, *p);
+                    if pid != *p {
+                        pids = push_pid(tree, pids, *p);
+                    }
                 }
             }
             pids
@@ -170,7 +173,11 @@ impl Column for Tree {
     fn update_width(&mut self, pid: i32, _max_width: Option<usize>) {
         fn get_depth(rev_tree: &HashMap<i32, i32>, pid: i32, depth: i32) -> i32 {
             if let Some(ppid) = rev_tree.get(&pid) {
-                get_depth(rev_tree, *ppid, depth + 1)
+                if *ppid == pid {
+                    depth
+                } else {
+                    get_depth(rev_tree, *ppid, depth + 1)
+                }
             } else {
                 depth
             }
@@ -181,4 +188,86 @@ impl Column for Tree {
     }
 
     crate::column_default_display_unit!();
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use procfs::process::Process;
+    use std::time::Duration;
+
+    #[test]
+    fn test_tree() {
+        let mut tree = Tree::new(&[
+            String::from("│"),
+            String::from("─"),
+            String::from("┬"),
+            String::from("├"),
+            String::from("└"),
+        ]);
+
+        let p0 = ProcessInfo {
+            pid: 0,
+            ppid: 0,
+            curr_proc: Process::myself().unwrap(),
+            prev_proc: Process::myself().unwrap(),
+            curr_io: None,
+            prev_io: None,
+            curr_status: None,
+            interval: Duration::new(0, 0),
+        };
+
+        let p1 = ProcessInfo {
+            pid: 1,
+            ppid: 0,
+            curr_proc: Process::myself().unwrap(),
+            prev_proc: Process::myself().unwrap(),
+            curr_io: None,
+            prev_io: None,
+            curr_status: None,
+            interval: Duration::new(0, 0),
+        };
+
+        let p2 = ProcessInfo {
+            pid: 2,
+            ppid: 1,
+            curr_proc: Process::myself().unwrap(),
+            prev_proc: Process::myself().unwrap(),
+            curr_io: None,
+            prev_io: None,
+            curr_status: None,
+            interval: Duration::new(0, 0),
+        };
+
+        tree.add(&p0);
+        tree.add(&p1);
+        tree.add(&p2);
+        tree.update_width(0, None);
+        tree.update_width(1, None);
+        tree.update_width(2, None);
+        assert_eq!(
+            format!(
+                "{}",
+                tree.display_content(0, &crate::config::ConfigColumnAlign::Left)
+                    .unwrap()
+            ),
+            String::from("├┬────")
+        );
+        assert_eq!(
+            format!(
+                "{}",
+                tree.display_content(1, &crate::config::ConfigColumnAlign::Left)
+                    .unwrap()
+            ),
+            String::from("│└┬───")
+        );
+        assert_eq!(
+            format!(
+                "{}",
+                tree.display_content(2, &crate::config::ConfigColumnAlign::Left)
+                    .unwrap()
+            ),
+            String::from("│ └───")
+        );
+    }
 }

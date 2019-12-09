@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.8.15...Unreleased) - ReleaseDate
 
+* [Fixed] refine PPID == PID case
+
 ## [v0.8.15](https://github.com/dalance/procs/compare/v0.8.14...v0.8.15) - 2019-12-09
 
 * [Fixed] Tree view failure caused by PPID == PID
