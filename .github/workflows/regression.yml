@@ -20,4 +20,6 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v1
     - name: Run tests
-      run: cargo test
+      run: |
+        cargo test
+        cargo build; sudo ./target/debug/procs --tree
