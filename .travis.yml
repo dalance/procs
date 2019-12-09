@@ -5,3 +5,4 @@ os:
 
 script:
 - make test
+- cargo build; sudo ./target/debug/procs --tree
