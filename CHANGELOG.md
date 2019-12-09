@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.8.14...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.8.15...Unreleased) - ReleaseDate
+
+## [v0.8.15](https://github.com/dalance/procs/compare/v0.8.14...v0.8.15) - 2019-12-09
 
 * [Fixed] Tree view failure caused by PPID == PID
 
