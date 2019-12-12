@@ -705,6 +705,7 @@ fn run_watch(opt: &Opt, config: &Config, interval: u64) -> Result<(), Error> {
             thread::sleep(Duration::from_millis(100));
 
             if rx.try_recv().is_ok() {
+                term_info.term.clear_screen()?;
                 break 'outer;
             }
         }
