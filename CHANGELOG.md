@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.8.16...Unreleased) - ReleaseDate
 
+* [Added] sort order changing by keyboard [#31](https://github.com/dalance/procs/issues/31)
 * [Fixed] start_time slow down
 * [Changed] from failure to anyhow
 

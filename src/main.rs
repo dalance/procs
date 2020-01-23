@@ -661,32 +661,79 @@ fn run_suid() -> Result<(), Error> {
     Ok(())
 }
 
+enum Command {
+    Wake,
+    Sleep,
+    Next,
+    Prev,
+    Ascending,
+    Descending,
+    Quit,
+}
+
 #[cfg_attr(tarpaulin, skip)]
 fn run_watch(opt: &Opt, config: &Config, interval: u64) -> Result<(), Error> {
-    let (tx, rx) = channel();
-    let _ = thread::spawn(move || {
-        let getch = Getch::new();
-        loop {
-            match getch.getch() {
-                Ok(x) if char::from(x) == 'q' => break,
-                _ => (),
+    let (tx_cmd, rx_cmd) = channel();
+    {
+        let tx_cmd = tx_cmd.clone();
+        let _ = thread::spawn(move || {
+            let getch = Getch::new();
+            loop {
+                match getch.getch() {
+                    Ok(x) if char::from(x) == 'q' => {
+                        let _ = tx_cmd.send(Command::Quit);
+                        break;
+                    }
+                    Ok(x) if char::from(x) == 'n' => {
+                        let _ = tx_cmd.send(Command::Next);
+                    }
+                    Ok(x) if char::from(x) == 'p' => {
+                        let _ = tx_cmd.send(Command::Prev);
+                    }
+                    Ok(x) if char::from(x) == 'a' => {
+                        let _ = tx_cmd.send(Command::Ascending);
+                    }
+                    Ok(x) if char::from(x) == 'd' => {
+                        let _ = tx_cmd.send(Command::Descending);
+                    }
+                    _ => (),
+                }
             }
-        }
-        let _ = tx.send(());
-    });
+        });
+    }
 
+    let (tx_sleep, rx_sleep) = channel();
+    {
+        let tx_cmd = tx_cmd.clone();
+        let _ = thread::spawn(move || loop {
+            if let Ok(Command::Quit) = rx_sleep.recv() {
+                break;
+            }
+            thread::sleep(Duration::from_secs(interval));
+            let _ = tx_cmd.send(Command::Wake);
+        });
+    }
+
+    let mut sort_offset = 0;
+    let mut sort_order = None;
     'outer: loop {
         let term_info = term_info();
         let cols = gen_columns(opt, config);
-        let sort_info = sort_info(opt, config, &cols);
+        let mut sort_info = sort_info(opt, config, &cols);
+
+        // Override sort_info by key
+        let max_idx = cols.len();
+        sort_info.idx = (sort_info.idx + sort_offset) % max_idx;
+        sort_info.order = sort_order.clone().unwrap_or(sort_info.order);
+
         let visible_pids = filter_columns(opt, config, &cols, &term_info, &sort_info);
         let cols = resize_columns(config, cols, &visible_pids, &sort_info);
 
-        let _ = term_info.term.clear_screen();
+        //let _ = term_info.term.clear_screen();
         let _ = term_info.term.write_line(&format!(
             "{}\n",
             console::style(format!(
-                " Interval: {}s, Last Updated: {} ( Quit: q or Ctrl-C )",
+                " Interval: {}s, Last Updated: {} ( Next: n, Prev: p, Ascending: a, Descending: d, Quit: q or Ctrl-C )",
                 interval,
                 Local::now().format("%Y/%m/%d %H:%M:%S"),
             ))
@@ -701,11 +748,26 @@ fn run_watch(opt: &Opt, config: &Config, interval: u64) -> Result<(), Error> {
             .term
             .move_cursor_up((term_info.height - 1) as usize);
 
-        for _ in 0..interval * 10 {
-            thread::sleep(Duration::from_millis(100));
+        let _ = tx_sleep.send(Command::Sleep);
+        let mut cmds = Vec::new();
+        if let Ok(cmd) = rx_cmd.recv() {
+            cmds.push(cmd);
+            for c in rx_cmd.try_iter() {
+                cmds.push(c);
+            }
+        }
 
-            if rx.try_recv().is_ok() {
-                break 'outer;
+        for cmd in cmds {
+            match cmd {
+                Command::Quit => {
+                    let _ = tx_sleep.send(Command::Quit);
+                    break 'outer;
+                }
+                Command::Next => sort_offset = (sort_offset + 1) % max_idx,
+                Command::Prev => sort_offset = (sort_offset + max_idx - 1) % max_idx,
+                Command::Ascending => sort_order = Some(ConfigSortOrder::Ascending),
+                Command::Descending => sort_order = Some(ConfigSortOrder::Descending),
+                _ => (),
             }
         }
     }
