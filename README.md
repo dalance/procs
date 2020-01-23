@@ -181,6 +181,13 @@ This behavior and pager command can be specified by configuration file.
 
 If `--watch <second>` option is used, procs automatically updates output like `top`.
 The update interval can be specified by the option argument.
+There are some keyboard shortcuts to control.
+
+- `n`: Change the sort column to the next column
+- `p`: Change the sort column to the previous column
+- `a`: Change the sort order to ascending
+- `d`: Change the sort order to descending
+- `q`: Quit
 
 ### Tree view
 
