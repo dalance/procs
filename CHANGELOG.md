@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.8.16...Unreleased) - ReleaseDate
 
+* [Fixed] start_time slow down
 * [Changed] from failure to anyhow
 
 ## [v0.8.16](https://github.com/dalance/procs/compare/v0.8.15...v0.8.16) - 2019-12-09
