@@ -11,11 +11,11 @@ use crate::config::*;
 use crate::process::collect_proc;
 use crate::style::{apply_color, apply_style};
 use crate::util::{adjust, find_column_kind, truncate, KeywordClass};
+#[cfg(not(target_os = "windows"))]
+use anyhow::format_err;
+use anyhow::{Context, Error};
 use chrono::offset::Local;
 use console::Term;
-#[cfg(not(target_os = "windows"))]
-use failure::format_err;
-use failure::{Error, ResultExt};
 use getch::Getch;
 #[cfg(not(target_os = "windows"))]
 use pager::Pager;
@@ -573,7 +573,7 @@ fn main() {
     let err = Term::stderr();
 
     if let Err(x) = run() {
-        let mut cause = x.iter_chain();
+        let mut cause = x.chain();
         let _ = err.write_line(&format!(
             "{} {}",
             console::style("error:").red().bold(),
