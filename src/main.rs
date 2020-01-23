@@ -761,6 +761,7 @@ fn run_watch(opt: &Opt, config: &Config, interval: u64) -> Result<(), Error> {
             match cmd {
                 Command::Quit => {
                     let _ = tx_sleep.send(Command::Quit);
+                    term_info.term.clear_screen()?;
                     break 'outer;
                 }
                 Command::Next => sort_offset = (sort_offset + 1) % max_idx,
