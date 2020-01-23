@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.8.16...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.9.0...Unreleased) - ReleaseDate
+
+## [v0.9.0](https://github.com/dalance/procs/compare/v0.8.16...v0.9.0) - 2020-01-23
 
 * [Added] sort order changing by keyboard [#31](https://github.com/dalance/procs/issues/31)
 * [Fixed] start_time slow down
