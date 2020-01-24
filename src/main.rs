@@ -264,7 +264,7 @@ struct SortInfo {
     order: ConfigSortOrder,
 }
 
-fn sort_info(opt: &Opt, config: &Config, cols: &[ColumnInfo]) -> SortInfo {
+fn get_sort_info(opt: &Opt, config: &Config, cols: &[ColumnInfo]) -> SortInfo {
     let (mut sort_idx, sort_order) = match (&opt.sorta, &opt.sortd) {
         (Some(sort), _) | (_, Some(sort)) => {
             let mut idx = config.sort.column;
@@ -302,7 +302,7 @@ struct TermInfo {
     width: usize,
 }
 
-fn term_info() -> TermInfo {
+fn get_term_info() -> TermInfo {
     let term = Term::stdout();
     let (term_h, term_w) = term.size();
     let height = term_h as usize;
@@ -714,12 +714,15 @@ fn run_watch(opt: &Opt, config: &Config, interval: u64) -> Result<(), Error> {
         });
     }
 
+    let term_info = get_term_info();
+    let _ = term_info.term.clear_screen();
+
     let mut sort_offset = 0;
     let mut sort_order = None;
     'outer: loop {
-        let term_info = term_info();
+        let term_info = get_term_info();
         let cols = gen_columns(opt, config);
-        let mut sort_info = sort_info(opt, config, &cols);
+        let mut sort_info = get_sort_info(opt, config, &cols);
 
         // Override sort_info by key
         let max_idx = cols.len();
@@ -729,7 +732,7 @@ fn run_watch(opt: &Opt, config: &Config, interval: u64) -> Result<(), Error> {
         let visible_pids = filter_columns(opt, config, &cols, &term_info, &sort_info);
         let cols = resize_columns(config, cols, &visible_pids, &sort_info);
 
-        //let _ = term_info.term.clear_screen();
+        let _ = term_info.term.clear_screen();
         let _ = term_info.term.write_line(&format!(
             "{}\n",
             console::style(format!(
@@ -776,9 +779,9 @@ fn run_watch(opt: &Opt, config: &Config, interval: u64) -> Result<(), Error> {
 }
 
 fn run_default(opt: &Opt, config: &Config) -> Result<(), Error> {
-    let term_info = term_info();
+    let term_info = get_term_info();
     let cols = gen_columns(opt, config);
-    let sort_info = sort_info(opt, config, &cols);
+    let sort_info = get_sort_info(opt, config, &cols);
     let visible_pids = filter_columns(opt, config, &cols, &term_info, &sort_info);
     let cols = resize_columns(config, cols, &visible_pids, &sort_info);
     let _ = display(opt, config, cols, visible_pids, term_info, &sort_info);
