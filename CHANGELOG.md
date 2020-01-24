@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.9.0...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.9.1...Unreleased) - ReleaseDate
+
+## [v0.9.1](https://github.com/dalance/procs/compare/v0.9.0...v0.9.1) - 2020-01-24
 
 * [Fixed] clear screen at entering watch mode
 
