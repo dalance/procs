@@ -70,7 +70,7 @@ fn get_mem_total() -> u64 {
         let ret = GetPerformanceInfo(&mut info, size_of::<PERFORMANCE_INFORMATION>() as u32);
 
         if ret != 0 {
-            (info.PhysicalTotal * info.PageSize) as u64
+            info.PhysicalTotal as u64 * info.PageSize as u64
         } else {
             0
         }

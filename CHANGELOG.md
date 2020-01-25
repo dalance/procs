@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.9.1...Unreleased) - ReleaseDate
 
+* [Fixed] usage_mem overflow
 * [Fixed] Ctrl-C is ignored on Windows [#35](https://github.com/dalance/procs/issues/35)
 
 ## [v0.9.1](https://github.com/dalance/procs/compare/v0.9.0...v0.9.1) - 2020-01-24
