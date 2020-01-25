@@ -696,6 +696,12 @@ fn run_watch(opt: &Opt, config: &Config, interval: u64) -> Result<(), Error> {
                     Ok(x) if char::from(x) == 'd' => {
                         let _ = tx_cmd.send(Command::Descending);
                     }
+                    // On windows, _getch return EXT(0x3) by Ctrl-C
+                    #[cfg(target_os = "windows")]
+                    Ok(x) if x == 3 => {
+                        let _ = tx_cmd.send(Command::Quit);
+                        break;
+                    }
                     _ => (),
                 }
             }
