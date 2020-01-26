@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.9.1...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.9.2...Unreleased) - ReleaseDate
+
+## [v0.9.2](https://github.com/dalance/procs/compare/v0.9.1...v0.9.2) - 2020-01-26
 
 * [Changed] update console to v0.9.2 [#34](https://github.com/dalance/procs/issues/34)
 * [Fixed] usage_mem overflow
