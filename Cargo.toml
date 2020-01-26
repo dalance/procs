@@ -30,7 +30,7 @@ codecov   = { repository = "dalance/procs", branch = "master", service = "github
 
 [dependencies]
 anyhow        = "1.0"
-console       = "0.9"
+console       = "0.9.2"
 chrono        = "0.4"
 directories   = "2.0"
 dockworker    = "0.0.15"

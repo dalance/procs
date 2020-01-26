@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.9.1...Unreleased) - ReleaseDate
 
+* [Changed] update console to v0.9.2 [#34](https://github.com/dalance/procs/issues/34)
 * [Fixed] usage_mem overflow
 * [Fixed] Ctrl-C is ignored on Windows [#35](https://github.com/dalance/procs/issues/35)
 
