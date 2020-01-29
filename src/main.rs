@@ -710,7 +710,7 @@ fn run_watch(opt: &Opt, config: &Config, interval: u64) -> Result<(), Error> {
 
     let (tx_sleep, rx_sleep) = channel();
     {
-        let tx_cmd = tx_cmd.clone();
+        let tx_cmd = tx_cmd;
         let _ = thread::spawn(move || loop {
             if let Ok(Command::Quit) = rx_sleep.recv() {
                 break;

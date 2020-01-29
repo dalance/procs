@@ -36,7 +36,7 @@ impl StartTime {
             header,
             unit,
             #[cfg(target_os = "linux")]
-            boot_time: procfs::boot_time().unwrap_or(Local.timestamp(0, 0)),
+            boot_time: procfs::boot_time().unwrap_or_else(|_| Local.timestamp(0, 0)),
         }
     }
 }

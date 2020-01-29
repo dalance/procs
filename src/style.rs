@@ -31,7 +31,7 @@ fn apply_style_by_state(x: String, s: &ConfigStyle) -> StyledObject<String> {
         ref x if x.contains('K') => apply_color(x.to_string(), &s.by_state.color_k),
         ref x if x.contains('W') => apply_color(x.to_string(), &s.by_state.color_w),
         ref x if x.contains('P') => apply_color(x.to_string(), &s.by_state.color_p),
-        _ => apply_color(x.to_string(), &s.by_state.color_x),
+        _ => apply_color(x, &s.by_state.color_x),
     }
 }
 
@@ -42,7 +42,7 @@ fn apply_style_by_unit(x: String, s: &ConfigStyle) -> StyledObject<String> {
         ref x if x.contains('G') => apply_color(x.to_string(), &s.by_unit.color_g),
         ref x if x.contains('T') => apply_color(x.to_string(), &s.by_unit.color_t),
         ref x if x.contains('P') => apply_color(x.to_string(), &s.by_unit.color_p),
-        _ => apply_color(x.to_string(), &s.by_unit.color_x),
+        _ => apply_color(x, &s.by_unit.color_x),
     }
 }
 
