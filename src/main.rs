@@ -460,7 +460,7 @@ fn filter_columns(
     visible_pids
 }
 
-fn resize_columns(
+fn adjust_columns(
     config: &Config,
     mut cols: Vec<ColumnInfo>,
     visible_pids: &[i32],
@@ -472,6 +472,7 @@ fn resize_columns(
         } else {
             None
         };
+        c.column.apply_visible(visible_pids);
         c.column
             .reset_width(order, &config, c.max_width, c.min_width);
         for pid in visible_pids {
@@ -732,23 +733,31 @@ fn run_watch(opt: &Opt, config: &Config, interval: u64) -> Result<(), Error> {
 
         // Override sort_info by key
         let max_idx = cols.len();
-        sort_info.idx = (sort_info.idx + sort_offset) % max_idx;
-        sort_info.order = sort_order.clone().unwrap_or(sort_info.order);
+        if !opt.tree {
+            sort_info.idx = (sort_info.idx + sort_offset) % max_idx;
+            sort_info.order = sort_order.clone().unwrap_or(sort_info.order);
+        }
 
         let visible_pids = filter_columns(opt, config, &cols, &term_info, &sort_info);
-        let cols = resize_columns(config, cols, &visible_pids, &sort_info);
+        let cols = adjust_columns(config, cols, &visible_pids, &sort_info);
 
-        let _ = term_info.term.clear_screen();
-        let _ = term_info.term.write_line(&format!(
-            "{}\n",
-            console::style(format!(
+        let header = if opt.tree {
+            format!(
+                " Interval: {}s, Last Updated: {} ( Quit: q or Ctrl-C )",
+                interval,
+                Local::now().format("%Y/%m/%d %H:%M:%S"),
+            )
+        } else {
+            format!(
                 " Interval: {}s, Last Updated: {} ( Next: n, Prev: p, Ascending: a, Descending: d, Quit: q or Ctrl-C )",
                 interval,
                 Local::now().format("%Y/%m/%d %H:%M:%S"),
-            ))
-            .white()
-            .bold()
-            .underlined()
+            )
+        };
+        let _ = term_info.term.clear_screen();
+        let _ = term_info.term.write_line(&format!(
+            "{}\n",
+            console::style(header).white().bold().underlined()
         ));
 
         let term_info = display(opt, config, cols, visible_pids, term_info, &sort_info);
@@ -789,7 +798,7 @@ fn run_default(opt: &Opt, config: &Config) -> Result<(), Error> {
     let cols = gen_columns(opt, config);
     let sort_info = get_sort_info(opt, config, &cols);
     let visible_pids = filter_columns(opt, config, &cols, &term_info, &sort_info);
-    let cols = resize_columns(config, cols, &visible_pids, &sort_info);
+    let cols = adjust_columns(config, cols, &visible_pids, &sort_info);
     let _ = display(opt, config, cols, visible_pids, term_info, &sort_info);
     Ok(())
 }

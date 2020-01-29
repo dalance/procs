@@ -160,6 +160,23 @@ impl Column for Tree {
         pids
     }
 
+    fn apply_visible(&mut self, visible_pids: &[i32]) {
+        let mut remove_pids = Vec::new();
+        for k in self.rev_tree.keys() {
+            if !visible_pids.contains(k) {
+                remove_pids.push(*k);
+            }
+        }
+        for pid in remove_pids {
+            self.rev_tree.remove(&pid);
+            for x in self.tree.values_mut() {
+                if let Ok(i) = x.binary_search(&pid) {
+                    x.remove(i);
+                }
+            }
+        }
+    }
+
     fn reset_width(
         &mut self,
         _order: Option<crate::config::ConfigSortOrder>,

@@ -19,6 +19,7 @@ pub trait Column {
     fn find_partial(&self, pid: i32, keyword: &str) -> bool;
     fn find_exact(&self, pid: i32, keyword: &str) -> bool;
     fn sorted_pid(&self, order: &ConfigSortOrder) -> Vec<i32>;
+    fn apply_visible(&mut self, visible_pids: &[i32]) -> ();
     fn reset_width(
         &mut self,
         order: Option<ConfigSortOrder>,
@@ -107,6 +108,14 @@ macro_rules! column_default_sorted_pid {
 }
 
 #[macro_export]
+macro_rules! column_default_apply_visible {
+    () => {
+        fn apply_visible(&mut self, _visible_pids: &[i32]) {
+        }
+    }
+}
+
+#[macro_export]
 macro_rules! column_default_reset_width {
     () => {
         fn reset_width(&mut self, order: Option<crate::config::ConfigSortOrder>, config: &crate::config::Config, max_width: Option<usize>, min_width: Option<usize>) {
@@ -156,6 +165,7 @@ macro_rules! column_default {
         crate::column_default_find_partial!();
         crate::column_default_find_exact!();
         crate::column_default_sorted_pid!($x);
+        crate::column_default_apply_visible!();
         crate::column_default_reset_width!();
         crate::column_default_update_width!();
     };
