@@ -9,6 +9,7 @@ license = "MIT"
 readme = "README.md"
 description = "A modern replacement for ps"
 edition = "2018"
+exclude = ["img/*"]
 
 [package.metadata.release]
 dev-version-ext            = "pre"
