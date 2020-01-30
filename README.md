@@ -103,15 +103,6 @@ If you want to skip password input, you can add the following entry to `/etc/sud
 // ex. myuser ALL= NOPASSWD: /usr/local/bin/procs
 ```
 
-Alternatively SUID bit can be used.
-
-```console
-$ sudo sh -c "chown root [procs binary path]; chmod u+s [procs binary path]"
-[sudo] password for ...:
-```
-
-This may be insecure because `procs` may have any security vulnerability.
-
 ### `less` setting
 
 On some environments, `less` can't show UTF-8 charactors with default setting.
