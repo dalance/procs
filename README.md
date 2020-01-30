@@ -89,18 +89,28 @@ cargo install procs
 On macOS, normal user can't access all process information of other users.
 On Linux, normal user can't access some information (ex. Read/Write throughput) of other users.
 
-If you want to show all information, SUID bit must be set to `procs` binary.
-You can use `--suid` option to set it.
+If you want to show all information, you should use `sudo`.
 
 ```console
-$ procs --suid
-sudo sh -c "chown root [procs binary path]; chmod u+s [procs binary path]"
+$ sudo procs
 [sudo] password for ...:
 ```
 
-`procs --suid` does `chown` and `chmod` with `sudo`.
+If you want to skip password input, you can add the following entry to `/etc/sudoers`.
 
-`--suid` is not supported on Windows.
+```
+[user or group] ALL= NOPASSWD: [procs binary path]
+// ex. myuser ALL= NOPASSWD: /usr/local/bin/procs
+```
+
+Alternatively SUID bit can be used.
+
+```console
+$ sudo sh -c "chown root [procs binary path]; chmod u+s [procs binary path]"
+[sudo] password for ...:
+```
+
+This may be insecure because `procs` may have any security vulnerability.
 
 ### `less` setting
 
