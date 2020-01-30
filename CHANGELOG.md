@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.9.4...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.9.5...Unreleased) - ReleaseDate
+
+## [v0.9.5](https://github.com/dalance/procs/compare/v0.9.4...v0.9.5) - 2020-01-30
 
 * [Fixed] Remove --suid to fix security vulnerability (arbitrary command execution by root) [#38](https://github.com/dalance/procs/issues/38)
 
