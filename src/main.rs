@@ -80,9 +80,16 @@ pub struct Opt {
     #[structopt(short = "t", long = "tree")]
     pub tree: bool,
 
-    /// Watch mode
-    #[structopt(short = "w", long = "watch", value_name = "second")]
-    pub watch: Option<u64>,
+    /// Watch mode with default interval (1s)
+    #[structopt(short = "w", long = "watch")]
+    pub watch: bool,
+
+    /// Watch mode with custom interval
+    #[structopt(short = "W", long = "watch-interval", value_name = "second")]
+    pub watch_interval: Option<u64>,
+
+    #[structopt(skip)]
+    pub watch_mode: bool,
 
     /// Insert column to slot
     #[structopt(
@@ -446,7 +453,7 @@ fn filter_columns(
             visible_pids.push(*pid);
         }
 
-        if opt.watch.is_some() && visible_pids.len() >= term_info.height - 5 {
+        if opt.watch_mode && visible_pids.len() >= term_info.height - 5 {
             break;
         }
     }
@@ -493,14 +500,14 @@ fn display(
     let use_pager = if cfg!(target_os = "windows") {
         false
     } else {
-        match (opt.watch.as_ref(), opt.pager.as_ref(), &config.pager.mode) {
-            (Some(_), _, _) => false,
-            (None, Some(x), _) if x == "auto" => term_info.height < pager_threshold,
-            (None, Some(x), _) if x == "always" => true,
-            (None, Some(x), _) if x == "disable" => false,
-            (None, None, ConfigPagerMode::Auto) => term_info.height < pager_threshold,
-            (None, None, ConfigPagerMode::Always) => true,
-            (None, None, ConfigPagerMode::Disable) => false,
+        match (opt.watch_mode, opt.pager.as_ref(), &config.pager.mode) {
+            (true, _, _) => false,
+            (false, Some(x), _) if x == "auto" => term_info.height < pager_threshold,
+            (false, Some(x), _) if x == "always" => true,
+            (false, Some(x), _) if x == "disable" => false,
+            (false, None, ConfigPagerMode::Auto) => term_info.height < pager_threshold,
+            (false, None, ConfigPagerMode::Always) => true,
+            (false, None, ConfigPagerMode::Disable) => false,
             _ => false,
         }
     };
@@ -585,7 +592,8 @@ fn main() {
 
 #[cfg_attr(tarpaulin, skip)]
 fn run() -> Result<(), Error> {
-    let opt = Opt::from_args();
+    let mut opt = Opt::from_args();
+    opt.watch_mode = opt.watch || opt.watch_interval.is_some();
 
     if opt.config {
         run_config()
@@ -594,7 +602,8 @@ fn run() -> Result<(), Error> {
     } else {
         let config = get_config()?;
 
-        if let Some(interval) = opt.watch {
+        if opt.watch_mode {
+            let interval = opt.watch_interval.unwrap_or(1);
             run_watch(&opt, &config, interval)
         } else {
             run_default(&opt, &config)

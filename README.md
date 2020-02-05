@@ -180,8 +180,9 @@ This behavior and pager command can be specified by configuration file.
 
 ### Watch mode
 
-If `--watch <second>` option is used, procs automatically updates output like `top`.
-The update interval can be specified by the option argument.
+If `--watch` or `--watch-interval <second>` option is used, procs automatically updates output like `top`.
+If `--watch` is used, the update interval becomes 1s.
+The update interval can be specified by the argument of `--watch-interval`.
 There are some keyboard shortcuts to control.
 
 - `n`: Change the sort column to the next column
