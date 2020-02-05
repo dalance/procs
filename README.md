@@ -74,6 +74,14 @@ The correct repository (see above link for the most up-to-date information) shou
 sudo apk add procs
 ```
 
+### Scoop
+
+You can install by [scoop](https://scoop.sh/)
+
+```
+scoop install procs
+```
+
 ### Cargo
 
 You can install by [cargo](https://crates.io/crates/procs).
