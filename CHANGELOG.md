@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.9.5...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.9.6...Unreleased) - ReleaseDate
+
+## [v0.9.6](https://github.com/dalance/procs/compare/v0.9.5...v0.9.6) - 2020-02-05
 
 * [Changed] --watch and --watch-interval option [#36](https://github.com/dalance/procs/issues/36)
 
