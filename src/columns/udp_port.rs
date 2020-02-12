@@ -92,6 +92,7 @@ impl Column for UdpPort {
     crate::column_default_apply_visible!();
     crate::column_default_reset_width!();
     crate::column_default_update_width!();
+    crate::column_default_get_width!();
 }
 
 #[cfg_attr(tarpaulin, skip)]
@@ -138,4 +139,5 @@ impl Column for UdpPort {
     crate::column_default_apply_visible!();
     crate::column_default_reset_width!();
     crate::column_default_update_width!();
+    crate::column_default_get_width!();
 }

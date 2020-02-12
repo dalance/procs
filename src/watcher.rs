@@ -5,6 +5,7 @@ use crate::Opt;
 use anyhow::Error;
 use chrono::offset::Local;
 use getch::Getch;
+use std::collections::HashMap;
 use std::sync::mpsc::{channel, Receiver, Sender};
 use std::thread;
 use std::time::Duration;
@@ -98,6 +99,7 @@ impl Watcher {
 
         let mut sort_offset = 0;
         let mut sort_order = None;
+        let mut min_widths = HashMap::new();
         'outer: loop {
             let mut view = View::new(opt, config);
 
@@ -109,7 +111,10 @@ impl Watcher {
             }
 
             view.filter(opt, config);
-            view.adjust(config);
+            view.adjust(config, &min_widths);
+            for (i, c) in view.columns.iter().enumerate() {
+                min_widths.insert(i, c.column.get_width());
+            }
 
             Watcher::display_header(&view.term_info, opt, interval);
 

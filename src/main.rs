@@ -252,7 +252,7 @@ fn run_watch(opt: &Opt, config: &Config, interval: u64) -> Result<(), Error> {
 fn run_default(opt: &Opt, config: &Config) -> Result<(), Error> {
     let mut view = View::new(opt, config);
     view.filter(opt, config);
-    view.adjust(config);
+    view.adjust(config, &HashMap::new());
     view.display(opt, config);
     Ok(())
 }

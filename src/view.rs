@@ -8,6 +8,7 @@ use crate::util::{classify, find_column_kind, find_exact, find_partial, truncate
 use crate::Opt;
 #[cfg(not(target_os = "windows"))]
 use pager::Pager;
+use std::collections::HashMap;
 use std::time::Duration;
 
 pub struct SortInfo {
@@ -172,7 +173,7 @@ impl View {
         self.visible_pids = visible_pids;
     }
 
-    pub fn adjust(&mut self, config: &Config) {
+    pub fn adjust(&mut self, config: &Config, min_widths: &HashMap<usize, usize>) {
         for (i, ref mut c) in self.columns.iter_mut().enumerate() {
             let order = if i == self.sort_info.idx {
                 Some(self.sort_info.order.clone())
@@ -180,8 +181,8 @@ impl View {
                 None
             };
             c.column.apply_visible(&self.visible_pids);
-            c.column
-                .reset_width(order, &config, c.max_width, c.min_width);
+            let min_width = min_widths.get(&i).map(|x| Some(*x)).unwrap_or(c.min_width);
+            c.column.reset_width(order, &config, c.max_width, min_width);
             for pid in &self.visible_pids {
                 c.column.update_width(*pid, c.max_width);
             }

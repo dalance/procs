@@ -28,6 +28,7 @@ pub trait Column {
         min_width: Option<usize>,
     ) -> ();
     fn update_width(&mut self, pid: i32, max_width: Option<usize>) -> ();
+    fn get_width(&self) -> usize;
 }
 
 #[macro_export]
@@ -157,6 +158,15 @@ macro_rules! column_default_update_width {
 }
 
 #[macro_export]
+macro_rules! column_default_get_width {
+    () => {
+        fn get_width(&self) -> usize {
+            self.width
+        }
+    };
+}
+
+#[macro_export]
 macro_rules! column_default {
     ($x:ty) => {
         crate::column_default_display_header!();
@@ -168,5 +178,6 @@ macro_rules! column_default {
         crate::column_default_apply_visible!();
         crate::column_default_reset_width!();
         crate::column_default_update_width!();
+        crate::column_default_get_width!();
     };
 }

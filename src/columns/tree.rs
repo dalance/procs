@@ -205,6 +205,7 @@ impl Column for Tree {
     }
 
     crate::column_default_display_unit!();
+    crate::column_default_get_width!();
 }
 
 #[cfg(test)]
