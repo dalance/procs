@@ -43,8 +43,6 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         body: '[Changelog](https://github.com/dalance/procs/blob/master/CHANGELOG.md)'
-        files: |
-            '*.zip'
-            '*.rpm'
+        files: "*.zip\n*.rpm"
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
