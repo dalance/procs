@@ -82,6 +82,14 @@ You can install by [scoop](https://scoop.sh/)
 scoop install procs
 ```
 
+### RPM
+
+You can install by rpm command.
+
+```
+sudo rpm -i https://github.com/dalance/procs/releases/download/v0.9.9/procs-0.9.9-1.x86_64.rpm
+```
+
 ### Cargo
 
 You can install by [cargo](https://crates.io/crates/procs).

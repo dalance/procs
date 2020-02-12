@@ -22,6 +22,7 @@ pre-release-replacements = [
     {file="CHANGELOG.md", search="ReleaseDate", replace="{{date}}"},
     {file="CHANGELOG.md", search="Change Log", replace="Change Log\n\n## [Unreleased](https://github.com/dalance/procs/compare/v{{version}}...Unreleased) - ReleaseDate"},
     {file="README.md", search = "changelog-v[0-9\\.]+", replace = "changelog-v{{version}}" },
+    {file="README.md", search = "v[0-9\\.]+/procs-[0-9\\.]+", replace = "v{{version}}/procs-{{version}}" },
     {file="snapcraft.yaml", search="version v[0-9\\.]+", replace="version v{{version}}"},
 ]
 
