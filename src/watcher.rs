@@ -80,7 +80,6 @@ impl Watcher {
                 Local::now().format("%Y/%m/%d %H:%M:%S"),
             )
         };
-        let _ = term_info.term.clear_screen();
         let _ = term_info.term.write_line(&format!(
             "{}\n",
             console::style(header).white().bold().underlined()
@@ -100,6 +99,8 @@ impl Watcher {
         let mut sort_offset = 0;
         let mut sort_order = None;
         let mut min_widths = HashMap::new();
+        let mut prev_term_width = 0;
+        let mut prev_term_height = 0;
         'outer: loop {
             let mut view = View::new(opt, config);
 
@@ -116,6 +117,11 @@ impl Watcher {
                 min_widths.insert(i, c.column.get_width());
             }
 
+            let resized = prev_term_width != view.term_info.width
+                || prev_term_height != view.term_info.height;
+            if resized {
+                let _ = term_info.term.clear_screen();
+            }
             Watcher::display_header(&view.term_info, opt, interval);
 
             view.display(opt, config);
@@ -148,6 +154,9 @@ impl Watcher {
                     _ => (),
                 }
             }
+
+            prev_term_width = view.term_info.width;
+            prev_term_height = view.term_info.height;
         }
         Ok(())
     }

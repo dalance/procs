@@ -3,6 +3,7 @@
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.9.6...Unreleased) - ReleaseDate
 
 * [Added] widths of columns are adjusted over iteration in watch mode
+* [Fixed] suppress flicker in watch mode
 
 ## [v0.9.6](https://github.com/dalance/procs/compare/v0.9.5...v0.9.6) - 2020-02-05
 
