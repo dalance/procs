@@ -29,7 +29,10 @@ jobs:
         sudo apt-get -qq install musl-tools
     - name: Build for linux
       if: matrix.os == 'ubuntu-latest'
-      run: make release_lnx
+      run: |
+        make release_lnx
+        cargo install cargo-rpm
+        make release_rpm
     - name: Build for macOS
       if: matrix.os == 'macOS-latest'
       run: make release_mac
@@ -40,6 +43,8 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         body: '[Changelog](https://github.com/dalance/procs/blob/master/CHANGELOG.md)'
-        files: '*.zip'
+        files: |
+            '*.zip'
+            '*.rpm'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
