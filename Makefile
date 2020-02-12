@@ -31,3 +31,8 @@ release_win:
 release_mac:
 	cargo build --release --target=x86_64-apple-darwin
 	zip -j ${BIN_NAME}-v${VERSION}-x86_64-mac.zip target/x86_64-apple-darwin/release/${BIN_NAME}
+
+release_rpm:
+	cargo rpm build -v
+	cp target/x86_64-unknown-linux-musl/release/rpmbuild/RPMS/x86_64/* ./
+	ls

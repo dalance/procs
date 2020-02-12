@@ -62,3 +62,10 @@ users         = "0.9"
 
 [target.'cfg(target_os = "windows")'.dependencies]
 winapi        = { version = "0.3", features = ["handleapi", "minwindef", "psapi", "securitybaseapi", "tlhelp32", "winbase", "winnt"] }
+
+[package.metadata.rpm.cargo]
+buildflags = ["--release"]
+target = "x86_64-unknown-linux-musl"
+
+[package.metadata.rpm.targets]
+procs = { path = "/usr/bin/procs" }
