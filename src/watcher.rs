@@ -66,7 +66,7 @@ impl Watcher {
         });
     }
 
-    fn display_header(term_info: &TermInfo, opt: &Opt, interval: u64) {
+    fn display_header(term_info: &TermInfo, opt: &Opt, interval: u64) -> Result<(), Error> {
         let header = if opt.tree {
             format!(
                 " Interval: {}s, Last Updated: {} ( Quit: q or Ctrl-C )",
@@ -80,10 +80,13 @@ impl Watcher {
                 Local::now().format("%Y/%m/%d %H:%M:%S"),
             )
         };
-        let _ = term_info.term.write_line(&format!(
-            "{}\n",
+        term_info.write_line(&format!(
+            "{}",
             console::style(header).white().bold().underlined()
-        ));
+        ))?;
+
+        term_info.write_line("")?;
+        Ok(())
     }
 
     pub fn start(opt: &Opt, config: &Config, interval: u64) -> Result<(), Error> {
@@ -93,8 +96,8 @@ impl Watcher {
         let (tx_sleep, rx_sleep) = channel();
         Watcher::spawn_sleep(rx_sleep, tx_cmd, interval);
 
-        let term_info = TermInfo::new();
-        let _ = term_info.term.clear_screen();
+        let term_info = TermInfo::new(false);
+        term_info.clear_screen()?;
 
         let mut sort_offset = 0;
         let mut sort_order = None;
@@ -102,7 +105,7 @@ impl Watcher {
         let mut prev_term_width = 0;
         let mut prev_term_height = 0;
         'outer: loop {
-            let mut view = View::new(opt, config);
+            let mut view = View::new(opt, config, true);
 
             // Override sort_info by key
             let max_idx = view.columns.len();
@@ -120,18 +123,15 @@ impl Watcher {
             let resized = prev_term_width != view.term_info.width
                 || prev_term_height != view.term_info.height;
             if resized {
-                let _ = term_info.term.clear_screen();
+                term_info.clear_screen()?;
             }
-            Watcher::display_header(&view.term_info, opt, interval);
+            Watcher::display_header(&view.term_info, opt, interval)?;
 
-            view.display(opt, config);
+            view.display(opt, config)?;
 
-            let _ = view
-                .term_info
-                .term
-                .move_cursor_up((view.term_info.height - 1) as usize);
+            view.term_info.move_cursor_to(0, 0)?;
 
-            let _ = tx_sleep.send(Command::Sleep);
+            tx_sleep.send(Command::Sleep)?;
             let mut cmds = Vec::new();
             if let Ok(cmd) = rx_cmd.recv() {
                 cmds.push(cmd);
@@ -143,8 +143,8 @@ impl Watcher {
             for cmd in cmds {
                 match cmd {
                     Command::Quit => {
-                        let _ = tx_sleep.send(Command::Quit);
-                        view.term_info.term.clear_screen()?;
+                        tx_sleep.send(Command::Quit)?;
+                        view.term_info.clear_screen()?;
                         break 'outer;
                     }
                     Command::Next => sort_offset = (sort_offset + 1) % max_idx,

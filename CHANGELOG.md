@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.9.9...Unreleased) - ReleaseDate
 
+* [Fixed] garbage charactors in watch mode
+
 ## [v0.9.9](https://github.com/dalance/procs/compare/v0.9.8...v0.9.9) - 2020-02-12
 
 ## [v0.9.8](https://github.com/dalance/procs/compare/v0.9.7...v0.9.8) - 2020-02-12

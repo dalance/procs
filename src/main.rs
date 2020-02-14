@@ -159,7 +159,8 @@ fn get_config() -> Result<Config, Error> {
     let config: Config = if let Some(path) = cfg_path {
         let mut f = fs::File::open(&path).context(format!("failed to open file ({:?})", path))?;
         let mut s = String::new();
-        let _ = f.read_to_string(&mut s);
+        f.read_to_string(&mut s)
+            .context(format!("failed to read file ({:?})", path))?;
         toml::from_str(&s).context(format!("failed to parse toml ({:?})", path))?
     } else {
         toml::from_str(CONFIG_DEFAULT).unwrap()
@@ -250,10 +251,10 @@ fn run_watch(opt: &Opt, config: &Config, interval: u64) -> Result<(), Error> {
 }
 
 fn run_default(opt: &Opt, config: &Config) -> Result<(), Error> {
-    let mut view = View::new(opt, config);
+    let mut view = View::new(opt, config, false);
     view.filter(opt, config);
     view.adjust(config, &HashMap::new());
-    view.display(opt, config);
+    view.display(opt, config)?;
     Ok(())
 }
 

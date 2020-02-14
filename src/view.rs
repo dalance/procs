@@ -6,6 +6,7 @@ use crate::style::{apply_color, apply_style};
 use crate::term_info::TermInfo;
 use crate::util::{classify, find_column_kind, find_exact, find_partial, truncate, KeywordClass};
 use crate::Opt;
+use anyhow::Error;
 #[cfg(not(target_os = "windows"))]
 use pager::Pager;
 use std::collections::HashMap;
@@ -24,7 +25,7 @@ pub struct View {
 }
 
 impl View {
-    pub fn new(opt: &Opt, config: &Config) -> Self {
+    pub fn new(opt: &Opt, config: &Config, clear_by_line: bool) -> Self {
         let mut slot_idx = 0;
         let mut columns = Vec::new();
         if opt.tree {
@@ -92,7 +93,7 @@ impl View {
             }
         }
 
-        let term_info = TermInfo::new();
+        let term_info = TermInfo::new(clear_by_line);
         let sort_info = View::get_sort_info(opt, config, &columns);
 
         View {
@@ -189,7 +190,7 @@ impl View {
         }
     }
 
-    pub fn display(&mut self, opt: &Opt, config: &Config) {
+    pub fn display(&mut self, opt: &Opt, config: &Config) -> Result<(), Error> {
         let use_terminal = console::user_attended();
 
         // +3 means header/unit line and next prompt
@@ -240,15 +241,17 @@ impl View {
             _ => (),
         }
 
-        self.display_header(config);
-        self.display_unit(&config);
+        self.display_header(config)?;
+        self.display_unit(&config)?;
 
         for pid in &self.visible_pids {
-            self.display_content(&config, *pid);
+            self.display_content(&config, *pid)?;
         }
+
+        Ok(())
     }
 
-    fn display_header(&self, config: &Config) {
+    fn display_header(&self, config: &Config) -> Result<(), Error> {
         let mut row = String::from("");
         for (i, c) in self.columns.iter().enumerate() {
             let order = if i == self.sort_info.idx {
@@ -267,10 +270,11 @@ impl View {
         }
         row = row.trim_end().to_string();
         row = truncate(&row, self.term_info.width).to_string();
-        let _ = self.term_info.term.write_line(&row);
+        self.term_info.write_line(&row)?;
+        Ok(())
     }
 
-    fn display_unit(&self, config: &Config) {
+    fn display_unit(&self, config: &Config) -> Result<(), Error> {
         let mut row = String::from("");
         for c in &self.columns {
             row = format!(
@@ -281,10 +285,11 @@ impl View {
         }
         row = row.trim_end().to_string();
         row = truncate(&row, self.term_info.width).to_string();
-        let _ = self.term_info.term.write_line(&row);
+        self.term_info.write_line(&row)?;
+        Ok(())
     }
 
-    fn display_content(&self, config: &Config, pid: i32) {
+    fn display_content(&self, config: &Config, pid: i32) -> Result<(), Error> {
         let mut row = String::from("");
         for c in &self.columns {
             row = format!(
@@ -299,7 +304,8 @@ impl View {
         }
         row = row.trim_end().to_string();
         row = truncate(&row, self.term_info.width).to_string();
-        let _ = self.term_info.term.write_line(&row);
+        self.term_info.write_line(&row)?;
+        Ok(())
     }
 
     fn get_sort_info(opt: &Opt, config: &Config, cols: &[ColumnInfo]) -> SortInfo {
