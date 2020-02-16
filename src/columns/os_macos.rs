@@ -41,6 +41,7 @@ pub mod write_bytes;
 pub use self::command::Command;
 pub use self::context_sw::ContextSw;
 pub use self::cpu_time::CpuTime;
+#[cfg(feature = "docker")]
 pub use self::docker::Docker;
 pub use self::gid::Gid;
 pub use self::gid_real::GidReal;
