@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.9.9...Unreleased) - ReleaseDate
 
+* [Added] cargo feature to build without docker dependencies [#41](https://github.com/dalance/procs/issues/41)
 * [Changed] remove unmaintained crates [#41](https://github.com/dalance/procs/issues/41)
 * [Fixed] garbage charactors in watch mode
 

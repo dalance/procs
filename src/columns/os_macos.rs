@@ -1,6 +1,7 @@
 pub mod command;
 pub mod context_sw;
 pub mod cpu_time;
+#[cfg(feature = "docker")]
 pub mod docker;
 pub mod gid;
 pub mod gid_real;
@@ -90,6 +91,7 @@ pub enum ConfigColumnKind {
     Command,
     ContextSw,
     CpuTime,
+    #[cfg(feature = "docker")]
     Docker,
     Gid,
     GidReal,
@@ -134,7 +136,7 @@ pub enum ConfigColumnKind {
 
 pub fn gen_column(
     kind: &ConfigColumnKind,
-    docker_path: &str,
+    _docker_path: &str,
     separator: &str,
     abbr_sid: bool,
     tree_symbols: &[String; 5],
@@ -143,7 +145,8 @@ pub fn gen_column(
         ConfigColumnKind::Command => Box::new(Command::new()),
         ConfigColumnKind::ContextSw => Box::new(ContextSw::new()),
         ConfigColumnKind::CpuTime => Box::new(CpuTime::new()),
-        ConfigColumnKind::Docker => Box::new(Docker::new(docker_path)),
+        #[cfg(feature = "docker")]
+        ConfigColumnKind::Docker => Box::new(Docker::new(_docker_path)),
         ConfigColumnKind::Gid => Box::new(Gid::new(abbr_sid)),
         ConfigColumnKind::GidReal => Box::new(GidReal::new()),
         ConfigColumnKind::GidSaved => Box::new(GidSaved::new()),
@@ -200,6 +203,7 @@ lazy_static! {
             ConfigColumnKind::CpuTime,
             ("CpuTime", "Cumulative CPU time")
         ),
+        #[cfg(feature = "docker")]
         (
             ConfigColumnKind::Docker,
             ("Docker", "Docker container name")
@@ -277,6 +281,7 @@ lazy_static! {
 // CONFIG_DEFAULT
 // ---------------------------------------------------------------------------------------------------------------------
 
+#[cfg(feature = "docker")]
 pub static CONFIG_DEFAULT: &str = r#"
 [[columns]]
 kind = "Pid"
@@ -383,6 +388,120 @@ kind = "Docker"
 style = "BrightGreen"
 numeric_search = false
 nonnumeric_search = true
+[[columns]]
+kind = "Separator"
+style = "White"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "Command"
+style = "BrightWhite"
+numeric_search = false
+nonnumeric_search = true
+"#;
+
+#[cfg(not(feature = "docker"))]
+pub static CONFIG_DEFAULT: &str = r#"
+[[columns]]
+kind = "Pid"
+style = "BrightYellow"
+numeric_search = true
+nonnumeric_search = false
+[[columns]]
+kind = "User"
+style = "BrightGreen"
+numeric_search = false
+nonnumeric_search = true
+[[columns]]
+kind = "Separator"
+style = "White"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "State"
+style = "ByState"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "Nice"
+style = "BrightMagenta"
+numeric_search = false
+nonnumeric_search = false
+align = "Right"
+[[columns]]
+kind = "Tty"
+style = "BrightWhite"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "UsageCpu"
+style = "ByPercentage"
+numeric_search = false
+nonnumeric_search = false
+align = "Right"
+[[columns]]
+kind = "UsageMem"
+style = "ByPercentage"
+numeric_search = false
+nonnumeric_search = false
+align = "Right"
+[[columns]]
+kind = "VmSize"
+style = "ByUnit"
+numeric_search = false
+nonnumeric_search = false
+align = "Right"
+[[columns]]
+kind = "VmRss"
+style = "ByUnit"
+numeric_search = false
+nonnumeric_search = false
+align = "Right"
+[[columns]]
+kind = "TcpPort"
+style = "BrightCyan"
+numeric_search = true
+nonnumeric_search = false
+max_width = 20
+[[columns]]
+kind = "UdpPort"
+style = "BrightCyan"
+numeric_search = true
+nonnumeric_search = false
+max_width = 20
+[[columns]]
+kind = "ReadBytes"
+style = "ByUnit"
+numeric_search = false
+nonnumeric_search = false
+align = "Right"
+[[columns]]
+kind = "WriteBytes"
+style = "ByUnit"
+numeric_search = false
+nonnumeric_search = false
+align = "Right"
+[[columns]]
+kind = "Slot"
+style = "ByUnit"
+numeric_search = false
+nonnumeric_search = false
+align = "Right"
+[[columns]]
+kind = "Separator"
+style = "White"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "CpuTime"
+style = "BrightCyan"
+numeric_search = false
+nonnumeric_search = false
+[[columns]]
+kind = "StartTime"
+style = "BrightMagenta"
+numeric_search = false
+nonnumeric_search = false
 [[columns]]
 kind = "Separator"
 style = "White"

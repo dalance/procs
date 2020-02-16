@@ -26,6 +26,10 @@ pre-release-replacements = [
     {file="snapcraft.yaml", search="version v[0-9\\.]+", replace="version v{{version}}"},
 ]
 
+[features]
+default = ["docker"]
+docker = ["dockworker"]
+
 [badges]
 travis-ci = { repository = "dalance/procs" }
 codecov   = { repository = "dalance/procs", branch = "master", service = "github" }
@@ -36,7 +40,7 @@ byte-unit     = "3"
 console       = "0.9.2"
 chrono        = "0.4"
 directories   = "2.0"
-dockworker    = "0.0.15"
+dockworker    = { version = "0.0.15", optional = true }
 getch         = "0.2"
 lazy_static   = "1.2"
 libc          = "0.2"
