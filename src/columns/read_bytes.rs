@@ -1,4 +1,5 @@
 use crate::process::ProcessInfo;
+use crate::util::bytify;
 use crate::{column_default, Column};
 use std::cmp;
 use std::collections::HashMap;
@@ -34,11 +35,7 @@ impl Column for ReadBytes {
                 - proc.prev_io.as_ref().unwrap().read_bytes)
                 * 1000
                 / interval_ms;
-            let (size, unit) = unbytify::bytify(io);
-            (
-                format!("{}{}", size, unit.replace("i", "").replace("B", "")),
-                io,
-            )
+            (bytify(io), io)
         } else {
             (String::from(""), 0)
         };
@@ -60,11 +57,7 @@ impl Column for ReadBytes {
                 - proc.prev_res.as_ref().unwrap().ri_diskio_bytesread)
                 * 1000
                 / interval_ms;
-            let (size, unit) = unbytify::bytify(io);
-            (
-                format!("{}{}", size, unit.replace("i", "").replace("B", "")),
-                io,
-            )
+            (bytify(io), io)
         } else {
             (String::from(""), 0)
         };
@@ -82,10 +75,9 @@ impl Column for ReadBytes {
     fn add(&mut self, proc: &ProcessInfo) {
         let interval_ms = proc.interval.as_secs() + u64::from(proc.interval.subsec_millis());
         let io = (proc.disk_info.curr_read - proc.disk_info.prev_read) * 1000 / interval_ms;
-        let (size, unit) = unbytify::bytify(io);
 
-        let fmt_content = format!("{}{}", size, unit.replace("i", "").replace("B", ""));
         let raw_content = io;
+        let fmt_content = bytify(raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);

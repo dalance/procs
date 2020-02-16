@@ -1,4 +1,5 @@
 use crate::process::ProcessInfo;
+use crate::util::bytify;
 use crate::{column_default, Column};
 use std::cmp;
 use std::collections::HashMap;
@@ -29,8 +30,7 @@ impl VmRss {
 impl Column for VmRss {
     fn add(&mut self, proc: &ProcessInfo) {
         let raw_content = proc.curr_proc.stat.rss_bytes() as u64;
-        let (size, unit) = unbytify::bytify(raw_content);
-        let fmt_content = format!("{}{}", size, unit.replace("i", "").replace("B", ""));
+        let fmt_content = bytify(raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);
@@ -44,8 +44,7 @@ impl Column for VmRss {
 impl Column for VmRss {
     fn add(&mut self, proc: &ProcessInfo) {
         let raw_content = proc.curr_task.ptinfo.pti_resident_size;
-        let (size, unit) = unbytify::bytify(raw_content);
-        let fmt_content = format!("{}{}", size, unit.replace("i", "").replace("B", ""));
+        let fmt_content = bytify(raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);
@@ -58,10 +57,8 @@ impl Column for VmRss {
 #[cfg(target_os = "windows")]
 impl Column for VmRss {
     fn add(&mut self, proc: &ProcessInfo) {
-        let x = proc.memory_info.working_set_size;
-        let (size, unit) = unbytify::bytify(x);
-        let fmt_content = format!("{}{}", size, unit.replace("i", "").replace("B", ""));
-        let raw_content = x;
+        let raw_content = proc.memory_info.working_set_size;
+        let fmt_content = bytify(raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);

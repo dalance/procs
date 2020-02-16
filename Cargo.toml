@@ -32,6 +32,7 @@ codecov   = { repository = "dalance/procs", branch = "master", service = "github
 
 [dependencies]
 anyhow        = "1.0"
+byte-unit     = "3"
 console       = "0.9.2"
 chrono        = "0.4"
 directories   = "2.0"
@@ -43,23 +44,22 @@ serde         = "1.0"
 serde_derive  = "1.0"
 structopt     = "0.3"
 toml          = "0.5"
-unbytify      = "0.2"
 unicode-width = "0.1"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 pager         = "0.15"
 process_path  = "0.1"
 procfs        = "0.7.1"
-quale         = "1.0"
 users         = "0.9"
+which         = "3"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 libproc       = "0.5"
 errno         = "0.2"
 pager         = "0.15"
 process_path  = "0.1"
-quale         = "1.0"
 users         = "0.9"
+which         = "3"
 
 [target.'cfg(target_os = "windows")'.dependencies]
 winapi        = { version = "0.3", features = ["handleapi", "minwindef", "psapi", "securitybaseapi", "tlhelp32", "winbase", "winnt"] }

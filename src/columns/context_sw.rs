@@ -1,4 +1,5 @@
 use crate::process::ProcessInfo;
+use crate::util::bytify;
 use crate::{column_default, Column};
 use std::cmp;
 use std::collections::HashMap;
@@ -34,11 +35,7 @@ impl Column for ContextSw {
             {
                 let sw = status.voluntary_ctxt_switches.unwrap()
                     + status.nonvoluntary_ctxt_switches.unwrap();
-                let (size, unit) = unbytify::bytify(sw);
-                (
-                    format!("{}{}", size, unit.replace("i", "").replace("B", "")),
-                    sw,
-                )
+                (bytify(sw), sw)
             } else {
                 (String::from(""), 0)
             }
@@ -57,10 +54,8 @@ impl Column for ContextSw {
 #[cfg(target_os = "macos")]
 impl Column for ContextSw {
     fn add(&mut self, proc: &ProcessInfo) {
-        let sw = proc.curr_task.ptinfo.pti_csw as u64;
-        let (size, unit) = unbytify::bytify(sw);
-        let fmt_content = format!("{}{}", size, unit.replace("i", "").replace("B", ""));
-        let raw_content = sw;
+        let raw_content = proc.curr_task.ptinfo.pti_csw as u64;
+        let fmt_content = bytify(raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);

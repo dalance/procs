@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.9.9...Unreleased) - ReleaseDate
 
+* [Changed] remove unmaintained crates [#41](https://github.com/dalance/procs/issues/41)
 * [Fixed] garbage charactors in watch mode
 
 ## [v0.9.9](https://github.com/dalance/procs/compare/v0.9.8...v0.9.9) - 2020-02-12

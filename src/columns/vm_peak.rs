@@ -1,4 +1,5 @@
 use crate::process::ProcessInfo;
+use crate::util::bytify;
 use crate::{column_default, Column};
 use std::cmp;
 use std::collections::HashMap;
@@ -31,11 +32,7 @@ impl Column for VmPeak {
         let (raw_content, fmt_content) = if let Some(ref curr_status) = proc.curr_status {
             if let Some(val) = curr_status.vmpeak {
                 let val = val.saturating_mul(1024);
-                let (size, unit) = unbytify::bytify(val);
-                (
-                    val,
-                    format!("{}{}", size, unit.replace("i", "").replace("B", "")),
-                )
+                (val, bytify(val))
             } else {
                 (0, String::from(""))
             }
@@ -54,10 +51,8 @@ impl Column for VmPeak {
 #[cfg(target_os = "windows")]
 impl Column for VmPeak {
     fn add(&mut self, proc: &ProcessInfo) {
-        let x = proc.memory_info.peak_page_file_usage;
-        let (size, unit) = unbytify::bytify(x);
-        let fmt_content = format!("{}{}", size, unit.replace("i", "").replace("B", ""));
-        let raw_content = x;
+        let raw_content = proc.memory_info.peak_page_file_usage;
+        let fmt_content = bytify(raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);

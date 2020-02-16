@@ -371,7 +371,7 @@ impl View {
     fn pager(config: &Config) {
         if let Some(ref pager) = config.pager.command {
             Pager::with_pager(&pager).setup();
-        } else if quale::which("less").is_some() {
+        } else if which::which("less").is_ok() {
             Pager::with_pager("less -SR").setup();
         } else {
             Pager::with_pager("more -f").setup();

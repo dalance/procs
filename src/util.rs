@@ -1,6 +1,7 @@
 use crate::column::Column;
 use crate::columns::{ConfigColumnKind, KIND_LIST};
 use crate::config::{ConfigColumnAlign, ConfigSearchLogic};
+use byte_unit::Byte;
 use std::borrow::Cow;
 use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 
@@ -211,4 +212,13 @@ pub fn format_sid(sid: &[u64], abbr: bool) -> String {
     }
 
     ret
+}
+
+pub fn bytify(x: u64) -> String {
+    let byte = Byte::from_bytes(x as u128);
+    let byte = byte.get_appropriate_unit(true);
+    byte.format(3)
+        .replace(" ", "")
+        .replace("B", "")
+        .replace("i", "")
 }

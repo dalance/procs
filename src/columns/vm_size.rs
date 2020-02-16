@@ -1,4 +1,5 @@
 use crate::process::ProcessInfo;
+use crate::util::bytify;
 use crate::{column_default, Column};
 use std::cmp;
 use std::collections::HashMap;
@@ -29,8 +30,7 @@ impl VmSize {
 impl Column for VmSize {
     fn add(&mut self, proc: &ProcessInfo) {
         let raw_content = proc.curr_proc.stat.vsize;
-        let (size, unit) = unbytify::bytify(raw_content);
-        let fmt_content = format!("{}{}", size, unit.replace("i", "").replace("B", ""));
+        let fmt_content = bytify(raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);
@@ -44,8 +44,7 @@ impl Column for VmSize {
 impl Column for VmSize {
     fn add(&mut self, proc: &ProcessInfo) {
         let raw_content = proc.curr_task.ptinfo.pti_virtual_size;
-        let (size, unit) = unbytify::bytify(raw_content);
-        let fmt_content = format!("{}{}", size, unit.replace("i", "").replace("B", ""));
+        let fmt_content = bytify(raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);
@@ -58,10 +57,8 @@ impl Column for VmSize {
 #[cfg(target_os = "windows")]
 impl Column for VmSize {
     fn add(&mut self, proc: &ProcessInfo) {
-        let x = proc.memory_info.private_usage;
-        let (size, unit) = unbytify::bytify(x);
-        let fmt_content = format!("{}{}", size, unit.replace("i", "").replace("B", ""));
-        let raw_content = x;
+        let raw_content = proc.memory_info.private_usage;
+        let fmt_content = bytify(raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);

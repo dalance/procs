@@ -1,4 +1,5 @@
 use crate::process::ProcessInfo;
+use crate::util::bytify;
 use crate::{column_default, Column};
 use std::cmp;
 use std::collections::HashMap;
@@ -30,11 +31,7 @@ impl Column for VmLock {
         let (raw_content, fmt_content) = if let Some(ref curr_status) = proc.curr_status {
             if let Some(val) = curr_status.vmlck {
                 let val = val.saturating_mul(1024);
-                let (size, unit) = unbytify::bytify(val);
-                (
-                    val,
-                    format!("{}{}", size, unit.replace("i", "").replace("B", "")),
-                )
+                (val, bytify(val))
             } else {
                 (0, String::from(""))
             }
