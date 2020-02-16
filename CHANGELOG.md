@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.9.9...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.9.10...Unreleased) - ReleaseDate
+
+## [v0.9.10](https://github.com/dalance/procs/compare/v0.9.9...v0.9.10) - 2020-02-16
 
 * [Added] cargo feature to build without docker dependencies [#41](https://github.com/dalance/procs/issues/41)
 * [Changed] remove unmaintained crates [#41](https://github.com/dalance/procs/issues/41)
