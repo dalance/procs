@@ -21,6 +21,6 @@ jobs:
       uses: actions/checkout@v1
     - name: Run tests
       run: cargo test
-    - name: Build with feature variation
+    - name: Run tests feature variation
       run: |
-        cargo build --no-default-features
+        cargo test --no-default-features
