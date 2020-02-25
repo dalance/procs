@@ -380,4 +380,30 @@ impl View {
 
     #[cfg(target_os = "windows")]
     fn pager(_config: &Config) {}
+
+    pub fn inc_sort_column(&mut self) -> usize {
+        let current = self.sort_info.idx;
+        let max_idx = self.columns.len();
+
+        for i in 1..max_idx {
+            let idx = (current + i) % max_idx;
+            if self.columns[idx].column.sortable() {
+                return idx;
+            }
+        }
+        return current;
+    }
+
+    pub fn dec_sort_column(&mut self) -> usize {
+        let current = self.sort_info.idx;
+        let max_idx = self.columns.len();
+
+        for i in 1..max_idx {
+            let idx = (current + max_idx - i) % max_idx;
+            if self.columns[idx].column.sortable() {
+                return idx;
+            }
+        }
+        return current;
+    }
 }

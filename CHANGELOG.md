@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.9.11...Unreleased) - ReleaseDate
 
+* [Fixed] separator's meaningless sort [#42](https://github.com/dalance/procs/issues/42)
+
 ## [v0.9.11](https://github.com/dalance/procs/compare/v0.9.10...v0.9.11) - 2020-02-16
 
 ## [v0.9.10](https://github.com/dalance/procs/compare/v0.9.9...v0.9.10) - 2020-02-16

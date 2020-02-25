@@ -8,6 +8,10 @@ pub trait Column {
         true
     }
 
+    fn sortable(&self) -> bool {
+        true
+    }
+
     fn display_header(
         &self,
         align: &ConfigColumnAlign,

@@ -99,7 +99,7 @@ impl Watcher {
         let term_info = TermInfo::new(false);
         term_info.clear_screen()?;
 
-        let mut sort_offset = 0;
+        let mut sort_idx = None;
         let mut sort_order = None;
         let mut min_widths = HashMap::new();
         let mut prev_term_width = 0;
@@ -108,9 +108,8 @@ impl Watcher {
             let mut view = View::new(opt, config, true);
 
             // Override sort_info by key
-            let max_idx = view.columns.len();
             if !opt.tree {
-                view.sort_info.idx = (view.sort_info.idx + sort_offset) % max_idx;
+                view.sort_info.idx = sort_idx.unwrap_or(view.sort_info.idx);
                 view.sort_info.order = sort_order.clone().unwrap_or(view.sort_info.order);
             }
 
@@ -147,8 +146,8 @@ impl Watcher {
                         view.term_info.clear_screen()?;
                         break 'outer;
                     }
-                    Command::Next => sort_offset = (sort_offset + 1) % max_idx,
-                    Command::Prev => sort_offset = (sort_offset + max_idx - 1) % max_idx,
+                    Command::Next => sort_idx = Some(view.inc_sort_column()),
+                    Command::Prev => sort_idx = Some(view.dec_sort_column()),
                     Command::Ascending => sort_order = Some(ConfigSortOrder::Ascending),
                     Command::Descending => sort_order = Some(ConfigSortOrder::Descending),
                     _ => (),

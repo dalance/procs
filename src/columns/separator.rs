@@ -36,5 +36,9 @@ impl Column for Separator {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
+    fn sortable(&self) -> bool {
+        false
+    }
+
     column_default!(String);
 }
