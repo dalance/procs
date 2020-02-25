@@ -128,6 +128,7 @@ impl Watcher {
 
             view.display(opt, config)?;
 
+            view.term_info.clear_rest_lines()?;
             view.term_info.move_cursor_to(0, 0)?;
 
             tx_sleep.send(Command::Sleep)?;

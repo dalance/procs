@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.9.12...Unreleased) - ReleaseDate
 
+* [Fixed] garbage lines in watch mode
+
 ## [v0.9.12](https://github.com/dalance/procs/compare/v0.9.11...v0.9.12) - 2020-02-25
 
 * [Fixed] separator's meaningless sort [#42](https://github.com/dalance/procs/issues/42)

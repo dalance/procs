@@ -40,4 +40,12 @@ impl TermInfo {
         self.term.move_cursor_to(x, y)?;
         Ok(())
     }
+
+    pub fn clear_rest_lines(&self) -> Result<(), Error> {
+        for _ in 0..self.height {
+            self.term.clear_line()?;
+            self.term.move_cursor_down(1)?;
+        }
+        Ok(())
+    }
 }
