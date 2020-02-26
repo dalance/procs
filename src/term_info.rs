@@ -8,6 +8,7 @@ pub struct TermInfo {
     pub clear_by_line: bool,
 }
 
+#[cfg_attr(tarpaulin, skip)]
 impl TermInfo {
     pub fn new(clear_by_line: bool) -> Self {
         let term = Term::stdout();
