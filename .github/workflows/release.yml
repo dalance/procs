@@ -31,7 +31,7 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       run: |
         make release_lnx
-        cargo install cargo-rpm
+        cargo install --locked cargo-rpm
         make release_rpm
     - name: Build for macOS
       if: matrix.os == 'macOS-latest'
