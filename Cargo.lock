@@ -959,7 +959,7 @@ dependencies = [
 
 [[package]]
 name = "procs"
-version = "0.9.17-pre"
+version = "0.9.17"
 dependencies = [
  "anyhow",
  "byte-unit",
