@@ -49,6 +49,7 @@ serde_derive  = "1.0"
 structopt     = "0.3"
 toml          = "0.5"
 unicode-width = "0.1"
+quote         = "=1.0.2" # workaround for https://github.com/withoutboats/failure_derive/issues/13
 
 [target.'cfg(target_os = "linux")'.dependencies]
 pager         = "0.15"

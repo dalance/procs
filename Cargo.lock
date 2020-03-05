@@ -975,6 +975,7 @@ dependencies = [
  "pager",
  "process_path",
  "procfs",
+ "quote",
  "serde",
  "serde_derive",
  "structopt",
