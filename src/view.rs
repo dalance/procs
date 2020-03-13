@@ -2,7 +2,7 @@ use crate::column::Column;
 use crate::columns::*;
 use crate::config::*;
 use crate::process::collect_proc;
-use crate::style::{apply_color, apply_style};
+use crate::style::{apply_color, apply_style, color_to_column_style};
 use crate::term_info::TermInfo;
 use crate::util::{classify, find_column_kind, find_exact, find_partial, truncate, KeywordClass};
 use crate::Opt;
@@ -41,7 +41,7 @@ impl View {
                 columns.push(ColumnInfo {
                     column,
                     kind,
-                    style: ConfigColumnStyle::BrightWhite,
+                    style: color_to_column_style(&config.style.tree),
                     nonnumeric_search: false,
                     numeric_search: false,
                     align: ConfigColumnAlign::Left,

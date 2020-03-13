@@ -277,6 +277,7 @@ align = "Right"
 [style]
 header = "BrightWhite"
 unit = "BrightWhite"
+tree = "BrightWhite"
 
 [style.by_percentage]
 color_000 = "BrightBlue"
@@ -447,6 +448,7 @@ The available list of color is below.
 | ------------- | --------- | ---------------- | ------------- | -------------------- |
 |               | header    | See `color` list | BrightWhite   | Header color         |
 |               | unit      | See `color` list | BrightWhite   | Unit color           |
+|               | tree      | See `color` list | BrightWhite   | Tree color           |
 | by_percentage | color_000 | See `color` list | BrightBlue    | Color at   0% -  25% |
 | by_percentage | color_025 | See `color` list | BrightGreen   | Color at  25% -  50% |
 | by_percentage | color_050 | See `color` list | BrightYellow  | Color at  50% -  75% |

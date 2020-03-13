@@ -64,6 +64,10 @@ fn default_tree_symbols() -> [String; 5] {
     ]
 }
 
+fn default_color_bright_white() -> ConfigColor {
+    ConfigColor::BrightWhite
+}
+
 // ---------------------------------------------------------------------------------------------------------------------
 // ColumnInfo
 // ---------------------------------------------------------------------------------------------------------------------
@@ -166,8 +170,12 @@ pub struct ConfigColumn {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ConfigStyle {
+    #[serde(default = "default_color_bright_white")]
     pub header: ConfigColor,
+    #[serde(default = "default_color_bright_white")]
     pub unit: ConfigColor,
+    #[serde(default = "default_color_bright_white")]
+    pub tree: ConfigColor,
     #[serde(default)]
     pub by_percentage: ConfigStyleByPercentage,
     #[serde(default)]
@@ -181,6 +189,7 @@ impl Default for ConfigStyle {
         ConfigStyle {
             header: ConfigColor::BrightWhite,
             unit: ConfigColor::BrightWhite,
+            tree: ConfigColor::BrightWhite,
             by_percentage: Default::default(),
             by_state: Default::default(),
             by_unit: Default::default(),

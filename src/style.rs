@@ -107,3 +107,24 @@ pub fn apply_style(x: String, cs: &ConfigColumnStyle, s: &ConfigStyle) -> Styled
         ConfigColumnStyle::ByUnit => apply_style_by_unit(x, s),
     }
 }
+
+pub fn color_to_column_style(c: &ConfigColor) -> ConfigColumnStyle {
+    match c {
+        ConfigColor::BrightBlack => ConfigColumnStyle::BrightBlack,
+        ConfigColor::BrightRed => ConfigColumnStyle::BrightRed,
+        ConfigColor::BrightGreen => ConfigColumnStyle::BrightGreen,
+        ConfigColor::BrightYellow => ConfigColumnStyle::BrightYellow,
+        ConfigColor::BrightBlue => ConfigColumnStyle::BrightBlue,
+        ConfigColor::BrightMagenta => ConfigColumnStyle::BrightMagenta,
+        ConfigColor::BrightCyan => ConfigColumnStyle::BrightCyan,
+        ConfigColor::BrightWhite => ConfigColumnStyle::BrightWhite,
+        ConfigColor::Black => ConfigColumnStyle::Black,
+        ConfigColor::Red => ConfigColumnStyle::Red,
+        ConfigColor::Green => ConfigColumnStyle::Green,
+        ConfigColor::Yellow => ConfigColumnStyle::Yellow,
+        ConfigColor::Blue => ConfigColumnStyle::Blue,
+        ConfigColor::Magenta => ConfigColumnStyle::Magenta,
+        ConfigColor::Cyan => ConfigColumnStyle::Cyan,
+        ConfigColor::White => ConfigColumnStyle::White,
+    }
+}
