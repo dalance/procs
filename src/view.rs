@@ -241,11 +241,13 @@ impl View {
             _ => (),
         }
 
-        self.display_header(config)?;
-        self.display_unit(&config)?;
+        // Ignore display_* error
+        //   `Broken pipe` may occur at pager mode. It can be ignored safely.
+        let _ = self.display_header(config);
+        let _ = self.display_unit(&config);
 
         for pid in &self.visible_pids {
-            self.display_content(&config, *pid)?;
+            let _ = self.display_content(&config, *pid);
         }
 
         Ok(())

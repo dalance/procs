@@ -4,6 +4,7 @@
 
 * [Added] Tree color config [#50](https://github.com/dalance/procs/issues/50)
 * [Added] Black color and style [#49](https://github.com/dalance/procs/issues/49)
+* [Fixed] broken pipe error
 
 ## [v0.9.19](https://github.com/dalance/procs/compare/v0.9.18...v0.9.19) - 2020-03-08
 
