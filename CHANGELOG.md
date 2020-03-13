@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.9.19...Unreleased) - ReleaseDate
 
+* [Added] Black color and style [#49](https://github.com/dalance/procs/issues/49)
+
 ## [v0.9.19](https://github.com/dalance/procs/compare/v0.9.18...v0.9.19) - 2020-03-08
 
 ## [v0.9.18](https://github.com/dalance/procs/compare/v0.9.17...v0.9.18) - 2020-03-05

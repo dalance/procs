@@ -413,6 +413,7 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 
 #### `style` list
 
+- BrightBlack
 - BrightRed
 - BrightGreen
 - BrightYellow
@@ -420,6 +421,7 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 - BrightMagenta
 - BrightCyan
 - BrightWhite
+- Black
 - Red
 - Green
 - Yellow
@@ -468,6 +470,7 @@ The available list of color is below.
 
 #### `color` list
 
+- BrightBlack
 - BrightRed
 - BrightGreen
 - BrightYellow
@@ -475,6 +478,7 @@ The available list of color is below.
 - BrightMagenta
 - BrightCyan
 - BrightWhite
+- Black
 - Red
 - Green
 - Yellow

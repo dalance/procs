@@ -102,6 +102,7 @@ pub struct Config {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ConfigColor {
+    BrightBlack,
     BrightRed,
     BrightGreen,
     BrightYellow,
@@ -109,6 +110,7 @@ pub enum ConfigColor {
     BrightMagenta,
     BrightCyan,
     BrightWhite,
+    Black,
     Red,
     Green,
     Yellow,
@@ -120,6 +122,7 @@ pub enum ConfigColor {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ConfigColumnStyle {
+    BrightBlack,
     BrightRed,
     BrightGreen,
     BrightYellow,
@@ -127,6 +130,7 @@ pub enum ConfigColumnStyle {
     BrightMagenta,
     BrightCyan,
     BrightWhite,
+    Black,
     Red,
     Green,
     Yellow,

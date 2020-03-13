@@ -3,6 +3,7 @@ use console::{Style, StyledObject};
 use lazy_static::lazy_static;
 
 lazy_static! {
+    static ref BRIGHT_BLACK: Style = Style::new().black().bold();
     static ref BRIGHT_RED: Style = Style::new().red().bold();
     static ref BRIGHT_GREEN: Style = Style::new().green().bold();
     static ref BRIGHT_YELLOW: Style = Style::new().yellow().bold();
@@ -10,6 +11,7 @@ lazy_static! {
     static ref BRIGHT_MAGENTA: Style = Style::new().magenta().bold();
     static ref BRIGHT_CYAN: Style = Style::new().cyan().bold();
     static ref BRIGHT_WHITE: Style = Style::new().white().bold();
+    static ref BLACK: Style = Style::new().black();
     static ref RED: Style = Style::new().red();
     static ref GREEN: Style = Style::new().green();
     static ref YELLOW: Style = Style::new().yellow();
@@ -63,6 +65,7 @@ fn apply_style_by_percentage(x: String, s: &ConfigStyle) -> StyledObject<String>
 
 pub fn apply_color(x: String, c: &ConfigColor) -> StyledObject<String> {
     match c {
+        ConfigColor::BrightBlack => BRIGHT_BLACK.apply_to(x),
         ConfigColor::BrightRed => BRIGHT_RED.apply_to(x),
         ConfigColor::BrightGreen => BRIGHT_GREEN.apply_to(x),
         ConfigColor::BrightYellow => BRIGHT_YELLOW.apply_to(x),
@@ -70,6 +73,7 @@ pub fn apply_color(x: String, c: &ConfigColor) -> StyledObject<String> {
         ConfigColor::BrightMagenta => BRIGHT_MAGENTA.apply_to(x),
         ConfigColor::BrightCyan => BRIGHT_CYAN.apply_to(x),
         ConfigColor::BrightWhite => BRIGHT_WHITE.apply_to(x),
+        ConfigColor::Black => BLACK.apply_to(x),
         ConfigColor::Red => RED.apply_to(x),
         ConfigColor::Green => GREEN.apply_to(x),
         ConfigColor::Yellow => YELLOW.apply_to(x),
@@ -82,6 +86,7 @@ pub fn apply_color(x: String, c: &ConfigColor) -> StyledObject<String> {
 
 pub fn apply_style(x: String, cs: &ConfigColumnStyle, s: &ConfigStyle) -> StyledObject<String> {
     match cs {
+        ConfigColumnStyle::BrightBlack => apply_color(x, &ConfigColor::BrightBlack),
         ConfigColumnStyle::BrightRed => apply_color(x, &ConfigColor::BrightRed),
         ConfigColumnStyle::BrightGreen => apply_color(x, &ConfigColor::BrightGreen),
         ConfigColumnStyle::BrightYellow => apply_color(x, &ConfigColor::BrightYellow),
@@ -89,6 +94,7 @@ pub fn apply_style(x: String, cs: &ConfigColumnStyle, s: &ConfigStyle) -> Styled
         ConfigColumnStyle::BrightMagenta => apply_color(x, &ConfigColor::BrightMagenta),
         ConfigColumnStyle::BrightCyan => apply_color(x, &ConfigColor::BrightCyan),
         ConfigColumnStyle::BrightWhite => apply_color(x, &ConfigColor::BrightWhite),
+        ConfigColumnStyle::Black => apply_color(x, &ConfigColor::Black),
         ConfigColumnStyle::Red => apply_color(x, &ConfigColor::Red),
         ConfigColumnStyle::Green => apply_color(x, &ConfigColor::Green),
         ConfigColumnStyle::Yellow => apply_color(x, &ConfigColor::Yellow),
