@@ -82,6 +82,12 @@ You can install by [scoop](https://scoop.sh/)
 scoop install procs
 ```
 
+### Fedora
+
+```
+sudo dnf install procs
+```
+
 ### RPM
 
 You can install by rpm command.
