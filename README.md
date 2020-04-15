@@ -48,6 +48,8 @@
 
 Download from [release page](https://github.com/dalance/procs/releases/latest), and extract to the directory in PATH.
 
+### [![Packaging status](https://repology.org/badge/vertical-allrepos/procs.svg)](https://repology.org/project/procs/versions)
+
 ### Nixpkgs
 
 You can install from [Nixpkgs](https://github.com/NixOS/nixpkgs/blob/master/pkgs/tools/admin/procs/default.nix)
@@ -88,6 +90,12 @@ You can install by [scoop](https://scoop.sh/)
 
 ```
 scoop install procs
+```
+
+### Fedora
+
+```
+sudo dnf install procs
 ```
 
 ### RPM
