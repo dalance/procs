@@ -12,6 +12,14 @@
 [![procs](https://snapcraft.io/procs/badge.svg)](https://snapcraft.io/procs)
 [![homebrew](https://img.shields.io/homebrew/v/procs.svg)](https://formulae.brew.sh/formula/procs)
 
+## Documentation quick links
+
+* [Features](#features)
+* [Platform](#platform)
+* [Installation](#installation)
+* [Usage](#usage)
+* [Configuration](#configuration)
+
 ## Features
 
 - Output by the colored and human-readable format
