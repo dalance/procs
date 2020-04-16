@@ -12,8 +12,8 @@ pub struct Tty {
 }
 
 impl Tty {
-    pub fn new() -> Self {
-        let header = String::from("TTY");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("TTY"));
         let unit = String::from("");
         Tty {
             fmt_contents: HashMap::new(),

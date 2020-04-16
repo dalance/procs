@@ -13,8 +13,8 @@ pub struct ReadBytes {
 }
 
 impl ReadBytes {
-    pub fn new() -> Self {
-        let header = String::from("Read");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("Read"));
         let unit = String::from("[B/s]");
         ReadBytes {
             fmt_contents: HashMap::new(),

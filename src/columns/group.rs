@@ -16,8 +16,8 @@ pub struct Group {
 }
 
 impl Group {
-    pub fn new(abbr_sid: bool) -> Self {
-        let header = String::from("Group");
+    pub fn new(header: Option<String>, abbr_sid: bool) -> Self {
+        let header = header.unwrap_or_else(|| String::from("Group"));
         let unit = String::from("");
         Group {
             fmt_contents: HashMap::new(),

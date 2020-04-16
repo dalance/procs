@@ -13,8 +13,8 @@ pub struct VmPin {
 }
 
 impl VmPin {
-    pub fn new() -> Self {
-        let header = String::from("VmPin");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("VmPin"));
         let unit = String::from("[bytes]");
         VmPin {
             fmt_contents: HashMap::new(),

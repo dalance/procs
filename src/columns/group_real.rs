@@ -12,8 +12,8 @@ pub struct GroupReal {
 }
 
 impl GroupReal {
-    pub fn new() -> Self {
-        let header = String::from("Real Group");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("Real Group"));
         let unit = String::from("");
         GroupReal {
             fmt_contents: HashMap::new(),

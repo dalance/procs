@@ -13,8 +13,8 @@ pub struct VmPeak {
 }
 
 impl VmPeak {
-    pub fn new() -> Self {
-        let header = String::from("VmPeak");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("VmPeak"));
         let unit = String::from("[bytes]");
         VmPeak {
             fmt_contents: HashMap::new(),

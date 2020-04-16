@@ -12,8 +12,8 @@ pub struct Eip {
 }
 
 impl Eip {
-    pub fn new() -> Self {
-        let header = String::from("EIP");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("EIP"));
         let unit = String::from("");
         Eip {
             fmt_contents: HashMap::new(),

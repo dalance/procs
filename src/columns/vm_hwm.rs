@@ -13,8 +13,8 @@ pub struct VmHwm {
 }
 
 impl VmHwm {
-    pub fn new() -> Self {
-        let header = String::from("VmHwm");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("VmHwm"));
         let unit = String::from("[bytes]");
         VmHwm {
             fmt_contents: HashMap::new(),

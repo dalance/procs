@@ -12,8 +12,8 @@ pub struct GidFs {
 }
 
 impl GidFs {
-    pub fn new() -> Self {
-        let header = String::from("FGID");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("FGID"));
         let unit = String::from("");
         GidFs {
             fmt_contents: HashMap::new(),

@@ -12,8 +12,8 @@ pub struct ShdPnd {
 }
 
 impl ShdPnd {
-    pub fn new() -> Self {
-        let header = String::from("ShdPnd");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("ShdPnd"));
         let unit = String::from("");
         ShdPnd {
             fmt_contents: HashMap::new(),

@@ -12,8 +12,8 @@ pub struct Ppid {
 }
 
 impl Ppid {
-    pub fn new() -> Self {
-        let header = String::from("Parent PID");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("Parent PID"));
         let unit = String::from("");
         Ppid {
             fmt_contents: HashMap::new(),

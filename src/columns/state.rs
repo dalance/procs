@@ -12,8 +12,8 @@ pub struct State {
 }
 
 impl State {
-    pub fn new() -> Self {
-        let header = String::from("State");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("State"));
         let unit = String::from("");
         State {
             fmt_contents: HashMap::new(),

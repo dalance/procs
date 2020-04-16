@@ -13,8 +13,8 @@ pub struct VmLock {
 }
 
 impl VmLock {
-    pub fn new() -> Self {
-        let header = String::from("VmLock");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("VmLock"));
         let unit = String::from("[bytes]");
         VmLock {
             fmt_contents: HashMap::new(),

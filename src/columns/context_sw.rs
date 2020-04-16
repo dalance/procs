@@ -13,8 +13,8 @@ pub struct ContextSw {
 }
 
 impl ContextSw {
-    pub fn new() -> Self {
-        let header = String::from("ContextSw");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("ContextSw"));
         let unit = String::from("");
         ContextSw {
             fmt_contents: HashMap::new(),

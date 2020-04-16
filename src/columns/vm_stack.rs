@@ -13,8 +13,8 @@ pub struct VmStack {
 }
 
 impl VmStack {
-    pub fn new() -> Self {
-        let header = String::from("VmStack");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("VmStack"));
         let unit = String::from("[bytes]");
         VmStack {
             fmt_contents: HashMap::new(),

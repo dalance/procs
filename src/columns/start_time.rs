@@ -26,8 +26,8 @@ pub struct StartTime {
 }
 
 impl StartTime {
-    pub fn new() -> Self {
-        let header = String::from("Start");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("Start"));
         let unit = String::from("");
         StartTime {
             fmt_contents: HashMap::new(),

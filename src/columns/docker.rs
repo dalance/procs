@@ -19,8 +19,8 @@ pub struct Docker {
 
 #[cfg(target_os = "linux")]
 impl Docker {
-    pub fn new(path: &str) -> Self {
-        let header = String::from("Docker");
+    pub fn new(header: Option<String>, path: &str) -> Self {
+        let header = header.unwrap_or_else(|| String::from("Docker"));
         let unit = String::from("");
         let mut containers = HashMap::new();
         let mut available = true;
@@ -52,8 +52,8 @@ impl Docker {
 #[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 impl Docker {
-    pub fn new(path: &str) -> Self {
-        let header = String::from("Docker");
+    pub fn new(header: Option<String>, path: &str) -> Self {
+        let header = header.unwrap_or_else(|| String::from("Docker"));
         let unit = String::from("");
         let mut containers = HashMap::new();
         let mut available = true;

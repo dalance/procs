@@ -13,8 +13,8 @@ pub struct VmSwap {
 }
 
 impl VmSwap {
-    pub fn new() -> Self {
-        let header = String::from("VmSwap");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("VmSwap"));
         let unit = String::from("[bytes]");
         VmSwap {
             fmt_contents: HashMap::new(),

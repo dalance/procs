@@ -16,8 +16,8 @@ pub struct Uid {
 }
 
 impl Uid {
-    pub fn new(abbr_sid: bool) -> Self {
-        let header = String::from("UID");
+    pub fn new(header: Option<String>, abbr_sid: bool) -> Self {
+        let header = header.unwrap_or_else(|| String::from("UID"));
         let unit = String::from("");
         Uid {
             fmt_contents: HashMap::new(),

@@ -12,8 +12,8 @@ pub struct Processor {
 }
 
 impl Processor {
-    pub fn new() -> Self {
-        let header = String::from("Processor");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("Processor"));
         let unit = String::from("");
         Processor {
             fmt_contents: HashMap::new(),

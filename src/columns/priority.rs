@@ -12,8 +12,8 @@ pub struct Priority {
 }
 
 impl Priority {
-    pub fn new() -> Self {
-        let header = String::from("Priority");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("Priority"));
         let unit = String::from("");
         Priority {
             fmt_contents: HashMap::new(),

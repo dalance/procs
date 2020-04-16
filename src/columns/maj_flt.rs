@@ -12,8 +12,8 @@ pub struct MajFlt {
 }
 
 impl MajFlt {
-    pub fn new() -> Self {
-        let header = String::from("MajorFaults");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("MajorFaults"));
         let unit = String::from("");
         MajFlt {
             fmt_contents: HashMap::new(),

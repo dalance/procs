@@ -19,8 +19,8 @@ pub struct UsageMem {
 }
 
 impl UsageMem {
-    pub fn new() -> Self {
-        let header = String::from("MEM");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("MEM"));
         let unit = String::from("[%]");
 
         UsageMem {

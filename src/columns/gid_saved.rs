@@ -12,8 +12,8 @@ pub struct GidSaved {
 }
 
 impl GidSaved {
-    pub fn new() -> Self {
-        let header = String::from("SGID");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("SGID"));
         let unit = String::from("");
         GidSaved {
             fmt_contents: HashMap::new(),

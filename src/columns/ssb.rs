@@ -12,8 +12,8 @@ pub struct Ssb {
 }
 
 impl Ssb {
-    pub fn new() -> Self {
-        let header = String::from("Speculative Store Bypass");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("Speculative Store Bypass"));
         let unit = String::from("");
         Ssb {
             fmt_contents: HashMap::new(),

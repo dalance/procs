@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.9.20...Unreleased) - ReleaseDate
 
+* [Added] header config [#54](https://github.com/dalance/procs/issues/54)
+
 ## [v0.9.20](https://github.com/dalance/procs/compare/v0.9.19...v0.9.20) - 2020-03-13
 
 * [Added] Tree color config [#50](https://github.com/dalance/procs/issues/50)

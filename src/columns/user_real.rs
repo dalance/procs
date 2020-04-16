@@ -12,8 +12,8 @@ pub struct UserReal {
 }
 
 impl UserReal {
-    pub fn new() -> Self {
-        let header = String::from("Real User");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("Real User"));
         let unit = String::from("");
         UserReal {
             fmt_contents: HashMap::new(),

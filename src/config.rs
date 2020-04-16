@@ -166,6 +166,7 @@ pub struct ConfigColumn {
     pub align: ConfigColumnAlign,
     pub max_width: Option<usize>,
     pub min_width: Option<usize>,
+    pub header: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

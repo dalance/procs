@@ -12,8 +12,8 @@ pub struct Wchan {
 }
 
 impl Wchan {
-    pub fn new() -> Self {
-        let header = String::from("Wchan");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("Wchan"));
         let unit = String::from("");
         Wchan {
             fmt_contents: HashMap::new(),

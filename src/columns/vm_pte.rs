@@ -13,8 +13,8 @@ pub struct VmPte {
 }
 
 impl VmPte {
-    pub fn new() -> Self {
-        let header = String::from("VmPte");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("VmPte"));
         let unit = String::from("[bytes]");
         VmPte {
             fmt_contents: HashMap::new(),

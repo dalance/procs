@@ -12,8 +12,8 @@ pub struct CpuTime {
 }
 
 impl CpuTime {
-    pub fn new() -> Self {
-        let header = String::from("CPU Time");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("CPU Time"));
         let unit = String::from("");
         CpuTime {
             fmt_contents: HashMap::new(),

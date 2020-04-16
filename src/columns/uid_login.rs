@@ -12,8 +12,8 @@ pub struct UidLogin {
 }
 
 impl UidLogin {
-    pub fn new() -> Self {
-        let header = String::from("LoginUID");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("LoginUID"));
         let unit = String::from("");
         UidLogin {
             fmt_contents: HashMap::new(),

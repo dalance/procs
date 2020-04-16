@@ -12,8 +12,8 @@ pub struct RtPriority {
 }
 
 impl RtPriority {
-    pub fn new() -> Self {
-        let header = String::from("RT Priority");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("RT Priority"));
         let unit = String::from("");
         RtPriority {
             fmt_contents: HashMap::new(),

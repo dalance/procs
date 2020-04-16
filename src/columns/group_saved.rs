@@ -12,8 +12,8 @@ pub struct GroupSaved {
 }
 
 impl GroupSaved {
-    pub fn new() -> Self {
-        let header = String::from("Saved Group");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("Saved Group"));
         let unit = String::from("");
         GroupSaved {
             fmt_contents: HashMap::new(),

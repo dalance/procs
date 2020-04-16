@@ -12,8 +12,8 @@ pub struct SigIgn {
 }
 
 impl SigIgn {
-    pub fn new() -> Self {
-        let header = String::from("SigIgn");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("SigIgn"));
         let unit = String::from("");
         SigIgn {
             fmt_contents: HashMap::new(),

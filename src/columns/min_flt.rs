@@ -12,8 +12,8 @@ pub struct MinFlt {
 }
 
 impl MinFlt {
-    pub fn new() -> Self {
-        let header = String::from("MinorFaults");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("MinorFaults"));
         let unit = String::from("");
         MinFlt {
             fmt_contents: HashMap::new(),

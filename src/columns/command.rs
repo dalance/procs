@@ -12,8 +12,8 @@ pub struct Command {
 }
 
 impl Command {
-    pub fn new() -> Self {
-        let header = String::from("Command");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("Command"));
         let unit = String::from("");
         Command {
             fmt_contents: HashMap::new(),

@@ -358,6 +358,7 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | align             | Left, Right, Center | Left    | Text alignment                                              |
 | max_width         | [Number]            |         | Maximum column width                                        |
 | min_width         | [Number]            |         | Minimum column width                                        |
+| header            | [String]            |         | Alternate header description                                |
 
 #### `kind` list
 

@@ -13,8 +13,8 @@ pub struct VmLib {
 }
 
 impl VmLib {
-    pub fn new() -> Self {
-        let header = String::from("VmLib");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("VmLib"));
         let unit = String::from("[bytes]");
         VmLib {
             fmt_contents: HashMap::new(),

@@ -12,8 +12,8 @@ pub struct Nice {
 }
 
 impl Nice {
-    pub fn new() -> Self {
-        let header = String::from("Nice");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("Nice"));
         let unit = String::from("");
         Nice {
             fmt_contents: HashMap::new(),

@@ -12,8 +12,8 @@ pub struct Threads {
 }
 
 impl Threads {
-    pub fn new() -> Self {
-        let header = String::from("Threads");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("Threads"));
         let unit = String::from("");
         Threads {
             fmt_contents: HashMap::new(),

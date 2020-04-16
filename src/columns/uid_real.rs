@@ -12,8 +12,8 @@ pub struct UidReal {
 }
 
 impl UidReal {
-    pub fn new() -> Self {
-        let header = String::from("RUID");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("RUID"));
         let unit = String::from("");
         UidReal {
             fmt_contents: HashMap::new(),

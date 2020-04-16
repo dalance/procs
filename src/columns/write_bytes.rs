@@ -13,8 +13,8 @@ pub struct WriteBytes {
 }
 
 impl WriteBytes {
-    pub fn new() -> Self {
-        let header = String::from("Write");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("Write"));
         let unit = String::from("[B/s]");
         WriteBytes {
             fmt_contents: HashMap::new(),

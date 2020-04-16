@@ -13,8 +13,8 @@ pub struct VmSize {
 }
 
 impl VmSize {
-    pub fn new() -> Self {
-        let header = String::from("VmSize");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("VmSize"));
         let unit = String::from("[bytes]");
         VmSize {
             fmt_contents: HashMap::new(),

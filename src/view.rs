@@ -32,6 +32,7 @@ impl View {
             let kind = ConfigColumnKind::Tree;
             let column = gen_column(
                 &kind,
+                None,
                 &config.docker.path,
                 &config.display.separator,
                 config.display.abbr_sid,
@@ -66,6 +67,7 @@ impl View {
             if let Some(kind) = kind {
                 let column = gen_column(
                     &kind,
+                    c.header.clone(),
                     &config.docker.path,
                     &config.display.separator,
                     config.display.abbr_sid,

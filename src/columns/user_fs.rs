@@ -12,8 +12,8 @@ pub struct UserFs {
 }
 
 impl UserFs {
-    pub fn new() -> Self {
-        let header = String::from("File System User");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("File System User"));
         let unit = String::from("");
         UserFs {
             fmt_contents: HashMap::new(),

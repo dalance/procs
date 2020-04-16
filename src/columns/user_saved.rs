@@ -12,8 +12,8 @@ pub struct UserSaved {
 }
 
 impl UserSaved {
-    pub fn new() -> Self {
-        let header = String::from("Saved User");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("Saved User"));
         let unit = String::from("");
         UserSaved {
             fmt_contents: HashMap::new(),

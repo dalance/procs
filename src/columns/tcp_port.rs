@@ -22,8 +22,8 @@ pub struct TcpPort {
 }
 
 impl TcpPort {
-    pub fn new() -> Self {
-        let header = String::from("TCP");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("TCP"));
         let unit = String::from("");
         TcpPort {
             fmt_contents: HashMap::new(),

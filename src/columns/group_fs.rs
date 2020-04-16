@@ -12,8 +12,8 @@ pub struct GroupFs {
 }
 
 impl GroupFs {
-    pub fn new() -> Self {
-        let header = String::from("File System Group");
+    pub fn new(header: Option<String>) -> Self {
+        let header = header.unwrap_or_else(|| String::from("File System Group"));
         let unit = String::from("");
         GroupFs {
             fmt_contents: HashMap::new(),
