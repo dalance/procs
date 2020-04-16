@@ -233,7 +233,7 @@ pub fn gen_column(
         #[cfg(feature = "docker")]
         ConfigColumnKind::Docker => Box::new(Docker::new(header, _docker_path)),
         #[cfg(not(feature = "docker"))]
-        ConfigColumnKind::Docker => Box::new(Empty::new(header)),
+        ConfigColumnKind::Docker => Box::new(Empty::new()),
         ConfigColumnKind::Eip => Box::new(Eip::new(header)),
         ConfigColumnKind::Empty => Box::new(Empty::new()),
         ConfigColumnKind::Esp => Box::new(Esp::new(header)),

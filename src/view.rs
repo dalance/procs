@@ -396,7 +396,7 @@ impl View {
                 return idx;
             }
         }
-        return current;
+        current
     }
 
     #[cfg_attr(tarpaulin, skip)]
@@ -410,6 +410,6 @@ impl View {
                 return idx;
             }
         }
-        return current;
+        current
     }
 }

@@ -152,7 +152,7 @@ pub fn gen_column(
         #[cfg(feature = "docker")]
         ConfigColumnKind::Docker => Box::new(Docker::new(header, _docker_path)),
         #[cfg(not(feature = "docker"))]
-        ConfigColumnKind::Docker => Box::new(Empty::new(header)),
+        ConfigColumnKind::Docker => Box::new(Empty::new()),
         ConfigColumnKind::Empty => Box::new(Empty::new()),
         ConfigColumnKind::Gid => Box::new(Gid::new(header, abbr_sid)),
         ConfigColumnKind::GidReal => Box::new(GidReal::new(header)),
