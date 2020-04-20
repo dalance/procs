@@ -3,6 +3,7 @@
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.9.20...Unreleased) - ReleaseDate
 
 * [Added] header config [#54](https://github.com/dalance/procs/issues/54)
+* [Changed] simplify default config [#55](https://github.com/dalance/procs/issues/55)
 
 ## [v0.9.20](https://github.com/dalance/procs/compare/v0.9.19...v0.9.20) - 2020-03-13
 

@@ -305,17 +305,6 @@ style = "White"
 numeric_search = false
 nonnumeric_search = false
 [[columns]]
-kind = "State"
-style = "ByState"
-numeric_search = false
-nonnumeric_search = false
-[[columns]]
-kind = "Nice"
-style = "BrightMagenta"
-numeric_search = false
-nonnumeric_search = false
-align = "Right"
-[[columns]]
 kind = "Tty"
 style = "BrightWhite"
 numeric_search = false
@@ -333,67 +322,10 @@ numeric_search = false
 nonnumeric_search = false
 align = "Right"
 [[columns]]
-kind = "VmSize"
-style = "ByUnit"
-numeric_search = false
-nonnumeric_search = false
-align = "Right"
-[[columns]]
-kind = "VmRss"
-style = "ByUnit"
-numeric_search = false
-nonnumeric_search = false
-align = "Right"
-[[columns]]
-kind = "TcpPort"
-style = "BrightCyan"
-numeric_search = true
-nonnumeric_search = false
-max_width = 20
-[[columns]]
-kind = "UdpPort"
-style = "BrightCyan"
-numeric_search = true
-nonnumeric_search = false
-max_width = 20
-[[columns]]
-kind = "ReadBytes"
-style = "ByUnit"
-numeric_search = false
-nonnumeric_search = false
-align = "Right"
-[[columns]]
-kind = "WriteBytes"
-style = "ByUnit"
-numeric_search = false
-nonnumeric_search = false
-align = "Right"
-[[columns]]
-kind = "Slot"
-style = "ByUnit"
-numeric_search = false
-nonnumeric_search = false
-align = "Right"
-[[columns]]
-kind = "Separator"
-style = "White"
-numeric_search = false
-nonnumeric_search = false
-[[columns]]
 kind = "CpuTime"
 style = "BrightCyan"
 numeric_search = false
 nonnumeric_search = false
-[[columns]]
-kind = "StartTime"
-style = "BrightMagenta"
-numeric_search = false
-nonnumeric_search = false
-[[columns]]
-kind = "Docker"
-style = "BrightGreen"
-numeric_search = false
-nonnumeric_search = true
 [[columns]]
 kind = "Separator"
 style = "White"

@@ -148,6 +148,8 @@ The detail of the issue is [#21](https://github.com/dalance/procs/issues/21).
 
 ## Usage
 
+In the following screenshots, `config/large.toml` is used as the configuration.
+
 ### Show all processes
 
 Type `procs` only. It shows the information of all processes.
@@ -263,7 +265,9 @@ Unused `Slot` is not shown.
 
 ## Configuration
 
-You can change configuration by writing a configuration file, like below.
+You can change configuration by writing a configuration file.
+There are some configuration examples in `config` directory of this repository.
+`config/large.toml` is the default configuration before procs v0.9.21.
 
 The location of the configuration file is OS-specific:
 

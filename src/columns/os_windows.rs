@@ -221,11 +221,6 @@ style = "White"
 numeric_search = false
 nonnumeric_search = false
 [[columns]]
-kind = "Priority"
-style = "BrightMagenta"
-numeric_search = false
-nonnumeric_search = false
-[[columns]]
 kind = "UsageCpu"
 style = "ByPercentage"
 numeric_search = false
@@ -238,48 +233,8 @@ numeric_search = false
 nonnumeric_search = false
 align = "Right"
 [[columns]]
-kind = "VmSize"
-style = "ByUnit"
-numeric_search = false
-nonnumeric_search = false
-align = "Right"
-[[columns]]
-kind = "VmRss"
-style = "ByUnit"
-numeric_search = false
-nonnumeric_search = false
-align = "Right"
-[[columns]]
-kind = "ReadBytes"
-style = "ByUnit"
-numeric_search = false
-nonnumeric_search = false
-align = "Right"
-[[columns]]
-kind = "WriteBytes"
-style = "ByUnit"
-numeric_search = false
-nonnumeric_search = false
-align = "Right"
-[[columns]]
-kind = "Slot"
-style = "ByUnit"
-numeric_search = false
-nonnumeric_search = false
-align = "Right"
-[[columns]]
-kind = "Separator"
-style = "White"
-numeric_search = false
-nonnumeric_search = false
-[[columns]]
 kind = "CpuTime"
 style = "BrightCyan"
-numeric_search = false
-nonnumeric_search = false
-[[columns]]
-kind = "StartTime"
-style = "BrightMagenta"
 numeric_search = false
 nonnumeric_search = false
 [[columns]]
