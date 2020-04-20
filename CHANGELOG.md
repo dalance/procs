@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.9.20...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.10.0...Unreleased) - ReleaseDate
+
+## [v0.10.0](https://github.com/dalance/procs/compare/v0.9.20...v0.10.0) - 2020-04-20
 
 * [Added] header config [#54](https://github.com/dalance/procs/issues/54)
 * [Changed] simplify default config [#55](https://github.com/dalance/procs/issues/55)
