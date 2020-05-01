@@ -74,3 +74,7 @@ target = "x86_64-unknown-linux-musl"
 
 [package.metadata.rpm.targets]
 procs = { path = "/usr/bin/procs" }
+
+[profile.release]
+lto = true
+codegen-units = 1
