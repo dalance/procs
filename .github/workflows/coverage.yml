@@ -9,8 +9,6 @@ jobs:
 
     container:
       image: xd009642/tarpaulin
-      volumes:
-        - $GITHUB_WORKSPACE:/volume
       options: --security-opt seccomp=unconfined
 
     steps:
