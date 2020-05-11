@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.10.1...Unreleased) - ReleaseDate
 
+* [Changed] Enable XDG config path on macOS [#58](https://github.com/dalance/procs/issues/58)
+
 ## [v0.10.1](https://github.com/dalance/procs/compare/v0.10.0...v0.10.1) - 2020-05-01
 
 * [Changed] Enable LTO [#56](https://github.com/dalance/procs/issues/56)

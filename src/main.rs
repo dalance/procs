@@ -154,7 +154,15 @@ fn get_config() -> Result<Config, Error> {
     let app_cfg_path = directories::ProjectDirs::from("com.github", "dalance", "procs")
         .map(|proj| proj.config_dir().join("config.toml"))
         .filter(|path| path.exists());
-    let cfg_path = dot_cfg_path.or(app_cfg_path);
+    let xdg_cfg_path = directories::BaseDirs::new()
+        .map(|base| {
+            base.home_dir()
+                .join(".config")
+                .join("procs")
+                .join("config.toml")
+        })
+        .filter(|path| path.exists());
+    let cfg_path = dot_cfg_path.or(app_cfg_path).or(xdg_cfg_path);
 
     let config: Config = if let Some(path) = cfg_path {
         let mut f = fs::File::open(&path).context(format!("failed to open file ({:?})", path))?;
