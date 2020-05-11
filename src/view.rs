@@ -22,6 +22,8 @@ pub struct View {
     pub term_info: TermInfo,
     pub sort_info: SortInfo,
     pub visible_pids: Vec<i32>,
+    pub auxiliary_pids: Vec<i32>,
+    pub ppids: HashMap<i32, i32>,
 }
 
 impl View {
@@ -95,6 +97,11 @@ impl View {
             }
         }
 
+        let mut ppids = HashMap::new();
+        for p in &proc {
+            ppids.insert(p.pid, p.ppid);
+        }
+
         let term_info = TermInfo::new(clear_by_line);
         let sort_info = View::get_sort_info(opt, config, &columns);
 
@@ -103,6 +110,8 @@ impl View {
             term_info,
             sort_info,
             visible_pids: vec![],
+            auxiliary_pids: vec![],
+            ppids,
         }
     }
 
@@ -146,9 +155,9 @@ impl View {
             config.search.logic.clone()
         };
 
-        let mut visible_pids = Vec::new();
+        let mut candidate_pids = Vec::new();
         for pid in &pids {
-            let visible = if !config.display.show_self && *pid == self_pid {
+            let candidate = if !config.display.show_self && *pid == self_pid {
                 false
             } else if opt.keyword.is_empty() {
                 true
@@ -164,7 +173,29 @@ impl View {
                 )
             };
 
-            if visible {
+            if candidate {
+                candidate_pids.push(*pid);
+            }
+        }
+
+        let mut auxiliary_pids = Vec::new();
+        if opt.tree {
+            let mut additional_pids = Vec::new();
+            for pid in &candidate_pids {
+                additional_pids.append(&mut self.get_ppids(*pid));
+            }
+            let mut additional_pids: Vec<_> = additional_pids
+                .iter()
+                .filter(|x| !candidate_pids.contains(x))
+                .map(|x| *x)
+                .collect();
+            candidate_pids.append(&mut additional_pids.clone());
+            auxiliary_pids.append(&mut additional_pids);
+        }
+
+        let mut visible_pids = Vec::new();
+        for pid in &pids {
+            if candidate_pids.contains(pid) {
                 visible_pids.push(*pid);
             }
 
@@ -174,6 +205,18 @@ impl View {
         }
 
         self.visible_pids = visible_pids;
+        self.auxiliary_pids = auxiliary_pids;
+    }
+
+    fn get_ppids(&self, pid: i32) -> Vec<i32> {
+        let mut ret = vec![];
+        if let Some(x) = self.ppids.get(&pid) {
+            ret.push(*x);
+            ret.append(&mut self.get_ppids(*x));
+            ret
+        } else {
+            ret
+        }
     }
 
     pub fn adjust(&mut self, config: &Config, min_widths: &HashMap<usize, usize>) {
@@ -249,7 +292,8 @@ impl View {
         let _ = self.display_unit(&config);
 
         for pid in &self.visible_pids {
-            let _ = self.display_content(&config, *pid);
+            let auxiliary = self.auxiliary_pids.contains(pid);
+            let _ = self.display_content(&config, *pid, auxiliary);
         }
 
         Ok(())
@@ -268,7 +312,8 @@ impl View {
                 row,
                 apply_color(
                     c.column.display_header(&c.align, order, config),
-                    &config.style.header
+                    &config.style.header,
+                    false
                 )
             );
         }
@@ -284,7 +329,7 @@ impl View {
             row = format!(
                 "{} {}",
                 row,
-                apply_color(c.column.display_unit(&c.align), &config.style.unit)
+                apply_color(c.column.display_unit(&c.align), &config.style.unit, false)
             );
         }
         row = row.trim_end().to_string();
@@ -293,7 +338,7 @@ impl View {
         Ok(())
     }
 
-    fn display_content(&self, config: &Config, pid: i32) -> Result<(), Error> {
+    fn display_content(&self, config: &Config, pid: i32, auxiliary: bool) -> Result<(), Error> {
         let mut row = String::from("");
         for c in &self.columns {
             row = format!(
@@ -302,7 +347,8 @@ impl View {
                 apply_style(
                     c.column.display_content(pid, &c.align).unwrap(),
                     &c.style,
-                    &config.style
+                    &config.style,
+                    auxiliary
                 )
             );
         }
