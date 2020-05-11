@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.10.2...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.10.3...Unreleased) - ReleaseDate
+
+## [v0.10.3](https://github.com/dalance/procs/compare/v0.10.2...v0.10.3) - 2020-05-11
 
 * [Changed] Branch filtering of tree view [#59](https://github.com/dalance/procs/issues/59)
 
