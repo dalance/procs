@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.10.1...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.10.2...Unreleased) - ReleaseDate
+
+## [v0.10.2](https://github.com/dalance/procs/compare/v0.10.1...v0.10.2) - 2020-05-11
 
 * [Changed] Enable XDG config path on macOS [#58](https://github.com/dalance/procs/issues/58)
 
