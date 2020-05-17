@@ -162,22 +162,26 @@ $ procs
 
 ### Search by non-numeric keyword
 
-If you add any keyword as argument, it is matched to `USER`, `Command`, `Docker` by default.
+If you add any keyword as argument, it is matched to `USER`, `Command` by default.
 
 ```console
 $ procs zsh
 ```
 
+If you want to add columns matching to non-numeric keyword, `nonnumeric_search` option can be used in configuration file.
+
 ![procs_zsh](https://user-images.githubusercontent.com/4331004/55446648-71729e00-55fb-11e9-8e12-1ca63911c568.png)
 
 ### Search by numeric keyword
 
-If a numeric is used as the keyword, it is matched to `PID`, `TCP`, `UDP` by default.
+If a numeric is used as the keyword, it is matched to `PID` by default.
 Numeric is treated as exact match, and non-numeric is treated as partial match by default.
 
 ```console
 $ procs --or 6000 60000 60001 16723
 ```
+
+If you want to add columns matching to numeric keyword, `numeric_search` option can be used in configuration file.
 
 ![procs_port](https://user-images.githubusercontent.com/4331004/55446667-83ecd780-55fb-11e9-8959-53209837c4ee.png)
 
