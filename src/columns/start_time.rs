@@ -12,7 +12,7 @@ use std::collections::HashMap;
 
 #[cfg(target_os = "linux")]
 lazy_static! {
-    static ref TICKS_PER_SECOND: i64 = { procfs::ticks_per_second().unwrap() };
+    static ref TICKS_PER_SECOND: i64 = procfs::ticks_per_second().unwrap();
 }
 
 pub struct StartTime {

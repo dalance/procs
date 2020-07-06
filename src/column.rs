@@ -2,7 +2,7 @@ use crate::config::{Config, ConfigColumnAlign, ConfigSortOrder};
 use crate::process::ProcessInfo;
 
 pub trait Column {
-    fn add(&mut self, proc: &ProcessInfo) -> ();
+    fn add(&mut self, proc: &ProcessInfo);
 
     fn available(&self) -> bool {
         true
@@ -23,26 +23,35 @@ pub trait Column {
     fn find_partial(&self, pid: i32, keyword: &str) -> bool;
     fn find_exact(&self, pid: i32, keyword: &str) -> bool;
     fn sorted_pid(&self, order: &ConfigSortOrder) -> Vec<i32>;
-    fn apply_visible(&mut self, visible_pids: &[i32]) -> ();
+    fn apply_visible(&mut self, visible_pids: &[i32]);
     fn reset_width(
         &mut self,
         order: Option<ConfigSortOrder>,
         config: &Config,
         max_width: Option<usize>,
         min_width: Option<usize>,
-    ) -> ();
-    fn update_width(&mut self, pid: i32, max_width: Option<usize>) -> ();
+    );
+    fn update_width(&mut self, pid: i32, max_width: Option<usize>);
     fn get_width(&self) -> usize;
 }
 
 #[macro_export]
 macro_rules! column_default_display_header {
     () => {
-        fn display_header(&self, align: &crate::config::ConfigColumnAlign, order: Option<crate::config::ConfigSortOrder>, config: &crate::config::Config) -> String {
+        fn display_header(
+            &self,
+            align: &crate::config::ConfigColumnAlign,
+            order: Option<crate::config::ConfigSortOrder>,
+            config: &crate::config::Config,
+        ) -> String {
             if let Some(order) = order {
                 let header = match order {
-                    crate::config::ConfigSortOrder::Ascending => format!("{}:{}", self.header, config.display.ascending),
-                    crate::config::ConfigSortOrder::Descending => format!("{}:{}", self.header, config.display.descending),
+                    crate::config::ConfigSortOrder::Ascending => {
+                        format!("{}:{}", self.header, config.display.ascending)
+                    }
+                    crate::config::ConfigSortOrder::Descending => {
+                        format!("{}:{}", self.header, config.display.descending)
+                    }
                 };
                 crate::util::adjust(&header, self.width, align)
             } else {
@@ -64,7 +73,11 @@ macro_rules! column_default_display_unit {
 #[macro_export]
 macro_rules! column_default_display_content {
     () => {
-        fn display_content(&self, pid: i32, align: &crate::config::ConfigColumnAlign) -> Option<String> {
+        fn display_content(
+            &self,
+            pid: i32,
+            align: &crate::config::ConfigColumnAlign,
+        ) -> Option<String> {
             if let Some(content) = self.fmt_contents.get(&pid) {
                 Some(crate::util::adjust(content, self.width, align))
             } else {
@@ -106,7 +119,9 @@ macro_rules! column_default_sorted_pid {
         fn sorted_pid(&self, order: &crate::config::ConfigSortOrder) -> Vec<i32> {
             let mut contents: Vec<(&i32, &$x)> = self.raw_contents.iter().collect();
             contents.sort_by_key(|&(_x, y)| y);
-            if let crate::config::ConfigSortOrder::Descending = order { contents.reverse() }
+            if let crate::config::ConfigSortOrder::Descending = order {
+                contents.reverse()
+            }
             contents.iter().map(|(x, _y)| **x).collect()
         }
     };
@@ -115,27 +130,37 @@ macro_rules! column_default_sorted_pid {
 #[macro_export]
 macro_rules! column_default_apply_visible {
     () => {
-        fn apply_visible(&mut self, _visible_pids: &[i32]) {
-        }
-    }
+        fn apply_visible(&mut self, _visible_pids: &[i32]) {}
+    };
 }
 
 #[macro_export]
 macro_rules! column_default_reset_width {
     () => {
-        fn reset_width(&mut self, order: Option<crate::config::ConfigSortOrder>, config: &crate::config::Config, max_width: Option<usize>, min_width: Option<usize>) {
+        fn reset_width(
+            &mut self,
+            order: Option<crate::config::ConfigSortOrder>,
+            config: &crate::config::Config,
+            max_width: Option<usize>,
+            min_width: Option<usize>,
+        ) {
             // +1 for spacing between header and sort indicator
             let sorted_space = if let Some(order) = order {
                 match order {
-                    crate::config::ConfigSortOrder::Ascending => unicode_width::UnicodeWidthStr::width(config.display.ascending.as_str()) + 1,
-                    crate::config::ConfigSortOrder::Descending => unicode_width::UnicodeWidthStr::width(config.display.descending.as_str()) + 1,
+                    crate::config::ConfigSortOrder::Ascending => {
+                        unicode_width::UnicodeWidthStr::width(config.display.ascending.as_str()) + 1
+                    }
+                    crate::config::ConfigSortOrder::Descending => {
+                        unicode_width::UnicodeWidthStr::width(config.display.descending.as_str())
+                            + 1
+                    }
                 }
             } else {
                 0
             };
             let header_len = unicode_width::UnicodeWidthStr::width(self.header.as_str());
             let unit_len = unicode_width::UnicodeWidthStr::width(self.unit.as_str());
-            self.width = std::cmp::max(header_len+sorted_space, unit_len);
+            self.width = std::cmp::max(header_len + sorted_space, unit_len);
             if let Some(min_width) = min_width {
                 self.width = std::cmp::max(self.width, min_width);
             }

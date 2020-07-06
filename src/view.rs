@@ -187,7 +187,7 @@ impl View {
             let mut additional_pids: Vec<_> = additional_pids
                 .iter()
                 .filter(|x| !candidate_pids.contains(x))
-                .map(|x| *x)
+                .copied()
                 .collect();
             candidate_pids.append(&mut additional_pids.clone());
             auxiliary_pids.append(&mut additional_pids);
