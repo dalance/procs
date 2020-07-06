@@ -309,9 +309,9 @@ dependencies = [
 
 [[package]]
 name = "dockworker"
-version = "0.0.15"
+version = "0.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "542880f0c80133fe6ac29b56a4936193f118f20763fe77040daf34e0719d6954"
+checksum = "3eed9fef3ac1058dd04f8981573d2b522eaf29571dd4a88d87ee1e9d2ee89b1c"
 dependencies = [
  "backtrace-sys",
  "base64 0.9.3",
@@ -814,9 +814,9 @@ dependencies = [
 
 [[package]]
 name = "nix"
-version = "0.11.1"
+version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "becb657d662f1cd2ef38c7ad480ec6b8cf9e96b27adb543e594f9cf0f2e6065c"
+checksum = "3b2e0b4f3320ed72aaedb9a5ac838690a8047c7b275da22711fddff4f8a14229"
 dependencies = [
  "bitflags",
  "cc",
@@ -1546,11 +1546,12 @@ dependencies = [
 
 [[package]]
 name = "users"
-version = "0.9.1"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c72f4267aea0c3ec6d07eaabea6ead7c5ddacfafc5e22bcf8d186706851fb4cf"
+checksum = "aa4227e95324a443c9fcb06e03d4d85e91aabe9a5a02aa818688b6918b6af486"
 dependencies = [
  "libc",
+ "log",
 ]
 
 [[package]]
