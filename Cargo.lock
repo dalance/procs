@@ -176,18 +176,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "clicolors-control"
-version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "90082ee5dcdd64dc4e9e0d37fbf3ee325419e39c0092191e0393df65518f741e"
-dependencies = [
- "atty",
- "lazy_static",
- "libc",
- "winapi 0.3.8",
-]
-
-[[package]]
 name = "cloudabi"
 version = "0.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -198,18 +186,19 @@ dependencies = [
 
 [[package]]
 name = "console"
-version = "0.9.2"
+version = "0.11.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "45e0f3986890b3acbc782009e2629dfe2baa430ac091519ce3be26164a2ae6c0"
+checksum = "8c0994e656bba7b922d8dd1245db90672ffb701e684e45be58f20719d69abc5a"
 dependencies = [
- "clicolors-control",
  "encode_unicode",
  "lazy_static",
  "libc",
  "regex",
+ "terminal_size",
  "termios 0.3.1",
  "unicode-width",
  "winapi 0.3.8",
+ "winapi-util",
 ]
 
 [[package]]
@@ -932,17 +921,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "process_path"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f9bdceb3b6b44ee28251e5ac737472de60c9e706e8f5483730d4f6f61d3a0526"
-dependencies = [
- "kernel32-sys",
- "libc",
- "winapi 0.2.8",
-]
-
-[[package]]
 name = "procfs"
 version = "0.7.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -973,7 +951,6 @@ dependencies = [
  "libc",
  "libproc",
  "pager",
- "process_path",
  "procfs",
  "serde",
  "serde_derive",
@@ -1230,6 +1207,16 @@ dependencies = [
  "libc",
  "redox_syscall",
  "xattr",
+]
+
+[[package]]
+name = "terminal_size"
+version = "0.1.13"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9a14cd9f8c72704232f0bfc8455c0e861f0ad4eb60cc9ec8a170e231414c1e13"
+dependencies = [
+ "libc",
+ "winapi 0.3.8",
 ]
 
 [[package]]
@@ -1626,6 +1613,15 @@ name = "winapi-i686-pc-windows-gnu"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ac3b87c63620426dd9b991e5ce0329eff545bccbbb34f3be09ff6fb6ab51b7b6"
+
+[[package]]
+name = "winapi-util"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "70ec6ce85bb158151cae5e5c87f95a8e97d2c0c4b001223f33a334e3ce5de178"
+dependencies = [
+ "winapi 0.3.8",
+]
 
 [[package]]
 name = "winapi-x86_64-pc-windows-gnu"
