@@ -137,7 +137,7 @@ If you want to skip password input, you can add the following entry to `/etc/sud
 
 ### `less` setting
 
-On some environments, `less` can't show UTF-8 charactors with default setting.
+On some environments, `less` can't show UTF-8 characters with default setting.
 In this case, the following environment variable may resolve it.
 
 ```
@@ -245,9 +245,9 @@ Column sort order can be changed by `--sorta` or `--sortd` option.
 The last charactor of `--sorta` and `--sortd` means sort order: "a"scending and "d"escending.
 
 The column for sort is selected by the option keyword.
-The keyword is matched with column kind that is shonw by `--list` option.
+The keyword is matched with column kind that is shown by `--list` option.
 If `--sorta cputime`, column is sorted by `CpuTime` with ascending order.
-If `--sortd rss`, column is sorted by `VmRss` with decending order.
+If `--sortd rss`, column is sorted by `VmRss` with descending order.
 The keyword is matched partially and case is ignored.
 
 The default sort is specified by `[sort]` section in the [configuration file](#configuration).
@@ -461,7 +461,7 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 
 There are some special styles like `ByPercentage`, `ByState`, `ByUnit`.
 These are the styles for value-aware coloring.
-For example, if `ByUnit` is choosen, color can be specified for each unit of value ( like `K`, `M`, `G`,,, ).
+For example, if `ByUnit` is chosen, color can be specified for each unit of value ( like `K`, `M`, `G`,,, ).
 The colors can be configured in `[style.by_unit]` section.
 
 ### `[style]` section
