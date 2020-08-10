@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.10.3...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.10.4...Unreleased) - ReleaseDate
+
+## [v0.10.4](https://github.com/dalance/procs/compare/v0.10.3...v0.10.4) - 2020-08-10
 
 * [Added] 256 colors support [#67](https://github.com/dalance/procs/issues/67)
 
