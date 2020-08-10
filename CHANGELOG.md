@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.10.3...Unreleased) - ReleaseDate
 
+* [Added] 256 colors support [#67](https://github.com/dalance/procs/issues/67)
+
 ## [v0.10.3](https://github.com/dalance/procs/compare/v0.10.2...v0.10.3) - 2020-05-11
 
 * [Changed] Branch filtering of tree view [#59](https://github.com/dalance/procs/issues/59)

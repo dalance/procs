@@ -3,14 +3,14 @@ use console::{Style, StyledObject};
 use lazy_static::lazy_static;
 
 lazy_static! {
-    static ref BRIGHT_BLACK: Style = Style::new().black().bold();
-    static ref BRIGHT_RED: Style = Style::new().red().bold();
-    static ref BRIGHT_GREEN: Style = Style::new().green().bold();
-    static ref BRIGHT_YELLOW: Style = Style::new().yellow().bold();
-    static ref BRIGHT_BLUE: Style = Style::new().blue().bold();
-    static ref BRIGHT_MAGENTA: Style = Style::new().magenta().bold();
-    static ref BRIGHT_CYAN: Style = Style::new().cyan().bold();
-    static ref BRIGHT_WHITE: Style = Style::new().white().bold();
+    static ref BRIGHT_BLACK: Style = Style::new().black().bright();
+    static ref BRIGHT_RED: Style = Style::new().red().bright();
+    static ref BRIGHT_GREEN: Style = Style::new().green().bright();
+    static ref BRIGHT_YELLOW: Style = Style::new().yellow().bright();
+    static ref BRIGHT_BLUE: Style = Style::new().blue().bright();
+    static ref BRIGHT_MAGENTA: Style = Style::new().magenta().bright();
+    static ref BRIGHT_CYAN: Style = Style::new().cyan().bright();
+    static ref BRIGHT_WHITE: Style = Style::new().white().bright();
     static ref BLACK: Style = Style::new().black();
     static ref RED: Style = Style::new().red();
     static ref GREEN: Style = Style::new().green();
@@ -82,6 +82,7 @@ pub fn apply_color(x: String, c: &ConfigColor, faded: bool) -> StyledObject<Stri
             ConfigColor::Magenta => MAGENTA.apply_to(x),
             ConfigColor::Cyan => CYAN.apply_to(x),
             ConfigColor::White => WHITE.apply_to(x),
+            ConfigColor::Color256(c) => Style::new().color256(*c).apply_to(x),
         }
     } else {
         match c {
@@ -101,6 +102,7 @@ pub fn apply_color(x: String, c: &ConfigColor, faded: bool) -> StyledObject<Stri
             ConfigColor::Magenta => MAGENTA.apply_to(x),
             ConfigColor::Cyan => CYAN.apply_to(x),
             ConfigColor::White => WHITE.apply_to(x),
+            ConfigColor::Color256(c) => Style::new().color256(*c).apply_to(x),
         }
     }
 }
@@ -128,6 +130,7 @@ pub fn apply_style(
         ConfigColumnStyle::Magenta => apply_color(x, &ConfigColor::Magenta, faded),
         ConfigColumnStyle::Cyan => apply_color(x, &ConfigColor::Cyan, faded),
         ConfigColumnStyle::White => apply_color(x, &ConfigColor::White, faded),
+        ConfigColumnStyle::Color256(c) => apply_color(x, &ConfigColor::Color256(*c), faded),
         ConfigColumnStyle::ByPercentage => apply_style_by_percentage(x, s, faded),
         ConfigColumnStyle::ByState => apply_style_by_state(x, s, faded),
         ConfigColumnStyle::ByUnit => apply_style_by_unit(x, s, faded),
@@ -152,5 +155,6 @@ pub fn color_to_column_style(c: &ConfigColor) -> ConfigColumnStyle {
         ConfigColor::Magenta => ConfigColumnStyle::Magenta,
         ConfigColor::Cyan => ConfigColumnStyle::Cyan,
         ConfigColor::White => ConfigColumnStyle::White,
+        ConfigColor::Color256(c) => ConfigColumnStyle::Color256(*c),
     }
 }

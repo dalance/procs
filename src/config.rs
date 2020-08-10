@@ -122,6 +122,7 @@ pub enum ConfigColor {
     Magenta,
     Cyan,
     White,
+    Color256(u8),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -142,6 +143,7 @@ pub enum ConfigColumnStyle {
     Magenta,
     Cyan,
     White,
+    Color256(u8),
     ByPercentage,
     ByState,
     ByUnit,

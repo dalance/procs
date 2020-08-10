@@ -455,6 +455,7 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 - Magenta
 - Cyan
 - White
+- Color256
 - ByPercentage
 - ByState
 - ByUnit
@@ -463,6 +464,12 @@ There are some special styles like `ByPercentage`, `ByState`, `ByUnit`.
 These are the styles for value-aware coloring.
 For example, if `ByUnit` is choosen, color can be specified for each unit of value ( like `K`, `M`, `G`,,, ).
 The colors can be configured in `[style.by_unit]` section.
+
+`Color256` can be specified by 0-255 value like below:
+
+```toml
+style = { Color256 = 223 }
+```
 
 ### `[style]` section
 
@@ -513,6 +520,13 @@ The available list of color is below.
 - Magenta
 - Cyan
 - White
+- Color256
+
+`Color256` can be specified by 0-255 value like below:
+
+```toml
+style = { Color256 = 223 }
+```
 
 ### `[search]` section
 
