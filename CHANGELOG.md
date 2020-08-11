@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.10.4...Unreleased) - ReleaseDate
 
+* [Added] LookupAccountSidW caching [#71](https://github.com/dalance/procs/issues/71)
+
 ## [v0.10.4](https://github.com/dalance/procs/compare/v0.10.3...v0.10.4) - 2020-08-10
 
 * [Added] 256 colors support [#67](https://github.com/dalance/procs/issues/67)

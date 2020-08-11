@@ -3,6 +3,7 @@ use crate::columns::{ConfigColumnKind, KIND_LIST};
 use crate::config::{ConfigColumnAlign, ConfigSearchLogic};
 use byte_unit::Byte;
 use std::borrow::Cow;
+use std::time::Instant;
 use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 
 pub enum KeywordClass {
@@ -221,4 +222,15 @@ pub fn bytify(x: u64) -> String {
         .replace(" ", "")
         .replace("B", "")
         .replace("i", "")
+}
+
+pub fn lap(instant: &mut Instant, msg: &str) {
+    let period = instant.elapsed();
+    eprintln!(
+        "{} [{}.{:03}s]",
+        msg,
+        period.as_secs(),
+        period.subsec_nanos() / 1000000
+    );
+    instant.clone_from(&Instant::now());
 }

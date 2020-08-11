@@ -11,7 +11,7 @@ mod watcher;
 use crate::column::Column;
 use crate::columns::*;
 use crate::config::*;
-use crate::util::adjust;
+use crate::util::{adjust, lap};
 use crate::view::View;
 use crate::watcher::Watcher;
 use anyhow::{Context, Error};
@@ -20,6 +20,7 @@ use std::cmp;
 use std::collections::HashMap;
 use std::fs;
 use std::io::Read;
+use std::time::Instant;
 use structopt::{clap, StructOpt};
 use unicode_width::UnicodeWidthStr;
 
@@ -140,6 +141,10 @@ pub struct Opt {
     /// Generate configuration sample file
     #[structopt(long = "config")]
     pub config: bool,
+
+    /// Show debug message
+    #[structopt(long = "debug", hidden = true)]
+    pub debug: bool,
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -277,10 +282,32 @@ fn run_watch(opt: &Opt, config: &Config, interval: u64) -> Result<(), Error> {
 }
 
 fn run_default(opt: &Opt, config: &Config) -> Result<(), Error> {
+    let mut time = Instant::now();
+
     let mut view = View::new(opt, config, false);
+
+    if opt.debug {
+        lap(&mut time, "Info: View::new");
+    }
+
     view.filter(opt, config);
+
+    if opt.debug {
+        lap(&mut time, "Info: view.filter");
+    }
+
     view.adjust(config, &HashMap::new());
+
+    if opt.debug {
+        lap(&mut time, "Info: view.adjust");
+    }
+
     view.display(opt, config)?;
+
+    if opt.debug {
+        lap(&mut time, "Info: view.display");
+    }
+
     Ok(())
 }
 

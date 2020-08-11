@@ -1,6 +1,7 @@
 use chrono::offset::TimeZone;
 use chrono::{Local, NaiveDate};
 use libc::c_void;
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::mem::{size_of, zeroed};
 use std::ptr;
@@ -454,7 +455,7 @@ fn get_user(handle: HANDLE) -> Option<SidName> {
         let psid = (*token_user).User.Sid;
 
         let sid = get_sid(psid);
-        let (name, domainname) = if let Some((x, y)) = get_name(psid) {
+        let (name, domainname) = if let Some((x, y)) = get_name_cached(psid) {
             (Some(x), Some(y))
         } else {
             (None, None)
@@ -510,7 +511,7 @@ fn get_groups(handle: HANDLE) -> Option<Vec<SidName>> {
         for i in 0..(*token_groups).GroupCount {
             let psid = (*sa.offset(i as isize)).Sid;
             let sid = get_sid(psid);
-            let (name, domainname) = if let Some((x, y)) = get_name(psid) {
+            let (name, domainname) = if let Some((x, y)) = get_name_cached(psid) {
                 (Some(x), Some(y))
             } else {
                 (None, None)
@@ -552,6 +553,25 @@ fn get_sid(psid: PSID) -> Vec<u64> {
 
         ret
     }
+}
+
+thread_local!(
+    pub static NAME_CACHE: RefCell<HashMap<PSID, Option<(String, String)>>> =
+        { RefCell::new(HashMap::new()) };
+);
+
+#[cfg_attr(tarpaulin, skip)]
+fn get_name_cached(psid: PSID) -> Option<(String, String)> {
+    NAME_CACHE.with(|c| {
+        let mut c = c.borrow_mut();
+        if let Some(x) = c.get(&psid) {
+            x.clone()
+        } else {
+            let x = get_name(psid);
+            c.insert(psid, x.clone());
+            x
+        }
+    })
 }
 
 #[cfg_attr(tarpaulin, skip)]
