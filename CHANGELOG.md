@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.10.4...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.10.5...Unreleased) - ReleaseDate
+
+## [v0.10.5](https://github.com/dalance/procs/compare/v0.10.4...v0.10.5) - 2020-09-26
 
 * [Added] LookupAccountSidW caching [#71](https://github.com/dalance/procs/issues/71)
 * [Changed] Move configuration note to help message [#57](https://github.com/dalance/procs/issues/57)
