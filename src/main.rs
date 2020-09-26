@@ -32,6 +32,9 @@ use unicode_width::UnicodeWidthStr;
 #[structopt(long_version(option_env!("LONG_VERSION").unwrap_or(env!("CARGO_PKG_VERSION"))))]
 #[structopt(setting(clap::AppSettings::ColoredHelp))]
 #[structopt(setting(clap::AppSettings::DeriveDisplayOrder))]
+/// A modern replacement for ps
+///
+/// please see https://github.com/dalance/procs#configuration to configure columns
 pub struct Opt {
     /// Keywords for search
     #[structopt(name = "KEYWORD")]
@@ -176,24 +179,6 @@ fn get_config() -> Result<Config, Error> {
             .context(format!("failed to read file ({:?})", path))?;
         toml::from_str(&s).context(format!("failed to parse toml ({:?})", path))?
     } else {
-        let app_cfg_path = directories::ProjectDirs::from("com.github", "dalance", "procs")
-            .map(|proj| proj.config_dir().join("config.toml"))
-            .unwrap_or_default();
-
-        let err = Term::stderr();
-        let _ = err.write_line(&format!(
-            "{} {}",
-            console::style("note:").yellow().bold(),
-            console::style(format!(
-                "configuration file ({}) is not found",
-                app_cfg_path.to_string_lossy()
-            ))
-            .yellow(),
-        ));
-        let _ = err.write_line(&format!(
-            "      {}",
-            console::style("please see https://github.com/dalance/procs#configuration").yellow(),
-        ));
         toml::from_str(CONFIG_DEFAULT).unwrap()
     };
 
