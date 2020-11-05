@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.10.5...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.10.6...Unreleased) - ReleaseDate
+
+## [v0.10.6](https://github.com/dalance/procs/compare/v0.10.5...v0.10.6) - 2020-11-05
 
 * [Added] --only option [#77](https://github.com/dalance/procs/issues/77)
 * [Added] --no-header option [#77](https://github.com/dalance/procs/issues/77)
