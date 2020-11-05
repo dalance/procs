@@ -66,6 +66,12 @@ impl View {
                 }
                 x => Some(x.clone()),
             };
+            if let Some(ref only) = opt.only {
+                let only_kind = find_column_kind(&only);
+                if only_kind.is_some() & (kind != only_kind) {
+                    continue;
+                }
+            }
             if let Some(kind) = kind {
                 let column = gen_column(
                     &kind,
@@ -103,7 +109,11 @@ impl View {
         }
 
         let term_info = TermInfo::new(clear_by_line);
-        let sort_info = View::get_sort_info(opt, config, &columns);
+        let mut sort_info = View::get_sort_info(opt, config, &columns);
+
+        if opt.only.is_some() {
+            sort_info.idx = 0;
+        }
 
         View {
             columns,

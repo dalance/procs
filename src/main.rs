@@ -101,6 +101,10 @@ pub struct Opt {
     )]
     pub insert: Vec<String>,
 
+    /// Specified column only
+    #[structopt(value_name = "kind", long = "only")]
+    pub only: Option<String>,
+
     /// Sort column by ascending
     #[structopt(
         value_name = "kind",
