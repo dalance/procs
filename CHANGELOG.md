@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.10.6...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.10.7...Unreleased) - ReleaseDate
+
+## [v0.10.7](https://github.com/dalance/procs/compare/v0.10.6...v0.10.7) - 2020-11-05
 
 * [Added] detect_width config [#76](https://github.com/dalance/procs/issues/76)
 
