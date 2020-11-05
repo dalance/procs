@@ -149,6 +149,10 @@ pub struct Opt {
     #[structopt(long = "config")]
     pub config: bool,
 
+    /// Suppress header
+    #[structopt(long = "no-header")]
+    pub no_header: bool,
+
     /// Show debug message
     #[structopt(long = "debug", hidden = true)]
     pub debug: bool,

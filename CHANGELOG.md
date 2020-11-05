@@ -3,6 +3,7 @@
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.10.5...Unreleased) - ReleaseDate
 
 * [Added] --only option [#77](https://github.com/dalance/procs/issues/77)
+* [Added] --no-header option [#77](https://github.com/dalance/procs/issues/77)
 
 ## [v0.10.5](https://github.com/dalance/procs/compare/v0.10.4...v0.10.5) - 2020-09-26
 

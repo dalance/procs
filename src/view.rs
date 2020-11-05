@@ -296,10 +296,12 @@ impl View {
             _ => (),
         }
 
-        // Ignore display_* error
-        //   `Broken pipe` may occur at pager mode. It can be ignored safely.
-        let _ = self.display_header(config);
-        let _ = self.display_unit(&config);
+        if !opt.no_header {
+            // Ignore display_* error
+            //   `Broken pipe` may occur at pager mode. It can be ignored safely.
+            let _ = self.display_header(config);
+            let _ = self.display_unit(&config);
+        }
 
         for pid in &self.visible_pids {
             let auxiliary = self.auxiliary_pids.contains(pid);
