@@ -401,6 +401,8 @@ impl Default for ConfigDocker {
 pub struct ConfigPager {
     #[serde(default = "default_pager_mode_auto")]
     pub mode: ConfigPagerMode,
+    #[serde(default = "default_false")]
+    pub detect_width: bool,
     pub command: Option<String>,
 }
 
@@ -408,6 +410,7 @@ impl Default for ConfigPager {
     fn default() -> Self {
         ConfigPager {
             mode: ConfigPagerMode::Auto,
+            detect_width: false,
             command: None,
         }
     }

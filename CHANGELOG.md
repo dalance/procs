@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.10.6...Unreleased) - ReleaseDate
 
+* [Added] detect_width config [#76](https://github.com/dalance/procs/issues/76)
+
 ## [v0.10.6](https://github.com/dalance/procs/compare/v0.10.5...v0.10.6) - 2020-11-05
 
 * [Added] --only option [#77](https://github.com/dalance/procs/issues/77)

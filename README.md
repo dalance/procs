@@ -596,10 +596,11 @@ If `column` is 0, value is sorted by the left column.
 
 `[pager]` section defines the behavior of pager.
 
-| Key     | Value                 | Default  | Description                                                              |
-| ------- | --------------------- | -------- | ------------------------------------------------------------------------ |
-| mode    | Auto, Always, Disable | Auto     | The default behavior of pager usage without `--pager` commandline option |
-| command | [Command]             | less -SR | Pager command                                                            |
+| Key          | Value                 | Default  | Description                                                              |
+| ------------ | --------------------- | -------- | ------------------------------------------------------------------------ |
+| mode         | Auto, Always, Disable | Auto     | The default behavior of pager usage without `--pager` commandline option |
+| detect_width | true, false           | false    | Whether `auto` mode detects terminal width overflow                      |
+| command      | [Command]             | less -SR | Pager command                                                            |
 
 If `mode` is `Auto`, pager is used only when output lines exceed terminal height.
 Default pager is `less -SR` ( if `less` is not found, `more -f` ).

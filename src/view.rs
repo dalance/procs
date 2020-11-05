@@ -249,17 +249,35 @@ impl View {
         let use_terminal = console::user_attended();
 
         // +3 means header/unit line and next prompt
-        let pager_threshold = self.visible_pids.len() + 3;
+        let pager_threshold_height = self.visible_pids.len() + 3;
+
+        // "self.columns.len() - 1" means spacing between columns
+        let pager_threshold_width = if config.pager.detect_width {
+            self.columns
+                .iter()
+                .map(|x| x.column.get_width())
+                .sum::<usize>()
+                + self.columns.len()
+                - 1
+        } else {
+            std::usize::MIN
+        };
 
         let use_pager = if cfg!(target_os = "windows") {
             false
         } else {
             match (opt.watch_mode, opt.pager.as_ref(), &config.pager.mode) {
                 (true, _, _) => false,
-                (false, Some(x), _) if x == "auto" => self.term_info.height < pager_threshold,
+                (false, Some(x), _) if x == "auto" => {
+                    self.term_info.height < pager_threshold_height
+                        || self.term_info.width < pager_threshold_width
+                }
                 (false, Some(x), _) if x == "always" => true,
                 (false, Some(x), _) if x == "disable" => false,
-                (false, None, ConfigPagerMode::Auto) => self.term_info.height < pager_threshold,
+                (false, None, ConfigPagerMode::Auto) => {
+                    self.term_info.height < pager_threshold_height
+                        || self.term_info.width < pager_threshold_width
+                }
                 (false, None, ConfigPagerMode::Always) => true,
                 (false, None, ConfigPagerMode::Disable) => false,
                 _ => false,
