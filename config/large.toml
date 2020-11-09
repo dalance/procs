@@ -55,13 +55,6 @@ nonnumeric_search = false
 align = "Right"
 
 [[columns]]
-kind = "VmPeak"
-style = "ByUnit"
-numeric_search = false
-nonnumeric_search = false
-align = "Right"
-
-[[columns]]
 kind = "VmSize"
 style = "ByUnit"
 numeric_search = false
