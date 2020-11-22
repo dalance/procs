@@ -57,7 +57,7 @@ users         = "0.10"
 which         = "4"
 
 [target.'cfg(target_os = "macos")'.dependencies]
-libproc       = "0.5"
+libproc       = "0.7"
 errno         = "0.2"
 pager         = "0.16"
 users         = "0.10"
