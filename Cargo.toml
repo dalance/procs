@@ -37,7 +37,7 @@ codecov   = { repository = "dalance/procs", branch = "master", service = "github
 [dependencies]
 anyhow        = "1.0"
 byte-unit     = "3"
-console       = "0.12"
+console       = "0.13"
 chrono        = "0.4"
 directories   = "2.0"
 dockworker    = { version = "0.0.18", optional = true }
