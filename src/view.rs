@@ -450,9 +450,13 @@ impl View {
     #[cfg(not(target_os = "windows"))]
     fn pager(config: &Config) {
         if let Some(ref pager) = config.pager.command {
-            Pager::with_pager(&pager).setup();
+            Pager::with_pager(&pager)
+                .pager_envs(&["LESSCHARSET=utf-8"])
+                .setup();
         } else if which::which("less").is_ok() {
-            Pager::with_pager("less -SR").setup();
+            Pager::with_pager("less -SR")
+                .pager_envs(&["LESSCHARSET=utf-8"])
+                .setup();
         } else {
             Pager::with_pager("more -f").setup();
         }
