@@ -135,17 +135,6 @@ If you want to skip password input, you can add the following entry to `/etc/sud
 // ex. myuser ALL= NOPASSWD: /usr/local/bin/procs
 ```
 
-### `less` setting
-
-On some environments, `less` can't show UTF-8 characters with default setting.
-In this case, the following environment variable may resolve it.
-
-```
-export LESSCHARSET=utf-8
-```
-
-The detail of the issue is [#21](https://github.com/dalance/procs/issues/21).
-
 ## Usage
 
 In the following screenshots, `config/large.toml` is used as the configuration.
