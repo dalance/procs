@@ -153,6 +153,7 @@ pub struct Opt {
     /// Generate shell completion file
     #[structopt(
         long = "completion",
+        value_name = "shell",
         possible_values = &clap::Shell::variants()
     )]
     pub completion: Option<String>,
