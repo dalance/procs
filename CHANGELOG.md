@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.10.8...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.10.9...Unreleased) - ReleaseDate
+
+## [v0.10.9](https://github.com/dalance/procs/compare/v0.10.8...v0.10.9) - 2020-11-24
 
 * [Added] --completion option [#86](https://github.com/dalance/procs/issues/86)
 * [Fixed] crash by --only optiont [#85](https://github.com/dalance/procs/issues/85)
