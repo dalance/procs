@@ -40,7 +40,7 @@ byte-unit     = "3"
 console       = "0.13"
 chrono        = "0.4"
 directories   = "2.0"
-dockworker    = { version = "0.0.18", optional = true }
+dockworker    = { version = "0.0.19", optional = true }
 getch         = "0.2"
 lazy_static   = "1.2"
 libc          = "0.2"
