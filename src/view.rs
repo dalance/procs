@@ -54,16 +54,6 @@ impl View {
             }
         }
 
-        let only_kind = if let Some(ref only) = opt.only {
-            if let Some(only_kind) = find_column_kind(&only) {
-                Some(only_kind)
-            } else {
-                bail!("kind \"{}\" is unknown", only);
-            }
-        } else {
-            None
-        };
-
         let mut only_kind_found = false;
 
         for c in &config.columns {
@@ -80,13 +70,16 @@ impl View {
                 x => Some(x.clone()),
             };
 
-            if only_kind.is_some() & (kind != only_kind) {
-                continue;
-            } else {
-                only_kind_found = true;
-            }
-
             if let Some(kind) = kind {
+                if let Some(ref only) = opt.only {
+                    let kind_name = KIND_LIST[&kind].0.to_lowercase();
+                    if kind_name.find(&only.to_lowercase()).is_none() {
+                        continue;
+                    } else {
+                        only_kind_found = true;
+                    }
+                }
+
                 let column = gen_column(
                     &kind,
                     c.header.clone(),
