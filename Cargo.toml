@@ -36,11 +36,11 @@ codecov   = { repository = "dalance/procs", branch = "master", service = "github
 
 [dependencies]
 anyhow        = "1.0"
-byte-unit     = "3"
+byte-unit     = "4"
 console       = "0.13"
 chrono        = "0.4"
-directories   = "2.0"
-dockworker    = { version = "0.0.18", optional = true }
+directories   = "3"
+dockworker    = { version = "0.0.19", optional = true }
 getch         = "0.2"
 lazy_static   = "1.2"
 libc          = "0.2"
@@ -52,15 +52,15 @@ unicode-width = "0.1"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 pager         = "0.16"
-procfs        = "0.7.1"
-users         = "0.10"
+procfs        = "0.9"
+users         = "0.11"
 which         = "4"
 
 [target.'cfg(target_os = "macos")'.dependencies]
-libproc       = "0.7"
+libproc       = "0.9"
 errno         = "0.2"
 pager         = "0.16"
-users         = "0.10"
+users         = "0.11"
 which         = "4"
 
 [target.'cfg(target_os = "windows")'.dependencies]
