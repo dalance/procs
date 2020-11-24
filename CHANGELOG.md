@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.10.8...Unreleased) - ReleaseDate
 
+* [Added] --completion option [#86](https://github.com/dalance/procs/issues/86)
 * [Fixed] crash by --only optiont [#85](https://github.com/dalance/procs/issues/85)
 
 ## [v0.10.8](https://github.com/dalance/procs/compare/v0.10.7...v0.10.8) - 2020-11-23

@@ -14,12 +14,13 @@ use crate::config::*;
 use crate::util::{adjust, lap};
 use crate::view::View;
 use crate::watcher::Watcher;
-use anyhow::{Context, Error};
+use anyhow::{anyhow, Context, Error};
 use console::Term;
 use std::cmp;
 use std::collections::HashMap;
 use std::fs;
 use std::io::Read;
+use std::str::FromStr;
 use std::time::Instant;
 use structopt::{clap, StructOpt};
 use unicode_width::UnicodeWidthStr;
@@ -149,6 +150,13 @@ pub struct Opt {
     #[structopt(long = "config")]
     pub config: bool,
 
+    /// Generate shell completion file
+    #[structopt(
+        long = "completion",
+        possible_values = &clap::Shell::variants()
+    )]
+    pub completion: Option<String>,
+
     /// Suppress header
     #[structopt(long = "no-header")]
     pub no_header: bool,
@@ -226,6 +234,11 @@ fn run() -> Result<(), Error> {
         run_config()
     } else if opt.list {
         run_list()
+    } else if let Some(shell) = opt.completion {
+        let shell =
+            clap::Shell::from_str(&shell).map_err(|x| anyhow!("unknwon shell type: {}", x))?;
+        Opt::clap().gen_completions("procs", shell, "./");
+        return Ok(());
     } else {
         let config = get_config()?;
 
