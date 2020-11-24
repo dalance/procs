@@ -352,9 +352,9 @@ dependencies = [
 
 [[package]]
 name = "errno"
-version = "0.2.4"
+version = "0.2.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c2a071601ed01b988f896ab14b95e67335d1eeb50190932a1320f7fe3cadc84e"
+checksum = "fa68f2fb9cae9d37c9b2b3584aba698a2e97f72d7aef7b9f7aa71d8b54ce46fe"
 dependencies = [
  "errno-dragonfly",
  "libc",
@@ -850,7 +850,7 @@ version = "0.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "05c7d08cf0d0b55c4f0ffedb5e06569ea212e85d622975071370393970491968"
 dependencies = [
- "errno 0.2.4",
+ "errno 0.2.7",
  "libc",
 ]
 
@@ -946,7 +946,7 @@ dependencies = [
  "console",
  "directories",
  "dockworker",
- "errno 0.2.4",
+ "errno 0.2.7",
  "getch",
  "lazy_static",
  "libc",
