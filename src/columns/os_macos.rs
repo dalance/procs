@@ -83,7 +83,7 @@ pub use self::write_bytes::WriteBytes;
 use crate::column::Column;
 use lazy_static::lazy_static;
 use serde_derive::{Deserialize, Serialize};
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 
 // ---------------------------------------------------------------------------------------------------------------------
 // ConfigColumnKind
@@ -197,7 +197,7 @@ pub fn gen_column(
 // ---------------------------------------------------------------------------------------------------------------------
 
 lazy_static! {
-    pub static ref KIND_LIST: BTreeMap<ConfigColumnKind, (&'static str, &'static str)> = [
+    pub static ref KIND_LIST: HashMap<ConfigColumnKind, (&'static str, &'static str)> = [
         (
             ConfigColumnKind::Command,
             ("Command", "Command with all arguments")
