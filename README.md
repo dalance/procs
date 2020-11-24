@@ -256,6 +256,17 @@ A `Slot` column can be used by a inserted column.
 If many insertion is required, many `Slot` should be added.
 Unused `Slot` is not shown.
 
+### Shell completion
+
+`--completion` option generates shell completion files under the current directory.
+The following shells are supported.
+
+ * `zsh`
+ * `bash`
+ * `fish`
+ * `powershell`
+ * `elvish`
+
 ## Configuration
 
 You can change configuration by writing a configuration file.
