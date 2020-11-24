@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.10.8...Unreleased) - ReleaseDate
 
+* [Fixed] crash by --only optiont [#85](https://github.com/dalance/procs/issues/85)
+
 ## [v0.10.8](https://github.com/dalance/procs/compare/v0.10.7...v0.10.8) - 2020-11-23
 
 * [Changed] Add `LESSCHARSET=utf-8` by default [#75](https://github.com/dalance/procs/issues/75)
