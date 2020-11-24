@@ -277,7 +277,7 @@ fn run_watch(opt: &Opt, config: &Config, interval: u64) -> Result<(), Error> {
 fn run_default(opt: &Opt, config: &Config) -> Result<(), Error> {
     let mut time = Instant::now();
 
-    let mut view = View::new(opt, config, false);
+    let mut view = View::new(opt, config, false)?;
 
     if opt.debug {
         lap(&mut time, "Info: View::new");

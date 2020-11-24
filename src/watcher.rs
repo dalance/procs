@@ -106,7 +106,7 @@ impl Watcher {
         let mut prev_term_width = 0;
         let mut prev_term_height = 0;
         'outer: loop {
-            let mut view = View::new(opt, config, true);
+            let mut view = View::new(opt, config, true)?;
 
             // Override sort_info by key
             if !opt.tree {

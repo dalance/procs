@@ -6,7 +6,7 @@ use crate::style::{apply_color, apply_style, color_to_column_style};
 use crate::term_info::TermInfo;
 use crate::util::{classify, find_column_kind, find_exact, find_partial, truncate, KeywordClass};
 use crate::Opt;
-use anyhow::Error;
+use anyhow::{bail, Error};
 #[cfg(not(target_os = "windows"))]
 use pager::Pager;
 use std::collections::HashMap;
@@ -27,7 +27,7 @@ pub struct View {
 }
 
 impl View {
-    pub fn new(opt: &Opt, config: &Config, clear_by_line: bool) -> Self {
+    pub fn new(opt: &Opt, config: &Config, clear_by_line: bool) -> Result<Self, Error> {
         let mut slot_idx = 0;
         let mut columns = Vec::new();
         if opt.tree {
@@ -53,6 +53,19 @@ impl View {
                 });
             }
         }
+
+        let only_kind = if let Some(ref only) = opt.only {
+            if let Some(only_kind) = find_column_kind(&only) {
+                Some(only_kind)
+            } else {
+                bail!("kind \"{}\" is unknown", only);
+            }
+        } else {
+            None
+        };
+
+        let mut only_kind_found = false;
+
         for c in &config.columns {
             let kind = match &c.kind {
                 ConfigColumnKind::Slot => {
@@ -66,12 +79,13 @@ impl View {
                 }
                 x => Some(x.clone()),
             };
-            if let Some(ref only) = opt.only {
-                let only_kind = find_column_kind(&only);
-                if only_kind.is_some() & (kind != only_kind) {
-                    continue;
-                }
+
+            if only_kind.is_some() & (kind != only_kind) {
+                continue;
+            } else {
+                only_kind_found = true;
             }
+
             if let Some(kind) = kind {
                 let column = gen_column(
                     &kind,
@@ -96,6 +110,12 @@ impl View {
             }
         }
 
+        if let Some(ref only_kind) = opt.only {
+            if !only_kind_found {
+                bail!("kind \"{}\" is not found in columns", only_kind);
+            }
+        }
+
         let proc = collect_proc(Duration::from_millis(opt.interval));
         for c in columns.iter_mut() {
             for p in &proc {
@@ -115,14 +135,14 @@ impl View {
             sort_info.idx = 0;
         }
 
-        View {
+        Ok(View {
             columns,
             term_info,
             sort_info,
             visible_pids: vec![],
             auxiliary_pids: vec![],
             ppids,
-        }
+        })
     }
 
     pub fn filter(&mut self, opt: &Opt, config: &Config) {
