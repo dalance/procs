@@ -460,10 +460,22 @@ impl View {
         }
     }
 
-    #[cfg(not(target_os = "windows"))]
+    #[cfg(not(any(target_os = "windows", target_os = "linux")))]
+    fn pager(config: &Config) {
+        if let Some(ref pager) = config.pager.command {
+            Pager::with_pager(&pager).setup();
+        } else if which::which("less").is_ok() {
+            Pager::with_pager("less -SR").setup();
+        } else {
+            Pager::with_pager("more -f").setup();
+        }
+    }
+
+    #[cfg(target_os = "linux")]
     fn pager(config: &Config) {
         if let Some(ref pager) = config.pager.command {
             Pager::with_pager(&pager)
+                // workaround for default less charset is "acsii" on some environments (ex. Ubuntu)
                 .pager_envs(&["LESSCHARSET=utf-8"])
                 .setup();
         } else if which::which("less").is_ok() {

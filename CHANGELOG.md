@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.10.9...Unreleased) - ReleaseDate
 
+* [Fixed] broken pager on macOS [#92](https://github.com/dalance/procs/issues/92)
+
 ## [v0.10.9](https://github.com/dalance/procs/compare/v0.10.8...v0.10.9) - 2020-11-24
 
 * [Added] --completion option [#86](https://github.com/dalance/procs/issues/86)
