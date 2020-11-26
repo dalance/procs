@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.10.9...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.10.10...Unreleased) - ReleaseDate
+
+## [v0.10.10](https://github.com/dalance/procs/compare/v0.10.9...v0.10.10) - 2020-11-26
 
 * [Fixed] broken pager on macOS [#92](https://github.com/dalance/procs/issues/92)
 
