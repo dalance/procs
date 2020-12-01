@@ -76,7 +76,7 @@ brew install procs
 
 ### Alpine Linux
 
-You can install from [Apline Linux repository](https://pkgs.alpinelinux.org/packages?name=procs)
+You can install from [Alpine Linux repository](https://pkgs.alpinelinux.org/packages?name=procs)
 
 The correct repository (see above link for the most up-to-date information) should be enabled before `apk add`.
 
