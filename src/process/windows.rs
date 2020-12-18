@@ -236,11 +236,10 @@ fn set_privilege() -> bool {
 #[cfg_attr(tarpaulin, skip)]
 fn get_pids() -> Vec<i32> {
     let dword_size = size_of::<DWORD>();
-    let mut pids: Vec<DWORD> = Vec::with_capacity(10192);
+    let mut pids = [0 as DWORD; 10192];
     let mut cb_needed = 0;
 
-    unsafe {
-        pids.set_len(10192);
+    let pids_len = unsafe {
         let result = K32EnumProcesses(
             pids.as_mut_ptr(),
             (dword_size * pids.len()) as DWORD,
@@ -249,11 +248,10 @@ fn get_pids() -> Vec<i32> {
         if result == 0 {
             return Vec::new();
         }
-        let pids_len = cb_needed / dword_size as DWORD;
-        pids.set_len(pids_len as usize);
-    }
+        cb_needed / dword_size as DWORD
+    };
 
-    pids.iter().map(|x| *x as i32).collect()
+    pids[..pids_len].iter().map(|x| *x as i32).collect()
 }
 
 #[cfg_attr(tarpaulin, skip)]
