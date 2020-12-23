@@ -231,7 +231,7 @@ $ procs --tree
 ### Sort column
 
 Column sort order can be changed by `--sorta` or `--sortd` option.
-The last charactor of `--sorta` and `--sortd` means sort order: "a"scending and "d"escending.
+The last character of `--sorta` and `--sortd` means sort order: "a"scending and "d"escending.
 
 The column for sort is selected by the option keyword.
 The keyword is matched with column kind that is shown by `--list` option.
