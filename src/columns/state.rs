@@ -28,7 +28,7 @@ impl State {
 #[cfg(target_os = "linux")]
 impl Column for State {
     fn add(&mut self, proc: &ProcessInfo) {
-        let fmt_content = format!("{}", proc.curr_proc.stat.state);
+        let fmt_content = format!("{}", proc.curr_proc.stat().state);
         let raw_content = fmt_content.clone();
 
         self.fmt_contents.insert(proc.pid, fmt_content);

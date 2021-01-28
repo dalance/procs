@@ -28,8 +28,8 @@ impl UsageCpu {
 #[cfg(target_os = "linux")]
 impl Column for UsageCpu {
     fn add(&mut self, proc: &ProcessInfo) {
-        let curr_time = proc.curr_proc.stat.utime + proc.curr_proc.stat.stime;
-        let prev_time = proc.prev_proc.stat.utime + proc.prev_proc.stat.stime;
+        let curr_time = proc.curr_proc.stat().utime + proc.curr_proc.stat().stime;
+        let prev_time = proc.prev_proc.stat().utime + proc.prev_proc.stat().stime;
         let usage_ms =
             (curr_time - prev_time) * 1000 / procfs::ticks_per_second().unwrap_or(100) as u64;
         let interval_ms = proc.interval.as_secs() * 1000 + u64::from(proc.interval.subsec_millis());

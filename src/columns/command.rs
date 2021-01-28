@@ -42,10 +42,10 @@ impl Column for Command {
                 cmd = cmd.replace("\n", " ").replace("\t", " ");
                 cmd
             } else {
-                proc.curr_proc.stat.comm.clone()
+                proc.curr_proc.stat().comm.clone()
             }
         } else {
-            proc.curr_proc.stat.comm.clone()
+            proc.curr_proc.stat().comm.clone()
         };
         let raw_content = fmt_content.clone();
 

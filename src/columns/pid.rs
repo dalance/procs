@@ -25,6 +25,23 @@ impl Pid {
     }
 }
 
+#[cfg(target_os = "linux")]
+impl Column for Pid {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let raw_content = proc.pid;
+        let fmt_content = match proc.curr_proc {
+            crate::process::ProcessTask::Process(_) => format!("{}", raw_content),
+            _ => format!("[{}]", raw_content),
+        };
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(i32);
+}
+
+#[cfg(not(target_os = "linux"))]
 impl Column for Pid {
     fn add(&mut self, proc: &ProcessInfo) {
         let raw_content = proc.pid;

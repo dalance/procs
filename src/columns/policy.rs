@@ -28,7 +28,7 @@ impl Policy {
 #[cfg(target_os = "linux")]
 impl Column for Policy {
     fn add(&mut self, proc: &ProcessInfo) {
-        let fmt_content = match proc.curr_proc.stat.policy.map(|x| x as i32) {
+        let fmt_content = match proc.curr_proc.stat().policy.map(|x| x as i32) {
             Some(libc::SCHED_BATCH) => String::from("B"),
             Some(libc::SCHED_FIFO) => String::from("FF"),
             Some(libc::SCHED_IDLE) => String::from("IDL"),

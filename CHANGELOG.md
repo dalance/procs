@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.11.0...Unreleased) - ReleaseDate
 
+* [Added] thread information [#30](https://github.com/dalance/procs/issues/30)
+
 ## [v0.11.0](https://github.com/dalance/procs/compare/v0.10.10...v0.11.0) - 2021-01-28
 
 * [Added] automatic theme detection [#78](https://github.com/dalance/procs/issues/78)

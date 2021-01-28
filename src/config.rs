@@ -502,6 +502,10 @@ pub enum ConfigSearchLogic {
 pub struct ConfigDisplay {
     #[serde(default = "default_false")]
     pub show_self: bool,
+    #[serde(default = "default_false")]
+    pub show_thread: bool,
+    #[serde(default = "default_true")]
+    pub show_thread_in_tree: bool,
     #[serde(default = "default_true")]
     pub cut_to_terminal: bool,
     #[serde(default = "default_false")]
@@ -528,6 +532,8 @@ impl Default for ConfigDisplay {
     fn default() -> Self {
         ConfigDisplay {
             show_self: false,
+            show_thread: false,
+            show_thread_in_tree: true,
             cut_to_terminal: true,
             cut_to_pager: false,
             cut_to_pipe: false,

@@ -28,7 +28,7 @@ impl MinFlt {
 #[cfg(target_os = "linux")]
 impl Column for MinFlt {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = proc.curr_proc.stat.minflt;
+        let raw_content = proc.curr_proc.stat().minflt;
         let fmt_content = format!("{}", raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);

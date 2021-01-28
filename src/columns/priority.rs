@@ -28,7 +28,7 @@ impl Priority {
 #[cfg(target_os = "linux")]
 impl Column for Priority {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = proc.curr_proc.stat.priority;
+        let raw_content = proc.curr_proc.stat().priority;
         let fmt_content = format!("{}", raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);

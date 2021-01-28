@@ -212,6 +212,7 @@ impl Column for Tree {
 #[cfg(target_os = "linux")]
 mod tests {
     use super::*;
+    use crate::process::ProcessTask;
     use procfs::process::Process;
     use std::time::Duration;
 
@@ -228,8 +229,8 @@ mod tests {
         let p0 = ProcessInfo {
             pid: 0,
             ppid: 0,
-            curr_proc: Process::myself().unwrap(),
-            prev_proc: Process::myself().unwrap(),
+            curr_proc: ProcessTask::Process(Process::myself().unwrap()),
+            prev_proc: ProcessTask::Process(Process::myself().unwrap()),
             curr_io: None,
             prev_io: None,
             curr_status: None,
@@ -239,8 +240,8 @@ mod tests {
         let p1 = ProcessInfo {
             pid: 1,
             ppid: 0,
-            curr_proc: Process::myself().unwrap(),
-            prev_proc: Process::myself().unwrap(),
+            curr_proc: ProcessTask::Process(Process::myself().unwrap()),
+            prev_proc: ProcessTask::Process(Process::myself().unwrap()),
             curr_io: None,
             prev_io: None,
             curr_status: None,
@@ -250,8 +251,8 @@ mod tests {
         let p2 = ProcessInfo {
             pid: 2,
             ppid: 1,
-            curr_proc: Process::myself().unwrap(),
-            prev_proc: Process::myself().unwrap(),
+            curr_proc: ProcessTask::Process(Process::myself().unwrap()),
+            prev_proc: ProcessTask::Process(Process::myself().unwrap()),
             curr_io: None,
             prev_io: None,
             curr_status: None,

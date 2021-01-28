@@ -109,7 +109,15 @@ impl View {
             }
         }
 
-        let proc = collect_proc(Duration::from_millis(opt.interval));
+        let show_thread = if opt.thread {
+            true
+        } else if opt.tree {
+            config.display.show_thread_in_tree
+        } else {
+            config.display.show_thread
+        };
+
+        let proc = collect_proc(Duration::from_millis(opt.interval), show_thread);
         for c in columns.iter_mut() {
             for p in &proc {
                 c.column.add(&p);

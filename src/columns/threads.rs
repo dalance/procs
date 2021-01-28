@@ -28,7 +28,7 @@ impl Threads {
 #[cfg(target_os = "linux")]
 impl Column for Threads {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = proc.curr_proc.stat.num_threads;
+        let raw_content = proc.curr_proc.stat().num_threads;
         let fmt_content = format!("{}", raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);

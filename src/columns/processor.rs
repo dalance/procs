@@ -27,8 +27,8 @@ impl Processor {
 
 impl Column for Processor {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = proc.curr_proc.stat.processor.unwrap_or_default();
-        let fmt_content = if let Some(p) = proc.curr_proc.stat.processor {
+        let raw_content = proc.curr_proc.stat().processor.unwrap_or_default();
+        let fmt_content = if let Some(p) = proc.curr_proc.stat().processor {
             format!("{}", p)
         } else {
             String::from("")

@@ -336,6 +336,8 @@ logic = "And"
 
 [display]
 show_self = false
+show_thread = false
+show_thread_in_tree = true
 cut_to_terminal = true
 cut_to_pager = false
 cut_to_pipe = false
@@ -549,18 +551,20 @@ style = "223"     # 223 for both theme
 
 `[display]` section defines option for output display.
 
-| Key             | Value                 | Default          | Description                                                                  |
-| --------------- | --------------------- | ---------------- | ---------------------------------------------------------------------------- |
-| show_self       | true, false           | false            | Whether the self process ( `procs` ) is shown                                |
-| cut_to_terminal | true, false           | true             | Whether output lines are truncated for output into terminal                  |
-| cut_to_pager    | true, false           | false            | Whether output lines are truncated for output into pager                     |
-| cut_to_pipe     | true, false           | false            | Whether output lines are truncated for output into pipe                      |
-| color_mode      | Auto, Always, Disable | Auto             | The default behavior of output coloring without `--color` commandline option |
-| separator       | [String]              | │                | String used as Separator                                                     |
-| ascending       | [String]              | ▲                | Ascending sort indicator                                                     |
-| descending      | [String]              | ▼                | Descending sort indicator                                                    |
-| tree_symbols    | [String; 5]           |  [│, ─, ┬, ├, └] | Symbols used by tree view                                                    |
-| abbr_sid        | true, false           | true             | Whether machine SID is abbreviated ( windows only )                          |
+| Key                 | Value                 | Default          | Description                                                                  |
+| ------------------- | --------------------- | ---------------- | ---------------------------------------------------------------------------- |
+| show_self           | true, false           | false            | Whether the self process ( `procs` ) is shown                                |
+| show_thread         | true, false           | false            | Whether the thread information is shown ( Linux only )                       |
+| show_thread_in_tree | true, false           | true             | Whether the thread information is shown in tree mode ( Linux only )          |
+| cut_to_terminal     | true, false           | true             | Whether output lines are truncated for output into terminal                  |
+| cut_to_pager        | true, false           | false            | Whether output lines are truncated for output into pager                     |
+| cut_to_pipe         | true, false           | false            | Whether output lines are truncated for output into pipe                      |
+| color_mode          | Auto, Always, Disable | Auto             | The default behavior of output coloring without `--color` commandline option |
+| separator           | [String]              | │                | String used as Separator                                                     |
+| ascending           | [String]              | ▲                | Ascending sort indicator                                                     |
+| descending          | [String]              | ▼                | Descending sort indicator                                                    |
+| tree_symbols        | [String; 5]           |  [│, ─, ┬, ├, └] | Symbols used by tree view                                                    |
+| abbr_sid            | true, false           | true             | Whether machine SID is abbreviated ( Windows only )                          |
 
 If `color_mode` is `Auto`, color is enabled for terminal and pager, disabled for pipe.
 

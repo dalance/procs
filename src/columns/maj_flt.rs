@@ -28,7 +28,7 @@ impl MajFlt {
 #[cfg(target_os = "linux")]
 impl Column for MajFlt {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = proc.curr_proc.stat.majflt;
+        let raw_content = proc.curr_proc.stat().majflt;
         let fmt_content = format!("{}", raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);

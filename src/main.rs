@@ -77,6 +77,10 @@ pub struct Opt {
     #[structopt(short = "l", long = "list")]
     pub list: bool,
 
+    /// Show thread
+    #[structopt(long = "thread")]
+    pub thread: bool,
+
     /// Tree view
     #[structopt(short = "t", long = "tree")]
     pub tree: bool,
