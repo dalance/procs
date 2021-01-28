@@ -305,10 +305,6 @@ impl View {
             self.term_info.width = std::usize::MAX;
         }
 
-        if use_pager {
-            View::pager(&config);
-        }
-
         match (opt.color.as_ref(), &config.display.color_mode) {
             (Some(x), _) if x == "auto" => {
                 if use_pager && use_terminal {
@@ -327,22 +323,51 @@ impl View {
             _ => (),
         }
 
+        let theme = match (opt.theme.as_ref(), &config.display.theme) {
+            (Some(x), _) => match x.as_str() {
+                "auto" => ConfigTheme::Auto,
+                "dark" => ConfigTheme::Dark,
+                "light" => ConfigTheme::Light,
+                _ => unreachable!(),
+            },
+            (_, x) => x.clone(),
+        };
+        let theme = match theme {
+            ConfigTheme::Auto => {
+                let timeout = Duration::from_millis(100);
+                if let Ok(theme) = termbg::theme(timeout) {
+                    match theme {
+                        termbg::Theme::Dark => ConfigTheme::Dark,
+                        termbg::Theme::Light => ConfigTheme::Light,
+                    }
+                } else {
+                    // If termbg failed, fallback to dark theme
+                    ConfigTheme::Dark
+                }
+            }
+            x => x,
+        };
+
+        if use_pager {
+            View::pager(&config);
+        }
+
         if !opt.no_header {
             // Ignore display_* error
             //   `Broken pipe` may occur at pager mode. It can be ignored safely.
-            let _ = self.display_header(config);
-            let _ = self.display_unit(&config);
+            let _ = self.display_header(&config, &theme);
+            let _ = self.display_unit(&config, &theme);
         }
 
         for pid in &self.visible_pids {
             let auxiliary = self.auxiliary_pids.contains(pid);
-            let _ = self.display_content(&config, *pid, auxiliary);
+            let _ = self.display_content(&config, *pid, &theme, auxiliary);
         }
 
         Ok(())
     }
 
-    fn display_header(&self, config: &Config) -> Result<(), Error> {
+    fn display_header(&self, config: &Config, theme: &ConfigTheme) -> Result<(), Error> {
         let mut row = String::from("");
         for (i, c) in self.columns.iter().enumerate() {
             let order = if i == self.sort_info.idx {
@@ -356,6 +381,7 @@ impl View {
                 apply_color(
                     c.column.display_header(&c.align, order, config),
                     &config.style.header,
+                    theme,
                     false
                 )
             );
@@ -366,13 +392,18 @@ impl View {
         Ok(())
     }
 
-    fn display_unit(&self, config: &Config) -> Result<(), Error> {
+    fn display_unit(&self, config: &Config, theme: &ConfigTheme) -> Result<(), Error> {
         let mut row = String::from("");
         for c in &self.columns {
             row = format!(
                 "{} {}",
                 row,
-                apply_color(c.column.display_unit(&c.align), &config.style.unit, false)
+                apply_color(
+                    c.column.display_unit(&c.align),
+                    &config.style.unit,
+                    theme,
+                    false
+                )
             );
         }
         row = row.trim_end().to_string();
@@ -381,7 +412,13 @@ impl View {
         Ok(())
     }
 
-    fn display_content(&self, config: &Config, pid: i32, auxiliary: bool) -> Result<(), Error> {
+    fn display_content(
+        &self,
+        config: &Config,
+        pid: i32,
+        theme: &ConfigTheme,
+        auxiliary: bool,
+    ) -> Result<(), Error> {
         let mut row = String::from("");
         for c in &self.columns {
             row = format!(
@@ -391,6 +428,7 @@ impl View {
                     c.column.display_content(pid, &c.align).unwrap(),
                     &c.style,
                     &config.style,
+                    theme,
                     auxiliary
                 )
             );

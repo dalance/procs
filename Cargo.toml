@@ -47,6 +47,7 @@ libc          = "0.2"
 serde         = "1.0"
 serde_derive  = "1.0"
 structopt     = "0.3"
+termbg        = "0.2.0"
 toml          = "0.5"
 unicode-width = "0.1"
 

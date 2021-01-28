@@ -1,20 +1,20 @@
 [[columns]]
 kind = "Pid"
-style = "BrightYellow"
+style = "BrightYellow|Yellow"
 numeric_search = true
 nonnumeric_search = false
 align = "Left"
 
 [[columns]]
 kind = "User"
-style = "BrightGreen"
+style = "BrightGreen|Green"
 numeric_search = false
 nonnumeric_search = true
 align = "Left"
 
 [[columns]]
 kind = "Separator"
-style = "White"
+style = "White|BrightBlack"
 numeric_search = false
 nonnumeric_search = false
 align = "Left"
@@ -28,14 +28,14 @@ align = "Left"
 
 [[columns]]
 kind = "Nice"
-style = "BrightMagenta"
+style = "BrightMagenta|Magenta"
 numeric_search = false
 nonnumeric_search = false
 align = "Right"
 
 [[columns]]
 kind = "Tty"
-style = "BrightWhite"
+style = "BrightWhite|Black"
 numeric_search = false
 nonnumeric_search = false
 align = "Left"
@@ -70,7 +70,7 @@ align = "Right"
 
 [[columns]]
 kind = "TcpPort"
-style = "BrightCyan"
+style = "BrightCyan|Cyan"
 numeric_search = true
 nonnumeric_search = false
 align = "Left"
@@ -78,7 +78,7 @@ max_width = 20
 
 [[columns]]
 kind = "UdpPort"
-style = "BrightCyan"
+style = "BrightCyan|Cyan"
 numeric_search = true
 nonnumeric_search = false
 align = "Left"
@@ -107,76 +107,76 @@ align = "Right"
 
 [[columns]]
 kind = "Separator"
-style = "White"
+style = "White|BrightBlack"
 numeric_search = false
 nonnumeric_search = false
 align = "Left"
 
 [[columns]]
 kind = "CpuTime"
-style = "BrightCyan"
+style = "BrightCyan|Cyan"
 numeric_search = false
 nonnumeric_search = false
 align = "Left"
 
 [[columns]]
 kind = "StartTime"
-style = "BrightMagenta"
+style = "BrightMagenta|Magenta"
 numeric_search = false
 nonnumeric_search = false
 align = "Left"
 
 [[columns]]
 kind = "Docker"
-style = "BrightGreen"
+style = "BrightGreen|Green"
 numeric_search = false
 nonnumeric_search = true
 align = "Left"
 
 [[columns]]
 kind = "Separator"
-style = "White"
+style = "White|BrightBlack"
 numeric_search = false
 nonnumeric_search = false
 align = "Left"
 
 [[columns]]
 kind = "Command"
-style = "BrightWhite"
+style = "BrightWhite|Black"
 numeric_search = false
 nonnumeric_search = true
 align = "Left"
 
 [style]
-header = "BrightWhite"
-unit = "BrightWhite"
-tree = "BrightWhite"
+header = "BrightWhite|Black"
+unit = "BrightWhite|Black"
+tree = "BrightWhite|Black"
 
 [style.by_percentage]
-color_000 = "BrightBlue"
-color_025 = "BrightGreen"
-color_050 = "BrightYellow"
-color_075 = "BrightRed"
-color_100 = "BrightRed"
+color_000 = "BrightBlue|Blue"
+color_025 = "BrightGreen|Green"
+color_050 = "BrightYellow|Yellow"
+color_075 = "BrightRed|Red"
+color_100 = "BrightRed|Red"
 
 [style.by_state]
-color_d = "BrightRed"
-color_r = "BrightGreen"
-color_s = "BrightBlue"
-color_t = "BrightCyan"
-color_z = "BrightMagenta"
-color_x = "BrightMagenta"
-color_k = "BrightYellow"
-color_w = "BrightYellow"
-color_p = "BrightYellow"
+color_d = "BrightRed|Red"
+color_r = "BrightGreen|Green"
+color_s = "BrightBlue|Blue"
+color_t = "BrightCyan|Cyan"
+color_z = "BrightMagenta|Magenta"
+color_x = "BrightMagenta|Magenta"
+color_k = "BrightYellow|Yellow"
+color_w = "BrightYellow|Yellow"
+color_p = "BrightYellow|Yellow"
 
 [style.by_unit]
-color_k = "BrightBlue"
-color_m = "BrightGreen"
-color_g = "BrightYellow"
-color_t = "BrightRed"
-color_p = "BrightRed"
-color_x = "BrightBlue"
+color_k = "BrightBlue|Blue"
+color_m = "BrightGreen|Green"
+color_g = "BrightYellow|Yellow"
+color_t = "BrightRed|Red"
+color_p = "BrightRed|Red"
+color_x = "BrightBlue|Blue"
 
 [search]
 numeric_search = "Exact"

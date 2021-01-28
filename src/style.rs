@@ -1,4 +1,4 @@
-use crate::config::{ConfigColor, ConfigColumnStyle, ConfigStyle};
+use crate::config::{ConfigColor, ConfigColorByTheme, ConfigColumnStyle, ConfigStyle, ConfigTheme};
 use console::{Style, StyledObject};
 use lazy_static::lazy_static;
 
@@ -21,49 +21,75 @@ lazy_static! {
     static ref WHITE: Style = Style::new().white();
 }
 
-fn apply_style_by_state(x: String, s: &ConfigStyle, faded: bool) -> StyledObject<String> {
+fn apply_style_by_state(
+    x: String,
+    s: &ConfigStyle,
+    theme: &ConfigTheme,
+    faded: bool,
+) -> StyledObject<String> {
     match x {
-        ref x if x.contains('D') => apply_color(x.to_string(), &s.by_state.color_d, faded),
-        ref x if x.contains('R') => apply_color(x.to_string(), &s.by_state.color_r, faded),
-        ref x if x.contains('S') => apply_color(x.to_string(), &s.by_state.color_s, faded),
-        ref x if x.contains('T') => apply_color(x.to_string(), &s.by_state.color_t, faded),
-        ref x if x.contains('t') => apply_color(x.to_string(), &s.by_state.color_t, faded),
-        ref x if x.contains('Z') => apply_color(x.to_string(), &s.by_state.color_z, faded),
-        ref x if x.contains('X') => apply_color(x.to_string(), &s.by_state.color_x, faded),
-        ref x if x.contains('K') => apply_color(x.to_string(), &s.by_state.color_k, faded),
-        ref x if x.contains('W') => apply_color(x.to_string(), &s.by_state.color_w, faded),
-        ref x if x.contains('P') => apply_color(x.to_string(), &s.by_state.color_p, faded),
-        _ => apply_color(x, &s.by_state.color_x, faded),
+        ref x if x.contains('D') => apply_color(x.to_string(), &s.by_state.color_d, theme, faded),
+        ref x if x.contains('R') => apply_color(x.to_string(), &s.by_state.color_r, theme, faded),
+        ref x if x.contains('S') => apply_color(x.to_string(), &s.by_state.color_s, theme, faded),
+        ref x if x.contains('T') => apply_color(x.to_string(), &s.by_state.color_t, theme, faded),
+        ref x if x.contains('t') => apply_color(x.to_string(), &s.by_state.color_t, theme, faded),
+        ref x if x.contains('Z') => apply_color(x.to_string(), &s.by_state.color_z, theme, faded),
+        ref x if x.contains('X') => apply_color(x.to_string(), &s.by_state.color_x, theme, faded),
+        ref x if x.contains('K') => apply_color(x.to_string(), &s.by_state.color_k, theme, faded),
+        ref x if x.contains('W') => apply_color(x.to_string(), &s.by_state.color_w, theme, faded),
+        ref x if x.contains('P') => apply_color(x.to_string(), &s.by_state.color_p, theme, faded),
+        _ => apply_color(x, &s.by_state.color_x, theme, faded),
     }
 }
 
-fn apply_style_by_unit(x: String, s: &ConfigStyle, faded: bool) -> StyledObject<String> {
+fn apply_style_by_unit(
+    x: String,
+    s: &ConfigStyle,
+    theme: &ConfigTheme,
+    faded: bool,
+) -> StyledObject<String> {
     match x {
-        ref x if x.contains('K') => apply_color(x.to_string(), &s.by_unit.color_k, faded),
-        ref x if x.contains('M') => apply_color(x.to_string(), &s.by_unit.color_m, faded),
-        ref x if x.contains('G') => apply_color(x.to_string(), &s.by_unit.color_g, faded),
-        ref x if x.contains('T') => apply_color(x.to_string(), &s.by_unit.color_t, faded),
-        ref x if x.contains('P') => apply_color(x.to_string(), &s.by_unit.color_p, faded),
-        _ => apply_color(x, &s.by_unit.color_x, faded),
+        ref x if x.contains('K') => apply_color(x.to_string(), &s.by_unit.color_k, theme, faded),
+        ref x if x.contains('M') => apply_color(x.to_string(), &s.by_unit.color_m, theme, faded),
+        ref x if x.contains('G') => apply_color(x.to_string(), &s.by_unit.color_g, theme, faded),
+        ref x if x.contains('T') => apply_color(x.to_string(), &s.by_unit.color_t, theme, faded),
+        ref x if x.contains('P') => apply_color(x.to_string(), &s.by_unit.color_p, theme, faded),
+        _ => apply_color(x, &s.by_unit.color_x, theme, faded),
     }
 }
 
-fn apply_style_by_percentage(x: String, s: &ConfigStyle, faded: bool) -> StyledObject<String> {
+fn apply_style_by_percentage(
+    x: String,
+    s: &ConfigStyle,
+    theme: &ConfigTheme,
+    faded: bool,
+) -> StyledObject<String> {
     let value: f64 = x.trim().parse().unwrap_or(0.0);
     if value > 100.0 {
-        apply_color(x, &s.by_percentage.color_100, faded)
+        apply_color(x, &s.by_percentage.color_100, theme, faded)
     } else if value > 75.0 {
-        apply_color(x, &s.by_percentage.color_075, faded)
+        apply_color(x, &s.by_percentage.color_075, theme, faded)
     } else if value > 50.0 {
-        apply_color(x, &s.by_percentage.color_050, faded)
+        apply_color(x, &s.by_percentage.color_050, theme, faded)
     } else if value > 25.0 {
-        apply_color(x, &s.by_percentage.color_025, faded)
+        apply_color(x, &s.by_percentage.color_025, theme, faded)
     } else {
-        apply_color(x, &s.by_percentage.color_000, faded)
+        apply_color(x, &s.by_percentage.color_000, theme, faded)
     }
 }
 
-pub fn apply_color(x: String, c: &ConfigColor, faded: bool) -> StyledObject<String> {
+pub fn apply_color(
+    x: String,
+    c: &ConfigColorByTheme,
+    theme: &ConfigTheme,
+    faded: bool,
+) -> StyledObject<String> {
+    let c = match theme {
+        ConfigTheme::Dark => &c.dark,
+        ConfigTheme::Light => &c.light,
+        _ => unreachable!(),
+    };
+
     if faded {
         match c {
             ConfigColor::BrightBlack => BLACK.apply_to(x),
@@ -111,50 +137,17 @@ pub fn apply_style(
     x: String,
     cs: &ConfigColumnStyle,
     s: &ConfigStyle,
+    theme: &ConfigTheme,
     faded: bool,
 ) -> StyledObject<String> {
     match cs {
-        ConfigColumnStyle::BrightBlack => apply_color(x, &ConfigColor::BrightBlack, faded),
-        ConfigColumnStyle::BrightRed => apply_color(x, &ConfigColor::BrightRed, faded),
-        ConfigColumnStyle::BrightGreen => apply_color(x, &ConfigColor::BrightGreen, faded),
-        ConfigColumnStyle::BrightYellow => apply_color(x, &ConfigColor::BrightYellow, faded),
-        ConfigColumnStyle::BrightBlue => apply_color(x, &ConfigColor::BrightBlue, faded),
-        ConfigColumnStyle::BrightMagenta => apply_color(x, &ConfigColor::BrightMagenta, faded),
-        ConfigColumnStyle::BrightCyan => apply_color(x, &ConfigColor::BrightCyan, faded),
-        ConfigColumnStyle::BrightWhite => apply_color(x, &ConfigColor::BrightWhite, faded),
-        ConfigColumnStyle::Black => apply_color(x, &ConfigColor::Black, faded),
-        ConfigColumnStyle::Red => apply_color(x, &ConfigColor::Red, faded),
-        ConfigColumnStyle::Green => apply_color(x, &ConfigColor::Green, faded),
-        ConfigColumnStyle::Yellow => apply_color(x, &ConfigColor::Yellow, faded),
-        ConfigColumnStyle::Blue => apply_color(x, &ConfigColor::Blue, faded),
-        ConfigColumnStyle::Magenta => apply_color(x, &ConfigColor::Magenta, faded),
-        ConfigColumnStyle::Cyan => apply_color(x, &ConfigColor::Cyan, faded),
-        ConfigColumnStyle::White => apply_color(x, &ConfigColor::White, faded),
-        ConfigColumnStyle::Color256(c) => apply_color(x, &ConfigColor::Color256(*c), faded),
-        ConfigColumnStyle::ByPercentage => apply_style_by_percentage(x, s, faded),
-        ConfigColumnStyle::ByState => apply_style_by_state(x, s, faded),
-        ConfigColumnStyle::ByUnit => apply_style_by_unit(x, s, faded),
+        ConfigColumnStyle::Fixed(c) => apply_color(x, c, theme, faded),
+        ConfigColumnStyle::ByPercentage => apply_style_by_percentage(x, s, theme, faded),
+        ConfigColumnStyle::ByState => apply_style_by_state(x, s, theme, faded),
+        ConfigColumnStyle::ByUnit => apply_style_by_unit(x, s, theme, faded),
     }
 }
 
-pub fn color_to_column_style(c: &ConfigColor) -> ConfigColumnStyle {
-    match c {
-        ConfigColor::BrightBlack => ConfigColumnStyle::BrightBlack,
-        ConfigColor::BrightRed => ConfigColumnStyle::BrightRed,
-        ConfigColor::BrightGreen => ConfigColumnStyle::BrightGreen,
-        ConfigColor::BrightYellow => ConfigColumnStyle::BrightYellow,
-        ConfigColor::BrightBlue => ConfigColumnStyle::BrightBlue,
-        ConfigColor::BrightMagenta => ConfigColumnStyle::BrightMagenta,
-        ConfigColor::BrightCyan => ConfigColumnStyle::BrightCyan,
-        ConfigColor::BrightWhite => ConfigColumnStyle::BrightWhite,
-        ConfigColor::Black => ConfigColumnStyle::Black,
-        ConfigColor::Red => ConfigColumnStyle::Red,
-        ConfigColor::Green => ConfigColumnStyle::Green,
-        ConfigColor::Yellow => ConfigColumnStyle::Yellow,
-        ConfigColor::Blue => ConfigColumnStyle::Blue,
-        ConfigColor::Magenta => ConfigColumnStyle::Magenta,
-        ConfigColor::Cyan => ConfigColumnStyle::Cyan,
-        ConfigColor::White => ConfigColumnStyle::White,
-        ConfigColor::Color256(c) => ConfigColumnStyle::Color256(*c),
-    }
+pub fn color_to_column_style(c: &ConfigColorByTheme) -> ConfigColumnStyle {
+    ConfigColumnStyle::Fixed(c.clone())
 }

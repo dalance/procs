@@ -1,6 +1,7 @@
 use crate::column::Column;
 use crate::columns::ConfigColumnKind;
 use serde_derive::{Deserialize, Serialize};
+use std::str::FromStr;
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Functions for serde defalut
@@ -64,8 +65,15 @@ fn default_tree_symbols() -> [String; 5] {
     ]
 }
 
-fn default_color_bright_white() -> ConfigColor {
-    ConfigColor::BrightWhite
+fn default_color_by_theme() -> ConfigColorByTheme {
+    ConfigColorByTheme {
+        dark: ConfigColor::BrightWhite,
+        light: ConfigColor::Black,
+    }
+}
+
+fn default_theme_auto() -> ConfigTheme {
+    ConfigTheme::Auto
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -105,6 +113,13 @@ pub struct Config {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum ConfigTheme {
+    Auto,
+    Dark,
+    Light,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ConfigColor {
     BrightBlack,
     BrightRed,
@@ -125,28 +140,144 @@ pub enum ConfigColor {
     Color256(u8),
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+fn serialize_color(c: &ConfigColor) -> String {
+    match c {
+        ConfigColor::BrightBlack => "BrightBlack".to_string(),
+        ConfigColor::BrightRed => "BrightRed".to_string(),
+        ConfigColor::BrightGreen => "BrightGreen".to_string(),
+        ConfigColor::BrightYellow => "BrightYellow".to_string(),
+        ConfigColor::BrightBlue => "BrightBlue".to_string(),
+        ConfigColor::BrightMagenta => "BrightMagenta".to_string(),
+        ConfigColor::BrightCyan => "BrightCyan".to_string(),
+        ConfigColor::BrightWhite => "BrightWhite".to_string(),
+        ConfigColor::Black => "Black".to_string(),
+        ConfigColor::Red => "Red".to_string(),
+        ConfigColor::Green => "Green".to_string(),
+        ConfigColor::Yellow => "Yellow".to_string(),
+        ConfigColor::Blue => "Blue".to_string(),
+        ConfigColor::Magenta => "Magenta".to_string(),
+        ConfigColor::Cyan => "Cyan".to_string(),
+        ConfigColor::White => "White".to_string(),
+        ConfigColor::Color256(x) => format!("{}", x),
+    }
+}
+
+fn deserialize_color(s: &str) -> Option<ConfigColor> {
+    match s {
+        "BrightBlack" => Some(ConfigColor::BrightBlack),
+        "BrightRed" => Some(ConfigColor::BrightRed),
+        "BrightGreen" => Some(ConfigColor::BrightGreen),
+        "BrightYellow" => Some(ConfigColor::BrightYellow),
+        "BrightBlue" => Some(ConfigColor::BrightBlue),
+        "BrightMagenta" => Some(ConfigColor::BrightMagenta),
+        "BrightCyan" => Some(ConfigColor::BrightCyan),
+        "BrightWhite" => Some(ConfigColor::BrightWhite),
+        "Black" => Some(ConfigColor::Black),
+        "Red" => Some(ConfigColor::Red),
+        "Green" => Some(ConfigColor::Green),
+        "Yellow" => Some(ConfigColor::Yellow),
+        "Blue" => Some(ConfigColor::Blue),
+        "Magenta" => Some(ConfigColor::Magenta),
+        "Cyan" => Some(ConfigColor::Cyan),
+        "White" => Some(ConfigColor::White),
+        s if u8::from_str(s).is_ok() => Some(ConfigColor::Color256(u8::from_str(s).unwrap())),
+        _ => None,
+    }
+}
+
+fn serialize_color_by_theme(c: &ConfigColorByTheme) -> String {
+    let dark = &c.dark;
+    let light = &c.light;
+    if dark == light {
+        serialize_color(dark)
+    } else {
+        let dark = serialize_color(dark);
+        let light = serialize_color(light);
+        format!("{}|{}", dark, light)
+    }
+}
+
+fn deserialize_color_by_theme(s: &str) -> Option<ConfigColorByTheme> {
+    if let Some(i) = s.find("|") {
+        let (dark, light) = s.split_at(i);
+        let light = &light[1..];
+        let dark = deserialize_color(dark)?;
+        let light = deserialize_color(light)?;
+        Some(ConfigColorByTheme { dark, light })
+    } else {
+        let c = deserialize_color(s)?;
+        Some(ConfigColorByTheme {
+            dark: c.clone(),
+            light: c,
+        })
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct ConfigColorByTheme {
+    pub dark: ConfigColor,
+    pub light: ConfigColor,
+}
+
+impl serde::Serialize for ConfigColorByTheme {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let s = serialize_color_by_theme(self);
+        serializer.serialize_str(&s)
+    }
+}
+
+impl<'de> serde::Deserialize<'de> for ConfigColorByTheme {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        deserialize_color_by_theme(&s).ok_or(serde::de::Error::custom(""))
+    }
+}
+
+#[derive(Clone, Debug)]
 pub enum ConfigColumnStyle {
-    BrightBlack,
-    BrightRed,
-    BrightGreen,
-    BrightYellow,
-    BrightBlue,
-    BrightMagenta,
-    BrightCyan,
-    BrightWhite,
-    Black,
-    Red,
-    Green,
-    Yellow,
-    Blue,
-    Magenta,
-    Cyan,
-    White,
-    Color256(u8),
+    Fixed(ConfigColorByTheme),
     ByPercentage,
     ByState,
     ByUnit,
+}
+
+impl serde::Serialize for ConfigColumnStyle {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let s = match self {
+            ConfigColumnStyle::ByPercentage => "ByPercentage".to_string(),
+            ConfigColumnStyle::ByState => "ByState".to_string(),
+            ConfigColumnStyle::ByUnit => "ByUnit".to_string(),
+            ConfigColumnStyle::Fixed(c) => serialize_color_by_theme(c),
+        };
+        serializer.serialize_str(&s)
+    }
+}
+
+impl<'de> serde::Deserialize<'de> for ConfigColumnStyle {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        match s.as_str() {
+            "ByPercentage" => Ok(ConfigColumnStyle::ByPercentage),
+            "ByState" => Ok(ConfigColumnStyle::ByState),
+            "ByUnit" => Ok(ConfigColumnStyle::ByUnit),
+            s => {
+                let c = deserialize_color_by_theme(s).ok_or(serde::de::Error::custom(""))?;
+                Ok(ConfigColumnStyle::Fixed(c))
+            }
+        }
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -173,12 +304,12 @@ pub struct ConfigColumn {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ConfigStyle {
-    #[serde(default = "default_color_bright_white")]
-    pub header: ConfigColor,
-    #[serde(default = "default_color_bright_white")]
-    pub unit: ConfigColor,
-    #[serde(default = "default_color_bright_white")]
-    pub tree: ConfigColor,
+    #[serde(default = "default_color_by_theme")]
+    pub header: ConfigColorByTheme,
+    #[serde(default = "default_color_by_theme")]
+    pub unit: ConfigColorByTheme,
+    #[serde(default = "default_color_by_theme")]
+    pub tree: ConfigColorByTheme,
     #[serde(default)]
     pub by_percentage: ConfigStyleByPercentage,
     #[serde(default)]
@@ -190,9 +321,9 @@ pub struct ConfigStyle {
 impl Default for ConfigStyle {
     fn default() -> Self {
         ConfigStyle {
-            header: ConfigColor::BrightWhite,
-            unit: ConfigColor::BrightWhite,
-            tree: ConfigColor::BrightWhite,
+            header: default_color_by_theme(),
+            unit: default_color_by_theme(),
+            tree: default_color_by_theme(),
             by_percentage: Default::default(),
             by_state: Default::default(),
             by_unit: Default::default(),
@@ -202,73 +333,133 @@ impl Default for ConfigStyle {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ConfigStyleByPercentage {
-    pub color_000: ConfigColor,
-    pub color_025: ConfigColor,
-    pub color_050: ConfigColor,
-    pub color_075: ConfigColor,
-    pub color_100: ConfigColor,
+    pub color_000: ConfigColorByTheme,
+    pub color_025: ConfigColorByTheme,
+    pub color_050: ConfigColorByTheme,
+    pub color_075: ConfigColorByTheme,
+    pub color_100: ConfigColorByTheme,
 }
 
 impl Default for ConfigStyleByPercentage {
     fn default() -> Self {
         ConfigStyleByPercentage {
-            color_000: ConfigColor::BrightBlue,
-            color_025: ConfigColor::BrightGreen,
-            color_050: ConfigColor::BrightYellow,
-            color_075: ConfigColor::BrightRed,
-            color_100: ConfigColor::BrightRed,
+            color_000: ConfigColorByTheme {
+                dark: ConfigColor::BrightBlue,
+                light: ConfigColor::Blue,
+            },
+            color_025: ConfigColorByTheme {
+                dark: ConfigColor::BrightGreen,
+                light: ConfigColor::Green,
+            },
+            color_050: ConfigColorByTheme {
+                dark: ConfigColor::BrightYellow,
+                light: ConfigColor::Yellow,
+            },
+            color_075: ConfigColorByTheme {
+                dark: ConfigColor::BrightRed,
+                light: ConfigColor::Red,
+            },
+            color_100: ConfigColorByTheme {
+                dark: ConfigColor::BrightRed,
+                light: ConfigColor::Red,
+            },
         }
     }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ConfigStyleByUnit {
-    pub color_k: ConfigColor,
-    pub color_m: ConfigColor,
-    pub color_g: ConfigColor,
-    pub color_t: ConfigColor,
-    pub color_p: ConfigColor,
-    pub color_x: ConfigColor,
+    pub color_k: ConfigColorByTheme,
+    pub color_m: ConfigColorByTheme,
+    pub color_g: ConfigColorByTheme,
+    pub color_t: ConfigColorByTheme,
+    pub color_p: ConfigColorByTheme,
+    pub color_x: ConfigColorByTheme,
 }
 
 impl Default for ConfigStyleByUnit {
     fn default() -> Self {
         ConfigStyleByUnit {
-            color_k: ConfigColor::BrightBlue,
-            color_m: ConfigColor::BrightGreen,
-            color_g: ConfigColor::BrightYellow,
-            color_t: ConfigColor::BrightRed,
-            color_p: ConfigColor::BrightRed,
-            color_x: ConfigColor::BrightBlue,
+            color_k: ConfigColorByTheme {
+                dark: ConfigColor::BrightBlue,
+                light: ConfigColor::Blue,
+            },
+            color_m: ConfigColorByTheme {
+                dark: ConfigColor::BrightGreen,
+                light: ConfigColor::Green,
+            },
+            color_g: ConfigColorByTheme {
+                dark: ConfigColor::BrightYellow,
+                light: ConfigColor::Yellow,
+            },
+            color_t: ConfigColorByTheme {
+                dark: ConfigColor::BrightRed,
+                light: ConfigColor::Red,
+            },
+            color_p: ConfigColorByTheme {
+                dark: ConfigColor::BrightRed,
+                light: ConfigColor::Red,
+            },
+            color_x: ConfigColorByTheme {
+                dark: ConfigColor::BrightBlue,
+                light: ConfigColor::Blue,
+            },
         }
     }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ConfigStyleByState {
-    pub color_d: ConfigColor,
-    pub color_r: ConfigColor,
-    pub color_s: ConfigColor,
-    pub color_t: ConfigColor,
-    pub color_z: ConfigColor,
-    pub color_x: ConfigColor,
-    pub color_k: ConfigColor,
-    pub color_w: ConfigColor,
-    pub color_p: ConfigColor,
+    pub color_d: ConfigColorByTheme,
+    pub color_r: ConfigColorByTheme,
+    pub color_s: ConfigColorByTheme,
+    pub color_t: ConfigColorByTheme,
+    pub color_z: ConfigColorByTheme,
+    pub color_x: ConfigColorByTheme,
+    pub color_k: ConfigColorByTheme,
+    pub color_w: ConfigColorByTheme,
+    pub color_p: ConfigColorByTheme,
 }
 
 impl Default for ConfigStyleByState {
     fn default() -> Self {
         ConfigStyleByState {
-            color_d: ConfigColor::BrightRed,
-            color_r: ConfigColor::BrightGreen,
-            color_s: ConfigColor::BrightBlue,
-            color_t: ConfigColor::BrightCyan,
-            color_z: ConfigColor::BrightMagenta,
-            color_x: ConfigColor::BrightMagenta,
-            color_k: ConfigColor::BrightYellow,
-            color_w: ConfigColor::BrightYellow,
-            color_p: ConfigColor::BrightYellow,
+            color_d: ConfigColorByTheme {
+                dark: ConfigColor::BrightRed,
+                light: ConfigColor::Red,
+            },
+            color_r: ConfigColorByTheme {
+                dark: ConfigColor::BrightGreen,
+                light: ConfigColor::Green,
+            },
+            color_s: ConfigColorByTheme {
+                dark: ConfigColor::BrightBlue,
+                light: ConfigColor::Blue,
+            },
+            color_t: ConfigColorByTheme {
+                dark: ConfigColor::BrightCyan,
+                light: ConfigColor::Cyan,
+            },
+            color_z: ConfigColorByTheme {
+                dark: ConfigColor::BrightMagenta,
+                light: ConfigColor::Magenta,
+            },
+            color_x: ConfigColorByTheme {
+                dark: ConfigColor::BrightMagenta,
+                light: ConfigColor::Magenta,
+            },
+            color_k: ConfigColorByTheme {
+                dark: ConfigColor::BrightYellow,
+                light: ConfigColor::Yellow,
+            },
+            color_w: ConfigColorByTheme {
+                dark: ConfigColor::BrightYellow,
+                light: ConfigColor::Yellow,
+            },
+            color_p: ConfigColorByTheme {
+                dark: ConfigColor::BrightYellow,
+                light: ConfigColor::Yellow,
+            },
         }
     }
 }
@@ -329,6 +520,8 @@ pub struct ConfigDisplay {
     pub tree_symbols: [String; 5],
     #[serde(default = "default_true")]
     pub abbr_sid: bool,
+    #[serde(default = "default_theme_auto")]
+    pub theme: ConfigTheme,
 }
 
 impl Default for ConfigDisplay {
@@ -350,6 +543,7 @@ impl Default for ConfigDisplay {
                 String::from("└"),
             ],
             abbr_sid: true,
+            theme: ConfigTheme::Auto,
         }
     }
 }

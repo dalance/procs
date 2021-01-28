@@ -132,6 +132,15 @@ pub struct Opt {
     )]
     pub color: Option<String>,
 
+    /// Theme mode
+    #[structopt(
+        long = "theme",
+        possible_value = "auto",
+        possible_value = "dark",
+        possible_value = "light"
+    )]
+    pub theme: Option<String>,
+
     /// Pager mode
     #[structopt(
         short = "p",
@@ -254,6 +263,7 @@ fn run() -> Result<(), Error> {
 
 fn run_config() -> Result<(), Error> {
     let config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
+    dbg!(&config);
     let toml = toml::to_string(&config)?;
     println!("{}", toml);
     Ok(())
@@ -326,6 +336,7 @@ mod tests {
     fn test_run() {
         let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
         config.pager.mode = ConfigPagerMode::Disable;
+        config.display.theme = ConfigTheme::Dark;
 
         let args = vec!["procs"];
         let opt = Opt::from_iter(args.iter());
@@ -337,6 +348,7 @@ mod tests {
     fn test_run_search() {
         let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
         config.pager.mode = ConfigPagerMode::Disable;
+        config.display.theme = ConfigTheme::Dark;
 
         let args = vec!["procs", "root"];
         let opt = Opt::from_iter(args.iter());
@@ -392,6 +404,7 @@ mod tests {
     fn test_run_without_truncate() {
         let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
         config.display.cut_to_terminal = false;
+        config.display.theme = ConfigTheme::Dark;
 
         let args = vec!["procs"];
         let opt = Opt::from_iter(args.iter());
@@ -404,6 +417,7 @@ mod tests {
     fn test_run_insert() {
         let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
         config.pager.mode = ConfigPagerMode::Disable;
+        config.display.theme = ConfigTheme::Dark;
 
         let args = vec!["procs", "--insert", "ppid"];
         let opt = Opt::from_iter(args.iter());
@@ -415,6 +429,7 @@ mod tests {
     fn test_run_sort() {
         let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
         config.pager.mode = ConfigPagerMode::Disable;
+        config.display.theme = ConfigTheme::Dark;
 
         let args = vec!["procs", "--sorta", "cpu"];
         let opt = Opt::from_iter(args.iter());
@@ -431,6 +446,7 @@ mod tests {
     fn test_run_tree() {
         let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
         config.pager.mode = ConfigPagerMode::Disable;
+        config.display.theme = ConfigTheme::Dark;
 
         let args = vec!["procs", "--tree"];
         let opt = Opt::from_iter(args.iter());
@@ -442,6 +458,7 @@ mod tests {
     fn test_run_all() {
         let mut config: Config = toml::from_str(CONFIG_ALL).unwrap();
         config.pager.mode = ConfigPagerMode::Disable;
+        config.display.theme = ConfigTheme::Dark;
 
         let _tcp = std::net::TcpListener::bind("127.0.0.1:10000");
         let _udp = std::net::UdpSocket::bind("127.0.0.1:10000");
