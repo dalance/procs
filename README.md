@@ -4,7 +4,6 @@
 
 [![Actions Status](https://github.com/dalance/procs/workflows/Regression/badge.svg)](https://github.com/dalance/procs/actions)
 [![Build Status](https://travis-ci.org/dalance/procs.svg?branch=master)](https://travis-ci.org/dalance/procs)
-[![Snap Status](https://build.snapcraft.io/badge/dalance/procs.svg)](https://build.snapcraft.io/user/dalance/procs)
 [![codecov](https://codecov.io/gh/dalance/procs/branch/master/graph/badge.svg)](https://codecov.io/gh/dalance/procs)
 
 [![Changelog](https://img.shields.io/badge/changelog-v0.10.10-green.svg)](https://github.com/dalance/procs/blob/master/CHANGELOG.md)
