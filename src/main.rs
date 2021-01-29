@@ -207,12 +207,28 @@ fn get_config() -> Result<Config, Error> {
         let mut s = String::new();
         f.read_to_string(&mut s)
             .context(format!("failed to read file ({:?})", path))?;
-        toml::from_str(&s).context(format!("failed to parse toml ({:?})", path))?
+        let c = toml::from_str(&s);
+        check_old_config(&s, c).context(format!("failed to parse toml ({:?})", path))?
     } else {
         toml::from_str(CONFIG_DEFAULT).unwrap()
     };
 
     Ok(config)
+}
+
+fn check_old_config(s: &str, config: Result<Config, toml::de::Error>) -> Result<Config, Error> {
+    match config {
+        Ok(x) => Ok(x),
+        Err(x) => {
+            if s.contains("Color256") {
+                let err: Error = x.into();
+                let err = err.context("\"Color256\" keyword for 8bit color is obsolete. Please see https://github.com/dalance/procs#color-list");
+                Err(err)
+            } else {
+                Err(x.into())
+            }
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------------------------------------------------

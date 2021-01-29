@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.11.1...Unreleased) - ReleaseDate
 
+* [Added] obsolete config check
+
 ## [v0.11.1](https://github.com/dalance/procs/compare/v0.11.0...v0.11.1) - 2021-01-28
 
 * [Added] thread information [#30](https://github.com/dalance/procs/issues/30)
