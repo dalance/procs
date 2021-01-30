@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.11.2...Unreleased) - ReleaseDate
 
+* [Changed] default color for light theme
+
 ## [v0.11.2](https://github.com/dalance/procs/compare/v0.11.1...v0.11.2) - 2021-01-29
 
 * [Added] obsolete config check

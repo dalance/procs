@@ -291,22 +291,22 @@ lazy_static! {
 pub static CONFIG_DEFAULT: &str = r#"
 [[columns]]
 kind = "Pid"
-style = "BrightYellow"
+style = "BrightYellow|Yellow"
 numeric_search = true
 nonnumeric_search = false
 [[columns]]
 kind = "User"
-style = "BrightGreen"
+style = "BrightGreen|Green"
 numeric_search = false
 nonnumeric_search = true
 [[columns]]
 kind = "Separator"
-style = "White"
+style = "White|BrightBlack"
 numeric_search = false
 nonnumeric_search = false
 [[columns]]
 kind = "Tty"
-style = "BrightWhite"
+style = "BrightWhite|Black"
 numeric_search = false
 nonnumeric_search = false
 [[columns]]
@@ -323,17 +323,17 @@ nonnumeric_search = false
 align = "Right"
 [[columns]]
 kind = "CpuTime"
-style = "BrightCyan"
+style = "BrightCyan|Cyan"
 numeric_search = false
 nonnumeric_search = false
 [[columns]]
 kind = "Separator"
-style = "White"
+style = "White|BrightBlack"
 numeric_search = false
 nonnumeric_search = false
 [[columns]]
 kind = "Command"
-style = "BrightWhite"
+style = "BrightWhite|Black"
 numeric_search = false
 nonnumeric_search = true
 "#;
