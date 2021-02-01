@@ -84,6 +84,14 @@ The correct repository (see above link for the most up-to-date information) shou
 sudo apk add procs
 ```
 
+### Arch Linux
+
+You can install from [Arch Linux community repository](https://archlinux.org/packages/community/x86_64/procs/)
+
+```
+sudo pacman -S procs
+```
+
 ### Scoop
 
 You can install by [scoop](https://scoop.sh/)
