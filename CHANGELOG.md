@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.11.3...Unreleased) - ReleaseDate
 
+* [Fixed] suppress theme detection at each refresh of watcher mode
+
 ## [v0.11.3](https://github.com/dalance/procs/compare/v0.11.2...v0.11.3) - 2021-01-30
 
 * [Changed] default color for light theme

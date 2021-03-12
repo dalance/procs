@@ -1,5 +1,6 @@
 use crate::config::*;
 use crate::term_info::TermInfo;
+use crate::util::get_theme;
 use crate::view::View;
 use crate::Opt;
 use anyhow::Error;
@@ -91,6 +92,8 @@ impl Watcher {
     }
 
     pub fn start(opt: &Opt, config: &Config, interval: u64) -> Result<(), Error> {
+        let theme = get_theme(opt, config);
+
         let (tx_cmd, rx_cmd) = channel();
         Watcher::spawn_cmd(tx_cmd.clone());
 
@@ -127,7 +130,7 @@ impl Watcher {
             }
             Watcher::display_header(&mut view.term_info, opt, interval)?;
 
-            view.display(opt, config)?;
+            view.display(opt, config, &theme)?;
 
             view.term_info.clear_rest_lines()?;
             view.term_info.move_cursor_to(0, 0)?;

@@ -11,7 +11,7 @@ mod watcher;
 use crate::column::Column;
 use crate::columns::*;
 use crate::config::*;
-use crate::util::{adjust, lap};
+use crate::util::{adjust, get_theme, lap};
 use crate::view::View;
 use crate::watcher::Watcher;
 use anyhow::{anyhow, Context, Error};
@@ -339,7 +339,8 @@ fn run_default(opt: &Opt, config: &Config) -> Result<(), Error> {
         lap(&mut time, "Info: view.adjust");
     }
 
-    view.display(opt, config)?;
+    let theme = get_theme(opt, config);
+    view.display(opt, config, &theme)?;
 
     if opt.debug {
         lap(&mut time, "Info: view.display");

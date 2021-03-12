@@ -1,8 +1,10 @@
 use crate::column::Column;
 use crate::columns::{ConfigColumnKind, KIND_LIST};
-use crate::config::{ConfigColumnAlign, ConfigSearchLogic};
+use crate::config::{Config, ConfigColumnAlign, ConfigSearchLogic, ConfigTheme};
+use crate::Opt;
 use byte_unit::Byte;
 use std::borrow::Cow;
+use std::time::Duration;
 use std::time::Instant;
 use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 
@@ -233,4 +235,31 @@ pub fn lap(instant: &mut Instant, msg: &str) {
         period.subsec_nanos() / 1000000
     );
     instant.clone_from(&Instant::now());
+}
+
+pub fn get_theme(opt: &Opt, config: &Config) -> ConfigTheme {
+    let theme = match (opt.theme.as_ref(), &config.display.theme) {
+        (Some(x), _) => match x.as_str() {
+            "auto" => ConfigTheme::Auto,
+            "dark" => ConfigTheme::Dark,
+            "light" => ConfigTheme::Light,
+            _ => unreachable!(),
+        },
+        (_, x) => x.clone(),
+    };
+    match theme {
+        ConfigTheme::Auto => {
+            let timeout = Duration::from_millis(100);
+            if let Ok(theme) = termbg::theme(timeout) {
+                match theme {
+                    termbg::Theme::Dark => ConfigTheme::Dark,
+                    termbg::Theme::Light => ConfigTheme::Light,
+                }
+            } else {
+                // If termbg failed, fallback to dark theme
+                ConfigTheme::Dark
+            }
+        }
+        x => x,
+    }
 }

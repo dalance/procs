@@ -266,7 +266,12 @@ impl View {
         }
     }
 
-    pub fn display(&mut self, opt: &Opt, config: &Config) -> Result<(), Error> {
+    pub fn display(
+        &mut self,
+        opt: &Opt,
+        config: &Config,
+        theme: &ConfigTheme,
+    ) -> Result<(), Error> {
         let use_terminal = console::user_attended();
 
         // +3 means header/unit line and next prompt
@@ -331,31 +336,6 @@ impl View {
             _ => (),
         }
 
-        let theme = match (opt.theme.as_ref(), &config.display.theme) {
-            (Some(x), _) => match x.as_str() {
-                "auto" => ConfigTheme::Auto,
-                "dark" => ConfigTheme::Dark,
-                "light" => ConfigTheme::Light,
-                _ => unreachable!(),
-            },
-            (_, x) => x.clone(),
-        };
-        let theme = match theme {
-            ConfigTheme::Auto => {
-                let timeout = Duration::from_millis(100);
-                if let Ok(theme) = termbg::theme(timeout) {
-                    match theme {
-                        termbg::Theme::Dark => ConfigTheme::Dark,
-                        termbg::Theme::Light => ConfigTheme::Light,
-                    }
-                } else {
-                    // If termbg failed, fallback to dark theme
-                    ConfigTheme::Dark
-                }
-            }
-            x => x,
-        };
-
         if use_pager {
             View::pager(&config);
         }
@@ -363,13 +343,13 @@ impl View {
         if !opt.no_header {
             // Ignore display_* error
             //   `Broken pipe` may occur at pager mode. It can be ignored safely.
-            let _ = self.display_header(&config, &theme);
-            let _ = self.display_unit(&config, &theme);
+            let _ = self.display_header(&config, theme);
+            let _ = self.display_unit(&config, theme);
         }
 
         for pid in &self.visible_pids {
             let auxiliary = self.auxiliary_pids.contains(pid);
-            let _ = self.display_content(&config, *pid, &theme, auxiliary);
+            let _ = self.display_content(&config, *pid, theme, auxiliary);
         }
 
         Ok(())
