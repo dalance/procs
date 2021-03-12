@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.11.3...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.11.4...Unreleased) - ReleaseDate
+
+## [v0.11.4](https://github.com/dalance/procs/compare/v0.11.3...v0.11.4) - 2021-03-12
 
 * [Fixed] suppress theme detection at each refresh of watcher mode
 
