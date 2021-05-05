@@ -213,7 +213,9 @@ impl View {
         if opt.tree {
             let mut additional_pids = Vec::new();
             for pid in &candidate_pids {
-                additional_pids.append(&mut self.get_ppids(*pid));
+                let mut ppids = vec![];
+                self.get_ppids(*pid, &mut ppids);
+                additional_pids.append(&mut ppids);
             }
             let mut additional_pids: Vec<_> = additional_pids
                 .iter()
@@ -239,14 +241,12 @@ impl View {
         self.auxiliary_pids = auxiliary_pids;
     }
 
-    fn get_ppids(&self, pid: i32) -> Vec<i32> {
-        let mut ret = vec![];
+    fn get_ppids(&self, pid: i32, ppids: &mut Vec<i32>) {
         if let Some(x) = self.ppids.get(&pid) {
-            ret.push(*x);
-            ret.append(&mut self.get_ppids(*x));
-            ret
-        } else {
-            ret
+            if !ppids.contains(x) {
+                ppids.push(*x);
+                self.get_ppids(*x, ppids);
+            }
         }
     }
 
