@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.11.4...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.11.5...Unreleased) - ReleaseDate
+
+## [v0.11.5](https://github.com/dalance/procs/compare/v0.11.4...v0.11.5) - 2021-05-06
 
 * [Fixed] crash at tree mode [#129](https://github.com/dalance/procs/issues/129)
 
