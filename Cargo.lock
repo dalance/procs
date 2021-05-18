@@ -1406,9 +1406,9 @@ dependencies = [
 
 [[package]]
 name = "termbg"
-version = "0.2.2"
+version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ddfdd6e291f52f0866ff4e2cabb4973a691919e7cb6a746c252fa0badf17a19c"
+checksum = "7e7fa67e879d2b5c902517367809bfab4e69ee6cabc03909141003721bd64282"
 dependencies = [
  "crossterm",
  "thiserror",
