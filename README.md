@@ -387,6 +387,7 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | CpuTime      | cputime               | Cumulative CPU time                           | o     | o     | o       |
 | Docker       | -not supported-       | Docker container name                         | o     | o     |         |
 | Eip          | eip                   | Instruction pointer                           | o     |       |         |
+| ElapsedTime  | -not supported-       | Elapsed time                                  | o     | o     | o       |
 | Esp          | esp                   | Stack pointer                                 | o     |       |         |
 | Gid          | egid                  | Group ID                                      | o     | o     | o       |
 | GidFs        | fgid                  | File system group ID                          | o     |       |         |

@@ -4,6 +4,7 @@ pub mod cpu_time;
 #[cfg(feature = "docker")]
 pub mod docker;
 pub mod eip;
+pub mod elapsed_time;
 pub mod empty;
 pub mod esp;
 pub mod gid;
@@ -72,6 +73,7 @@ pub use self::cpu_time::CpuTime;
 #[cfg(feature = "docker")]
 pub use self::docker::Docker;
 pub use self::eip::Eip;
+pub use self::elapsed_time::ElapsedTime;
 pub use self::empty::Empty;
 pub use self::esp::Esp;
 pub use self::gid::Gid;
@@ -150,6 +152,7 @@ pub enum ConfigColumnKind {
     CpuTime,
     Docker,
     Eip,
+    ElapsedTime,
     Empty,
     Esp,
     Gid,
@@ -235,6 +238,7 @@ pub fn gen_column(
         #[cfg(not(feature = "docker"))]
         ConfigColumnKind::Docker => Box::new(Empty::new()),
         ConfigColumnKind::Eip => Box::new(Eip::new(header)),
+        ConfigColumnKind::ElapsedTime => Box::new(ElapsedTime::new(header)),
         ConfigColumnKind::Empty => Box::new(Empty::new()),
         ConfigColumnKind::Esp => Box::new(Esp::new(header)),
         ConfigColumnKind::Gid => Box::new(Gid::new(header, abbr_sid)),
@@ -323,6 +327,10 @@ lazy_static! {
             ("Docker", "Docker container name")
         ),
         (ConfigColumnKind::Eip, ("Eip", "Instruction pointer")),
+        (
+            ConfigColumnKind::ElapsedTime,
+            ("ElapsedTime", "Elapsed time")
+        ),
         (ConfigColumnKind::Empty, ("Empty", "Empty")),
         (ConfigColumnKind::Esp, ("Esp", "Stack pointer")),
         (ConfigColumnKind::Gid, ("Gid", "Group ID")),
@@ -532,6 +540,9 @@ kind = "Docker"
 style = "BrightMagenta"
 [[columns]]
 kind = "Eip"
+style = "BrightYellow"
+[[columns]]
+kind = "ElapsedTime"
 style = "BrightYellow"
 [[columns]]
 kind = "Empty"

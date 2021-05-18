@@ -1,5 +1,6 @@
 pub mod command;
 pub mod cpu_time;
+pub mod elapsed_time;
 pub mod empty;
 pub mod gid;
 pub mod group;
@@ -27,6 +28,7 @@ pub mod write_bytes;
 
 pub use self::command::Command;
 pub use self::cpu_time::CpuTime;
+pub use self::elapsed_time::ElapsedTime;
 pub use self::empty::Empty;
 pub use self::gid::Gid;
 pub use self::group::Group;
@@ -65,6 +67,7 @@ use std::collections::HashMap;
 pub enum ConfigColumnKind {
     Command,
     CpuTime,
+    ElapsedTime,
     Empty,
     Gid,
     Group,
@@ -106,6 +109,7 @@ pub fn gen_column(
     match kind {
         ConfigColumnKind::Command => Box::new(Command::new(header)),
         ConfigColumnKind::CpuTime => Box::new(CpuTime::new(header)),
+        ConfigColumnKind::ElapsedTime => Box::new(ElapsedTime::new(header)),
         ConfigColumnKind::Empty => Box::new(Empty::new()),
         ConfigColumnKind::Gid => Box::new(Gid::new(header, abbr_sid)),
         ConfigColumnKind::Group => Box::new(Group::new(header, abbr_sid)),
@@ -146,6 +150,10 @@ lazy_static! {
         (
             ConfigColumnKind::CpuTime,
             ("CpuTime", "Cumulative CPU time")
+        ),
+        (
+            ConfigColumnKind::ElapsedTime,
+            ("ElapsedTime", "Elapsed time")
         ),
         (ConfigColumnKind::Empty, ("Empty", "Empty")),
         (ConfigColumnKind::Gid, ("Gid", "Group ID")),
@@ -263,6 +271,9 @@ align = "Left"
 kind = "CpuTime"
 style = "BrightGreen"
 align = "Center"
+[[columns]]
+kind = "ElapsedTime"
+style = "BrightYellow"
 [[columns]]
 kind = "Empty"
 style = "BrightYellow"

@@ -3,6 +3,7 @@ pub mod context_sw;
 pub mod cpu_time;
 #[cfg(feature = "docker")]
 pub mod docker;
+pub mod elapsed_time;
 pub mod empty;
 pub mod gid;
 pub mod gid_real;
@@ -44,6 +45,7 @@ pub use self::context_sw::ContextSw;
 pub use self::cpu_time::CpuTime;
 #[cfg(feature = "docker")]
 pub use self::docker::Docker;
+pub use self::elapsed_time::ElapsedTime;
 pub use self::empty::Empty;
 pub use self::gid::Gid;
 pub use self::gid_real::GidReal;
@@ -95,6 +97,7 @@ pub enum ConfigColumnKind {
     ContextSw,
     CpuTime,
     Docker,
+    ElapsedTime,
     Empty,
     Gid,
     GidReal,
@@ -153,6 +156,7 @@ pub fn gen_column(
         ConfigColumnKind::Docker => Box::new(Docker::new(header, _docker_path)),
         #[cfg(not(feature = "docker"))]
         ConfigColumnKind::Docker => Box::new(Empty::new()),
+        ConfigColumnKind::ElapsedTime => Box::new(ElapsedTime::new(header)),
         ConfigColumnKind::Empty => Box::new(Empty::new()),
         ConfigColumnKind::Gid => Box::new(Gid::new(header, abbr_sid)),
         ConfigColumnKind::GidReal => Box::new(GidReal::new(header)),
@@ -213,6 +217,10 @@ lazy_static! {
         (
             ConfigColumnKind::Docker,
             ("Docker", "Docker container name")
+        ),
+        (
+            ConfigColumnKind::ElapsedTime,
+            ("ElapsedTime", "Elapsed time")
         ),
         (ConfigColumnKind::Empty, ("Empty", "Empty")),
         (ConfigColumnKind::Gid, ("Gid", "Group ID")),
@@ -359,6 +367,9 @@ align = "Center"
 [[columns]]
 kind = "Docker"
 style = "BrightMagenta"
+[[columns]]
+kind = "ElapsedTime"
+style = "BrightYellow"
 [[columns]]
 kind = "Empty"
 style = "BrightYellow"
