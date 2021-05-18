@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.11.6...Unreleased) - ReleaseDate
 
+* [Added] completion file message [#130](https://github.com/dalance/procs/issues/130)
+
 ## [v0.11.6](https://github.com/dalance/procs/compare/v0.11.5...v0.11.6) - 2021-05-18
 
 * [Fixed] termbg byte leak

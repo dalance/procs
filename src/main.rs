@@ -268,6 +268,14 @@ fn run() -> Result<(), Error> {
         let shell =
             clap::Shell::from_str(&shell).map_err(|x| anyhow!("unknwon shell type: {}", x))?;
         Opt::clap().gen_completions("procs", shell, "./");
+        let path = match shell {
+            clap::Shell::Bash => "./procs.bash",
+            clap::Shell::Elvish => "./procs.elv",
+            clap::Shell::Fish => "./procs.fish",
+            clap::Shell::PowerShell => "./_procs.ps1",
+            clap::Shell::Zsh => "./_procs",
+        };
+        println!("completion file is generated: {}", path);
         return Ok(());
     } else {
         let config = get_config()?;
