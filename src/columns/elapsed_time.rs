@@ -2,7 +2,9 @@ use crate::process::ProcessInfo;
 use crate::{column_default, Column};
 #[cfg(not(target_os = "windows"))]
 use chrono::offset::TimeZone;
-use chrono::{DateTime, Duration, Local};
+#[cfg(target_os = "linux")]
+use chrono::DateTime;
+use chrono::{Duration, Local};
 #[cfg(target_os = "linux")]
 use lazy_static::lazy_static;
 use std::cmp;
