@@ -50,17 +50,17 @@ fn format_duration(duration: Duration) -> String {
     let seconds = duration.num_seconds();
 
     if years > 1.0 {
-        format!("{:.1} years", years)
+        format!("{:.1}years", years)
     } else if weeks > 1.0 {
-        format!("{:.1} weeks", weeks)
+        format!("{:.1}weeks", weeks)
     } else if days > 1.0 {
-        format!("{:.1} days", days)
+        format!("{:.1}days", days)
     } else if hours > 1.0 {
-        format!("{:.1} hours", hours)
+        format!("{:.1}hours", hours)
     } else if minutes > 1.0 {
-        format!("{:.1} minutes", minutes)
+        format!("{:.1}minutes", minutes)
     } else {
-        format!("{:.1} seconds", seconds)
+        format!("{:.1}seconds", seconds)
     }
 }
 
