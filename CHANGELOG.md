@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.11.6...Unreleased) - ReleaseDate
 
+* [Fixed] crash at piped/redirected [#146](https://github.com/dalance/procs/issues/146)
 * [Added] elapsed time [#120](https://github.com/dalance/procs/issues/120)
 * [Added] completion file message [#130](https://github.com/dalance/procs/issues/130)
 

@@ -249,14 +249,19 @@ pub fn get_theme(opt: &Opt, config: &Config) -> ConfigTheme {
     };
     match theme {
         ConfigTheme::Auto => {
-            let timeout = Duration::from_millis(100);
-            if let Ok(theme) = termbg::theme(timeout) {
-                match theme {
-                    termbg::Theme::Dark => ConfigTheme::Dark,
-                    termbg::Theme::Light => ConfigTheme::Light,
+            if console::user_attended() {
+                let timeout = Duration::from_millis(100);
+                if let Ok(theme) = termbg::theme(timeout) {
+                    match theme {
+                        termbg::Theme::Dark => ConfigTheme::Dark,
+                        termbg::Theme::Light => ConfigTheme::Light,
+                    }
+                } else {
+                    // If termbg failed, fallback to dark theme
+                    ConfigTheme::Dark
                 }
             } else {
-                // If termbg failed, fallback to dark theme
+                // If piped or redirected, fallback to dark theme
                 ConfigTheme::Dark
             }
         }
