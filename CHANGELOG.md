@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.11.5...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.11.6...Unreleased) - ReleaseDate
+
+## [v0.11.6](https://github.com/dalance/procs/compare/v0.11.5...v0.11.6) - 2021-05-18
 
 * [Fixed] termbg byte leak
 
