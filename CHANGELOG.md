@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.11.6...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.11.7...Unreleased) - ReleaseDate
+
+## [v0.11.7](https://github.com/dalance/procs/compare/v0.11.6...v0.11.7) - 2021-05-19
 
 * [Fixed] crash at piped/redirected [#146](https://github.com/dalance/procs/issues/146)
 * [Added] elapsed time [#120](https://github.com/dalance/procs/issues/120)
