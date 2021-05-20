@@ -329,6 +329,8 @@ fn run_watch(opt: &Opt, config: &Config, interval: u64) -> Result<(), Error> {
 fn run_default(opt: &Opt, config: &Config) -> Result<(), Error> {
     let mut time = Instant::now();
 
+    let theme = get_theme(opt, config);
+
     let mut view = View::new(opt, config, false)?;
 
     if opt.debug {
@@ -347,7 +349,6 @@ fn run_default(opt: &Opt, config: &Config) -> Result<(), Error> {
         lap(&mut time, "Info: view.adjust");
     }
 
-    let theme = get_theme(opt, config);
     view.display(opt, config, &theme)?;
 
     if opt.debug {
