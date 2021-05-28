@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.11.7...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.11.8...Unreleased) - ReleaseDate
+
+## [v0.11.8](https://github.com/dalance/procs/compare/v0.11.7...v0.11.8) - 2021-05-28
 
 ## [v0.11.7](https://github.com/dalance/procs/compare/v0.11.6...v0.11.7) - 2021-05-19
 
