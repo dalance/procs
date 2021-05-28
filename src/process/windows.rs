@@ -557,7 +557,7 @@ fn get_sid(psid: PSID) -> Vec<u64> {
 
 thread_local!(
     pub static NAME_CACHE: RefCell<HashMap<PSID, Option<(String, String)>>> =
-        { RefCell::new(HashMap::new()) };
+        RefCell::new(HashMap::new());
 );
 
 #[cfg_attr(tarpaulin, skip)]
