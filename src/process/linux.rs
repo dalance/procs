@@ -63,6 +63,8 @@ impl ProcessTask {
 pub struct ProcessInfo {
     pub pid: i32,
     pub ppid: i32,
+    pub pgid: i32,
+    pub session: i32,
     pub curr_proc: ProcessTask,
     pub prev_proc: ProcessTask,
     pub curr_io: Option<Io>,
@@ -102,6 +104,8 @@ pub fn collect_proc(interval: Duration, with_thread: bool) -> Vec<ProcessInfo> {
         let curr_time = Instant::now();
         let interval = curr_time - prev_time;
         let ppid = curr_proc.stat.ppid;
+        let pgid = curr_proc.stat.pgrp;
+        let session = curr_proc.stat.session;
         let owner = curr_proc.owner;
 
         let mut curr_tasks = HashMap::new();
@@ -117,6 +121,8 @@ pub fn collect_proc(interval: Duration, with_thread: bool) -> Vec<ProcessInfo> {
         let proc = ProcessInfo {
             pid,
             ppid,
+            pgid,
+            session,
             curr_proc,
             prev_proc,
             curr_io,
@@ -132,6 +138,8 @@ pub fn collect_proc(interval: Duration, with_thread: bool) -> Vec<ProcessInfo> {
                 let proc = ProcessInfo {
                     pid: tid,
                     ppid: pid,
+                    pgid: pgid,
+                    session: session,
                     curr_proc: ProcessTask::Task {
                         stat: curr_stat,
                         owner,
