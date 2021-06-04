@@ -14,6 +14,7 @@ use std::time::{Duration, Instant};
 pub struct ProcessInfo {
     pub pid: i32,
     pub ppid: i32,
+    pub pgid: i32,
     pub curr_task: TaskAllInfo,
     pub prev_task: TaskAllInfo,
     pub curr_path: Option<PathInfo>,
@@ -96,10 +97,12 @@ pub fn collect_proc(interval: Duration, _with_thread: bool) -> Vec<ProcessInfo> 
         let curr_time = Instant::now();
         let interval = curr_time - prev_time;
         let ppid = curr_task.pbsd.pbi_ppid as i32;
+        let pgid = curr_task.pbsd.pbi_pgid as i32;
 
         let proc = ProcessInfo {
             pid,
             ppid,
+            pgid,
             curr_task,
             prev_task,
             curr_path,

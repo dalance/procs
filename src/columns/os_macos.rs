@@ -14,6 +14,7 @@ pub mod group_saved;
 pub mod maj_flt;
 pub mod min_flt;
 pub mod nice;
+pub mod pgid;
 pub mod pid;
 pub mod policy;
 pub mod ppid;
@@ -56,6 +57,7 @@ pub use self::group_saved::GroupSaved;
 pub use self::maj_flt::MajFlt;
 pub use self::min_flt::MinFlt;
 pub use self::nice::Nice;
+pub use self::pgid::Pgid;
 pub use self::pid::Pid;
 pub use self::policy::Policy;
 pub use self::ppid::Ppid;
@@ -108,6 +110,7 @@ pub enum ConfigColumnKind {
     MajFlt,
     MinFlt,
     Nice,
+    Pgid,
     Pid,
     Policy,
     Ppid,
@@ -167,6 +170,7 @@ pub fn gen_column(
         ConfigColumnKind::MajFlt => Box::new(MajFlt::new(header)),
         ConfigColumnKind::MinFlt => Box::new(MinFlt::new(header)),
         ConfigColumnKind::Nice => Box::new(Nice::new(header)),
+        ConfigColumnKind::Pgid => Box::new(Pgid::new(header)),
         ConfigColumnKind::Pid => Box::new(Pid::new(header)),
         ConfigColumnKind::Policy => Box::new(Policy::new(header)),
         ConfigColumnKind::Ppid => Box::new(Ppid::new(header)),
@@ -244,6 +248,7 @@ lazy_static! {
             ("MinFlt", "Minor page fault count")
         ),
         (ConfigColumnKind::Nice, ("Nice", "Nice value")),
+        (ConfigColumnKind::Pgid, ("Pgid", "Process group ID")),
         (ConfigColumnKind::Pid, ("Pid", "Process ID")),
         (ConfigColumnKind::Policy, ("Policy", "Scheduling policy")),
         (ConfigColumnKind::Ppid, ("Ppid", "Parent process ID")),
@@ -400,6 +405,9 @@ style = "BrightWhite"
 [[columns]]
 kind = "Nice"
 style = "Red"
+[[columns]]
+kind = "Pgid"
+style = "Yellow"
 [[columns]]
 kind = "Pid"
 style = "Green"
