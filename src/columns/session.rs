@@ -13,7 +13,7 @@ pub struct Session {
 
 impl Session {
     pub fn new(header: Option<String>) -> Self {
-        let header = header.unwrap_or_else(|| String::from("SESS"));
+        let header = header.unwrap_or_else(|| String::from("Session"));
         let unit = String::from("");
         Session {
             fmt_contents: HashMap::new(),
