@@ -28,7 +28,7 @@ impl Pgid {
 #[cfg(target_os = "linux")]
 impl Column for Pgid {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = proc.pgid;
+        let raw_content = proc.curr_proc.stat().pgrp;
         let fmt_content = match proc.curr_proc {
             crate::process::ProcessTask::Process(_) => format!("{}", raw_content),
             _ => format!("[{}]", raw_content),
@@ -41,10 +41,10 @@ impl Column for Pgid {
     column_default!(i32);
 }
 
-#[cfg(not(target_os = "linux"))]
+#[cfg(target_os = "macos")]
 impl Column for Pgid {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = proc.pgid;
+        let raw_content = proc.curr_task.pbsd.pbi_pgid as i32;
         let fmt_content = format!("{}", raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
