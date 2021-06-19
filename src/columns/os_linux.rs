@@ -521,204 +521,153 @@ nonnumeric_search = true
 // CONFIG_ALL
 // ---------------------------------------------------------------------------------------------------------------------
 
-#[cfg(test)]
 pub static CONFIG_ALL: &str = r#"
 [[columns]]
-kind = "Command"
-style = "BrightRed"
-align = "Left"
-[[columns]]
-kind = "ContextSw"
-style = "BrightRed"
-align = "Right"
-[[columns]]
-kind = "CpuTime"
-style = "BrightGreen"
-align = "Center"
-[[columns]]
-kind = "Docker"
-style = "BrightMagenta"
-[[columns]]
-kind = "Eip"
-style = "BrightYellow"
-[[columns]]
-kind = "ElapsedTime"
-style = "BrightYellow"
-[[columns]]
-kind = "Empty"
-style = "BrightYellow"
-[[columns]]
-kind = "Esp"
-style = "BrightBlue"
-[[columns]]
-kind = "Gid"
-style = "White"
-[[columns]]
-kind = "GidFs"
-style = "White"
-[[columns]]
-kind = "GidReal"
-style = "White"
-[[columns]]
-kind = "GidSaved"
-style = "White"
-[[columns]]
-kind = "Group"
-style = "White"
-[[columns]]
-kind = "GroupFs"
-style = "White"
-[[columns]]
-kind = "GroupReal"
-style = "White"
-[[columns]]
-kind = "GroupSaved"
-style = "White"
-[[columns]]
-kind = "MajFlt"
-style = "BrightCyan"
-[[columns]]
-kind = "MinFlt"
-style = "BrightWhite"
-[[columns]]
-kind = "Nice"
-style = "Red"
-[[columns]]
 kind = "Pid"
-style = "Green"
-[[columns]]
-kind = "Policy"
-style = "Green"
-[[columns]]
-kind = "Ppid"
-style = "Yellow"
-[[columns]]
-kind = "Priority"
-style = "Blue"
-[[columns]]
-kind = "Processor"
-style = "Magenta"
-[[columns]]
-kind = "ReadBytes"
-style = "Cyan"
-[[columns]]
-kind = "RtPriority"
-style = "White"
-[[columns]]
-kind = "Separator"
-style = "White"
-[[columns]]
-kind = "ShdPnd"
-style = "White"
-[[columns]]
-kind = "SigBlk"
-style = "White"
-[[columns]]
-kind = "SigCgt"
-style = "White"
-[[columns]]
-kind = "SigIgn"
-style = "White"
-[[columns]]
-kind = "SigPnd"
-style = "White"
-[[columns]]
-kind = "Ssb"
-style = "White"
-[[columns]]
-kind = "StartTime"
-style = "White"
-[[columns]]
-kind = "State"
-style = "White"
-[[columns]]
-kind = "TcpPort"
-style = "White"
-[[columns]]
-kind = "Threads"
-style = "White"
-[[columns]]
-kind = "Tty"
-style = "White"
-[[columns]]
-kind = "UdpPort"
-style = "White"
-[[columns]]
-kind = "Uid"
-style = "White"
-[[columns]]
-kind = "UidFs"
-style = "White"
-[[columns]]
-kind = "UidLogin"
-style = "White"
-[[columns]]
-kind = "UidReal"
-style = "White"
-[[columns]]
-kind = "UidSaved"
-style = "White"
-[[columns]]
-kind = "UsageCpu"
-style = "White"
-[[columns]]
-kind = "UsageMem"
-style = "White"
+style = "BrightYellow|Yellow"
+numeric_search = true
+nonnumeric_search = false
+align = "Left"
+
 [[columns]]
 kind = "User"
-style = "White"
+style = "BrightGreen|Green"
+numeric_search = false
+nonnumeric_search = true
+align = "Left"
+
 [[columns]]
-kind = "UserFs"
-style = "White"
+kind = "Separator"
+style = "White|BrightBlack"
+numeric_search = false
+nonnumeric_search = false
+align = "Left"
+
 [[columns]]
-kind = "UserLogin"
-style = "White"
+kind = "State"
+style = "ByState"
+numeric_search = false
+nonnumeric_search = false
+align = "Left"
+
 [[columns]]
-kind = "UserReal"
-style = "White"
+kind = "Nice"
+style = "BrightMagenta|Magenta"
+numeric_search = false
+nonnumeric_search = false
+align = "Right"
+
 [[columns]]
-kind = "UserSaved"
-style = "White"
+kind = "Tty"
+style = "BrightWhite|Black"
+numeric_search = false
+nonnumeric_search = false
+align = "Left"
+
 [[columns]]
-kind = "VmData"
-style = "ByUnit"
+kind = "UsageCpu"
+style = "ByPercentage"
+numeric_search = false
+nonnumeric_search = false
+align = "Right"
+
 [[columns]]
-kind = "VmExe"
-style = "ByUnit"
-[[columns]]
-kind = "VmHwm"
-style = "ByUnit"
-[[columns]]
-kind = "VmLib"
-style = "ByUnit"
-[[columns]]
-kind = "VmLock"
-style = "ByUnit"
-[[columns]]
-kind = "VmPeak"
-style = "ByUnit"
-[[columns]]
-kind = "VmPin"
-style = "ByUnit"
-[[columns]]
-kind = "VmPte"
-style = "ByUnit"
-[[columns]]
-kind = "VmRss"
-style = "ByUnit"
+kind = "UsageMem"
+style = "ByPercentage"
+numeric_search = false
+nonnumeric_search = false
+align = "Right"
+
 [[columns]]
 kind = "VmSize"
 style = "ByUnit"
+numeric_search = false
+nonnumeric_search = false
+align = "Right"
+
 [[columns]]
-kind = "VmStack"
+kind = "VmRss"
 style = "ByUnit"
+numeric_search = false
+nonnumeric_search = false
+align = "Right"
+
 [[columns]]
-kind = "VmSwap"
+kind = "TcpPort"
+style = "BrightCyan|Cyan"
+numeric_search = true
+nonnumeric_search = false
+align = "Left"
+max_width = 20
+
+[[columns]]
+kind = "UdpPort"
+style = "BrightCyan|Cyan"
+numeric_search = true
+nonnumeric_search = false
+align = "Left"
+max_width = 20
+
+[[columns]]
+kind = "ReadBytes"
 style = "ByUnit"
-[[columns]]
-kind = "Wchan"
-style = "White"
+numeric_search = false
+nonnumeric_search = false
+align = "Right"
+
 [[columns]]
 kind = "WriteBytes"
-style = "White"
+style = "ByUnit"
+numeric_search = false
+nonnumeric_search = false
+align = "Right"
+
+[[columns]]
+kind = "Slot"
+style = "ByUnit"
+numeric_search = false
+nonnumeric_search = false
+align = "Right"
+
+[[columns]]
+kind = "Separator"
+style = "White|BrightBlack"
+numeric_search = false
+nonnumeric_search = false
+align = "Left"
+
+[[columns]]
+kind = "CpuTime"
+style = "BrightCyan|Cyan"
+numeric_search = false
+nonnumeric_search = false
+align = "Left"
+
+[[columns]]
+kind = "StartTime"
+style = "BrightMagenta|Magenta"
+numeric_search = false
+nonnumeric_search = false
+align = "Left"
+
+[[columns]]
+kind = "Docker"
+style = "BrightGreen|Green"
+numeric_search = false
+nonnumeric_search = true
+align = "Left"
+
+[[columns]]
+kind = "Separator"
+style = "White|BrightBlack"
+numeric_search = false
+nonnumeric_search = false
+align = "Left"
+
+[[columns]]
+kind = "Command"
+style = "BrightWhite|Black"
+numeric_search = false
+nonnumeric_search = true
+align = "Left"
 "#;

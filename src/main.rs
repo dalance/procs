@@ -163,6 +163,10 @@ pub struct Opt {
     #[structopt(long = "config")]
     pub config: bool,
 
+    /// Use full config supporting all columns instead of a default one
+    #[structopt(long = "use-full-config")]
+    pub use_full_config: bool,
+
     /// Generate shell completion file
     #[structopt(
         long = "completion",
@@ -185,7 +189,7 @@ pub struct Opt {
 // ---------------------------------------------------------------------------------------------------------------------
 
 #[cfg_attr(tarpaulin, skip)]
-fn get_config() -> Result<Config, Error> {
+fn get_config(opt: &Opt) -> Result<Config, Error> {
     let dot_cfg_path = directories::BaseDirs::new()
         .map(|base| base.home_dir().join(".procs.toml"))
         .filter(|path| path.exists());
@@ -210,7 +214,11 @@ fn get_config() -> Result<Config, Error> {
         let c = toml::from_str(&s);
         check_old_config(&s, c).context(format!("failed to parse toml ({:?})", path))?
     } else {
-        toml::from_str(CONFIG_DEFAULT).unwrap()
+        toml::from_str(match opt.use_full_config {
+            true => CONFIG_ALL,
+            false => CONFIG_DEFAULT,
+        })
+        .unwrap()
     };
 
     Ok(config)
@@ -278,7 +286,7 @@ fn run() -> Result<(), Error> {
         println!("completion file is generated: {}", path);
         return Ok(());
     } else {
-        let config = get_config()?;
+        let config = get_config(&opt)?;
 
         if opt.watch_mode {
             let interval = opt.watch_interval.unwrap_or(1);
