@@ -63,7 +63,7 @@ impl Watcher {
             if let Ok(Command::Quit) = rx.recv() {
                 break;
             }
-            thread::sleep(Duration::from_secs(interval));
+            thread::sleep(Duration::from_millis(interval));
             let _ = tx.send(Command::Wake);
         });
     }
@@ -71,13 +71,13 @@ impl Watcher {
     fn display_header(term_info: &mut TermInfo, opt: &Opt, interval: u64) -> Result<(), Error> {
         let header = if opt.tree {
             format!(
-                " Interval: {}s, Last Updated: {} ( Quit: q or Ctrl-C )",
+                " Interval: {}ms, Last Updated: {} ( Quit: q or Ctrl-C )",
                 interval,
                 Local::now().format("%Y/%m/%d %H:%M:%S"),
             )
         } else {
             format!(
-                " Interval: {}s, Last Updated: {} ( Next: n, Prev: p, Ascending: a, Descending: d, Quit: q or Ctrl-C )",
+                " Interval: {}ms, Last Updated: {} ( Next: n, Prev: p, Ascending: a, Descending: d, Quit: q or Ctrl-C )",
                 interval,
                 Local::now().format("%Y/%m/%d %H:%M:%S"),
             )

@@ -91,7 +91,7 @@ pub struct Opt {
 
     /// Watch mode with custom interval
     #[structopt(short = "W", long = "watch-interval", value_name = "second")]
-    pub watch_interval: Option<u64>,
+    pub watch_interval: Option<f64>,
 
     #[structopt(skip)]
     pub watch_mode: bool,
@@ -279,9 +279,11 @@ fn run() -> Result<(), Error> {
         return Ok(());
     } else {
         let config = get_config()?;
-
         if opt.watch_mode {
-            let interval = opt.watch_interval.unwrap_or(1);
+            let interval = match opt.watch_interval {
+                Some(n) => (n * 1000.0).round() as u64,
+                None=> 1000,
+            };
             run_watch(&opt, &config, interval)
         } else {
             run_default(&opt, &config)
