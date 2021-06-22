@@ -18,6 +18,7 @@ pub mod group_saved;
 pub mod maj_flt;
 pub mod min_flt;
 pub mod nice;
+pub mod pgid;
 pub mod pid;
 pub mod policy;
 pub mod ppid;
@@ -26,6 +27,7 @@ pub mod processor;
 pub mod read_bytes;
 pub mod rt_priority;
 pub mod separator;
+pub mod session;
 pub mod shd_pnd;
 pub mod sig_blk;
 pub mod sig_cgt;
@@ -87,6 +89,7 @@ pub use self::group_saved::GroupSaved;
 pub use self::maj_flt::MajFlt;
 pub use self::min_flt::MinFlt;
 pub use self::nice::Nice;
+pub use self::pgid::Pgid;
 pub use self::pid::Pid;
 pub use self::policy::Policy;
 pub use self::ppid::Ppid;
@@ -95,6 +98,7 @@ pub use self::processor::Processor;
 pub use self::read_bytes::ReadBytes;
 pub use self::rt_priority::RtPriority;
 pub use self::separator::Separator;
+pub use self::session::Session;
 pub use self::shd_pnd::ShdPnd;
 pub use self::sig_blk::SigBlk;
 pub use self::sig_cgt::SigCgt;
@@ -166,6 +170,7 @@ pub enum ConfigColumnKind {
     MajFlt,
     MinFlt,
     Nice,
+    Pgid,
     Pid,
     Policy,
     Ppid,
@@ -174,6 +179,7 @@ pub enum ConfigColumnKind {
     ReadBytes,
     RtPriority,
     Separator,
+    Session,
     ShdPnd,
     Slot,
     SigBlk,
@@ -252,6 +258,7 @@ pub fn gen_column(
         ConfigColumnKind::MajFlt => Box::new(MajFlt::new(header)),
         ConfigColumnKind::MinFlt => Box::new(MinFlt::new(header)),
         ConfigColumnKind::Nice => Box::new(Nice::new(header)),
+        ConfigColumnKind::Pgid => Box::new(Pgid::new(header)),
         ConfigColumnKind::Pid => Box::new(Pid::new(header)),
         ConfigColumnKind::Policy => Box::new(Policy::new(header)),
         ConfigColumnKind::Ppid => Box::new(Ppid::new(header)),
@@ -260,6 +267,7 @@ pub fn gen_column(
         ConfigColumnKind::ReadBytes => Box::new(ReadBytes::new(header)),
         ConfigColumnKind::RtPriority => Box::new(RtPriority::new(header)),
         ConfigColumnKind::Separator => Box::new(Separator::new(separator)),
+        ConfigColumnKind::Session => Box::new(Session::new(header)),
         ConfigColumnKind::ShdPnd => Box::new(ShdPnd::new(header)),
         ConfigColumnKind::Slot => Box::new(Slot::new()),
         ConfigColumnKind::SigBlk => Box::new(SigBlk::new(header)),
@@ -359,6 +367,7 @@ lazy_static! {
             ("MinFlt", "Minor page fault count")
         ),
         (ConfigColumnKind::Nice, ("Nice", "Nice value")),
+        (ConfigColumnKind::Pgid, ("Pgid", "Process group ID")),
         (ConfigColumnKind::Pid, ("Pid", "Process ID")),
         (ConfigColumnKind::Policy, ("Policy", "Scheduling policy")),
         (ConfigColumnKind::Ppid, ("Ppid", "Parent process ID")),
@@ -379,6 +388,7 @@ lazy_static! {
             ConfigColumnKind::Separator,
             ("Separator", "Show | for column separation")
         ),
+        (ConfigColumnKind::Session, ("Session", "Process Session ID")),
         (
             ConfigColumnKind::ShdPnd,
             ("ShdPnd", "Pending signal mask for process")
@@ -584,6 +594,9 @@ style = "BrightWhite"
 kind = "Nice"
 style = "Red"
 [[columns]]
+kind = "Pgid"
+style = "Yellow"
+[[columns]]
 kind = "Pid"
 style = "Green"
 [[columns]]
@@ -607,6 +620,9 @@ style = "White"
 [[columns]]
 kind = "Separator"
 style = "White"
+[[columns]]
+kind = "Session"
+style = "Yellow"
 [[columns]]
 kind = "ShdPnd"
 style = "White"
