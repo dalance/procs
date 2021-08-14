@@ -21,16 +21,16 @@
 
 ## Features
 
-- Output by the colored and human-readable format
+- Colored and human-readable output
     - Automatic theme detection based on terminal background
-- Keyword search over multi-column
+- Multi-column keyword search
 - Some additional information which are not supported by `ps`
     - TCP/UDP port
     - Read/Write throughput
     - Docker container name
     - More memory information
 - Pager support
-- Watch mode like `top`
+- Watch mode (like `top`)
 - Tree view
 
 ## Platform
@@ -40,7 +40,7 @@
     - macOS version is checked on Travis CI environment only.
     - The issues caused by real-machine are welcome.
 - Windows is experimentally supported.
-    - pager is not supported
+    - Paging is not supported
 
 ## Installation
 
@@ -52,7 +52,7 @@ Download from [release page](https://github.com/dalance/procs/releases/latest), 
 
 ### Nixpkgs
 
-You can install from [Nixpkgs](https://github.com/NixOS/nixpkgs/blob/master/pkgs/tools/admin/procs/default.nix)
+You can install from [Nixpkgs](https://github.com/NixOS/nixpkgs/blob/master/pkgs/tools/admin/procs/default.nix).
 
 ```
 nix-env --install procs
@@ -60,7 +60,7 @@ nix-env --install procs
 
 ### snapcraft
 
-You can install from [snapcraft](https://snapcraft.io/procs)
+You can install from [snapcraft](https://snapcraft.io/procs).
 
 ```
 sudo snap install procs
@@ -68,7 +68,7 @@ sudo snap install procs
 
 ### homebrew
 
-You can install from [homebrew](https://formulae.brew.sh/formula/procs)
+You can install from [homebrew](https://formulae.brew.sh/formula/procs).
 
 ```
 brew install procs
@@ -76,7 +76,7 @@ brew install procs
 
 ### Alpine Linux
 
-You can install from [Alpine Linux repository](https://pkgs.alpinelinux.org/packages?name=procs)
+You can install from the [Alpine Linux repository](https://pkgs.alpinelinux.org/packages?name=procs).
 
 The correct repository (see above link for the most up-to-date information) should be enabled before `apk add`.
 
@@ -86,7 +86,7 @@ sudo apk add procs
 
 ### Arch Linux
 
-You can install from [Arch Linux community repository](https://archlinux.org/packages/community/x86_64/procs/)
+You can install from the [Arch Linux community repository](https://archlinux.org/packages/community/x86_64/procs/).
 
 ```
 sudo pacman -S procs
@@ -94,7 +94,7 @@ sudo pacman -S procs
 
 ### Scoop
 
-You can install by [scoop](https://scoop.sh/)
+You can install with [scoop](https://scoop.sh/).
 
 ```
 scoop install procs
@@ -108,7 +108,7 @@ sudo dnf install procs
 
 ### RPM
 
-You can install by rpm command.
+You can install with rpm.
 
 ```
 sudo rpm -i https://github.com/dalance/procs/releases/download/v0.11.9/procs-0.11.9-1.x86_64.rpm
@@ -116,7 +116,7 @@ sudo rpm -i https://github.com/dalance/procs/releases/download/v0.11.9/procs-0.1
 
 ### Cargo
 
-You can install by [cargo](https://crates.io/crates/procs).
+You can install with [cargo](https://crates.io/crates/procs).
 
 ```
 cargo install procs
@@ -124,12 +124,12 @@ cargo install procs
 
 ## Installation Notes
 
-### Permission issue
+### Permissions issues
 
-On macOS, normal user can't access all process information of other users.
-On Linux, normal user can't access some information (ex. Read/Write throughput) of other users.
+On macOS, normal users can't access any information on other users' processes
+On Linux, normal users can't access some information (ex. Read/Write throughput) of other users.
 
-If you want to show all information, you should use `sudo`.
+If you want to show this information, you should use `sudo`.
 
 ```console
 $ sudo procs
@@ -188,8 +188,8 @@ Note that procfs permissions only allow identifying listening ports for processe
 
 If there are some keywords, logical operation between the keywords can be specified by commandline option.
 
-- `--and` : The processes to match with all keywords are shown.
-- `--or`  : The processes to match with any keyword are shown.
+- `--and` : The processes that match with all keywords are shown.
+- `--or`  : The processes that match with any keyword are shown.
 - `--nand`: The processes are shown unless these match with all keywords.
 - `--nor` : The processes are shown unless these match with any keyword.
 
@@ -205,7 +205,7 @@ $ procs growi
 
 ![procs_docker](https://user-images.githubusercontent.com/4331004/55446681-91a25d00-55fb-11e9-943d-5b5caeb23c62.png)
 
-Note that procs gets the container information through UNIX domain socket, so [Docker Toolbox](https://docs.docker.com/toolbox/) on macOS ( doesn't use UNIX domain socket ) is not supported.
+Note that procs gets the container information through UNIX domain socket, so [Docker Toolbox](https://docs.docker.com/toolbox/) on macOS (doesn't use UNIX domain socket) is not supported.
 [Docker Desktop for Mac](https://docs.docker.com/docker-for-mac/) is supported but not tested.
 
 ### Pager
