@@ -39,7 +39,7 @@ anyhow        = "1.0"
 byte-unit     = "4"
 console       = "0.14"
 chrono        = "0.4"
-directories   = "3"
+directories   = "4"
 dockworker    = { version = "0.0.23", optional = true }
 getch         = "0.2"
 lazy_static   = "1.2"
