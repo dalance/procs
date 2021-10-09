@@ -74,6 +74,14 @@ You can install from [homebrew](https://formulae.brew.sh/formula/procs).
 brew install procs
 ```
 
+### MacPorts
+
+You can install from [MacPorts](https://ports.macports.org/port/procs/).
+
+```
+sudo port install procs
+```
+
 ### Alpine Linux
 
 You can install from the [Alpine Linux repository](https://pkgs.alpinelinux.org/packages?name=procs).
