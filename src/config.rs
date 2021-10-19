@@ -89,6 +89,7 @@ pub struct ColumnInfo {
     pub align: ConfigColumnAlign,
     pub max_width: Option<usize>,
     pub min_width: Option<usize>,
+    pub visible: bool,
 }
 
 // ---------------------------------------------------------------------------------------------------------------------

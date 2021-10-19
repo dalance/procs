@@ -50,6 +50,7 @@ impl View {
                     align: ConfigColumnAlign::Left,
                     max_width: None,
                     min_width: None,
+                    visible: true,
                 });
             }
         }
@@ -81,14 +82,17 @@ impl View {
             };
 
             for kind in kinds {
-                if let Some(ref only) = opt.only {
+                let visible = if let Some(ref only) = opt.only {
                     let kind_name = KIND_LIST[&kind].0.to_lowercase();
                     if kind_name.find(&only.to_lowercase()).is_none() {
-                        continue;
+                        false
                     } else {
                         only_kind_found = true;
+                        true
                     }
-                }
+                } else {
+                    true
+                };
 
                 let column = gen_column(
                     &kind,
@@ -108,6 +112,7 @@ impl View {
                         align: c.align.clone(),
                         max_width: c.max_width,
                         min_width: c.min_width,
+                        visible,
                     });
                 }
             }
@@ -372,21 +377,23 @@ impl View {
     fn display_header(&self, config: &Config, theme: &ConfigTheme) -> Result<(), Error> {
         let mut row = String::from("");
         for (i, c) in self.columns.iter().enumerate() {
-            let order = if i == self.sort_info.idx {
-                Some(self.sort_info.order.clone())
-            } else {
-                None
-            };
-            row = format!(
-                "{} {}",
-                row,
-                apply_color(
-                    c.column.display_header(&c.align, order, config),
-                    &config.style.header,
-                    theme,
-                    false
-                )
-            );
+            if c.visible {
+                let order = if i == self.sort_info.idx {
+                    Some(self.sort_info.order.clone())
+                } else {
+                    None
+                };
+                row = format!(
+                    "{} {}",
+                    row,
+                    apply_color(
+                        c.column.display_header(&c.align, order, config),
+                        &config.style.header,
+                        theme,
+                        false
+                    )
+                );
+            }
         }
         row = row.trim_end().to_string();
         row = truncate(&row, self.term_info.width).to_string();
@@ -397,16 +404,18 @@ impl View {
     fn display_unit(&self, config: &Config, theme: &ConfigTheme) -> Result<(), Error> {
         let mut row = String::from("");
         for c in &self.columns {
-            row = format!(
-                "{} {}",
-                row,
-                apply_color(
-                    c.column.display_unit(&c.align),
-                    &config.style.unit,
-                    theme,
-                    false
-                )
-            );
+            if c.visible {
+                row = format!(
+                    "{} {}",
+                    row,
+                    apply_color(
+                        c.column.display_unit(&c.align),
+                        &config.style.unit,
+                        theme,
+                        false
+                    )
+                );
+            }
         }
         row = row.trim_end().to_string();
         row = truncate(&row, self.term_info.width).to_string();
@@ -423,17 +432,19 @@ impl View {
     ) -> Result<(), Error> {
         let mut row = String::from("");
         for c in &self.columns {
-            row = format!(
-                "{} {}",
-                row,
-                apply_style(
-                    c.column.display_content(pid, &c.align).unwrap(),
-                    &c.style,
-                    &config.style,
-                    theme,
-                    auxiliary
-                )
-            );
+            if c.visible {
+                row = format!(
+                    "{} {}",
+                    row,
+                    apply_style(
+                        c.column.display_content(pid, &c.align).unwrap(),
+                        &c.style,
+                        &config.style,
+                        theme,
+                        auxiliary
+                    )
+                );
+            }
         }
         row = row.trim_end().to_string();
         row = truncate(&row, self.term_info.width).to_string();
