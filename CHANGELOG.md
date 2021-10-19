@@ -6,6 +6,7 @@
 * [Added] floating point watch interval support [#157](https://github.com/dalance/procs/pull/157)
 * [Added] MultiSlot column [#180](https://github.com/dalance/procs/issue/180)
 * [Fixed] Search failure with only option [#117](https://github.com/dalance/procs/issue/117)
+* [Added] Show children processes at tree mode [#181](https://github.com/dalance/procs/issue/181)
 
 ## [v0.11.9](https://github.com/dalance/procs/compare/v0.11.8...v0.11.9) - 2021-06-22
 

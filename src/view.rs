@@ -23,7 +23,8 @@ pub struct View {
     pub sort_info: SortInfo,
     pub visible_pids: Vec<i32>,
     pub auxiliary_pids: Vec<i32>,
-    pub ppids: HashMap<i32, i32>,
+    pub parent_pids: HashMap<i32, i32>,
+    pub child_pids: HashMap<i32, Vec<i32>>,
 }
 
 impl View {
@@ -143,9 +144,17 @@ impl View {
             }
         }
 
-        let mut ppids = HashMap::new();
-        for p in &proc {
-            ppids.insert(p.pid, p.ppid);
+        let mut parent_pids = HashMap::new();
+        let mut child_pids = HashMap::<i32, Vec<i32>>::new();
+        if opt.tree {
+            for p in &proc {
+                parent_pids.insert(p.pid, p.ppid);
+                if let Some(x) = child_pids.get_mut(&p.ppid) {
+                    x.push(p.pid);
+                } else {
+                    child_pids.insert(p.ppid, vec![p.pid]);
+                }
+            }
         }
 
         let term_info = TermInfo::new(clear_by_line);
@@ -161,7 +170,8 @@ impl View {
             sort_info,
             visible_pids: vec![],
             auxiliary_pids: vec![],
-            ppids,
+            parent_pids,
+            child_pids,
         })
     }
 
@@ -232,9 +242,14 @@ impl View {
         if opt.tree {
             let mut additional_pids = Vec::new();
             for pid in &candidate_pids {
-                let mut ppids = vec![];
-                self.get_ppids(*pid, &mut ppids);
-                additional_pids.append(&mut ppids);
+                let mut buf = vec![];
+                if config.display.show_parent_in_tree {
+                    self.get_parent_pids(*pid, &mut buf);
+                }
+                if config.display.show_children_in_tree {
+                    self.get_child_pids(*pid, &mut buf);
+                }
+                additional_pids.append(&mut buf);
             }
             let mut additional_pids: Vec<_> = additional_pids
                 .iter()
@@ -260,11 +275,22 @@ impl View {
         self.auxiliary_pids = auxiliary_pids;
     }
 
-    fn get_ppids(&self, pid: i32, ppids: &mut Vec<i32>) {
-        if let Some(x) = self.ppids.get(&pid) {
-            if !ppids.contains(x) {
-                ppids.push(*x);
-                self.get_ppids(*x, ppids);
+    fn get_parent_pids(&self, pid: i32, parent_pids: &mut Vec<i32>) {
+        if let Some(x) = self.parent_pids.get(&pid) {
+            if !parent_pids.contains(x) {
+                parent_pids.push(*x);
+                self.get_parent_pids(*x, parent_pids);
+            }
+        }
+    }
+
+    fn get_child_pids(&self, pid: i32, child_pids: &mut Vec<i32>) {
+        if let Some(pids) = self.child_pids.get(&pid) {
+            for x in pids {
+                if !child_pids.contains(x) {
+                    child_pids.push(*x);
+                    self.get_child_pids(*x, child_pids);
+                }
             }
         }
     }
