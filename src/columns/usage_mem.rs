@@ -80,7 +80,8 @@ fn get_mem_total() -> u64 {
 #[cfg(target_os = "linux")]
 impl Column for UsageMem {
     fn add(&mut self, proc: &ProcessInfo) {
-        let usage = proc.curr_proc.stat().rss_bytes() as f64 * 100.0 / self.mem_total as f64;
+        let usage =
+            proc.curr_proc.stat().rss_bytes().unwrap_or(0) as f64 * 100.0 / self.mem_total as f64;
         let fmt_content = format!("{:.1}", usage);
         let raw_content = (usage * 1000.0) as u32;
 

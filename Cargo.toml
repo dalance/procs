@@ -37,9 +37,9 @@ codecov   = { repository = "dalance/procs", branch = "master", service = "github
 [dependencies]
 anyhow        = "1.0"
 byte-unit     = "4"
-console       = "0.14"
+console       = "0.15.0"
 chrono        = "0.4"
-directories   = "3"
+directories   = "4.0.1"
 dockworker    = { version = "0.0.23", optional = true }
 getch         = "0.2"
 lazy_static   = "1.2"
@@ -53,7 +53,7 @@ unicode-width = "0.1"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 pager         = "0.16"
-procfs        = "0.10"
+procfs        = "0.11.0"
 users         = "0.11"
 which         = "4"
 

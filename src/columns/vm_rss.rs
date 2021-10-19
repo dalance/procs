@@ -29,7 +29,7 @@ impl VmRss {
 #[cfg(target_os = "linux")]
 impl Column for VmRss {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = proc.curr_proc.stat().rss_bytes() as u64;
+        let raw_content = proc.curr_proc.stat().rss_bytes().unwrap_or(0) as u64;
         let fmt_content = bytify(raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
