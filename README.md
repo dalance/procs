@@ -265,12 +265,14 @@ $ procs --sortd cpu
 
 ### Insert column
 
-`--insert` option inserts new column to the position of `Slot` column.
+`--insert` option inserts new column to the position of `Slot` column or `MultiSlot` column.
 The column for insert is selected by the option keyword.
 The keyword is the same as sort option.
 A `Slot` column can be used by a inserted column.
 If many insertion is required, many `Slot` should be added.
-Unused `Slot` is not shown.
+A `MultiSlot` column can be used by many inserted column.
+If there is a `MultiSlot`, all the remaining columns are inserted to the `MultiSlot`, and the subsequent `Slot` / `MultiSlot` is not used.
+Unused `Slot` / `MultiSlot` is not shown.
 
 ### Shell completion
 
@@ -407,6 +409,7 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | GroupSaved   | sgroup                | Saved group name                              | o     | o     |         |
 | MajFlt       | maj_flt               | Major page fault count                        | o     | o     | o       |
 | MinFlt       | min_flt               | Minor page fault count                        | o     | o     |         |
+| MultiSlot    | -not supported-       | Slot for `--insert` option                    | o     | o     | o       |
 | Nice         | ni                    | Nice value                                    | o     | o     |         |
 | Pid          | pid                   | Process ID ( or Thread ID sorrunded by `[]` ) | o     | o     | o       |
 | Policy       | policy                | Scheduling policy                             | o     | o     |         |

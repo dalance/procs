@@ -57,20 +57,30 @@ impl View {
         let mut only_kind_found = false;
 
         for c in &config.columns {
-            let kind = match &c.kind {
+            let kinds = match &c.kind {
                 ConfigColumnKind::Slot => {
-                    let kind = if let Some(insert) = opt.insert.get(slot_idx) {
-                        find_column_kind(insert)
+                    let kinds = if let Some(insert) = opt.insert.get(slot_idx) {
+                        find_column_kind(insert).into_iter().collect()
                     } else {
-                        None
+                        vec![]
                     };
                     slot_idx += 1;
-                    kind
+                    kinds
                 }
-                x => Some(x.clone()),
+                ConfigColumnKind::MultiSlot => {
+                    let mut kinds = vec![];
+                    while let Some(insert) = opt.insert.get(slot_idx) {
+                        if let Some(kind) = find_column_kind(insert) {
+                            kinds.push(kind);
+                        }
+                        slot_idx += 1;
+                    }
+                    kinds
+                }
+                x => vec![x.clone()],
             };
 
-            if let Some(kind) = kind {
+            for kind in kinds {
                 if let Some(ref only) = opt.only {
                     let kind_name = KIND_LIST[&kind].0.to_lowercase();
                     if kind_name.find(&only.to_lowercase()).is_none() {
@@ -101,6 +111,10 @@ impl View {
                     });
                 }
             }
+        }
+
+        if slot_idx < opt.insert.len() {
+            bail!("There is not enough slot for inserting columns {:?}.\nPlease add \"Slot\" or \"MultiSlot\" to your config.\nhttps://github.com/dalance/procs#insert-column", opt.insert);
         }
 
         if let Some(ref only_kind) = opt.only {

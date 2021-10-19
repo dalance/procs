@@ -165,6 +165,7 @@ pub fn find_column_kind(pat: &str) -> Option<ConfigColumnKind> {
             return Some(k.clone());
         }
     }
+    eprintln!("Can't find column kind: {}", pat);
     None
 }
 

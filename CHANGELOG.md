@@ -4,6 +4,7 @@
 
 * [Added] pgid/session column [#150](https://github.com/dalance/procs/pull/150)
 * [Added] floating point watch interval support [#157](https://github.com/dalance/procs/pull/157)
+* [Added] MultiSlot column [#180](https://github.com/dalance/procs/issue/180)
 
 ## [v0.11.9](https://github.com/dalance/procs/compare/v0.11.8...v0.11.9) - 2021-06-22
 

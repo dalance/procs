@@ -5,6 +5,7 @@ pub mod empty;
 pub mod gid;
 pub mod group;
 pub mod maj_flt;
+pub mod multi_slot;
 pub mod pid;
 pub mod ppid;
 pub mod priority;
@@ -33,6 +34,7 @@ pub use self::empty::Empty;
 pub use self::gid::Gid;
 pub use self::group::Group;
 pub use self::maj_flt::MajFlt;
+pub use self::multi_slot::MultiSlot;
 pub use self::pid::Pid;
 pub use self::ppid::Ppid;
 pub use self::priority::Priority;
@@ -72,6 +74,7 @@ pub enum ConfigColumnKind {
     Gid,
     Group,
     MajFlt,
+    MultiSlot,
     Pid,
     Ppid,
     Priority,
@@ -114,6 +117,7 @@ pub fn gen_column(
         ConfigColumnKind::Gid => Box::new(Gid::new(header, abbr_sid)),
         ConfigColumnKind::Group => Box::new(Group::new(header, abbr_sid)),
         ConfigColumnKind::MajFlt => Box::new(MajFlt::new(header)),
+        ConfigColumnKind::MultiSlot => Box::new(MultiSlot::new()),
         ConfigColumnKind::Pid => Box::new(Pid::new(header)),
         ConfigColumnKind::Ppid => Box::new(Ppid::new(header)),
         ConfigColumnKind::Priority => Box::new(Priority::new(header)),
@@ -161,6 +165,10 @@ lazy_static! {
         (
             ConfigColumnKind::MajFlt,
             ("MajFlt", "Major page fault count")
+        ),
+        (
+            ConfigColumnKind::MultiSlot,
+            ("MultiSlot", "Slot for `--insert` option")
         ),
         (ConfigColumnKind::Pid, ("Pid", "Process ID")),
         (ConfigColumnKind::Ppid, ("Ppid", "Parent process ID")),
@@ -246,6 +254,12 @@ style = "BrightCyan|Cyan"
 numeric_search = false
 nonnumeric_search = false
 [[columns]]
+kind = "MultiSlot"
+style = "ByUnit"
+numeric_search = false
+nonnumeric_search = false
+align = "Right"
+[[columns]]
 kind = "Separator"
 style = "White|BrightBlack"
 numeric_search = false
@@ -286,6 +300,9 @@ style = "White"
 [[columns]]
 kind = "MajFlt"
 style = "BrightCyan"
+[[columns]]
+kind = "MultiSlot"
+style = "BrightWhite"
 [[columns]]
 kind = "Pid"
 style = "Green"

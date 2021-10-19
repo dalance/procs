@@ -13,6 +13,7 @@ pub mod group_real;
 pub mod group_saved;
 pub mod maj_flt;
 pub mod min_flt;
+pub mod multi_slot;
 pub mod nice;
 pub mod pgid;
 pub mod pid;
@@ -56,6 +57,7 @@ pub use self::group_real::GroupReal;
 pub use self::group_saved::GroupSaved;
 pub use self::maj_flt::MajFlt;
 pub use self::min_flt::MinFlt;
+pub use self::multi_slot::MultiSlot;
 pub use self::nice::Nice;
 pub use self::pgid::Pgid;
 pub use self::pid::Pid;
@@ -109,6 +111,7 @@ pub enum ConfigColumnKind {
     GroupSaved,
     MajFlt,
     MinFlt,
+    MultiSlot,
     Nice,
     Pgid,
     Pid,
@@ -169,6 +172,7 @@ pub fn gen_column(
         ConfigColumnKind::GroupSaved => Box::new(GroupSaved::new(header)),
         ConfigColumnKind::MajFlt => Box::new(MajFlt::new(header)),
         ConfigColumnKind::MinFlt => Box::new(MinFlt::new(header)),
+        ConfigColumnKind::MultiSlot => Box::new(MultiSlot::new()),
         ConfigColumnKind::Nice => Box::new(Nice::new(header)),
         ConfigColumnKind::Pgid => Box::new(Pgid::new(header)),
         ConfigColumnKind::Pid => Box::new(Pid::new(header)),
@@ -246,6 +250,10 @@ lazy_static! {
         (
             ConfigColumnKind::MinFlt,
             ("MinFlt", "Minor page fault count")
+        ),
+        (
+            ConfigColumnKind::MultiSlot,
+            ("MultiSlot", "Slot for `--insert` option")
         ),
         (ConfigColumnKind::Nice, ("Nice", "Nice value")),
         (ConfigColumnKind::Pgid, ("Pgid", "Process group ID")),
@@ -340,6 +348,12 @@ style = "BrightCyan|Cyan"
 numeric_search = false
 nonnumeric_search = false
 [[columns]]
+kind = "MultiSlot"
+style = "ByUnit"
+numeric_search = false
+nonnumeric_search = false
+align = "Right"
+[[columns]]
 kind = "Separator"
 style = "White|BrightBlack"
 numeric_search = false
@@ -401,6 +415,9 @@ kind = "MajFlt"
 style = "BrightCyan"
 [[columns]]
 kind = "MinFlt"
+style = "BrightWhite"
+[[columns]]
+kind = "MultiSlot"
 style = "BrightWhite"
 [[columns]]
 kind = "Nice"
