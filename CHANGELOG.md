@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.11.9...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.11.10...Unreleased) - ReleaseDate
+
+## [v0.11.10](https://github.com/dalance/procs/compare/v0.11.9...v0.11.10) - 2021-10-19
 
 * [Added] pgid/session column [#150](https://github.com/dalance/procs/pull/150)
 * [Added] floating point watch interval support [#157](https://github.com/dalance/procs/pull/157)
