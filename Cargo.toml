@@ -8,7 +8,7 @@ categories = ["command-line-utilities"]
 license = "MIT"
 readme = "README.md"
 description = "A modern replacement for ps"
-edition = "2018"
+edition = "2021"
 exclude = ["img/*", "config/*"]
 
 [package.metadata.release]
