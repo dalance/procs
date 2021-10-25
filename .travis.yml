@@ -1,7 +1,0 @@
-language: rust
-
-os:
-- osx
-
-script:
-- make test
