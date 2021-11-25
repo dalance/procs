@@ -78,7 +78,8 @@ macro_rules! column_default_display_content {
             pid: i32,
             align: &crate::config::ConfigColumnAlign,
         ) -> Option<String> {
-            self.fmt_contents.get(&pid)
+            self.fmt_contents
+                .get(&pid)
                 .map(|content| crate::util::adjust(content, self.width, align))
         }
     };
