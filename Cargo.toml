@@ -53,7 +53,7 @@ unicode-width = "0.1"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 pager         = "0.16"
-procfs        = "0.11.0"
+procfs        = "0.11.1"
 users         = "0.11"
 which         = "4"
 
