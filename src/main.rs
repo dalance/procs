@@ -190,7 +190,7 @@ fn get_config() -> Result<Config, Error> {
         .map(|base| base.home_dir().join(".procs.toml"))
         .filter(|path| path.exists());
     let app_cfg_path = directories::ProjectDirs::from("com.github", "dalance", "procs")
-        .map(|proj| proj.config_dir().join("config.toml"))
+        .map(|proj| proj.preference_dir().join("config.toml"))
         .filter(|path| path.exists());
     let xdg_cfg_path = directories::BaseDirs::new()
         .map(|base| {
@@ -282,7 +282,7 @@ fn run() -> Result<(), Error> {
         if opt.watch_mode {
             let interval = match opt.watch_interval {
                 Some(n) => (n * 1000.0).round() as u64,
-                None=> 1000,
+                None => 1000,
             };
             run_watch(&opt, &config, interval)
         } else {
