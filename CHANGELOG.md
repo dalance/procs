@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.11.10...Unreleased) - ReleaseDate
 
+* [Fixed] panic when stdout is closed [#210](https://github.com/dalance/procs/issue/210)
+
 ## [v0.11.10](https://github.com/dalance/procs/compare/v0.11.9...v0.11.10) - 2021-10-19
 
 * [Added] pgid/session column [#150](https://github.com/dalance/procs/pull/150)
