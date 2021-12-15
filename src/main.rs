@@ -293,7 +293,6 @@ fn run() -> Result<(), Error> {
 
 fn run_config() -> Result<(), Error> {
     let config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
-    dbg!(&config);
     let toml = toml::to_string(&config)?;
     println!("{}", toml);
     Ok(())

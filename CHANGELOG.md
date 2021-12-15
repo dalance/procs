@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.11.11...Unreleased) - ReleaseDate
 
+* [Fixed] unexpected debug message
+
 ## [v0.11.11](https://github.com/dalance/procs/compare/v0.11.10...v0.11.11) - 2021-12-14
 
 * [Fixed] panic when stdout is closed [#210](https://github.com/dalance/procs/issue/210)
