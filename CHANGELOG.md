@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.11.11...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.11.12...Unreleased) - ReleaseDate
+
+## [v0.11.12](https://github.com/dalance/procs/compare/v0.11.11...v0.11.12) - 2021-12-15
 
 * [Fixed] unexpected debug message
 
