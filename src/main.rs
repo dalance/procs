@@ -19,7 +19,7 @@ use console::Term;
 use std::cmp;
 use std::collections::HashMap;
 use std::fs;
-use std::io::Read;
+use std::io::{stdout, Read};
 use std::str::FromStr;
 use std::time::Instant;
 use structopt::{clap, StructOpt};
@@ -267,15 +267,7 @@ fn run() -> Result<(), Error> {
     } else if let Some(shell) = opt.completion {
         let shell =
             clap::Shell::from_str(&shell).map_err(|x| anyhow!("unknwon shell type: {}", x))?;
-        Opt::clap().gen_completions("procs", shell, "./");
-        let path = match shell {
-            clap::Shell::Bash => "./procs.bash",
-            clap::Shell::Elvish => "./procs.elv",
-            clap::Shell::Fish => "./procs.fish",
-            clap::Shell::PowerShell => "./_procs.ps1",
-            clap::Shell::Zsh => "./_procs",
-        };
-        println!("completion file is generated: {}", path);
+        Opt::clap().gen_completions_to("procs", shell, &mut stdout());
         return Ok(());
     } else {
         let config = get_config()?;
