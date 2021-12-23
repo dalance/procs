@@ -171,6 +171,14 @@ pub struct Opt {
     )]
     pub completion: Option<String>,
 
+    /// Generate shell completion file and write to stdout
+    #[structopt(
+        long = "completion-out",
+        value_name = "shell",
+        possible_values = &clap::Shell::variants()
+    )]
+    pub completion_out: Option<String>,
+
     /// Suppress header
     #[structopt(long = "no-header")]
     pub no_header: bool,
@@ -266,7 +274,20 @@ fn run() -> Result<(), Error> {
         run_list()
     } else if let Some(shell) = opt.completion {
         let shell =
-            clap::Shell::from_str(&shell).map_err(|x| anyhow!("unknwon shell type: {}", x))?;
+            clap::Shell::from_str(&shell).map_err(|x| anyhow!("unknown shell type: {}", x))?;
+        Opt::clap().gen_completions("procs", shell, "./");
+        let path = match shell {
+            clap::Shell::Bash => "./procs.bash",
+            clap::Shell::Elvish => "./procs.elv",
+            clap::Shell::Fish => "./procs.fish",
+            clap::Shell::PowerShell => "./_procs.ps1",
+            clap::Shell::Zsh => "./_procs",
+        };
+        println!("completion file is generated: {}", path);
+        return Ok(());
+    } else if let Some(shell) = opt.completion_out {
+        let shell =
+            clap::Shell::from_str(&shell).map_err(|x| anyhow!("unknown shell type: {}", x))?;
         Opt::clap().gen_completions_to("procs", shell, &mut stdout());
         return Ok(());
     } else {
