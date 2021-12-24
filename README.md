@@ -284,6 +284,13 @@ The following shells are supported.
  * `powershell`
  * `elvish`
 
+`--completion-out` option generates shell completion to stdout.
+You can source it directly.
+
+```
+$ source <(procs --completion-out zsh)
+```
+
 ## Configuration
 
 You can change configuration by writing a configuration file.
