@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.11.12...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.11.13...Unreleased) - ReleaseDate
+
+## [v0.11.13](https://github.com/dalance/procs/compare/v0.11.12...v0.11.13) - 2021-12-24
 
 * [Added] --completion-out option [#219](https://github.com/dalance/procs/pull/219)
 
