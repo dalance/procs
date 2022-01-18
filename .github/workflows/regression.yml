@@ -4,22 +4,32 @@ on: [push, pull_request]
 
 jobs:
   build:
-
     strategy:
       matrix:
-        os: [ubuntu-latest, macOS-latest, windows-latest]
-        rust: [stable]
+        include:
+          - os: ubuntu-latest
+            rust: stable
+            target: x86_64-unknown-linux-gnu
+          - os: macOS-latest
+            rust: stable
+            target: x86_64-apple-darwin
+          - os: windows-latest
+            rust: stable
+            target: x86_64-pc-windows-msvc
 
     runs-on: ${{ matrix.os }}
-
     steps:
-    - name: Setup Rust
-      uses: hecrj/setup-rust-action@v1
-      with:
-        rust-version: ${{ matrix.rust }}
-    - name: Checkout
-      uses: actions/checkout@v1
-    - name: Run tests
-      run: cargo test --locked
-    - name: Run tests feature variation
-      run: cargo test --locked --no-default-features
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+      - name: Run tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --locked
+      - name: Run tests feature variation
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --locked --no-default-features
