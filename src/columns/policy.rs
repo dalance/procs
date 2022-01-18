@@ -25,7 +25,7 @@ impl Policy {
     }
 }
 
-#[cfg(any(target_os = "linux", target_os = "android"))]
+#[cfg(target_os = "linux")]
 impl Column for Policy {
     fn add(&mut self, proc: &ProcessInfo) {
         let fmt_content = match proc.curr_proc.stat().policy.map(|x| x as i32) {
@@ -34,6 +34,27 @@ impl Column for Policy {
             Some(libc::SCHED_IDLE) => String::from("IDL"),
             Some(libc::SCHED_OTHER) => String::from("TS"),
             Some(libc::SCHED_RR) => String::from("RR"),
+            _ => String::from(""),
+        };
+        let raw_content = fmt_content.clone();
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(String);
+}
+
+#[cfg(target_os = "android")]
+impl Column for Policy {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let fmt_content = match proc.curr_proc.stat().policy.map(|x| x as i32) {
+            Some(libc::SCHED_NORMAL) => String::from("N"),
+            Some(libc::SCHED_FIFO) => String::from("FF"),
+            Some(libc::SCHED_RR) => String::from("RR"),
+            Some(libc::SCHED_BATCH) => String::from("B"),
+            Some(libc::SCHED_IDLE) => String::from("IDL"),
+            Some(libc::SCHED_DEADLINE) => String::from("D"),
             _ => String::from(""),
         };
         let raw_content = fmt_content.clone();
