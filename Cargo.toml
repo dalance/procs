@@ -37,6 +37,8 @@ codecov   = { repository = "dalance/procs", branch = "master", service = "github
 [dependencies]
 anyhow        = "1.0"
 byte-unit     = "4"
+clap          = {version = "3.0.8", features = ["derive"]}
+clap_complete = "3.0.4"
 console       = "0.15.0"
 chrono        = "0.4"
 directories   = "4.0.1"
@@ -46,7 +48,6 @@ lazy_static   = "1.2"
 libc          = "0.2"
 serde         = "1.0"
 serde_derive  = "1.0"
-structopt     = "0.3"
 termbg        = "0.3.0"
 toml          = "0.5"
 unicode-width = "0.1"

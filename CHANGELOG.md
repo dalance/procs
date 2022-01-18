@@ -2,7 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.11.13...Unreleased) - ReleaseDate
 
-* [Changed] update getch to update termios [#223](https://github.com/dalance/procs/issues/223)
+* [Changed] Update getch to update termios [#223](https://github.com/dalance/procs/issues/223)
+* [Changed] Replace structopt with clap
 
 ## [v0.11.13](https://github.com/dalance/procs/compare/v0.11.12...v0.11.13) - 2021-12-24
 

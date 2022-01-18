@@ -15,103 +15,102 @@ use crate::util::{adjust, get_theme, lap};
 use crate::view::View;
 use crate::watcher::Watcher;
 use anyhow::{anyhow, Context, Error};
+use clap::{IntoApp, Parser};
+use clap_complete::Shell;
 use console::Term;
 use std::cmp;
 use std::collections::HashMap;
 use std::fs;
 use std::io::{stdout, Read};
-use std::str::FromStr;
 use std::time::Instant;
-use structopt::{clap, StructOpt};
 use unicode_width::UnicodeWidthStr;
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Opt
 // ---------------------------------------------------------------------------------------------------------------------
 
-#[derive(Debug, StructOpt)]
-#[structopt(long_version(option_env!("LONG_VERSION").unwrap_or(env!("CARGO_PKG_VERSION"))))]
-#[structopt(setting(clap::AppSettings::ColoredHelp))]
-#[structopt(setting(clap::AppSettings::DeriveDisplayOrder))]
+#[derive(Debug, Parser)]
+#[clap(long_version(option_env!("LONG_VERSION").unwrap_or(env!("CARGO_PKG_VERSION"))))]
+#[clap(setting(clap::AppSettings::DeriveDisplayOrder))]
 /// A modern replacement for ps
 ///
 /// please see https://github.com/dalance/procs#configuration to configure columns
 pub struct Opt {
     /// Keywords for search
-    #[structopt(name = "KEYWORD")]
+    #[clap(name = "KEYWORD")]
     pub keyword: Vec<String>,
 
     /// AND  logic for multi-keyword
-    #[structopt(
-        short = "a",
+    #[clap(
+        short = 'a',
         long = "and",
         conflicts_with_all(&["or", "nand", "nor"])
     )]
     pub and: bool,
 
     /// OR   logic for multi-keyword
-    #[structopt(
-        short = "o",
+    #[clap(
+        short = 'o',
         long = "or",
         conflicts_with_all(&["and", "nand", "nor"])
     )]
     pub or: bool,
 
     /// NAND logic for multi-keyword
-    #[structopt(
-        short = "d",
+    #[clap(
+        short = 'd',
         long = "nand",
         conflicts_with_all(&["and", "or", "nor"])
     )]
     pub nand: bool,
 
     /// NOR  logic for multi-keyword
-    #[structopt(
-        short = "r",
+    #[clap(
+        short = 'r',
         long = "nor",
         conflicts_with_all(&["and", "or", "nand"])
     )]
     pub nor: bool,
 
     /// Show list of kind
-    #[structopt(short = "l", long = "list")]
+    #[clap(short = 'l', long = "list")]
     pub list: bool,
 
     /// Show thread
-    #[structopt(long = "thread")]
+    #[clap(long = "thread")]
     pub thread: bool,
 
     /// Tree view
-    #[structopt(short = "t", long = "tree")]
+    #[clap(short = 't', long = "tree")]
     pub tree: bool,
 
     /// Watch mode with default interval (1s)
-    #[structopt(short = "w", long = "watch")]
+    #[clap(short = 'w', long = "watch")]
     pub watch: bool,
 
     /// Watch mode with custom interval
-    #[structopt(short = "W", long = "watch-interval", value_name = "second")]
+    #[clap(short = 'W', long = "watch-interval", value_name = "second")]
     pub watch_interval: Option<f64>,
 
-    #[structopt(skip)]
+    #[clap(skip)]
     pub watch_mode: bool,
 
     /// Insert column to slot
-    #[structopt(
+    #[clap(
         value_name = "kind",
-        short = "i",
+        short = 'i',
         long = "insert",
-        multiple(true),
+        multiple_occurrences(true),
         number_of_values(1)
     )]
     pub insert: Vec<String>,
 
     /// Specified column only
-    #[structopt(value_name = "kind", long = "only")]
+    #[clap(value_name = "kind", long = "only")]
     pub only: Option<String>,
 
     /// Sort column by ascending
-    #[structopt(
+    #[clap(
         value_name = "kind",
         long = "sorta",
         conflicts_with_all(&["sortd", "tree"])
@@ -119,7 +118,7 @@ pub struct Opt {
     pub sorta: Option<String>,
 
     /// Sort column by descending
-    #[structopt(
+    #[clap(
         value_name = "kind",
         long = "sortd",
         conflicts_with_all(&["sorta", "tree"])
@@ -127,8 +126,8 @@ pub struct Opt {
     pub sortd: Option<String>,
 
     /// Color mode
-    #[structopt(
-        short = "c",
+    #[clap(
+        short = 'c',
         long = "color",
         possible_value = "auto",
         possible_value = "always",
@@ -137,7 +136,7 @@ pub struct Opt {
     pub color: Option<String>,
 
     /// Theme mode
-    #[structopt(
+    #[clap(
         long = "theme",
         possible_value = "auto",
         possible_value = "dark",
@@ -146,8 +145,8 @@ pub struct Opt {
     pub theme: Option<String>,
 
     /// Pager mode
-    #[structopt(
-        short = "p",
+    #[clap(
+        short = 'p',
         long = "pager",
         possible_value = "auto",
         possible_value = "always",
@@ -156,35 +155,27 @@ pub struct Opt {
     pub pager: Option<String>,
 
     /// Interval to calculate throughput
-    #[structopt(long = "interval", default_value = "100", value_name = "millisec")]
+    #[clap(long = "interval", default_value = "100", value_name = "millisec")]
     pub interval: u64,
 
     /// Generate configuration sample file
-    #[structopt(long = "config")]
+    #[clap(long = "config")]
     pub config: bool,
 
     /// Generate shell completion file
-    #[structopt(
-        long = "completion",
-        value_name = "shell",
-        possible_values = &clap::Shell::variants()
-    )]
-    pub completion: Option<String>,
+    #[clap(long = "completion", value_name = "shell")]
+    pub completion: Option<Shell>,
 
     /// Generate shell completion file and write to stdout
-    #[structopt(
-        long = "completion-out",
-        value_name = "shell",
-        possible_values = &clap::Shell::variants()
-    )]
-    pub completion_out: Option<String>,
+    #[clap(long = "completion-out", value_name = "shell")]
+    pub completion_out: Option<Shell>,
 
     /// Suppress header
-    #[structopt(long = "no-header")]
+    #[clap(long = "no-header")]
     pub no_header: bool,
 
     /// Show debug message
-    #[structopt(long = "debug", hidden = true)]
+    #[clap(long = "debug", hide = true)]
     pub debug: bool,
 }
 
@@ -265,7 +256,7 @@ fn main() {
 
 #[cfg_attr(tarpaulin, skip)]
 fn run() -> Result<(), Error> {
-    let mut opt = Opt::from_args();
+    let mut opt: Opt = Parser::parse();
     opt.watch_mode = opt.watch || opt.watch_interval.is_some();
 
     if opt.config {
@@ -273,22 +264,21 @@ fn run() -> Result<(), Error> {
     } else if opt.list {
         run_list()
     } else if let Some(shell) = opt.completion {
-        let shell =
-            clap::Shell::from_str(&shell).map_err(|x| anyhow!("unknown shell type: {}", x))?;
-        Opt::clap().gen_completions("procs", shell, "./");
+        //Opt::clap().gen_completions("procs", shell, "./");
+        clap_complete::generate_to(shell, &mut Opt::into_app(), "procs", "./")?;
         let path = match shell {
-            clap::Shell::Bash => "./procs.bash",
-            clap::Shell::Elvish => "./procs.elv",
-            clap::Shell::Fish => "./procs.fish",
-            clap::Shell::PowerShell => "./_procs.ps1",
-            clap::Shell::Zsh => "./_procs",
+            Shell::Bash => "./procs.bash",
+            Shell::Elvish => "./procs.elv",
+            Shell::Fish => "./procs.fish",
+            Shell::PowerShell => "./_procs.ps1",
+            Shell::Zsh => "./_procs",
+            x => return Err(anyhow!("unknown shell type: {}", x)),
         };
         println!("completion file is generated: {}", path);
         return Ok(());
     } else if let Some(shell) = opt.completion_out {
-        let shell =
-            clap::Shell::from_str(&shell).map_err(|x| anyhow!("unknown shell type: {}", x))?;
-        Opt::clap().gen_completions_to("procs", shell, &mut stdout());
+        //Opt::clap().gen_completions_to("procs", shell, &mut stdout());
+        clap_complete::generate(shell, &mut Opt::into_app(), "procs", &mut stdout());
         return Ok(());
     } else {
         let config = get_config()?;
