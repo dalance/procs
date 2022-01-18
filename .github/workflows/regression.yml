@@ -21,7 +21,7 @@ jobs:
             use-cross: false
           - os: ubuntu-latest
             rust: stable
-            target: aarch64-linux-android
+            target: armv7-linux-androideabi
             use-cross: true
 
     runs-on: ${{ matrix.os }}
