@@ -2,9 +2,9 @@ use crate::process::ProcessInfo;
 use crate::Column;
 #[cfg(target_os = "macos")]
 use libproc::libproc::net_info::TcpSIState;
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 use procfs::net::{TcpNetEntry, TcpState};
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 use procfs::process::FDTarget;
 use std::cmp;
 use std::collections::HashMap;
@@ -15,9 +15,9 @@ pub struct TcpPort {
     fmt_contents: HashMap<i32, String>,
     raw_contents: HashMap<i32, String>,
     width: usize,
-    #[cfg(target_os = "linux")]
+    #[cfg(any(target_os = "linux", target_os = "android"))]
     tcp_entry: Vec<TcpNetEntry>,
-    #[cfg(target_os = "linux")]
+    #[cfg(any(target_os = "linux", target_os = "android"))]
     tcp6_entry: Vec<TcpNetEntry>,
 }
 
@@ -31,15 +31,15 @@ impl TcpPort {
             width: 0,
             header,
             unit,
-            #[cfg(target_os = "linux")]
+            #[cfg(any(target_os = "linux", target_os = "android"))]
             tcp_entry: procfs::net::tcp().unwrap_or_default(),
-            #[cfg(target_os = "linux")]
+            #[cfg(any(target_os = "linux", target_os = "android"))]
             tcp6_entry: procfs::net::tcp6().unwrap_or_default(),
         }
     }
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 impl Column for TcpPort {
     fn add(&mut self, proc: &ProcessInfo) {
         let fmt_content = if let Ok(fds) = proc.curr_proc.fd() {

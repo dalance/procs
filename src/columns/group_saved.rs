@@ -25,7 +25,7 @@ impl GroupSaved {
     }
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 impl Column for GroupSaved {
     fn add(&mut self, proc: &ProcessInfo) {
         let fmt_content = if let Some(ref status) = proc.curr_status {

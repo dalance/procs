@@ -25,7 +25,7 @@ impl Policy {
     }
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 impl Column for Policy {
     fn add(&mut self, proc: &ProcessInfo) {
         let fmt_content = match proc.curr_proc.stat().policy.map(|x| x as i32) {

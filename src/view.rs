@@ -537,7 +537,7 @@ impl View {
         }
     }
 
-    #[cfg(not(any(target_os = "windows", target_os = "linux")))]
+    #[cfg(not(any(target_os = "windows", any(target_os = "linux", target_os = "android"))))]
     fn pager(config: &Config) {
         if let Some(ref pager) = config.pager.command {
             Pager::with_pager(&pager).setup();
@@ -548,7 +548,7 @@ impl View {
         }
     }
 
-    #[cfg(target_os = "linux")]
+    #[cfg(any(target_os = "linux", target_os = "android"))]
     fn pager(config: &Config) {
         if let Some(ref pager) = config.pager.command {
             Pager::with_pager(&pager)

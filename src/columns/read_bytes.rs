@@ -26,7 +26,7 @@ impl ReadBytes {
     }
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 impl Column for ReadBytes {
     fn add(&mut self, proc: &ProcessInfo) {
         let (fmt_content, raw_content) = if proc.curr_io.is_some() && proc.prev_io.is_some() {

@@ -2,15 +2,15 @@ use crate::process::ProcessInfo;
 use crate::{column_default, Column};
 #[cfg(not(target_os = "windows"))]
 use chrono::offset::TimeZone;
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 use chrono::Duration;
 use chrono::{DateTime, Local};
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 use lazy_static::lazy_static;
 use std::cmp;
 use std::collections::HashMap;
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 lazy_static! {
     static ref TICKS_PER_SECOND: i64 = procfs::ticks_per_second().unwrap();
 }
@@ -21,7 +21,7 @@ pub struct StartTime {
     fmt_contents: HashMap<i32, String>,
     raw_contents: HashMap<i32, DateTime<Local>>,
     width: usize,
-    #[cfg(target_os = "linux")]
+    #[cfg(any(target_os = "linux", target_os = "android"))]
     boot_time: DateTime<Local>,
 }
 
@@ -35,13 +35,13 @@ impl StartTime {
             width: 0,
             header,
             unit,
-            #[cfg(target_os = "linux")]
+            #[cfg(any(target_os = "linux", target_os = "android"))]
             boot_time: procfs::boot_time().unwrap_or_else(|_| Local.timestamp(0, 0)),
         }
     }
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 impl Column for StartTime {
     fn add(&mut self, proc: &ProcessInfo) {
         let starttime = proc.curr_proc.stat().starttime;

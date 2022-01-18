@@ -30,7 +30,7 @@ impl User {
     }
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 impl Column for User {
     fn add(&mut self, proc: &ProcessInfo) {
         let user = users::get_user_by_uid(proc.curr_proc.owner());

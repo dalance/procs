@@ -25,7 +25,7 @@ impl MinFlt {
     }
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 impl Column for MinFlt {
     fn add(&mut self, proc: &ProcessInfo) {
         let raw_content = proc.curr_proc.stat().minflt;

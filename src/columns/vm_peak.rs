@@ -26,7 +26,7 @@ impl VmPeak {
     }
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 impl Column for VmPeak {
     fn add(&mut self, proc: &ProcessInfo) {
         let (raw_content, fmt_content) = if let Some(ref curr_status) = proc.curr_status {

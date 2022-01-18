@@ -25,7 +25,7 @@ impl State {
     }
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 impl Column for State {
     fn add(&mut self, proc: &ProcessInfo) {
         let fmt_content = format!("{}", proc.curr_proc.stat().state);

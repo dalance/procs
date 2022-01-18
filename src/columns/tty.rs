@@ -25,7 +25,7 @@ impl Tty {
     }
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 impl Column for Tty {
     fn add(&mut self, proc: &ProcessInfo) {
         let (major, minor) = proc.curr_proc.stat().tty_nr();

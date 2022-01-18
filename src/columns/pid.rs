@@ -25,7 +25,7 @@ impl Pid {
     }
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 impl Column for Pid {
     fn add(&mut self, proc: &ProcessInfo) {
         let raw_content = proc.pid;
@@ -41,7 +41,7 @@ impl Column for Pid {
     column_default!(i32);
 }
 
-#[cfg(not(target_os = "linux"))]
+#[cfg(not(any(target_os = "linux", target_os = "android")))]
 impl Column for Pid {
     fn add(&mut self, proc: &ProcessInfo) {
         let raw_content = proc.pid;

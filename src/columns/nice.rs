@@ -25,7 +25,7 @@ impl Nice {
     }
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 impl Column for Nice {
     fn add(&mut self, proc: &ProcessInfo) {
         let raw_content = proc.curr_proc.stat().nice;

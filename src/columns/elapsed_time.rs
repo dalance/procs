@@ -2,15 +2,15 @@ use crate::process::ProcessInfo;
 use crate::{column_default, Column};
 #[cfg(not(target_os = "windows"))]
 use chrono::offset::TimeZone;
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 use chrono::DateTime;
 use chrono::{Duration, Local};
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 use lazy_static::lazy_static;
 use std::cmp;
 use std::collections::HashMap;
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 lazy_static! {
     static ref TICKS_PER_SECOND: i64 = procfs::ticks_per_second().unwrap();
 }
@@ -21,7 +21,7 @@ pub struct ElapsedTime {
     fmt_contents: HashMap<i32, String>,
     raw_contents: HashMap<i32, Duration>,
     width: usize,
-    #[cfg(target_os = "linux")]
+    #[cfg(any(target_os = "linux", target_os = "android"))]
     boot_time: DateTime<Local>,
 }
 
@@ -35,7 +35,7 @@ impl ElapsedTime {
             width: 0,
             header,
             unit,
-            #[cfg(target_os = "linux")]
+            #[cfg(any(target_os = "linux", target_os = "android"))]
             boot_time: procfs::boot_time().unwrap_or_else(|_| Local.timestamp(0, 0)),
         }
     }
@@ -64,7 +64,7 @@ fn format_duration(duration: Duration) -> String {
     }
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 impl Column for ElapsedTime {
     fn add(&mut self, proc: &ProcessInfo) {
         let starttime = proc.curr_proc.stat().starttime;

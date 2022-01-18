@@ -25,7 +25,7 @@ impl MajFlt {
     }
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 impl Column for MajFlt {
     fn add(&mut self, proc: &ProcessInfo) {
         let raw_content = proc.curr_proc.stat().majflt;

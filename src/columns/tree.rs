@@ -209,7 +209,7 @@ impl Column for Tree {
 }
 
 #[cfg(test)]
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 mod tests {
     use super::*;
     use crate::process::ProcessTask;

@@ -25,7 +25,7 @@ impl CpuTime {
     }
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 impl Column for CpuTime {
     fn add(&mut self, proc: &ProcessInfo) {
         let time_sec = (proc.curr_proc.stat().utime + proc.curr_proc.stat().stime)
