@@ -1382,6 +1382,7 @@ name = "procs"
 version = "0.11.14-pre"
 dependencies = [
  "anyhow",
+ "atty",
  "byte-unit",
  "chrono",
  "clap",

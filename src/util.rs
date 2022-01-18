@@ -2,6 +2,7 @@ use crate::column::Column;
 use crate::columns::{ConfigColumnKind, KIND_LIST};
 use crate::config::{Config, ConfigColumnAlign, ConfigSearchLogic, ConfigTheme};
 use crate::Opt;
+use atty::Stream;
 use byte_unit::Byte;
 use std::borrow::Cow;
 use std::time::Duration;
@@ -250,7 +251,7 @@ pub fn get_theme(opt: &Opt, config: &Config) -> ConfigTheme {
     };
     match theme {
         ConfigTheme::Auto => {
-            if console::user_attended() {
+            if atty::is(Stream::Stdout) && atty::is(Stream::Stderr) && atty::is(Stream::Stdin) {
                 let timeout = Duration::from_millis(100);
                 if let Ok(theme) = termbg::theme(timeout) {
                     match theme {

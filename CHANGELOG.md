@@ -4,6 +4,7 @@
 
 * [Changed] Update getch to update termios [#223](https://github.com/dalance/procs/issues/223)
 * [Changed] Replace structopt with clap
+* [Fixed] unexpected message at piped [#221](https://github.com/dalance/procs/issues/221)
 
 ## [v0.11.13](https://github.com/dalance/procs/compare/v0.11.12...v0.11.13) - 2021-12-24
 
