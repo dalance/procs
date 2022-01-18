@@ -19,10 +19,10 @@ jobs:
             rust: stable
             target: x86_64-pc-windows-msvc
             use-cross: false
-          - os: ubuntu-latest
-            rust: stable
-            target: armv7-linux-androideabi
-            use-cross: true
+#          - os: ubuntu-latest
+#            rust: stable
+#            target: armv7-linux-androideabi
+#            use-cross: true
 
     runs-on: ${{ matrix.os }}
     steps:
