@@ -41,7 +41,7 @@ console       = "0.15.0"
 chrono        = "0.4"
 directories   = "4.0.1"
 dockworker    = { version = "0.0.23", optional = true }
-getch         = "0.2"
+getch         = "0.3.1"
 lazy_static   = "1.2"
 libc          = "0.2"
 serde         = "1.0"

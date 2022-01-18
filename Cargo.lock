@@ -710,9 +710,9 @@ dependencies = [
 
 [[package]]
 name = "getch"
-version = "0.2.1"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bbb0b59927a20adfdc274a345f8b4b476e552e56ec0bfb072e0a455c12463602"
+checksum = "13990e2d5b29e1770ddf7fc000afead4acb9bd8f8a9602de63bf189e261b1ba8"
 dependencies = [
  "libc",
  "termios",
@@ -1652,9 +1652,9 @@ dependencies = [
 
 [[package]]
 name = "termios"
-version = "0.2.2"
+version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d5d9cf598a6d7ce700a4e6a9199da127e6819a61e64b68609683cc9a01b5683a"
+checksum = "411c5bf740737c7918b8b1fe232dca4dc9f8e754b8ad5e20966814001ed0ac6b"
 dependencies = [
  "libc",
 ]
