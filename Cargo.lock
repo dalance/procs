@@ -1629,9 +1629,9 @@ dependencies = [
 
 [[package]]
 name = "termbg"
-version = "0.3.0"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "db06b55c28c0b112ebb8b4abfea54e58bf6368095b16fb8953268faf3dc2e372"
+checksum = "ece6760ebcd14c09b58f78ca7083c73360c7156963dc15768b3481d431953673"
 dependencies = [
  "async-std",
  "crossterm",

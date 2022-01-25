@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.12.0...Unreleased) - ReleaseDate
 
+* [Fixed] latency based termbg timeout [#221](https://github.com/dalance/procs/issues/221)
+
 ## [v0.12.0](https://github.com/dalance/procs/compare/v0.11.13...v0.12.0) - 2022-01-18
 
 * [Changed] Update getch to update termios [#223](https://github.com/dalance/procs/issues/223)
