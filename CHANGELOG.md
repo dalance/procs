@@ -3,6 +3,7 @@
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.12.0...Unreleased) - ReleaseDate
 
 * [Fixed] latency based termbg timeout [#221](https://github.com/dalance/procs/issues/221)
+* [Fixed] wrong decode of cgroup for docker [#236](https://github.com/dalance/procs/issues/236)
 
 ## [v0.12.0](https://github.com/dalance/procs/compare/v0.11.13...v0.12.0) - 2022-01-18
 

@@ -92,17 +92,21 @@ impl Docker {
 impl Column for Docker {
     fn add(&mut self, proc: &ProcessInfo) {
         let fmt_content = if let Ok(cgroups) = proc.curr_proc.cgroups() {
-            let cgroup_name = cgroups[0].pathname.clone();
-            if cgroup_name.starts_with("/docker") {
-                let container_id = cgroup_name.replace("/docker/", "");
-                if let Some(name) = self.containers.get(&container_id) {
-                    name.to_string()
-                } else {
-                    String::from("?")
+            let mut ret = String::from("");
+            for cgroup in cgroups {
+                let cgroup_name = cgroup.pathname.clone();
+                if cgroup_name.starts_with("/docker") {
+                    let container_id = cgroup_name.replace("/docker/", "");
+                    if let Some(name) = self.containers.get(&container_id) {
+                        ret = name.to_string();
+                        break;
+                    } else {
+                        ret = String::from("?");
+                        break;
+                    }
                 }
-            } else {
-                String::from("")
             }
+            ret
         } else {
             String::from("")
         };
