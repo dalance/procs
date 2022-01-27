@@ -104,6 +104,17 @@ impl Column for Docker {
                         ret = String::from("?");
                         break;
                     }
+                } else if cgroup_name.starts_with("/system.slice/docker-") {
+                    let container_id = cgroup_name
+                        .replace("/system.slice/docker-", "")
+                        .replace(".scope", "");
+                    if let Some(name) = self.containers.get(&container_id) {
+                        ret = name.to_string();
+                        break;
+                    } else {
+                        ret = String::from("?");
+                        break;
+                    }
                 }
             }
             ret
