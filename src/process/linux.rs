@@ -153,6 +153,7 @@ pub fn collect_proc(interval: Duration, with_thread: bool) -> Vec<ProcessInfo> {
     ret
 }
 
+#[allow(clippy::type_complexity)]
 fn collect_task(iter: TasksIter, map: &mut HashMap<i32, (i32, Stat, Option<Status>, Option<Io>)>) {
     for task in iter {
         let task = if let Ok(x) = task {
