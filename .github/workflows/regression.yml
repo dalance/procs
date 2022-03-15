@@ -44,3 +44,35 @@ jobs:
           use-cross: ${{ matrix.use-cross }}
           command: test
           args: --locked --target ${{ matrix.target }} --no-default-features
+
+  rustfmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+          components: rustfmt
+      - name: Run rustfmt
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: -- --check
+
+  clippy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+          components: clippy
+      - name: Run clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: -- -D warnings
