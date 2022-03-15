@@ -76,3 +76,8 @@ jobs:
         with:
           command: clippy
           args: -- -D warnings
+      - name: Run clippy feature variation
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --no-default-features -- -D warnings
