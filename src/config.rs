@@ -199,7 +199,7 @@ fn serialize_color_by_theme(c: &ConfigColorByTheme) -> String {
 }
 
 fn deserialize_color_by_theme(s: &str) -> Option<ConfigColorByTheme> {
-    if let Some(i) = s.find("|") {
+    if let Some(i) = s.find('|') {
         let (dark, light) = s.split_at(i);
         let light = &light[1..];
         let dark = deserialize_color(dark)?;
@@ -236,7 +236,7 @@ impl<'de> serde::Deserialize<'de> for ConfigColorByTheme {
         D: serde::Deserializer<'de>,
     {
         let s = String::deserialize(deserializer)?;
-        deserialize_color_by_theme(&s).ok_or(serde::de::Error::custom(""))
+        deserialize_color_by_theme(&s).ok_or_else(|| serde::de::Error::custom(""))
     }
 }
 
@@ -274,7 +274,8 @@ impl<'de> serde::Deserialize<'de> for ConfigColumnStyle {
             "ByState" => Ok(ConfigColumnStyle::ByState),
             "ByUnit" => Ok(ConfigColumnStyle::ByUnit),
             s => {
-                let c = deserialize_color_by_theme(s).ok_or(serde::de::Error::custom(""))?;
+                let c =
+                    deserialize_color_by_theme(s).ok_or_else(|| serde::de::Error::custom(""))?;
                 Ok(ConfigColumnStyle::Fixed(c))
             }
         }

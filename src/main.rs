@@ -265,7 +265,7 @@ fn run() -> Result<(), Error> {
         run_list()
     } else if let Some(shell) = opt.completion {
         //Opt::clap().gen_completions("procs", shell, "./");
-        clap_complete::generate_to(shell, &mut Opt::into_app(), "procs", "./")?;
+        clap_complete::generate_to(shell, &mut Opt::command(), "procs", "./")?;
         let path = match shell {
             Shell::Bash => "./procs.bash",
             Shell::Elvish => "./procs.elv",
@@ -275,11 +275,11 @@ fn run() -> Result<(), Error> {
             x => return Err(anyhow!("unknown shell type: {}", x)),
         };
         println!("completion file is generated: {}", path);
-        return Ok(());
+        Ok(())
     } else if let Some(shell) = opt.completion_out {
         //Opt::clap().gen_completions_to("procs", shell, &mut stdout());
-        clap_complete::generate(shell, &mut Opt::into_app(), "procs", &mut stdout());
-        return Ok(());
+        clap_complete::generate(shell, &mut Opt::command(), "procs", &mut stdout());
+        Ok(())
     } else {
         let config = get_config()?;
         if opt.watch_mode {

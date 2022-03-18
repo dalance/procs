@@ -1,5 +1,7 @@
 use procfs::process::{FDInfo, Io, Process, Stat, Status, TasksIter};
-use procfs::{ProcError, ProcessCgroup};
+use procfs::ProcError;
+#[cfg(feature = "docker")]
+use procfs::ProcessCgroup;
 use std::collections::HashMap;
 use std::thread;
 use std::time::{Duration, Instant};
@@ -24,6 +26,7 @@ impl ProcessTask {
         }
     }
 
+    #[cfg(feature = "docker")]
     pub fn cgroups(&self) -> Result<Vec<ProcessCgroup>, ProcError> {
         match self {
             ProcessTask::Process(x) => x.cgroups(),
@@ -153,6 +156,7 @@ pub fn collect_proc(interval: Duration, with_thread: bool) -> Vec<ProcessInfo> {
     ret
 }
 
+#[allow(clippy::type_complexity)]
 fn collect_task(iter: TasksIter, map: &mut HashMap<i32, (i32, Stat, Option<Status>, Option<Io>)>) {
     for task in iter {
         let task = if let Ok(x) = task {
