@@ -72,7 +72,7 @@ impl Column for ElapsedTime {
         let start_time =
             self.boot_time + Duration::milliseconds((seconds_since_boot * 1000.0) as i64);
         let raw_content = Local::now().signed_duration_since(start_time);
-        let fmt_content = format!("{}", format_duration(raw_content));
+        let fmt_content = format_duration(raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);

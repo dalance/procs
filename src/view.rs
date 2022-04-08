@@ -85,7 +85,7 @@ impl View {
             for kind in kinds {
                 let visible = if let Some(ref only) = opt.only {
                     let kind_name = KIND_LIST[&kind].0.to_lowercase();
-                    if kind_name.find(&only.to_lowercase()).is_none() {
+                    if !kind_name.contains(&only.to_lowercase()) {
                         false
                     } else {
                         only_kind_found = true;
@@ -140,7 +140,7 @@ impl View {
         let proc = collect_proc(Duration::from_millis(opt.interval), show_thread);
         for c in columns.iter_mut() {
             for p in &proc {
-                c.column.add(&p);
+                c.column.add(p);
             }
         }
 
@@ -228,7 +228,7 @@ impl View {
                     &keyword_nonnumeric,
                     cols_numeric.as_slice(),
                     cols_nonnumeric.as_slice(),
-                    &config,
+                    config,
                     &logic,
                 )
             };
@@ -304,7 +304,7 @@ impl View {
             };
             c.column.apply_visible(&self.visible_pids);
             let min_width = min_widths.get(&i).map(|x| Some(*x)).unwrap_or(c.min_width);
-            c.column.reset_width(order, &config, c.max_width, min_width);
+            c.column.reset_width(order, config, c.max_width, min_width);
             for pid in &self.visible_pids {
                 c.column.update_width(*pid, c.max_width);
             }
@@ -382,19 +382,19 @@ impl View {
         }
 
         if use_pager {
-            View::pager(&config);
+            View::pager(config);
         }
 
         if !opt.no_header {
             // Ignore display_* error
             //   `Broken pipe` may occur at pager mode. It can be ignored safely.
-            let _ = self.display_header(&config, theme);
-            let _ = self.display_unit(&config, theme);
+            let _ = self.display_header(config, theme);
+            let _ = self.display_unit(config, theme);
         }
 
         for pid in &self.visible_pids {
             let auxiliary = self.auxiliary_pids.contains(pid);
-            let _ = self.display_content(&config, *pid, theme, auxiliary);
+            let _ = self.display_content(config, *pid, theme, auxiliary);
         }
 
         Ok(())
@@ -485,7 +485,7 @@ impl View {
                 let mut order = config.sort.order.clone();
                 for (i, c) in cols.iter().enumerate() {
                     let (kind, _) = KIND_LIST[&c.kind];
-                    if kind.to_lowercase().find(&sort.to_lowercase()).is_some() {
+                    if kind.to_lowercase().contains(&sort.to_lowercase()) {
                         idx = i;
                         order = if opt.sorta.is_some() {
                             ConfigSortOrder::Ascending
@@ -551,7 +551,7 @@ impl View {
     #[cfg(any(target_os = "linux", target_os = "android"))]
     fn pager(config: &Config) {
         if let Some(ref pager) = config.pager.command {
-            Pager::with_pager(&pager)
+            Pager::with_pager(pager)
                 // workaround for default less charset is "acsii" on some environments (ex. Ubuntu)
                 .pager_envs(&["LESSCHARSET=utf-8"])
                 .setup();

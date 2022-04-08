@@ -162,7 +162,7 @@ pub fn truncate(s: &'_ str, width: usize) -> Cow<'_, str> {
 
 pub fn find_column_kind(pat: &str) -> Option<ConfigColumnKind> {
     for (k, (v, _)) in KIND_LIST.iter() {
-        if v.to_lowercase().find(&pat.to_lowercase()).is_some() {
+        if v.to_lowercase().contains(&pat.to_lowercase()) {
             return Some(k.clone());
         }
     }
@@ -223,9 +223,9 @@ pub fn bytify(x: u64) -> String {
     let byte = Byte::from_bytes(x as u128);
     let byte = byte.get_appropriate_unit(true);
     byte.format(3)
-        .replace(" ", "")
-        .replace("B", "")
-        .replace("i", "")
+        .replace(' ', "")
+        .replace('B', "")
+        .replace('i', "")
 }
 
 pub fn lap(instant: &mut Instant, msg: &str) {
@@ -234,7 +234,7 @@ pub fn lap(instant: &mut Instant, msg: &str) {
         "{} [{}.{:03}s]",
         msg,
         period.as_secs(),
-        period.subsec_nanos() / 1000000
+        period.subsec_millis()
     );
     instant.clone_from(&Instant::now());
 }

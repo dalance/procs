@@ -56,7 +56,7 @@ impl Column for UdpPort {
                     ports.push(entry.local_address.port());
                 }
             }
-            ports.sort();
+            ports.sort_unstable();
             ports.dedup();
 
             format!("{:?}", ports)
@@ -71,7 +71,7 @@ impl Column for UdpPort {
 
     fn find_exact(&self, pid: i32, keyword: &str) -> bool {
         if let Some(content) = self.fmt_contents.get(&pid) {
-            let content = content.replace("[", "").replace("]", "");
+            let content = content.replace('[', "").replace(']', "");
             let content = content.split(',');
             for c in content {
                 if c == keyword {

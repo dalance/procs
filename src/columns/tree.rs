@@ -31,7 +31,7 @@ impl Column for Tree {
     fn add(&mut self, proc: &ProcessInfo) {
         if let Some(node) = self.tree.get_mut(&proc.ppid) {
             node.push(proc.pid);
-            node.sort();
+            node.sort_unstable();
         } else {
             self.tree.insert(proc.ppid, vec![proc.pid]);
         }
@@ -64,7 +64,7 @@ impl Column for Tree {
                     string
                 } else if let Some(pppid) = rev_tree.get(ppid) {
                     let brother = tree.get(pppid).unwrap();
-                    let is_last = brother.binary_search(&ppid).unwrap() == brother.len() - 1;
+                    let is_last = brother.binary_search(ppid).unwrap() == brother.len() - 1;
 
                     if is_last {
                         string.push(' ');
@@ -90,7 +90,7 @@ impl Column for Tree {
             );
             let root: String = root.chars().rev().collect();
 
-            let brother = &self.tree[&ppid];
+            let brother = &self.tree[ppid];
             let is_last = brother.binary_search(&pid).unwrap() == brother.len() - 1;
             let has_child = self.tree.contains_key(&pid);
 
@@ -137,7 +137,7 @@ impl Column for Tree {
                 }
             }
         }
-        root_pids.sort();
+        root_pids.sort_unstable();
         root_pids.dedup();
 
         fn push_pid(tree: &HashMap<i32, Vec<i32>>, mut pids: Vec<i32>, pid: i32) -> Vec<i32> {
@@ -266,27 +266,18 @@ mod tests {
         tree.update_width(1, None);
         tree.update_width(2, None);
         assert_eq!(
-            format!(
-                "{}",
-                tree.display_content(0, &crate::config::ConfigColumnAlign::Left)
-                    .unwrap()
-            ),
+            tree.display_content(0, &crate::config::ConfigColumnAlign::Left)
+                    .unwrap(),
             String::from("├┬────")
         );
         assert_eq!(
-            format!(
-                "{}",
-                tree.display_content(1, &crate::config::ConfigColumnAlign::Left)
-                    .unwrap()
-            ),
+            tree.display_content(1, &crate::config::ConfigColumnAlign::Left)
+                    .unwrap(),
             String::from("│└┬───")
         );
         assert_eq!(
-            format!(
-                "{}",
-                tree.display_content(2, &crate::config::ConfigColumnAlign::Left)
-                    .unwrap()
-            ),
+            tree.display_content(2, &crate::config::ConfigColumnAlign::Left)
+                    .unwrap(),
             String::from("│ └───")
         );
     }
