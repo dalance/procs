@@ -285,10 +285,10 @@ The following shells are supported.
  * `elvish`
 
 `--completion-out` option generates shell completion to stdout.
-You can source it directly.
+You can source it directly on some shells.
 
 ```
-$ source <(procs --completion-out zsh)
+$ source <(procs --completion-out bash)
 ```
 
 ## Configuration
