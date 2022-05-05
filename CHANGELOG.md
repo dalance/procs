@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.12.1...Unreleased) - ReleaseDate
 
+* [Changed] Update Makefile to change release zip names [#279](https://github.com/dalance/procs/pull/279)
+
 ## [v0.12.1](https://github.com/dalance/procs/compare/v0.12.0...v0.12.1) - 2022-01-27
 
 * [Fixed] latency based termbg timeout [#221](https://github.com/dalance/procs/issues/221)
