@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.12.1...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.12.2...Unreleased) - ReleaseDate
+
+## [v0.12.2](https://github.com/dalance/procs/compare/v0.12.1...v0.12.2) - 2022-05-05
 
 * [Changed] Update Makefile to change release zip names [#279](https://github.com/dalance/procs/pull/279)
 
