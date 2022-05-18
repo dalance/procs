@@ -593,8 +593,12 @@ style = "223"     # 223 for both theme
 | descending            | [String]              | ▼                | Descending sort indicator                                                    |
 | tree_symbols          | [String; 5]           |  [│, ─, ┬, ├, └] | Symbols used by tree view                                                    |
 | abbr_sid              | true, false           | true             | Whether machine SID is abbreviated ( Windows only )                          |
+| theme                 | Auto, Dark, Light     | Auto             | Default theme                                                                |
 
 If `color_mode` is `Auto`, color is enabled for terminal and pager, disabled for pipe.
+
+If `theme` is `Auto`, theme is detected from terminal automatically.
+Some terminal don't support the automatic detection, so `Dark` or `Light` can be specified explicitly.
 
 #### `abbr_sid`
 
