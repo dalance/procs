@@ -49,7 +49,7 @@ lazy_static   = "1.2"
 libc          = "0.2"
 serde         = "1.0"
 serde_derive  = "1.0"
-termbg        = "0.4.0"
+termbg        = "0.4.1"
 toml          = "0.5"
 unicode-width = "0.1"
 

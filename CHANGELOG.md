@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.12.2...Unreleased) - ReleaseDate
 
+* [Fixed] Using bash on Emacs, procs-0.12.2 is very slow compared to procs-0.11.13 [#291](https://github.com/dalance/procs/issues/291)
+
 ## [v0.12.2](https://github.com/dalance/procs/compare/v0.12.1...v0.12.2) - 2022-05-05
 
 * [Changed] Update Makefile to change release zip names [#279](https://github.com/dalance/procs/pull/279)
