@@ -38,7 +38,7 @@ codecov   = { repository = "dalance/procs", branch = "master", service = "github
 anyhow        = "1.0"
 atty          = "0.2.14"
 byte-unit     = "4"
-clap          = {version = "3.2.4", features = ["derive"]}
+clap          = {version = "3.2.5", features = ["derive"]}
 clap_complete = "3.2.1"
 console       = "0.15.0"
 chrono        = "0.4"
