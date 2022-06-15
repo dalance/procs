@@ -4,10 +4,42 @@ use crate::config::{Config, ConfigColumnAlign, ConfigSearchLogic, ConfigTheme};
 use crate::Opt;
 use atty::Stream;
 use byte_unit::Byte;
+use clap::ValueEnum;
 use std::borrow::Cow;
 use std::time::Duration;
 use std::time::Instant;
 use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
+
+#[derive(ValueEnum, Copy, Clone, Debug, PartialEq)]
+pub enum ArgColorMode {
+    Auto,
+    Always,
+    Disable,
+}
+
+#[derive(ValueEnum, Copy, Clone, Debug, PartialEq)]
+pub enum ArgThemeMode {
+    Auto,
+    Dark,
+    Light,
+}
+
+impl From<ArgThemeMode> for ConfigTheme {
+    fn from(item: ArgThemeMode) -> Self {
+        match item {
+            ArgThemeMode::Auto => ConfigTheme::Auto,
+            ArgThemeMode::Dark => ConfigTheme::Dark,
+            ArgThemeMode::Light => ConfigTheme::Light,
+        }
+    }
+}
+
+#[derive(ValueEnum, Copy, Clone, Debug, PartialEq)]
+pub enum ArgPagerMode {
+    Auto,
+    Always,
+    Disable,
+}
 
 pub enum KeywordClass {
     Numeric,
@@ -240,13 +272,8 @@ pub fn lap(instant: &mut Instant, msg: &str) {
 }
 
 pub fn get_theme(opt: &Opt, config: &Config) -> ConfigTheme {
-    let theme = match (opt.theme.as_ref(), &config.display.theme) {
-        (Some(x), _) => match x.as_str() {
-            "auto" => ConfigTheme::Auto,
-            "dark" => ConfigTheme::Dark,
-            "light" => ConfigTheme::Light,
-            _ => unreachable!(),
-        },
+    let theme = match (opt.theme, &config.display.theme) {
+        (Some(x), _) => x.into(),
         (_, x) => x.clone(),
     };
     match theme {

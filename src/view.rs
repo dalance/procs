@@ -4,7 +4,10 @@ use crate::config::*;
 use crate::process::collect_proc;
 use crate::style::{apply_color, apply_style, color_to_column_style};
 use crate::term_info::TermInfo;
-use crate::util::{classify, find_column_kind, find_exact, find_partial, truncate, KeywordClass};
+use crate::util::{
+    classify, find_column_kind, find_exact, find_partial, truncate, ArgColorMode, ArgPagerMode,
+    KeywordClass,
+};
 use crate::Opt;
 use anyhow::{bail, Error};
 #[cfg(not(target_os = "windows"))]
@@ -339,19 +342,18 @@ impl View {
         } else {
             match (opt.watch_mode, opt.pager.as_ref(), &config.pager.mode) {
                 (true, _, _) => false,
-                (false, Some(x), _) if x == "auto" => {
+                (false, Some(ArgPagerMode::Auto), _) => {
                     self.term_info.height < pager_threshold_height
                         || self.term_info.width < pager_threshold_width
                 }
-                (false, Some(x), _) if x == "always" => true,
-                (false, Some(x), _) if x == "disable" => false,
+                (false, Some(ArgPagerMode::Always), _) => true,
+                (false, Some(ArgPagerMode::Disable), _) => false,
                 (false, None, ConfigPagerMode::Auto) => {
                     self.term_info.height < pager_threshold_height
                         || self.term_info.width < pager_threshold_width
                 }
                 (false, None, ConfigPagerMode::Always) => true,
                 (false, None, ConfigPagerMode::Disable) => false,
-                _ => false,
             }
         };
 
@@ -364,13 +366,13 @@ impl View {
         }
 
         match (opt.color.as_ref(), &config.display.color_mode) {
-            (Some(x), _) if x == "auto" => {
+            (Some(ArgColorMode::Auto), _) => {
                 if use_pager && use_terminal {
                     console::set_colors_enabled(true);
                 }
             }
-            (Some(x), _) if x == "always" => console::set_colors_enabled(true),
-            (Some(x), _) if x == "disable" => console::set_colors_enabled(false),
+            (Some(ArgColorMode::Always), _) => console::set_colors_enabled(true),
+            (Some(ArgColorMode::Disable), _) => console::set_colors_enabled(false),
             (None, ConfigColorMode::Auto) => {
                 if use_pager && use_terminal {
                     console::set_colors_enabled(true);
@@ -378,7 +380,6 @@ impl View {
             }
             (None, ConfigColorMode::Always) => console::set_colors_enabled(true),
             (None, ConfigColorMode::Disable) => console::set_colors_enabled(false),
-            _ => (),
         }
 
         if use_pager {

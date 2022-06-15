@@ -11,7 +11,7 @@ mod watcher;
 use crate::column::Column;
 use crate::columns::*;
 use crate::config::*;
-use crate::util::{adjust, get_theme, lap};
+use crate::util::{adjust, get_theme, lap, ArgColorMode, ArgPagerMode, ArgThemeMode};
 use crate::view::View;
 use crate::watcher::Watcher;
 use anyhow::{anyhow, Context, Error};
@@ -37,11 +37,12 @@ use unicode_width::UnicodeWidthStr;
 /// please see https://github.com/dalance/procs#configuration to configure columns
 pub struct Opt {
     /// Keywords for search
-    #[clap(name = "KEYWORD")]
+    #[clap(action, name = "KEYWORD")]
     pub keyword: Vec<String>,
 
     /// AND  logic for multi-keyword
     #[clap(
+        action,
         short = 'a',
         long = "and",
         conflicts_with_all(&["or", "nand", "nor"])
@@ -50,6 +51,7 @@ pub struct Opt {
 
     /// OR   logic for multi-keyword
     #[clap(
+        action,
         short = 'o',
         long = "or",
         conflicts_with_all(&["and", "nand", "nor"])
@@ -58,6 +60,7 @@ pub struct Opt {
 
     /// NAND logic for multi-keyword
     #[clap(
+        action,
         short = 'd',
         long = "nand",
         conflicts_with_all(&["and", "or", "nor"])
@@ -66,6 +69,7 @@ pub struct Opt {
 
     /// NOR  logic for multi-keyword
     #[clap(
+        action,
         short = 'r',
         long = "nor",
         conflicts_with_all(&["and", "or", "nand"])
@@ -73,23 +77,23 @@ pub struct Opt {
     pub nor: bool,
 
     /// Show list of kind
-    #[clap(short = 'l', long = "list")]
+    #[clap(action, short = 'l', long = "list")]
     pub list: bool,
 
     /// Show thread
-    #[clap(long = "thread")]
+    #[clap(action, long = "thread")]
     pub thread: bool,
 
     /// Tree view
-    #[clap(short = 't', long = "tree")]
+    #[clap(action, short = 't', long = "tree")]
     pub tree: bool,
 
     /// Watch mode with default interval (1s)
-    #[clap(short = 'w', long = "watch")]
+    #[clap(action, short = 'w', long = "watch")]
     pub watch: bool,
 
     /// Watch mode with custom interval
-    #[clap(short = 'W', long = "watch-interval", value_name = "second")]
+    #[clap(action, short = 'W', long = "watch-interval", value_name = "second")]
     pub watch_interval: Option<f64>,
 
     #[clap(skip)]
@@ -97,20 +101,21 @@ pub struct Opt {
 
     /// Insert column to slot
     #[clap(
+        action,
         value_name = "kind",
         short = 'i',
         long = "insert",
-        multiple_occurrences(true),
         number_of_values(1)
     )]
     pub insert: Vec<String>,
 
     /// Specified column only
-    #[clap(value_name = "kind", long = "only")]
+    #[clap(action, value_name = "kind", long = "only")]
     pub only: Option<String>,
 
     /// Sort column by ascending
     #[clap(
+        action,
         value_name = "kind",
         long = "sorta",
         conflicts_with_all(&["sortd", "tree"])
@@ -119,6 +124,7 @@ pub struct Opt {
 
     /// Sort column by descending
     #[clap(
+        action,
         value_name = "kind",
         long = "sortd",
         conflicts_with_all(&["sorta", "tree"])
@@ -126,56 +132,44 @@ pub struct Opt {
     pub sortd: Option<String>,
 
     /// Color mode
-    #[clap(
-        short = 'c',
-        long = "color",
-        possible_value = "auto",
-        possible_value = "always",
-        possible_value = "disable"
-    )]
-    pub color: Option<String>,
+    #[clap(action, short = 'c', long = "color")]
+    pub color: Option<ArgColorMode>,
 
     /// Theme mode
-    #[clap(
-        long = "theme",
-        possible_value = "auto",
-        possible_value = "dark",
-        possible_value = "light"
-    )]
-    pub theme: Option<String>,
+    #[clap(action, long = "theme")]
+    pub theme: Option<ArgThemeMode>,
 
     /// Pager mode
-    #[clap(
-        short = 'p',
-        long = "pager",
-        possible_value = "auto",
-        possible_value = "always",
-        possible_value = "disable"
-    )]
-    pub pager: Option<String>,
+    #[clap(action, short = 'p', long = "pager")]
+    pub pager: Option<ArgPagerMode>,
 
     /// Interval to calculate throughput
-    #[clap(long = "interval", default_value = "100", value_name = "millisec")]
+    #[clap(
+        action,
+        long = "interval",
+        default_value = "100",
+        value_name = "millisec"
+    )]
     pub interval: u64,
 
     /// Generate configuration sample file
-    #[clap(long = "config")]
+    #[clap(action, long = "config")]
     pub config: bool,
 
     /// Generate shell completion file
-    #[clap(long = "completion", value_name = "shell")]
+    #[clap(action, long = "completion", value_name = "shell")]
     pub completion: Option<Shell>,
 
     /// Generate shell completion file and write to stdout
-    #[clap(long = "completion-out", value_name = "shell")]
+    #[clap(action, long = "completion-out", value_name = "shell")]
     pub completion_out: Option<Shell>,
 
     /// Suppress header
-    #[clap(long = "no-header")]
+    #[clap(action, long = "no-header")]
     pub no_header: bool,
 
     /// Show debug message
-    #[clap(long = "debug", hide = true)]
+    #[clap(action, long = "debug", hide = true)]
     pub debug: bool,
 }
 
