@@ -40,22 +40,22 @@ macro_rules! column_default_display_header {
     () => {
         fn display_header(
             &self,
-            align: &crate::config::ConfigColumnAlign,
-            order: Option<crate::config::ConfigSortOrder>,
-            config: &crate::config::Config,
+            align: &$crate::config::ConfigColumnAlign,
+            order: Option<$crate::config::ConfigSortOrder>,
+            config: &$crate::config::Config,
         ) -> String {
             if let Some(order) = order {
                 let header = match order {
-                    crate::config::ConfigSortOrder::Ascending => {
+                    $crate::config::ConfigSortOrder::Ascending => {
                         format!("{}:{}", self.header, config.display.ascending)
                     }
-                    crate::config::ConfigSortOrder::Descending => {
+                    $crate::config::ConfigSortOrder::Descending => {
                         format!("{}:{}", self.header, config.display.descending)
                     }
                 };
-                crate::util::adjust(&header, self.width, align)
+                $crate::util::adjust(&header, self.width, align)
             } else {
-                crate::util::adjust(&self.header, self.width, align)
+                $crate::util::adjust(&self.header, self.width, align)
             }
         }
     };
@@ -64,8 +64,8 @@ macro_rules! column_default_display_header {
 #[macro_export]
 macro_rules! column_default_display_unit {
     () => {
-        fn display_unit(&self, align: &crate::config::ConfigColumnAlign) -> String {
-            crate::util::adjust(&self.unit, self.width, align)
+        fn display_unit(&self, align: &$crate::config::ConfigColumnAlign) -> String {
+            $crate::util::adjust(&self.unit, self.width, align)
         }
     };
 }
@@ -76,11 +76,11 @@ macro_rules! column_default_display_content {
         fn display_content(
             &self,
             pid: i32,
-            align: &crate::config::ConfigColumnAlign,
+            align: &$crate::config::ConfigColumnAlign,
         ) -> Option<String> {
             self.fmt_contents
                 .get(&pid)
-                .map(|content| crate::util::adjust(content, self.width, align))
+                .map(|content| $crate::util::adjust(content, self.width, align))
         }
     };
 }
@@ -114,10 +114,10 @@ macro_rules! column_default_find_exact {
 #[macro_export]
 macro_rules! column_default_sorted_pid {
     ($x:ty) => {
-        fn sorted_pid(&self, order: &crate::config::ConfigSortOrder) -> Vec<i32> {
+        fn sorted_pid(&self, order: &$crate::config::ConfigSortOrder) -> Vec<i32> {
             let mut contents: Vec<(&i32, &$x)> = self.raw_contents.iter().collect();
             contents.sort_by_key(|&(_x, y)| y);
-            if let crate::config::ConfigSortOrder::Descending = order {
+            if let $crate::config::ConfigSortOrder::Descending = order {
                 contents.reverse()
             }
             contents.iter().map(|(x, _y)| **x).collect()
@@ -137,18 +137,18 @@ macro_rules! column_default_reset_width {
     () => {
         fn reset_width(
             &mut self,
-            order: Option<crate::config::ConfigSortOrder>,
-            config: &crate::config::Config,
+            order: Option<$crate::config::ConfigSortOrder>,
+            config: &$crate::config::Config,
             max_width: Option<usize>,
             min_width: Option<usize>,
         ) {
             // +1 for spacing between header and sort indicator
             let sorted_space = if let Some(order) = order {
                 match order {
-                    crate::config::ConfigSortOrder::Ascending => {
+                    $crate::config::ConfigSortOrder::Ascending => {
                         unicode_width::UnicodeWidthStr::width(config.display.ascending.as_str()) + 1
                     }
-                    crate::config::ConfigSortOrder::Descending => {
+                    $crate::config::ConfigSortOrder::Descending => {
                         unicode_width::UnicodeWidthStr::width(config.display.descending.as_str())
                             + 1
                     }
@@ -196,15 +196,15 @@ macro_rules! column_default_get_width {
 #[macro_export]
 macro_rules! column_default {
     ($x:ty) => {
-        crate::column_default_display_header!();
-        crate::column_default_display_unit!();
-        crate::column_default_display_content!();
-        crate::column_default_find_partial!();
-        crate::column_default_find_exact!();
-        crate::column_default_sorted_pid!($x);
-        crate::column_default_apply_visible!();
-        crate::column_default_reset_width!();
-        crate::column_default_update_width!();
-        crate::column_default_get_width!();
+        $crate::column_default_display_header!();
+        $crate::column_default_display_unit!();
+        $crate::column_default_display_content!();
+        $crate::column_default_find_partial!();
+        $crate::column_default_find_exact!();
+        $crate::column_default_sorted_pid!($x);
+        $crate::column_default_apply_visible!();
+        $crate::column_default_reset_width!();
+        $crate::column_default_update_width!();
+        $crate::column_default_get_width!();
     };
 }
