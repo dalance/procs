@@ -15,6 +15,10 @@ fn default_false() -> bool {
     false
 }
 
+fn default_column_style_by_unit() -> ConfigColumnStyle {
+    ConfigColumnStyle::ByUnit
+}
+
 fn default_column_align_left() -> ConfigColumnAlign {
     ConfigColumnAlign::Left
 }
@@ -296,6 +300,7 @@ pub enum ConfigColumnAlign {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ConfigColumn {
     pub kind: ConfigColumnKind,
+    #[serde(default = "default_column_style_by_unit")]
     pub style: ConfigColumnStyle,
     #[serde(default = "default_false")]
     pub numeric_search: bool,

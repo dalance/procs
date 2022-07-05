@@ -41,6 +41,7 @@ pub mod state;
 pub mod tcp_port;
 pub mod threads;
 pub mod tree;
+pub mod tree_slot;
 pub mod tty;
 pub mod udp_port;
 pub mod uid;
@@ -113,6 +114,7 @@ pub use self::state::State;
 pub use self::tcp_port::TcpPort;
 pub use self::threads::Threads;
 pub use self::tree::Tree;
+pub use self::tree_slot::TreeSlot;
 pub use self::tty::Tty;
 pub use self::udp_port::UdpPort;
 pub use self::uid::Uid;
@@ -195,6 +197,7 @@ pub enum ConfigColumnKind {
     TcpPort,
     Threads,
     Tree,
+    TreeSlot,
     Tty,
     UdpPort,
     Uid,
@@ -284,6 +287,7 @@ pub fn gen_column(
         ConfigColumnKind::TcpPort => Box::new(TcpPort::new(header)),
         ConfigColumnKind::Threads => Box::new(Threads::new(header)),
         ConfigColumnKind::Tree => Box::new(Tree::new(tree_symbols)),
+        ConfigColumnKind::TreeSlot => Box::new(TreeSlot::new()),
         ConfigColumnKind::Tty => Box::new(Tty::new(header)),
         ConfigColumnKind::UdpPort => Box::new(UdpPort::new(header)),
         ConfigColumnKind::Uid => Box::new(Uid::new(header, abbr_sid)),
@@ -421,6 +425,10 @@ pub static KIND_LIST: Lazy<HashMap<ConfigColumnKind, (&'static str, &'static str
             (ConfigColumnKind::State, ("State", "Process state")),
             (ConfigColumnKind::TcpPort, ("TcpPort", "Bound TCP ports")),
             (ConfigColumnKind::Threads, ("Threads", "Thread count")),
+            (
+                ConfigColumnKind::TreeSlot,
+                ("TreeSlot", "Slot for tree column"),
+            ),
             (ConfigColumnKind::Tty, ("Tty", "Controlling TTY")),
             (ConfigColumnKind::UdpPort, ("UdpPort", "Bound UDP ports")),
             (ConfigColumnKind::Uid, ("Uid", "User ID")),
@@ -671,6 +679,9 @@ style = "White"
 [[columns]]
 kind = "Threads"
 style = "White"
+[[columns]]
+kind = "TreeSlot"
+style = "BrightWhite"
 [[columns]]
 kind = "Tty"
 style = "White"

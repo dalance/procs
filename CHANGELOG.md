@@ -5,6 +5,7 @@
 * [Changed] Update procfs to v0.13.0
 * [Changed] Use once_cell instead of lazy_static
 * [Added] Case sensitivity option [#159](https://github.com/dalance/procs/issues/159)
+* [Added] TreeSlot column [#196](https://github.com/dalance/procs/issues/196)
 
 ## [v0.12.3](https://github.com/dalance/procs/compare/v0.12.2...v0.12.3) - 2022-05-25
 

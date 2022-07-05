@@ -34,34 +34,45 @@ impl View {
     pub fn new(opt: &Opt, config: &Config, clear_by_line: bool) -> Result<Self, Error> {
         let mut slot_idx = 0;
         let mut columns = Vec::new();
-        if opt.tree {
-            let kind = ConfigColumnKind::Tree;
-            let column = gen_column(
-                &kind,
-                None,
-                &config.docker.path,
-                &config.display.separator,
-                config.display.abbr_sid,
-                &config.display.tree_symbols,
-            );
-            if column.available() {
-                columns.push(ColumnInfo {
-                    column,
-                    kind,
-                    style: color_to_column_style(&config.style.tree),
-                    nonnumeric_search: false,
-                    numeric_search: false,
-                    align: ConfigColumnAlign::Left,
-                    max_width: None,
-                    min_width: None,
-                    visible: true,
-                });
-            }
-        }
-
         let mut only_kind_found = false;
 
-        for c in &config.columns {
+        // Override style of TreeSlot
+        let tree_slot = ConfigColumn {
+            kind: ConfigColumnKind::TreeSlot,
+            style: color_to_column_style(&config.style.tree),
+            numeric_search: false,
+            nonnumeric_search: false,
+            align: ConfigColumnAlign::Left,
+            max_width: None,
+            min_width: None,
+            header: None,
+        };
+
+        // Add default TreeSlot if there is not TreeSlot in config
+        let config_columns = if config
+            .columns
+            .iter()
+            .all(|x| x.kind != ConfigColumnKind::TreeSlot)
+            && opt.tree
+        {
+            let mut ret = vec![tree_slot];
+            ret.append(&mut config.columns.clone());
+            ret
+        } else {
+            config
+                .columns
+                .iter()
+                .map(|x| {
+                    if x.kind == ConfigColumnKind::TreeSlot {
+                        tree_slot.clone()
+                    } else {
+                        x.clone()
+                    }
+                })
+                .collect()
+        };
+
+        for c in &config_columns {
             let kinds = match &c.kind {
                 ConfigColumnKind::Slot => {
                     let kinds = if let Some(insert) = opt.insert.get(slot_idx) {
@@ -81,6 +92,13 @@ impl View {
                         slot_idx += 1;
                     }
                     kinds
+                }
+                ConfigColumnKind::TreeSlot => {
+                    if opt.tree {
+                        vec![ConfigColumnKind::Tree]
+                    } else {
+                        vec![]
+                    }
                 }
                 x => vec![x.clone()],
             };
@@ -502,7 +520,10 @@ impl View {
         };
 
         if opt.tree {
-            sort_idx = 0;
+            sort_idx = cols
+                .iter()
+                .position(|x| x.kind == ConfigColumnKind::Tree)
+                .unwrap();
         }
 
         SortInfo {

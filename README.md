@@ -243,6 +243,8 @@ $ procs --tree
 
 ![procs_tree](https://user-images.githubusercontent.com/4331004/55446692-9ff07900-55fb-11e9-8b66-a8432df0a8e1.png)
 
+If `TreeSlot` column exists in config, dependency tree is shown at the slot.
+
 ### Sort column
 
 Column sort order can be changed by `--sorta` or `--sortd` option.
@@ -436,6 +438,7 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | State        | s                     | Process state                                 | o     | o     |         |
 | TcpPort      | -not supported-       | Bound TCP ports                               | o     | o     |         |
 | Threads      | nlwp                  | Thread count                                  | o     | o     |         |
+| TreeSlot     | -not supported-       | Slot for tree column                          | o     | o     | o       |
 | Tty          | tty                   | Controlling TTY                               | o     | o     |         |
 | UdpPort      | -not supported-       | Bound UDP ports                               | o     | o     |         |
 | Uid          | euid                  | User ID                                       | o     | o     | o       |

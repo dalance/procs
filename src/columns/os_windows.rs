@@ -15,6 +15,7 @@ pub mod slot;
 pub mod start_time;
 pub mod threads;
 pub mod tree;
+pub mod tree_slot;
 pub mod uid;
 pub mod usage_cpu;
 pub mod usage_mem;
@@ -44,6 +45,7 @@ pub use self::slot::Slot;
 pub use self::start_time::StartTime;
 pub use self::threads::Threads;
 pub use self::tree::Tree;
+pub use self::tree_slot::TreeSlot;
 pub use self::uid::Uid;
 pub use self::usage_cpu::UsageCpu;
 pub use self::usage_mem::UsageMem;
@@ -84,6 +86,7 @@ pub enum ConfigColumnKind {
     StartTime,
     Threads,
     Tree,
+    TreeSlot,
     Uid,
     UsageCpu,
     UsageMem,
@@ -127,6 +130,7 @@ pub fn gen_column(
         ConfigColumnKind::StartTime => Box::new(StartTime::new(header)),
         ConfigColumnKind::Threads => Box::new(Threads::new(header)),
         ConfigColumnKind::Tree => Box::new(Tree::new(tree_symbols)),
+        ConfigColumnKind::TreeSlot => Box::new(TreeSlot::new()),
         ConfigColumnKind::Uid => Box::new(Uid::new(header, abbr_sid)),
         ConfigColumnKind::UsageCpu => Box::new(UsageCpu::new(header)),
         ConfigColumnKind::UsageMem => Box::new(UsageMem::new(header)),
@@ -188,6 +192,10 @@ pub static KIND_LIST: Lazy<HashMap<ConfigColumnKind, (&'static str, &'static str
             ),
             (ConfigColumnKind::StartTime, ("StartTime", "Starting time")),
             (ConfigColumnKind::Threads, ("Threads", "Thread count")),
+            (
+                ConfigColumnKind::TreeSlot,
+                ("TreeSlot", "Slot for tree column"),
+            ),
             (ConfigColumnKind::Uid, ("Uid", "User ID")),
             (ConfigColumnKind::UsageCpu, ("UsageCpu", "CPU utilization")),
             (
@@ -325,6 +333,9 @@ style = "White"
 [[columns]]
 kind = "Threads"
 style = "White"
+[[columns]]
+kind = "TreeSlot"
+style = "BrightWhite"
 [[columns]]
 kind = "Uid"
 style = "White"
