@@ -65,13 +65,7 @@ pub fn find_partial<T: AsRef<str>>(
         let keyword_lowercase = keyword.to_ascii_lowercase();
 
         let ignore_case = match case {
-            ConfigSearchCase::Smart => {
-                if keyword == keyword.to_ascii_lowercase() {
-                    true
-                } else {
-                    false
-                }
-            }
+            ConfigSearchCase::Smart => keyword == keyword.to_ascii_lowercase(),
             ConfigSearchCase::Insensitive => true,
             ConfigSearchCase::Sensitive => false,
         };
@@ -117,13 +111,7 @@ pub fn find_exact<T: AsRef<str>>(
         let keyword_lowercase = keyword.to_ascii_lowercase();
 
         let ignore_case = match case {
-            ConfigSearchCase::Smart => {
-                if keyword == keyword.to_ascii_lowercase() {
-                    true
-                } else {
-                    false
-                }
-            }
+            ConfigSearchCase::Smart => keyword == keyword.to_ascii_lowercase(),
             ConfigSearchCase::Insensitive => true,
             ConfigSearchCase::Sensitive => false,
         };
