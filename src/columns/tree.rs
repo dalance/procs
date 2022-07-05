@@ -118,11 +118,11 @@ impl Column for Tree {
         }
     }
 
-    fn find_partial(&self, _pid: i32, _keyword: &str) -> bool {
+    fn find_partial(&self, _pid: i32, _keyword: &str, _content_to_lowercase: bool) -> bool {
         false
     }
 
-    fn find_exact(&self, _pid: i32, _keyword: &str) -> bool {
+    fn find_exact(&self, _pid: i32, _keyword: &str, _content_to_lowercase: bool) -> bool {
         false
     }
 

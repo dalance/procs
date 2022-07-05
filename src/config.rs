@@ -39,6 +39,10 @@ fn default_search_logic_and() -> ConfigSearchLogic {
     ConfigSearchLogic::And
 }
 
+fn default_search_case_smart() -> ConfigSearchCase {
+    ConfigSearchCase::Smart
+}
+
 fn default_sort_order_ascending() -> ConfigSortOrder {
     ConfigSortOrder::Ascending
 }
@@ -474,6 +478,8 @@ pub struct ConfigSearch {
     pub nonnumeric_search: ConfigSearchKind,
     #[serde(default = "default_search_logic_and")]
     pub logic: ConfigSearchLogic,
+    #[serde(default = "default_search_case_smart")]
+    pub case: ConfigSearchCase,
 }
 
 impl Default for ConfigSearch {
@@ -482,6 +488,7 @@ impl Default for ConfigSearch {
             numeric_search: ConfigSearchKind::Exact,
             nonnumeric_search: ConfigSearchKind::Partial,
             logic: ConfigSearchLogic::And,
+            case: ConfigSearchCase::Smart,
         }
     }
 }
@@ -498,6 +505,13 @@ pub enum ConfigSearchLogic {
     Or,
     Nand,
     Nor,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum ConfigSearchCase {
+    Smart,
+    Insensitive,
+    Sensitive,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

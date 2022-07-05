@@ -20,8 +20,8 @@ pub trait Column {
     ) -> String;
     fn display_unit(&self, align: &ConfigColumnAlign) -> String;
     fn display_content(&self, pid: i32, align: &ConfigColumnAlign) -> Option<String>;
-    fn find_partial(&self, pid: i32, keyword: &str) -> bool;
-    fn find_exact(&self, pid: i32, keyword: &str) -> bool;
+    fn find_partial(&self, pid: i32, keyword: &str, content_to_lowercase: bool) -> bool;
+    fn find_exact(&self, pid: i32, keyword: &str, content_to_lowercase: bool) -> bool;
     fn sorted_pid(&self, order: &ConfigSortOrder) -> Vec<i32>;
     fn apply_visible(&mut self, visible_pids: &[i32]);
     fn reset_width(
@@ -88,9 +88,13 @@ macro_rules! column_default_display_content {
 #[macro_export]
 macro_rules! column_default_find_partial {
     () => {
-        fn find_partial(&self, pid: i32, keyword: &str) -> bool {
+        fn find_partial(&self, pid: i32, keyword: &str, content_to_lowercase: bool) -> bool {
             if let Some(content) = self.fmt_contents.get(&pid) {
-                content.find(keyword).is_some()
+                if content_to_lowercase {
+                    content.to_ascii_lowercase().find(keyword).is_some()
+                } else {
+                    content.find(keyword).is_some()
+                }
             } else {
                 false
             }
@@ -101,9 +105,13 @@ macro_rules! column_default_find_partial {
 #[macro_export]
 macro_rules! column_default_find_exact {
     () => {
-        fn find_exact(&self, pid: i32, keyword: &str) -> bool {
+        fn find_exact(&self, pid: i32, keyword: &str, content_to_lowercase: bool) -> bool {
             if let Some(content) = self.fmt_contents.get(&pid) {
-                content == keyword
+                if content_to_lowercase {
+                    content.to_ascii_lowercase() == keyword
+                } else {
+                    content == keyword
+                }
             } else {
                 false
             }

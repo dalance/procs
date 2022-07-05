@@ -521,14 +521,36 @@ impl View {
         logic: &ConfigSearchLogic,
     ) -> bool {
         let ret_nonnumeric = match config.search.nonnumeric_search {
-            ConfigSearchKind::Partial => {
-                find_partial(cols_nonnumeric, pid, keyword_nonnumeric, logic)
-            }
-            ConfigSearchKind::Exact => find_exact(cols_nonnumeric, pid, keyword_nonnumeric, logic),
+            ConfigSearchKind::Partial => find_partial(
+                cols_nonnumeric,
+                pid,
+                keyword_nonnumeric,
+                logic,
+                &config.search.case,
+            ),
+            ConfigSearchKind::Exact => find_exact(
+                cols_nonnumeric,
+                pid,
+                keyword_nonnumeric,
+                logic,
+                &config.search.case,
+            ),
         };
         let ret_numeric = match config.search.numeric_search {
-            ConfigSearchKind::Partial => find_partial(cols_numeric, pid, keyword_numeric, logic),
-            ConfigSearchKind::Exact => find_exact(cols_numeric, pid, keyword_numeric, logic),
+            ConfigSearchKind::Partial => find_partial(
+                cols_numeric,
+                pid,
+                keyword_numeric,
+                logic,
+                &config.search.case,
+            ),
+            ConfigSearchKind::Exact => find_exact(
+                cols_numeric,
+                pid,
+                keyword_numeric,
+                logic,
+                &config.search.case,
+            ),
         };
         match logic {
             ConfigSearchLogic::And => ret_nonnumeric & ret_numeric,

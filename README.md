@@ -567,11 +567,20 @@ style = "223"     # 223 for both theme
 
 `[search]` section defines option for Keyword search.
 
-| Key               | Value              | Default | Description                                             |
-| ----------------- | ------------------ | ------- | ------------------------------------------------------- |
-| numeric_search    | Exact, Partial     | Exact   | Whether numeric keywords match exactly or partially     |
-| nonnumeric_search | Exact, Partial     | Partial | Whether non-numeric keywords match exactly or partially |
-| logic             | And, Or, Nand, Nor | And     | Logical operation between keywords                      |
+| Key               | Value                         | Default | Description                                             |
+| ----------------- | ----------------------------- | ------- | ------------------------------------------------------- |
+| numeric_search    | Exact, Partial                | Exact   | Whether numeric keywords match exactly or partially     |
+| nonnumeric_search | Exact, Partial                | Partial | Whether non-numeric keywords match exactly or partially |
+| logic             | And, Or, Nand, Nor            | And     | Logical operation between keywords                      |
+| case              | Smart, Insensitive, Sensitive | Smart   | Case sensitivity in search                              |
+
+#### `case`
+
+`case` is case sensitivity in search.
+
+- `Smart`: If keyword contains uppercase character, case sensitive search. Otherwise case insensitive search
+- `Insensitive`: case insensitive search
+- `Sensitive`: case sensitive search
 
 ### `[display]` section
 

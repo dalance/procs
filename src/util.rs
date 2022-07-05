@@ -1,6 +1,6 @@
 use crate::column::Column;
 use crate::columns::{ConfigColumnKind, KIND_LIST};
-use crate::config::{Config, ConfigColumnAlign, ConfigSearchLogic, ConfigTheme};
+use crate::config::{Config, ConfigColumnAlign, ConfigSearchCase, ConfigSearchLogic, ConfigTheme};
 use crate::Opt;
 use atty::Stream;
 use byte_unit::Byte;
@@ -51,6 +51,7 @@ pub fn find_partial<T: AsRef<str>>(
     pid: i32,
     keyword: &[T],
     logic: &ConfigSearchLogic,
+    case: &ConfigSearchCase,
 ) -> bool {
     let mut ret = match logic {
         ConfigSearchLogic::And => true,
@@ -60,8 +61,29 @@ pub fn find_partial<T: AsRef<str>>(
     };
     for w in keyword {
         let mut hit = false;
+        let keyword = w.as_ref();
+        let keyword_lowercase = keyword.to_ascii_lowercase();
+
+        let ignore_case = match case {
+            ConfigSearchCase::Smart => {
+                if keyword == keyword.to_ascii_lowercase() {
+                    true
+                } else {
+                    false
+                }
+            }
+            ConfigSearchCase::Insensitive => true,
+            ConfigSearchCase::Sensitive => false,
+        };
+
+        let (keyword, content_to_lowercase) = if ignore_case {
+            (keyword_lowercase.as_str(), true)
+        } else {
+            (keyword, false)
+        };
+
         for c in columns {
-            if c.find_partial(pid, w.as_ref()) {
+            if c.find_partial(pid, keyword, content_to_lowercase) {
                 hit = true;
                 break;
             }
@@ -81,6 +103,7 @@ pub fn find_exact<T: AsRef<str>>(
     pid: i32,
     keyword: &[T],
     logic: &ConfigSearchLogic,
+    case: &ConfigSearchCase,
 ) -> bool {
     let mut ret = match logic {
         ConfigSearchLogic::And => true,
@@ -90,8 +113,29 @@ pub fn find_exact<T: AsRef<str>>(
     };
     for w in keyword {
         let mut hit = false;
+        let keyword = w.as_ref();
+        let keyword_lowercase = keyword.to_ascii_lowercase();
+
+        let ignore_case = match case {
+            ConfigSearchCase::Smart => {
+                if keyword == keyword.to_ascii_lowercase() {
+                    true
+                } else {
+                    false
+                }
+            }
+            ConfigSearchCase::Insensitive => true,
+            ConfigSearchCase::Sensitive => false,
+        };
+
+        let (keyword, content_to_lowercase) = if ignore_case {
+            (keyword_lowercase.as_str(), true)
+        } else {
+            (keyword, false)
+        };
+
         for c in columns {
-            if c.find_exact(pid, w.as_ref()) {
+            if c.find_exact(pid, keyword, content_to_lowercase) {
                 hit = true;
                 break;
             }
