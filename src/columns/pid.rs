@@ -30,7 +30,7 @@ impl Column for Pid {
     fn add(&mut self, proc: &ProcessInfo) {
         let raw_content = proc.pid;
         let fmt_content = match proc.curr_proc {
-            crate::process::ProcessTask::Process(_) => format!("{}", raw_content),
+            crate::process::ProcessTask::Process { .. } => format!("{}", raw_content),
             _ => format!("[{}]", raw_content),
         };
 

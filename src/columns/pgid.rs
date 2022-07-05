@@ -30,7 +30,7 @@ impl Column for Pgid {
     fn add(&mut self, proc: &ProcessInfo) {
         let raw_content = proc.curr_proc.stat().pgrp;
         let fmt_content = match proc.curr_proc {
-            crate::process::ProcessTask::Process(_) => format!("{}", raw_content),
+            crate::process::ProcessTask::Process { .. } => format!("{}", raw_content),
             _ => format!("[{}]", raw_content),
         };
 

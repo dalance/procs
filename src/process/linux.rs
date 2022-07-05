@@ -7,21 +7,28 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 pub enum ProcessTask {
-    Process(Process),
-    Task { stat: Stat, owner: u32 },
+    Process {
+        stat: Stat,
+        owner: u32,
+        proc: Process,
+    },
+    Task {
+        stat: Stat,
+        owner: u32,
+    },
 }
 
 impl ProcessTask {
     pub fn stat(&self) -> &Stat {
         match self {
-            ProcessTask::Process(x) => &x.stat,
-            ProcessTask::Task { stat: x, owner: _ } => x,
+            ProcessTask::Process { stat: x, .. } => x,
+            ProcessTask::Task { stat: x, .. } => x,
         }
     }
 
     pub fn cmdline(&self) -> Result<Vec<String>, ProcError> {
         match self {
-            ProcessTask::Process(x) => x.cmdline(),
+            ProcessTask::Process { proc: x, .. } => x.cmdline(),
             _ => Err(ProcError::Other("not supported".to_string())),
         }
     }
@@ -29,35 +36,35 @@ impl ProcessTask {
     #[cfg(feature = "docker")]
     pub fn cgroups(&self) -> Result<Vec<ProcessCgroup>, ProcError> {
         match self {
-            ProcessTask::Process(x) => x.cgroups(),
+            ProcessTask::Process { proc: x, .. } => x.cgroups(),
             _ => Err(ProcError::Other("not supported".to_string())),
         }
     }
 
     pub fn fd(&self) -> Result<Vec<FDInfo>, ProcError> {
         match self {
-            ProcessTask::Process(x) => x.fd(),
+            ProcessTask::Process { proc: x, .. } => x.fd()?.collect(),
             _ => Err(ProcError::Other("not supported".to_string())),
         }
     }
 
     pub fn loginuid(&self) -> Result<u32, ProcError> {
         match self {
-            ProcessTask::Process(x) => x.loginuid(),
+            ProcessTask::Process { proc: x, .. } => x.loginuid(),
             _ => Err(ProcError::Other("not supported".to_string())),
         }
     }
 
     pub fn owner(&self) -> u32 {
         match self {
-            ProcessTask::Process(x) => x.owner,
-            ProcessTask::Task { stat: _, owner: x } => *x,
+            ProcessTask::Process { owner: x, .. } => *x,
+            ProcessTask::Task { owner: x, .. } => *x,
         }
     }
 
     pub fn wchan(&self) -> Result<String, ProcError> {
         match self {
-            ProcessTask::Process(x) => x.wchan(),
+            ProcessTask::Process { proc: x, .. } => x.wchan(),
             _ => Err(ProcError::Other("not supported".to_string())),
         }
     }
@@ -67,7 +74,7 @@ pub struct ProcessInfo {
     pub pid: i32,
     pub ppid: i32,
     pub curr_proc: ProcessTask,
-    pub prev_proc: ProcessTask,
+    pub prev_stat: Stat,
     pub curr_io: Option<Io>,
     pub prev_io: Option<Io>,
     pub curr_status: Option<Status>,
@@ -80,32 +87,46 @@ pub fn collect_proc(interval: Duration, with_thread: bool) -> Vec<ProcessInfo> {
     let mut ret = Vec::new();
 
     if let Ok(all_proc) = procfs::process::all_processes() {
-        for proc in all_proc {
-            let io = proc.io().ok();
-            let time = Instant::now();
-            if with_thread {
-                if let Ok(iter) = proc.tasks() {
-                    collect_task(iter, &mut base_tasks);
+        for proc in all_proc.flatten() {
+            if let Ok(stat) = proc.stat() {
+                let io = proc.io().ok();
+                let time = Instant::now();
+                if with_thread {
+                    if let Ok(iter) = proc.tasks() {
+                        collect_task(iter, &mut base_tasks);
+                    }
                 }
+                base_procs.push((proc.pid(), stat, io, time));
             }
-            base_procs.push((proc.pid(), proc, io, time));
         }
     }
 
     thread::sleep(interval);
 
-    for (pid, prev_proc, prev_io, prev_time) in base_procs {
+    for (pid, prev_stat, prev_io, prev_time) in base_procs {
         let curr_proc = if let Ok(proc) = Process::new(pid) {
             proc
         } else {
-            prev_proc.clone()
+            continue;
         };
+
+        let curr_stat = if let Ok(stat) = curr_proc.stat() {
+            stat
+        } else {
+            continue;
+        };
+
+        let curr_owner = if let Ok(owner) = curr_proc.uid() {
+            owner
+        } else {
+            continue;
+        };
+
         let curr_io = curr_proc.io().ok();
         let curr_status = curr_proc.status().ok();
         let curr_time = Instant::now();
         let interval = curr_time - prev_time;
-        let ppid = curr_proc.stat.ppid;
-        let owner = curr_proc.owner;
+        let ppid = curr_stat.ppid;
 
         let mut curr_tasks = HashMap::new();
         if with_thread {
@@ -114,14 +135,17 @@ pub fn collect_proc(interval: Duration, with_thread: bool) -> Vec<ProcessInfo> {
             }
         }
 
-        let curr_proc = ProcessTask::Process(curr_proc);
-        let prev_proc = ProcessTask::Process(prev_proc);
+        let curr_proc = ProcessTask::Process {
+            stat: curr_stat,
+            owner: curr_owner,
+            proc: curr_proc,
+        };
 
         let proc = ProcessInfo {
             pid,
             ppid,
             curr_proc,
-            prev_proc,
+            prev_stat,
             curr_io,
             prev_io,
             curr_status,
@@ -137,12 +161,9 @@ pub fn collect_proc(interval: Duration, with_thread: bool) -> Vec<ProcessInfo> {
                     ppid: pid,
                     curr_proc: ProcessTask::Task {
                         stat: curr_stat,
-                        owner,
+                        owner: curr_owner,
                     },
-                    prev_proc: ProcessTask::Task {
-                        stat: prev_stat,
-                        owner,
-                    },
+                    prev_stat,
                     curr_io,
                     prev_io,
                     curr_status,

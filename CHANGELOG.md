@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.12.3...Unreleased) - ReleaseDate
 
+* [Changed] Update procfs to v0.13.0
+
 ## [v0.12.3](https://github.com/dalance/procs/compare/v0.12.2...v0.12.3) - 2022-05-25
 
 * [Fixed] Using bash on Emacs, procs-0.12.2 is very slow compared to procs-0.11.13 [#291](https://github.com/dalance/procs/issues/291)

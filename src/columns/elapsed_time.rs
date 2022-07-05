@@ -12,7 +12,7 @@ use std::collections::HashMap;
 
 #[cfg(any(target_os = "linux", target_os = "android"))]
 lazy_static! {
-    static ref TICKS_PER_SECOND: i64 = procfs::ticks_per_second().unwrap();
+    static ref TICKS_PER_SECOND: u64 = procfs::ticks_per_second().unwrap();
 }
 
 pub struct ElapsedTime {
