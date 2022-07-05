@@ -226,33 +226,54 @@ mod tests {
             String::from("└"),
         ]);
 
+        let curr_proc = ProcessTask::Process {
+            stat: Process::myself().unwrap().stat().unwrap(),
+            proc: Process::myself().unwrap(),
+            owner: Process::myself().unwrap().uid().unwrap(),
+        };
+        let prev_stat = Process::myself().unwrap().stat().unwrap();
+
         let p0 = ProcessInfo {
             pid: 0,
             ppid: 0,
-            curr_proc: ProcessTask::Process(Process::myself().unwrap()),
-            prev_proc: ProcessTask::Process(Process::myself().unwrap()),
+            curr_proc,
+            prev_stat,
             curr_io: None,
             prev_io: None,
             curr_status: None,
             interval: Duration::new(0, 0),
         };
+
+        let curr_proc = ProcessTask::Process {
+            stat: Process::myself().unwrap().stat().unwrap(),
+            proc: Process::myself().unwrap(),
+            owner: Process::myself().unwrap().uid().unwrap(),
+        };
+        let prev_stat = Process::myself().unwrap().stat().unwrap();
 
         let p1 = ProcessInfo {
             pid: 1,
             ppid: 0,
-            curr_proc: ProcessTask::Process(Process::myself().unwrap()),
-            prev_proc: ProcessTask::Process(Process::myself().unwrap()),
+            curr_proc,
+            prev_stat,
             curr_io: None,
             prev_io: None,
             curr_status: None,
             interval: Duration::new(0, 0),
         };
 
+        let curr_proc = ProcessTask::Process {
+            stat: Process::myself().unwrap().stat().unwrap(),
+            proc: Process::myself().unwrap(),
+            owner: Process::myself().unwrap().uid().unwrap(),
+        };
+        let prev_stat = Process::myself().unwrap().stat().unwrap();
+
         let p2 = ProcessInfo {
             pid: 2,
             ppid: 1,
-            curr_proc: ProcessTask::Process(Process::myself().unwrap()),
-            prev_proc: ProcessTask::Process(Process::myself().unwrap()),
+            curr_proc,
+            prev_stat,
             curr_io: None,
             prev_io: None,
             curr_status: None,
@@ -267,17 +288,17 @@ mod tests {
         tree.update_width(2, None);
         assert_eq!(
             tree.display_content(0, &crate::config::ConfigColumnAlign::Left)
-                    .unwrap(),
+                .unwrap(),
             String::from("├┬────")
         );
         assert_eq!(
             tree.display_content(1, &crate::config::ConfigColumnAlign::Left)
-                    .unwrap(),
+                .unwrap(),
             String::from("│└┬───")
         );
         assert_eq!(
             tree.display_content(2, &crate::config::ConfigColumnAlign::Left)
-                    .unwrap(),
+                .unwrap(),
             String::from("│ └───")
         );
     }
