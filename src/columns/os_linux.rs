@@ -143,7 +143,7 @@ pub use self::wchan::Wchan;
 pub use self::write_bytes::WriteBytes;
 
 use crate::column::Column;
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use serde_derive::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -320,166 +320,167 @@ pub fn gen_column(
 // KIND_LIST
 // ---------------------------------------------------------------------------------------------------------------------
 
-lazy_static! {
-    pub static ref KIND_LIST: HashMap<ConfigColumnKind, (&'static str, &'static str)> = [
-        (
-            ConfigColumnKind::Command,
-            ("Command", "Command with all arguments")
-        ),
-        (
-            ConfigColumnKind::ContextSw,
-            ("ContextSw", "Context switch count")
-        ),
-        (
-            ConfigColumnKind::CpuTime,
-            ("CpuTime", "Cumulative CPU time")
-        ),
-        (
-            ConfigColumnKind::Docker,
-            ("Docker", "Docker container name")
-        ),
-        (ConfigColumnKind::Eip, ("Eip", "Instruction pointer")),
-        (
-            ConfigColumnKind::ElapsedTime,
-            ("ElapsedTime", "Elapsed time")
-        ),
-        (ConfigColumnKind::Empty, ("Empty", "Empty")),
-        (ConfigColumnKind::Esp, ("Esp", "Stack pointer")),
-        (ConfigColumnKind::Gid, ("Gid", "Group ID")),
-        (ConfigColumnKind::GidFs, ("GidFs", "File system group ID")),
-        (ConfigColumnKind::GidReal, ("GidReal", "Real group ID")),
-        (ConfigColumnKind::GidSaved, ("GidSaved", "Saved group ID")),
-        (ConfigColumnKind::Group, ("Group", "Group name")),
-        (
-            ConfigColumnKind::GroupFs,
-            ("GroupFs", "File system group name")
-        ),
-        (
-            ConfigColumnKind::GroupReal,
-            ("GroupReal", "Real group name")
-        ),
-        (
-            ConfigColumnKind::GroupSaved,
-            ("GroupSaved", "Saved group name")
-        ),
-        (
-            ConfigColumnKind::MajFlt,
-            ("MajFlt", "Major page fault count")
-        ),
-        (
-            ConfigColumnKind::MinFlt,
-            ("MinFlt", "Minor page fault count")
-        ),
-        (
-            ConfigColumnKind::MultiSlot,
-            ("MultiSlot", "Slot for `--insert` option")
-        ),
-        (ConfigColumnKind::Nice, ("Nice", "Nice value")),
-        (ConfigColumnKind::Pgid, ("Pgid", "Process group ID")),
-        (ConfigColumnKind::Pid, ("Pid", "Process ID")),
-        (ConfigColumnKind::Policy, ("Policy", "Scheduling policy")),
-        (ConfigColumnKind::Ppid, ("Ppid", "Parent process ID")),
-        (ConfigColumnKind::Priority, ("Priority", "Priority")),
-        (
-            ConfigColumnKind::Processor,
-            ("Processor", "Currently assigned processor")
-        ),
-        (
-            ConfigColumnKind::ReadBytes,
-            ("ReadBytes", "Read bytes from storage")
-        ),
-        (
-            ConfigColumnKind::RtPriority,
-            ("RtPriority", "Real-time priority")
-        ),
-        (
-            ConfigColumnKind::Separator,
-            ("Separator", "Show | for column separation")
-        ),
-        (ConfigColumnKind::Session, ("Session", "Process Session ID")),
-        (
-            ConfigColumnKind::ShdPnd,
-            ("ShdPnd", "Pending signal mask for process")
-        ),
-        (
-            ConfigColumnKind::Slot,
-            ("Slot", "Slot for `--insert` option")
-        ),
-        (ConfigColumnKind::SigBlk, ("SigBlk", "Blocked signal mask")),
-        (ConfigColumnKind::SigCgt, ("SigCgt", "Caught signal mask")),
-        (ConfigColumnKind::SigIgn, ("SigIgn", "Ignored signal mask")),
-        (
-            ConfigColumnKind::SigPnd,
-            ("SigPnd", "Pending signal mask for thread")
-        ),
-        (
-            ConfigColumnKind::Ssb,
-            ("Ssb", "Speculative store bypass status")
-        ),
-        (ConfigColumnKind::StartTime, ("StartTime", "Starting time")),
-        (ConfigColumnKind::State, ("State", "Process state")),
-        (ConfigColumnKind::TcpPort, ("TcpPort", "Bound TCP ports")),
-        (ConfigColumnKind::Threads, ("Threads", "Thread count")),
-        (ConfigColumnKind::Tty, ("Tty", "Controlling TTY")),
-        (ConfigColumnKind::UdpPort, ("UdpPort", "Bound UDP ports")),
-        (ConfigColumnKind::Uid, ("Uid", "User ID")),
-        (ConfigColumnKind::UidFs, ("UidFs", "File system user ID")),
-        (ConfigColumnKind::UidLogin, ("UidLogin", "Login user ID")),
-        (ConfigColumnKind::UidReal, ("UidReal", "Real user ID")),
-        (ConfigColumnKind::UidSaved, ("UidSaved", "Saved user ID")),
-        (ConfigColumnKind::UsageCpu, ("UsageCpu", "CPU utilization")),
-        (
-            ConfigColumnKind::UsageMem,
-            ("UsageMem", "Memory utilization")
-        ),
-        (ConfigColumnKind::User, ("User", "User name")),
-        (
-            ConfigColumnKind::UserFs,
-            ("UserFs", "File system user name")
-        ),
-        (
-            ConfigColumnKind::UserLogin,
-            ("UserLogin", "Login user name")
-        ),
-        (ConfigColumnKind::UserReal, ("UserReal", "Real user name")),
-        (
-            ConfigColumnKind::UserSaved,
-            ("UserSaved", "Saved user name")
-        ),
-        (ConfigColumnKind::VmData, ("VmData", "Data size")),
-        (ConfigColumnKind::VmExe, ("VmExe", "Text segments size")),
-        (ConfigColumnKind::VmHwm, ("VmHwm", "Peak resident set size")),
-        (ConfigColumnKind::VmLib, ("VmLib", "Library code size")),
-        (ConfigColumnKind::VmLock, ("VmLock", "Locked memory size")),
-        (
-            ConfigColumnKind::VmPeak,
-            ("VmPeak", "Peak virtual memory size")
-        ),
-        (ConfigColumnKind::VmPin, ("VmPin", "Pinned memory size")),
-        (
-            ConfigColumnKind::VmPte,
-            ("VmPte", "Page table entries size")
-        ),
-        (ConfigColumnKind::VmRss, ("VmRss", "Resident set size")),
-        (ConfigColumnKind::VmSize, ("VmSize", "Physical page size")),
-        (ConfigColumnKind::VmStack, ("VmStack", "Stack size")),
-        (
-            ConfigColumnKind::VmSwap,
-            ("VmSwap", "Swapped-out virtual memory size")
-        ),
-        (
-            ConfigColumnKind::Wchan,
-            ("Wchan", "Process sleeping kernel function")
-        ),
-        (
-            ConfigColumnKind::WriteBytes,
-            ("WriteBytes", "Write bytes to storage")
-        ),
-    ]
-    .iter()
-    .cloned()
-    .collect();
-}
+pub static KIND_LIST: Lazy<HashMap<ConfigColumnKind, (&'static str, &'static str)>> =
+    Lazy::new(|| {
+        [
+            (
+                ConfigColumnKind::Command,
+                ("Command", "Command with all arguments"),
+            ),
+            (
+                ConfigColumnKind::ContextSw,
+                ("ContextSw", "Context switch count"),
+            ),
+            (
+                ConfigColumnKind::CpuTime,
+                ("CpuTime", "Cumulative CPU time"),
+            ),
+            (
+                ConfigColumnKind::Docker,
+                ("Docker", "Docker container name"),
+            ),
+            (ConfigColumnKind::Eip, ("Eip", "Instruction pointer")),
+            (
+                ConfigColumnKind::ElapsedTime,
+                ("ElapsedTime", "Elapsed time"),
+            ),
+            (ConfigColumnKind::Empty, ("Empty", "Empty")),
+            (ConfigColumnKind::Esp, ("Esp", "Stack pointer")),
+            (ConfigColumnKind::Gid, ("Gid", "Group ID")),
+            (ConfigColumnKind::GidFs, ("GidFs", "File system group ID")),
+            (ConfigColumnKind::GidReal, ("GidReal", "Real group ID")),
+            (ConfigColumnKind::GidSaved, ("GidSaved", "Saved group ID")),
+            (ConfigColumnKind::Group, ("Group", "Group name")),
+            (
+                ConfigColumnKind::GroupFs,
+                ("GroupFs", "File system group name"),
+            ),
+            (
+                ConfigColumnKind::GroupReal,
+                ("GroupReal", "Real group name"),
+            ),
+            (
+                ConfigColumnKind::GroupSaved,
+                ("GroupSaved", "Saved group name"),
+            ),
+            (
+                ConfigColumnKind::MajFlt,
+                ("MajFlt", "Major page fault count"),
+            ),
+            (
+                ConfigColumnKind::MinFlt,
+                ("MinFlt", "Minor page fault count"),
+            ),
+            (
+                ConfigColumnKind::MultiSlot,
+                ("MultiSlot", "Slot for `--insert` option"),
+            ),
+            (ConfigColumnKind::Nice, ("Nice", "Nice value")),
+            (ConfigColumnKind::Pgid, ("Pgid", "Process group ID")),
+            (ConfigColumnKind::Pid, ("Pid", "Process ID")),
+            (ConfigColumnKind::Policy, ("Policy", "Scheduling policy")),
+            (ConfigColumnKind::Ppid, ("Ppid", "Parent process ID")),
+            (ConfigColumnKind::Priority, ("Priority", "Priority")),
+            (
+                ConfigColumnKind::Processor,
+                ("Processor", "Currently assigned processor"),
+            ),
+            (
+                ConfigColumnKind::ReadBytes,
+                ("ReadBytes", "Read bytes from storage"),
+            ),
+            (
+                ConfigColumnKind::RtPriority,
+                ("RtPriority", "Real-time priority"),
+            ),
+            (
+                ConfigColumnKind::Separator,
+                ("Separator", "Show | for column separation"),
+            ),
+            (ConfigColumnKind::Session, ("Session", "Process Session ID")),
+            (
+                ConfigColumnKind::ShdPnd,
+                ("ShdPnd", "Pending signal mask for process"),
+            ),
+            (
+                ConfigColumnKind::Slot,
+                ("Slot", "Slot for `--insert` option"),
+            ),
+            (ConfigColumnKind::SigBlk, ("SigBlk", "Blocked signal mask")),
+            (ConfigColumnKind::SigCgt, ("SigCgt", "Caught signal mask")),
+            (ConfigColumnKind::SigIgn, ("SigIgn", "Ignored signal mask")),
+            (
+                ConfigColumnKind::SigPnd,
+                ("SigPnd", "Pending signal mask for thread"),
+            ),
+            (
+                ConfigColumnKind::Ssb,
+                ("Ssb", "Speculative store bypass status"),
+            ),
+            (ConfigColumnKind::StartTime, ("StartTime", "Starting time")),
+            (ConfigColumnKind::State, ("State", "Process state")),
+            (ConfigColumnKind::TcpPort, ("TcpPort", "Bound TCP ports")),
+            (ConfigColumnKind::Threads, ("Threads", "Thread count")),
+            (ConfigColumnKind::Tty, ("Tty", "Controlling TTY")),
+            (ConfigColumnKind::UdpPort, ("UdpPort", "Bound UDP ports")),
+            (ConfigColumnKind::Uid, ("Uid", "User ID")),
+            (ConfigColumnKind::UidFs, ("UidFs", "File system user ID")),
+            (ConfigColumnKind::UidLogin, ("UidLogin", "Login user ID")),
+            (ConfigColumnKind::UidReal, ("UidReal", "Real user ID")),
+            (ConfigColumnKind::UidSaved, ("UidSaved", "Saved user ID")),
+            (ConfigColumnKind::UsageCpu, ("UsageCpu", "CPU utilization")),
+            (
+                ConfigColumnKind::UsageMem,
+                ("UsageMem", "Memory utilization"),
+            ),
+            (ConfigColumnKind::User, ("User", "User name")),
+            (
+                ConfigColumnKind::UserFs,
+                ("UserFs", "File system user name"),
+            ),
+            (
+                ConfigColumnKind::UserLogin,
+                ("UserLogin", "Login user name"),
+            ),
+            (ConfigColumnKind::UserReal, ("UserReal", "Real user name")),
+            (
+                ConfigColumnKind::UserSaved,
+                ("UserSaved", "Saved user name"),
+            ),
+            (ConfigColumnKind::VmData, ("VmData", "Data size")),
+            (ConfigColumnKind::VmExe, ("VmExe", "Text segments size")),
+            (ConfigColumnKind::VmHwm, ("VmHwm", "Peak resident set size")),
+            (ConfigColumnKind::VmLib, ("VmLib", "Library code size")),
+            (ConfigColumnKind::VmLock, ("VmLock", "Locked memory size")),
+            (
+                ConfigColumnKind::VmPeak,
+                ("VmPeak", "Peak virtual memory size"),
+            ),
+            (ConfigColumnKind::VmPin, ("VmPin", "Pinned memory size")),
+            (
+                ConfigColumnKind::VmPte,
+                ("VmPte", "Page table entries size"),
+            ),
+            (ConfigColumnKind::VmRss, ("VmRss", "Resident set size")),
+            (ConfigColumnKind::VmSize, ("VmSize", "Physical page size")),
+            (ConfigColumnKind::VmStack, ("VmStack", "Stack size")),
+            (
+                ConfigColumnKind::VmSwap,
+                ("VmSwap", "Swapped-out virtual memory size"),
+            ),
+            (
+                ConfigColumnKind::Wchan,
+                ("Wchan", "Process sleeping kernel function"),
+            ),
+            (
+                ConfigColumnKind::WriteBytes,
+                ("WriteBytes", "Write bytes to storage"),
+            ),
+        ]
+        .iter()
+        .cloned()
+        .collect()
+    });
 
 // ---------------------------------------------------------------------------------------------------------------------
 // CONFIG_DEFAULT

@@ -87,7 +87,7 @@ pub use self::vm_size::VmSize;
 pub use self::write_bytes::WriteBytes;
 
 use crate::column::Column;
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use serde_derive::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -208,102 +208,103 @@ pub fn gen_column(
 // KIND_LIST
 // ---------------------------------------------------------------------------------------------------------------------
 
-lazy_static! {
-    pub static ref KIND_LIST: HashMap<ConfigColumnKind, (&'static str, &'static str)> = [
-        (
-            ConfigColumnKind::Command,
-            ("Command", "Command with all arguments")
-        ),
-        (
-            ConfigColumnKind::ContextSw,
-            ("ContextSw", "Context switch count")
-        ),
-        (
-            ConfigColumnKind::CpuTime,
-            ("CpuTime", "Cumulative CPU time")
-        ),
-        (
-            ConfigColumnKind::Docker,
-            ("Docker", "Docker container name")
-        ),
-        (
-            ConfigColumnKind::ElapsedTime,
-            ("ElapsedTime", "Elapsed time")
-        ),
-        (ConfigColumnKind::Empty, ("Empty", "Empty")),
-        (ConfigColumnKind::Gid, ("Gid", "Group ID")),
-        (ConfigColumnKind::GidReal, ("GidReal", "Real group ID")),
-        (ConfigColumnKind::GidSaved, ("GidSaved", "Saved group ID")),
-        (ConfigColumnKind::Group, ("Group", "Group name")),
-        (
-            ConfigColumnKind::GroupReal,
-            ("GroupReal", "Real group name")
-        ),
-        (
-            ConfigColumnKind::GroupSaved,
-            ("GroupSaved", "Saved group name")
-        ),
-        (
-            ConfigColumnKind::MajFlt,
-            ("MajFlt", "Major page fault count")
-        ),
-        (
-            ConfigColumnKind::MinFlt,
-            ("MinFlt", "Minor page fault count")
-        ),
-        (
-            ConfigColumnKind::MultiSlot,
-            ("MultiSlot", "Slot for `--insert` option")
-        ),
-        (ConfigColumnKind::Nice, ("Nice", "Nice value")),
-        (ConfigColumnKind::Pgid, ("Pgid", "Process group ID")),
-        (ConfigColumnKind::Pid, ("Pid", "Process ID")),
-        (ConfigColumnKind::Policy, ("Policy", "Scheduling policy")),
-        (ConfigColumnKind::Ppid, ("Ppid", "Parent process ID")),
-        (ConfigColumnKind::Priority, ("Priority", "Priority")),
-        (
-            ConfigColumnKind::ReadBytes,
-            ("ReadBytes", "Read bytes from storage")
-        ),
-        (
-            ConfigColumnKind::Separator,
-            ("Separator", "Show | for column separation")
-        ),
-        (
-            ConfigColumnKind::Slot,
-            ("Slot", "Slot for `--insert` option")
-        ),
-        (ConfigColumnKind::StartTime, ("StartTime", "Starting time")),
-        (ConfigColumnKind::State, ("State", "Process state")),
-        (ConfigColumnKind::TcpPort, ("TcpPort", "Bound TCP ports")),
-        (ConfigColumnKind::Threads, ("Threads", "Thread count")),
-        (ConfigColumnKind::Tty, ("Tty", "Controlling TTY")),
-        (ConfigColumnKind::UdpPort, ("UdpPort", "Bound UDP ports")),
-        (ConfigColumnKind::Uid, ("Uid", "User ID")),
-        (ConfigColumnKind::UidReal, ("UidReal", "Real user ID")),
-        (ConfigColumnKind::UidSaved, ("UidSaved", "Saved user ID")),
-        (ConfigColumnKind::UsageCpu, ("UsageCpu", "CPU utilization")),
-        (
-            ConfigColumnKind::UsageMem,
-            ("UsageMem", "Memory utilization")
-        ),
-        (ConfigColumnKind::User, ("User", "User name")),
-        (ConfigColumnKind::UserReal, ("UserReal", "Real user name")),
-        (
-            ConfigColumnKind::UserSaved,
-            ("UserSaved", "Saved user name")
-        ),
-        (ConfigColumnKind::VmRss, ("VmRss", "Resident set size")),
-        (ConfigColumnKind::VmSize, ("VmSize", "Physical page size")),
-        (
-            ConfigColumnKind::WriteBytes,
-            ("WriteBytes", "Write bytes to storage")
-        ),
-    ]
-    .iter()
-    .cloned()
-    .collect();
-}
+pub static KIND_LIST: Lazy<HashMap<ConfigColumnKind, (&'static str, &'static str)>> =
+    Lazy::new(|| {
+        [
+            (
+                ConfigColumnKind::Command,
+                ("Command", "Command with all arguments"),
+            ),
+            (
+                ConfigColumnKind::ContextSw,
+                ("ContextSw", "Context switch count"),
+            ),
+            (
+                ConfigColumnKind::CpuTime,
+                ("CpuTime", "Cumulative CPU time"),
+            ),
+            (
+                ConfigColumnKind::Docker,
+                ("Docker", "Docker container name"),
+            ),
+            (
+                ConfigColumnKind::ElapsedTime,
+                ("ElapsedTime", "Elapsed time"),
+            ),
+            (ConfigColumnKind::Empty, ("Empty", "Empty")),
+            (ConfigColumnKind::Gid, ("Gid", "Group ID")),
+            (ConfigColumnKind::GidReal, ("GidReal", "Real group ID")),
+            (ConfigColumnKind::GidSaved, ("GidSaved", "Saved group ID")),
+            (ConfigColumnKind::Group, ("Group", "Group name")),
+            (
+                ConfigColumnKind::GroupReal,
+                ("GroupReal", "Real group name"),
+            ),
+            (
+                ConfigColumnKind::GroupSaved,
+                ("GroupSaved", "Saved group name"),
+            ),
+            (
+                ConfigColumnKind::MajFlt,
+                ("MajFlt", "Major page fault count"),
+            ),
+            (
+                ConfigColumnKind::MinFlt,
+                ("MinFlt", "Minor page fault count"),
+            ),
+            (
+                ConfigColumnKind::MultiSlot,
+                ("MultiSlot", "Slot for `--insert` option"),
+            ),
+            (ConfigColumnKind::Nice, ("Nice", "Nice value")),
+            (ConfigColumnKind::Pgid, ("Pgid", "Process group ID")),
+            (ConfigColumnKind::Pid, ("Pid", "Process ID")),
+            (ConfigColumnKind::Policy, ("Policy", "Scheduling policy")),
+            (ConfigColumnKind::Ppid, ("Ppid", "Parent process ID")),
+            (ConfigColumnKind::Priority, ("Priority", "Priority")),
+            (
+                ConfigColumnKind::ReadBytes,
+                ("ReadBytes", "Read bytes from storage"),
+            ),
+            (
+                ConfigColumnKind::Separator,
+                ("Separator", "Show | for column separation"),
+            ),
+            (
+                ConfigColumnKind::Slot,
+                ("Slot", "Slot for `--insert` option"),
+            ),
+            (ConfigColumnKind::StartTime, ("StartTime", "Starting time")),
+            (ConfigColumnKind::State, ("State", "Process state")),
+            (ConfigColumnKind::TcpPort, ("TcpPort", "Bound TCP ports")),
+            (ConfigColumnKind::Threads, ("Threads", "Thread count")),
+            (ConfigColumnKind::Tty, ("Tty", "Controlling TTY")),
+            (ConfigColumnKind::UdpPort, ("UdpPort", "Bound UDP ports")),
+            (ConfigColumnKind::Uid, ("Uid", "User ID")),
+            (ConfigColumnKind::UidReal, ("UidReal", "Real user ID")),
+            (ConfigColumnKind::UidSaved, ("UidSaved", "Saved user ID")),
+            (ConfigColumnKind::UsageCpu, ("UsageCpu", "CPU utilization")),
+            (
+                ConfigColumnKind::UsageMem,
+                ("UsageMem", "Memory utilization"),
+            ),
+            (ConfigColumnKind::User, ("User", "User name")),
+            (ConfigColumnKind::UserReal, ("UserReal", "Real user name")),
+            (
+                ConfigColumnKind::UserSaved,
+                ("UserSaved", "Saved user name"),
+            ),
+            (ConfigColumnKind::VmRss, ("VmRss", "Resident set size")),
+            (ConfigColumnKind::VmSize, ("VmSize", "Physical page size")),
+            (
+                ConfigColumnKind::WriteBytes,
+                ("WriteBytes", "Write bytes to storage"),
+            ),
+        ]
+        .iter()
+        .cloned()
+        .collect()
+    });
 
 // ---------------------------------------------------------------------------------------------------------------------
 // CONFIG_DEFAULT

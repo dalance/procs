@@ -57,7 +57,7 @@ pub use self::vm_swap::VmSwap;
 pub use self::write_bytes::WriteBytes;
 
 use crate::column::Column;
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use serde_derive::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -145,76 +145,77 @@ pub fn gen_column(
 // KIND_LIST
 // ---------------------------------------------------------------------------------------------------------------------
 
-lazy_static! {
-    pub static ref KIND_LIST: HashMap<ConfigColumnKind, (&'static str, &'static str)> = [
-        (
-            ConfigColumnKind::Command,
-            ("Command", "Command with all arguments")
-        ),
-        (
-            ConfigColumnKind::CpuTime,
-            ("CpuTime", "Cumulative CPU time")
-        ),
-        (
-            ConfigColumnKind::ElapsedTime,
-            ("ElapsedTime", "Elapsed time")
-        ),
-        (ConfigColumnKind::Empty, ("Empty", "Empty")),
-        (ConfigColumnKind::Gid, ("Gid", "Group ID")),
-        (ConfigColumnKind::Group, ("Group", "Group name")),
-        (
-            ConfigColumnKind::MajFlt,
-            ("MajFlt", "Major page fault count")
-        ),
-        (
-            ConfigColumnKind::MultiSlot,
-            ("MultiSlot", "Slot for `--insert` option")
-        ),
-        (ConfigColumnKind::Pid, ("Pid", "Process ID")),
-        (ConfigColumnKind::Ppid, ("Ppid", "Parent process ID")),
-        (ConfigColumnKind::Priority, ("Priority", "Priority")),
-        (
-            ConfigColumnKind::ReadBytes,
-            ("ReadBytes", "Read bytes from storage")
-        ),
-        (
-            ConfigColumnKind::Separator,
-            ("Separator", "Show | for column separation")
-        ),
-        (
-            ConfigColumnKind::Slot,
-            ("Slot", "Slot for `--insert` option")
-        ),
-        (ConfigColumnKind::StartTime, ("StartTime", "Starting time")),
-        (ConfigColumnKind::Threads, ("Threads", "Thread count")),
-        (ConfigColumnKind::Uid, ("Uid", "User ID")),
-        (ConfigColumnKind::UsageCpu, ("UsageCpu", "CPU utilization")),
-        (
-            ConfigColumnKind::UsageMem,
-            ("UsageMem", "Memory utilization")
-        ),
-        (ConfigColumnKind::User, ("User", "User name")),
-        (ConfigColumnKind::VmHwm, ("VmHwm", "Peak resident set size")),
-        (
-            ConfigColumnKind::VmPeak,
-            ("VmPeak", "Peak virtual memory size")
-        ),
-        (ConfigColumnKind::VmPin, ("VmPin", "Pinned memory size")),
-        (ConfigColumnKind::VmRss, ("VmRss", "Resident set size")),
-        (ConfigColumnKind::VmSize, ("VmSize", "Physical page size")),
-        (
-            ConfigColumnKind::VmSwap,
-            ("VmSwap", "Swapped-out virtual memory size")
-        ),
-        (
-            ConfigColumnKind::WriteBytes,
-            ("WriteBytes", "Write bytes to storage")
-        ),
-    ]
-    .iter()
-    .cloned()
-    .collect();
-}
+pub static KIND_LIST: Lazy<HashMap<ConfigColumnKind, (&'static str, &'static str)>> =
+    Lazy::new(|| {
+        [
+            (
+                ConfigColumnKind::Command,
+                ("Command", "Command with all arguments"),
+            ),
+            (
+                ConfigColumnKind::CpuTime,
+                ("CpuTime", "Cumulative CPU time"),
+            ),
+            (
+                ConfigColumnKind::ElapsedTime,
+                ("ElapsedTime", "Elapsed time"),
+            ),
+            (ConfigColumnKind::Empty, ("Empty", "Empty")),
+            (ConfigColumnKind::Gid, ("Gid", "Group ID")),
+            (ConfigColumnKind::Group, ("Group", "Group name")),
+            (
+                ConfigColumnKind::MajFlt,
+                ("MajFlt", "Major page fault count"),
+            ),
+            (
+                ConfigColumnKind::MultiSlot,
+                ("MultiSlot", "Slot for `--insert` option"),
+            ),
+            (ConfigColumnKind::Pid, ("Pid", "Process ID")),
+            (ConfigColumnKind::Ppid, ("Ppid", "Parent process ID")),
+            (ConfigColumnKind::Priority, ("Priority", "Priority")),
+            (
+                ConfigColumnKind::ReadBytes,
+                ("ReadBytes", "Read bytes from storage"),
+            ),
+            (
+                ConfigColumnKind::Separator,
+                ("Separator", "Show | for column separation"),
+            ),
+            (
+                ConfigColumnKind::Slot,
+                ("Slot", "Slot for `--insert` option"),
+            ),
+            (ConfigColumnKind::StartTime, ("StartTime", "Starting time")),
+            (ConfigColumnKind::Threads, ("Threads", "Thread count")),
+            (ConfigColumnKind::Uid, ("Uid", "User ID")),
+            (ConfigColumnKind::UsageCpu, ("UsageCpu", "CPU utilization")),
+            (
+                ConfigColumnKind::UsageMem,
+                ("UsageMem", "Memory utilization"),
+            ),
+            (ConfigColumnKind::User, ("User", "User name")),
+            (ConfigColumnKind::VmHwm, ("VmHwm", "Peak resident set size")),
+            (
+                ConfigColumnKind::VmPeak,
+                ("VmPeak", "Peak virtual memory size"),
+            ),
+            (ConfigColumnKind::VmPin, ("VmPin", "Pinned memory size")),
+            (ConfigColumnKind::VmRss, ("VmRss", "Resident set size")),
+            (ConfigColumnKind::VmSize, ("VmSize", "Physical page size")),
+            (
+                ConfigColumnKind::VmSwap,
+                ("VmSwap", "Swapped-out virtual memory size"),
+            ),
+            (
+                ConfigColumnKind::WriteBytes,
+                ("WriteBytes", "Write bytes to storage"),
+            ),
+        ]
+        .iter()
+        .cloned()
+        .collect()
+    });
 
 // ---------------------------------------------------------------------------------------------------------------------
 // CONFIG_DEFAULT

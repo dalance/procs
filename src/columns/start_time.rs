@@ -6,14 +6,12 @@ use chrono::offset::TimeZone;
 use chrono::Duration;
 use chrono::{DateTime, Local};
 #[cfg(any(target_os = "linux", target_os = "android"))]
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use std::cmp;
 use std::collections::HashMap;
 
 #[cfg(any(target_os = "linux", target_os = "android"))]
-lazy_static! {
-    static ref TICKS_PER_SECOND: u64 = procfs::ticks_per_second().unwrap();
-}
+static TICKS_PER_SECOND: Lazy<u64> = Lazy::new(|| procfs::ticks_per_second().unwrap());
 
 pub struct StartTime {
     header: String,
