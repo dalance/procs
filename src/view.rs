@@ -596,7 +596,7 @@ impl View {
     fn pager(config: &Config) {
         if let Some(ref pager) = config.pager.command {
             Pager::with_pager(pager)
-                // workaround for default less charset is "acsii" on some environments (ex. Ubuntu)
+                // workaround for default less charset is "ascii" on some environments (ex. Ubuntu)
                 .pager_envs(&["LESSCHARSET=utf-8"])
                 .setup();
         } else if which::which("less").is_ok() {
