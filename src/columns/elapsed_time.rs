@@ -2,15 +2,15 @@ use crate::process::ProcessInfo;
 use crate::{column_default, Column};
 #[cfg(not(target_os = "windows"))]
 use chrono::offset::TimeZone;
-#[cfg(any(target_os = "linux", target_os = "android"))]
+#[cfg(any(target_os = "linux", target_os = "android", target_os = "freebsd", target_os = "openbsd", target_os = "netbsd"))]
 use chrono::DateTime;
 use chrono::{Duration, Local};
-#[cfg(any(target_os = "linux", target_os = "android"))]
+#[cfg(any(target_os = "linux", target_os = "android", target_os = "freebsd", target_os = "openbsd", target_os = "netbsd"))]
 use once_cell::sync::Lazy;
 use std::cmp;
 use std::collections::HashMap;
 
-#[cfg(any(target_os = "linux", target_os = "android"))]
+#[cfg(any(target_os = "linux", target_os = "android", target_os = "freebsd", target_os = "openbsd", target_os = "netbsd"))]
 static TICKS_PER_SECOND: Lazy<u64> = Lazy::new(|| procfs::ticks_per_second().unwrap());
 
 pub struct ElapsedTime {
@@ -19,7 +19,7 @@ pub struct ElapsedTime {
     fmt_contents: HashMap<i32, String>,
     raw_contents: HashMap<i32, Duration>,
     width: usize,
-    #[cfg(any(target_os = "linux", target_os = "android"))]
+    #[cfg(any(target_os = "linux", target_os = "android", target_os = "freebsd", target_os = "openbsd", target_os = "netbsd"))]
     boot_time: DateTime<Local>,
 }
 
@@ -33,7 +33,7 @@ impl ElapsedTime {
             width: 0,
             header,
             unit,
-            #[cfg(any(target_os = "linux", target_os = "android"))]
+            #[cfg(any(target_os = "linux", target_os = "android", target_os = "freebsd", target_os = "openbsd", target_os = "netbsd"))]
             boot_time: procfs::boot_time().unwrap_or_else(|_| Local.timestamp(0, 0)),
         }
     }
@@ -62,7 +62,7 @@ fn format_duration(duration: Duration) -> String {
     }
 }
 
-#[cfg(any(target_os = "linux", target_os = "android"))]
+#[cfg(any(target_os = "linux", target_os = "android", target_os = "freebsd", target_os = "openbsd", target_os = "netbsd"))]
 impl Column for ElapsedTime {
     fn add(&mut self, proc: &ProcessInfo) {
         let starttime = proc.curr_proc.stat().starttime;

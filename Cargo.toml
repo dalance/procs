@@ -53,7 +53,7 @@ termbg        = "0.4.1"
 toml          = "0.5"
 unicode-width = "0.1"
 
-[target.'cfg(any(target_os = "linux", target_os = "android"))'.dependencies]
+[target.'cfg(any(target_os = "linux", target_os = "android", target_os = "freebsd", target_os = "openbsd", target_os = "netbsd"))'.dependencies]
 pager         = "0.16"
 procfs        = "0.13.0"
 users         = "0.11"

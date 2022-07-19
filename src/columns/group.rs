@@ -30,7 +30,7 @@ impl Group {
     }
 }
 
-#[cfg(any(target_os = "linux", target_os = "android"))]
+#[cfg(any(target_os = "linux", target_os = "android", target_os = "freebsd", target_os = "openbsd", target_os = "netbsd"))]
 impl Column for Group {
     fn add(&mut self, proc: &ProcessInfo) {
         let fmt_content = if let Some(ref status) = proc.curr_status {

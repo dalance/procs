@@ -25,7 +25,7 @@ impl Command {
     }
 }
 
-#[cfg(any(target_os = "linux", target_os = "android"))]
+#[cfg(any(target_os = "linux", target_os = "android", target_os = "freebsd", target_os = "openbsd", target_os = "netbsd"))]
 impl Column for Command {
     fn add(&mut self, proc: &ProcessInfo) {
         let fmt_content = if let Ok(cmd) = &proc.curr_proc.cmdline() {

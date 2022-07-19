@@ -10,14 +10,14 @@ pub struct Docker {
     fmt_contents: HashMap<i32, String>,
     raw_contents: HashMap<i32, String>,
     width: usize,
-    #[cfg(any(target_os = "linux", target_os = "android"))]
+    #[cfg(any(target_os = "linux", target_os = "android", target_os = "freebsd", target_os = "openbsd", target_os = "netbsd"))]
     containers: HashMap<String, String>,
     #[cfg(target_os = "macos")]
     containers: HashMap<i32, String>,
     available: bool,
 }
 
-#[cfg(any(target_os = "linux", target_os = "android"))]
+#[cfg(any(target_os = "linux", target_os = "android", target_os = "freebsd", target_os = "openbsd", target_os = "netbsd"))]
 impl Docker {
     pub fn new(header: Option<String>, path: &str) -> Self {
         let header = header.unwrap_or_else(|| String::from("Docker"));
@@ -88,7 +88,7 @@ impl Docker {
     }
 }
 
-#[cfg(any(target_os = "linux", target_os = "android"))]
+#[cfg(any(target_os = "linux", target_os = "android", target_os = "freebsd", target_os = "openbsd", target_os = "netbsd"))]
 impl Column for Docker {
     fn add(&mut self, proc: &ProcessInfo) {
         let fmt_content = if let Ok(cgroups) = proc.curr_proc.cgroups() {

@@ -581,7 +581,7 @@ impl View {
         }
     }
 
-    #[cfg(not(any(target_os = "windows", any(target_os = "linux", target_os = "android"))))]
+    #[cfg(not(any(target_os = "windows", any(target_os = "linux", target_os = "android", target_os = "freebsd", target_os = "openbsd", target_os = "netbsd"))))]
     fn pager(config: &Config) {
         if let Some(ref pager) = config.pager.command {
             Pager::with_pager(&pager).setup();
@@ -592,7 +592,7 @@ impl View {
         }
     }
 
-    #[cfg(any(target_os = "linux", target_os = "android"))]
+    #[cfg(any(target_os = "linux", target_os = "android", target_os = "freebsd", target_os = "openbsd", target_os = "netbsd"))]
     fn pager(config: &Config) {
         if let Some(ref pager) = config.pager.command {
             Pager::with_pager(pager)

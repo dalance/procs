@@ -25,7 +25,7 @@ impl UsageCpu {
     }
 }
 
-#[cfg(any(target_os = "linux", target_os = "android"))]
+#[cfg(any(target_os = "linux", target_os = "android", target_os = "freebsd", target_os = "openbsd", target_os = "netbsd"))]
 impl Column for UsageCpu {
     fn add(&mut self, proc: &ProcessInfo) {
         let curr_stat = proc.curr_proc.stat();

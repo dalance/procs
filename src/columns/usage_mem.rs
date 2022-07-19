@@ -1,6 +1,6 @@
 use crate::process::ProcessInfo;
 use crate::{column_default, Column};
-#[cfg(any(target_os = "linux", target_os = "android"))]
+#[cfg(any(target_os = "linux", target_os = "android", target_os = "freebsd", target_os = "openbsd", target_os = "netbsd"))]
 use procfs::Meminfo;
 use std::cmp;
 use std::collections::HashMap;
@@ -34,7 +34,7 @@ impl UsageMem {
     }
 }
 
-#[cfg(any(target_os = "linux", target_os = "android"))]
+#[cfg(any(target_os = "linux", target_os = "android", target_os = "freebsd", target_os = "openbsd", target_os = "netbsd"))]
 fn get_mem_total() -> u64 {
     let meminfo = Meminfo::new();
     if let Ok(meminfo) = meminfo {
@@ -77,7 +77,7 @@ fn get_mem_total() -> u64 {
     
 }
 
-#[cfg(any(target_os = "linux", target_os = "android"))]
+#[cfg(any(target_os = "linux", target_os = "android", target_os = "freebsd", target_os = "openbsd", target_os = "netbsd"))]
 impl Column for UsageMem {
     fn add(&mut self, proc: &ProcessInfo) {
         let usage =

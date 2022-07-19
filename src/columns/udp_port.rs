@@ -1,8 +1,8 @@
 use crate::process::ProcessInfo;
 use crate::Column;
-#[cfg(any(target_os = "linux", target_os = "android"))]
+#[cfg(any(target_os = "linux", target_os = "android", target_os = "freebsd", target_os = "openbsd", target_os = "netbsd"))]
 use procfs::net::UdpNetEntry;
-#[cfg(any(target_os = "linux", target_os = "android"))]
+#[cfg(any(target_os = "linux", target_os = "android", target_os = "freebsd", target_os = "openbsd", target_os = "netbsd"))]
 use procfs::process::FDTarget;
 use std::cmp;
 use std::collections::HashMap;
@@ -13,9 +13,9 @@ pub struct UdpPort {
     fmt_contents: HashMap<i32, String>,
     raw_contents: HashMap<i32, String>,
     width: usize,
-    #[cfg(any(target_os = "linux", target_os = "android"))]
+    #[cfg(any(target_os = "linux", target_os = "android", target_os = "freebsd", target_os = "openbsd", target_os = "netbsd"))]
     udp_entry: Vec<UdpNetEntry>,
-    #[cfg(any(target_os = "linux", target_os = "android"))]
+    #[cfg(any(target_os = "linux", target_os = "android", target_os = "freebsd", target_os = "openbsd", target_os = "netbsd"))]
     udp6_entry: Vec<UdpNetEntry>,
 }
 
@@ -29,15 +29,15 @@ impl UdpPort {
             width: 0,
             header,
             unit,
-            #[cfg(any(target_os = "linux", target_os = "android"))]
+            #[cfg(any(target_os = "linux", target_os = "android", target_os = "freebsd", target_os = "openbsd", target_os = "netbsd"))]
             udp_entry: procfs::net::udp().unwrap_or_default(),
-            #[cfg(any(target_os = "linux", target_os = "android"))]
+            #[cfg(any(target_os = "linux", target_os = "android", target_os = "freebsd", target_os = "openbsd", target_os = "netbsd"))]
             udp6_entry: procfs::net::udp6().unwrap_or_default(),
         }
     }
 }
 
-#[cfg(any(target_os = "linux", target_os = "android"))]
+#[cfg(any(target_os = "linux", target_os = "android", target_os = "freebsd", target_os = "openbsd", target_os = "netbsd"))]
 impl Column for UdpPort {
     fn add(&mut self, proc: &ProcessInfo) {
         let fmt_content = if let Ok(fds) = proc.curr_proc.fd() {
