@@ -81,3 +81,14 @@ jobs:
         with:
           command: clippy
           args: --no-default-features -- -D warnings
+
+  bsd:
+    runs-on: macos-12
+    steps:
+      - uses: actions/checkout@v2
+      - uses: vmactions/freebsd-vm@v0.1.8
+        with:
+          prepare: pkg install -y curl
+          run: |
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+            cargo --version
