@@ -53,9 +53,15 @@ termbg        = "0.4.1"
 toml          = "0.5"
 unicode-width = "0.1"
 
-[target.'cfg(any(target_os = "linux", target_os = "android", target_os = "freebsd", target_os = "openbsd", target_os = "netbsd"))'.dependencies]
+[target.'cfg(any(target_os = "linux", target_os = "android"))'.dependencies]
 pager         = "0.16"
-procfs        = "0.13.0"
+#procfs        = "0.13.0"
+procfs        = { git = "https://github.com/dalance/procfs", branch = "bsd_support" }
+users         = "0.11"
+which         = "4"
+
+[target.'cfg(any(target_os = "freebsd", target_os = "openbsd", target_os = "netbsd"))'.dependencies]
+procfs        = { git = "https://github.com/dalance/procfs", branch = "bsd_support" }
 users         = "0.11"
 which         = "4"
 

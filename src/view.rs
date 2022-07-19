@@ -10,7 +10,12 @@ use crate::util::{
 };
 use crate::Opt;
 use anyhow::{bail, Error};
-#[cfg(not(target_os = "windows"))]
+#[cfg(not(any(
+    target_os = "windows",
+    target_os = "freebsd",
+    target_os = "openbsd",
+    target_os = "netbsd"
+)))]
 use pager::Pager;
 use std::collections::HashMap;
 use std::time::Duration;
@@ -583,13 +588,11 @@ impl View {
 
     #[cfg(not(any(
         target_os = "windows",
-        any(
-            target_os = "linux",
-            target_os = "android",
-            target_os = "freebsd",
-            target_os = "openbsd",
-            target_os = "netbsd"
-        )
+        target_os = "linux",
+        target_os = "android",
+        target_os = "freebsd",
+        target_os = "openbsd",
+        target_os = "netbsd"
     )))]
     fn pager(config: &Config) {
         if let Some(ref pager) = config.pager.command {
@@ -601,13 +604,7 @@ impl View {
         }
     }
 
-    #[cfg(any(
-        target_os = "linux",
-        target_os = "android",
-        target_os = "freebsd",
-        target_os = "openbsd",
-        target_os = "netbsd"
-    ))]
+    #[cfg(any(target_os = "linux", target_os = "android"))]
     fn pager(config: &Config) {
         if let Some(ref pager) = config.pager.command {
             Pager::with_pager(pager)
@@ -623,7 +620,12 @@ impl View {
         }
     }
 
-    #[cfg(target_os = "windows")]
+    #[cfg(any(
+        target_os = "windows",
+        target_os = "freebsd",
+        target_os = "openbsd",
+        target_os = "netbsd"
+    ))]
     fn pager(_config: &Config) {}
 
     #[cfg_attr(tarpaulin, skip)]

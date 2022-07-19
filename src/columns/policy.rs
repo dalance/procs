@@ -66,6 +66,24 @@ impl Column for Policy {
     column_default!(String);
 }
 
+#[cfg(any(target_os = "freebsd", target_os = "openbsd", target_os = "netbsd"))]
+impl Column for Policy {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let fmt_content = match proc.curr_proc.stat().policy.map(|x| x as i32) {
+            Some(libc::SCHED_FIFO) => String::from("FF"),
+            Some(libc::SCHED_OTHER) => String::from("TS"),
+            Some(libc::SCHED_RR) => String::from("RR"),
+            _ => String::from(""),
+        };
+        let raw_content = fmt_content.clone();
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(String);
+}
+
 #[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 impl Column for Policy {
