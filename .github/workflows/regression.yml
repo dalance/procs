@@ -91,5 +91,5 @@ jobs:
           prepare: pkg install -y curl
           run: |
             curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-            export PATH=~/.cargo/bin:$PATH
+            set path = (/sbin /bin /usr/sbin /usr/bin /usr/local/sbin /usr/local/bin $HOME/bin $HOME/.cargo/bin)
             cargo --version
