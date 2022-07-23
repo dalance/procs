@@ -13,6 +13,7 @@ pub mod read_bytes;
 pub mod separator;
 pub mod slot;
 pub mod start_time;
+pub mod tcp_port;
 pub mod threads;
 pub mod tree;
 pub mod tree_slot;
@@ -43,6 +44,7 @@ pub use self::read_bytes::ReadBytes;
 pub use self::separator::Separator;
 pub use self::slot::Slot;
 pub use self::start_time::StartTime;
+pub use self::tcp_port::TcpPort;
 pub use self::threads::Threads;
 pub use self::tree::Tree;
 pub use self::tree_slot::TreeSlot;
@@ -84,6 +86,7 @@ pub enum ConfigColumnKind {
     Separator,
     Slot,
     StartTime,
+    TcpPort,
     Threads,
     Tree,
     TreeSlot,
@@ -128,6 +131,7 @@ pub fn gen_column(
         ConfigColumnKind::Separator => Box::new(Separator::new(separator)),
         ConfigColumnKind::Slot => Box::new(Slot::new()),
         ConfigColumnKind::StartTime => Box::new(StartTime::new(header)),
+        ConfigColumnKind::TcpPort => Box::new(TcpPort::new(header)),
         ConfigColumnKind::Threads => Box::new(Threads::new(header)),
         ConfigColumnKind::Tree => Box::new(Tree::new(tree_symbols)),
         ConfigColumnKind::TreeSlot => Box::new(TreeSlot::new()),
@@ -191,6 +195,7 @@ pub static KIND_LIST: Lazy<HashMap<ConfigColumnKind, (&'static str, &'static str
                 ("Slot", "Slot for `--insert` option"),
             ),
             (ConfigColumnKind::StartTime, ("StartTime", "Starting time")),
+            (ConfigColumnKind::TcpPort, ("TcpPort", "Bound TCP ports")),
             (ConfigColumnKind::Threads, ("Threads", "Thread count")),
             (
                 ConfigColumnKind::TreeSlot,
@@ -329,6 +334,9 @@ kind = "Separator"
 style = "White"
 [[columns]]
 kind = "StartTime"
+style = "White"
+[[columns]]
+kind = "TcpPort"
 style = "White"
 [[columns]]
 kind = "Threads"
