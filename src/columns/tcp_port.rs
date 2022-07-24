@@ -17,7 +17,7 @@ use winapi::shared::tcpmib::{MIB_TCPTABLE2, MIB_TCP_STATE_LISTEN};
 #[cfg(target_os = "windows")]
 use winapi::shared::winerror::{ERROR_INSUFFICIENT_BUFFER, NO_ERROR};
 #[cfg(target_os = "windows")]
-use winapi::um::{iphlpapi::GetTcpTable2, winsock2::ntohs};
+use winapi::um::{iphlpapi::GetTcpTable2, winsock2::ntohl, winsock2::ntohs};
 #[cfg(target_os = "windows")]
 use winapi::{shared::tcpmib::MIB_TCP6TABLE2, um::iphlpapi::GetTcp6Table2};
 
@@ -243,7 +243,7 @@ fn get_tcp_entry_list() -> Result<Vec<TcpNetEntry>, anyhow::Error> {
         let entry = unsafe { &*tcp_table.table.as_ptr().add(i as usize) };
         entry_list.push(TcpNetEntry {
             local_address: SocketAddr::V4(SocketAddrV4::new(
-                Ipv4Addr::from(entry.dwLocalAddr),
+                Ipv4Addr::from(unsafe { ntohl(entry.dwLocalAddr) }),
                 unsafe { ntohs(entry.dwLocalPort as u16) },
             )),
             remote_address: SocketAddr::V4(SocketAddrV4::new(
@@ -302,4 +302,37 @@ fn get_tcp6_entry_list() -> Result<Vec<TcpNetEntry>, anyhow::Error> {
     }
 
     Ok(entry_list)
+}
+
+#[cfg(test)]
+#[cfg(target_os = "windows")]
+mod tests {
+    use std::net::TcpListener;
+
+    use winapi::shared::tcpmib::MIB_TCP_STATE_LISTEN;
+
+    use super::TcpPort;
+
+    #[test]
+    fn test_tcp_port() {
+        assert!(test_ip_port("127.0.0.1:0"));
+        assert!(test_ip_port("0.0.0.0:0"));
+        assert!(test_ip_port("[::1]:0"));
+        assert!(test_ip_port("[::]:0"));
+    }
+
+    fn test_ip_port(address: &str) -> bool {
+        let listener = TcpListener::bind(address).unwrap();
+        let tcp_port = TcpPort::new(None);
+        let found = tcp_port
+            .tcp_entry
+            .iter()
+            .chain(tcp_port.tcp6_entry.iter())
+            .filter(|entry| {
+                entry.state == MIB_TCP_STATE_LISTEN
+                    && entry.local_address == listener.local_addr().unwrap()
+            })
+            .next();
+        found.is_some()
+    }
 }
