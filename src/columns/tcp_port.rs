@@ -27,7 +27,9 @@ pub struct TcpPort {
     fmt_contents: HashMap<i32, String>,
     raw_contents: HashMap<i32, String>,
     width: usize,
+    #[cfg(any(target_os = "linux", target_os = "android", target_os = "windows"))]
     tcp_entry: Vec<TcpNetEntry>,
+    #[cfg(any(target_os = "linux", target_os = "android", target_os = "windows"))]
     tcp6_entry: Vec<TcpNetEntry>,
 }
 
