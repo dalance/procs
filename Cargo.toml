@@ -40,7 +40,7 @@ atty          = "0.2.14"
 byte-unit     = "4"
 clap          = {version = "3.2.13", features = ["derive"]}
 clap_complete = "3.2.3"
-console       = "0.15.0"
+console       = "0.15.1"
 chrono        = "0.4"
 directories   = "4.0.1"
 dockworker    = { version = "0.0.23", optional = true }
