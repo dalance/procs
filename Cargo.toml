@@ -67,7 +67,7 @@ users         = "0.11"
 which         = "4"
 
 [target.'cfg(target_os = "windows")'.dependencies]
-winapi        = { version = "0.3", features = ["handleapi", "minwindef", "psapi", "securitybaseapi", "tlhelp32", "winbase", "winnt"] }
+winapi        = { version = "0.3", features = ["handleapi", "minwindef", "psapi", "securitybaseapi", "tlhelp32", "winbase", "winnt", "iphlpapi"] }
 
 [package.metadata.rpm.cargo]
 buildflags = ["--release"]
