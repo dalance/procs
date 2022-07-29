@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.12.3...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.13.0...Unreleased) - ReleaseDate
+
+## [v0.13.0](https://github.com/dalance/procs/compare/v0.12.3...v0.13.0) - 2022-07-29
 
 * [Changed] Update procfs to v0.13.0
 * [Changed] Use once_cell instead of lazy_static

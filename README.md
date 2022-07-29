@@ -5,7 +5,7 @@
 [![Actions Status](https://github.com/dalance/procs/workflows/Regression/badge.svg)](https://github.com/dalance/procs/actions)
 [![codecov](https://codecov.io/gh/dalance/procs/branch/master/graph/badge.svg)](https://codecov.io/gh/dalance/procs)
 
-[![Changelog](https://img.shields.io/badge/changelog-v0.12.3-green.svg)](https://github.com/dalance/procs/blob/master/CHANGELOG.md)
+[![Changelog](https://img.shields.io/badge/changelog-v0.13.0-green.svg)](https://github.com/dalance/procs/blob/master/CHANGELOG.md)
 [![Crates.io](https://img.shields.io/crates/v/procs.svg)](https://crates.io/crates/procs)
 [![procs](https://snapcraft.io/procs/badge.svg)](https://snapcraft.io/procs)
 [![homebrew](https://img.shields.io/homebrew/v/procs.svg)](https://formulae.brew.sh/formula/procs)
@@ -118,7 +118,7 @@ sudo dnf install procs
 You can install with rpm.
 
 ```
-sudo rpm -i https://github.com/dalance/procs/releases/download/v0.12.3/procs-0.12.3-1.x86_64.rpm
+sudo rpm -i https://github.com/dalance/procs/releases/download/v0.13.0/procs-0.13.0-1.x86_64.rpm
 ```
 
 ### Cargo
