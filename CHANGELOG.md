@@ -170,7 +170,7 @@
 
 * [Added] cargo feature to build without docker dependencies [#41](https://github.com/dalance/procs/issues/41)
 * [Changed] remove unmaintained crates [#41](https://github.com/dalance/procs/issues/41)
-* [Fixed] garbage charactors in watch mode
+* [Fixed] garbage characters in watch mode
 
 ## [v0.9.9](https://github.com/dalance/procs/compare/v0.9.8...v0.9.9) - 2020-02-12
 
@@ -299,13 +299,13 @@
 ## [v0.6.0](https://github.com/dalance/procs/compare/v0.5.8...v0.6.0) - 2019-03-07
 
 * [Added] watch mode
-* [Fixed] panic by truncate inside multi-byte unicode charactor
+* [Fixed] panic by truncate inside multi-byte unicode character
 
 ## [v0.5.8](https://github.com/dalance/procs/compare/v0.5.7...v0.5.8) - 2019-03-06
 
 * [Added] column description to `--list` output
 * [Changed] sort indicator refine
-* [Fixed] wrong column width calculation about full-width charactors
+* [Fixed] wrong column width calculation about full-width characters
 * [Fixed] wrong `By*` style on center/right aligned column
 
 ## [v0.5.7](https://github.com/dalance/procs/compare/v0.5.6...v0.5.7) - 2019-03-05
@@ -386,7 +386,7 @@
 
 ## [v0.4.1](https://github.com/dalance/procs/compare/v0.4.0...v0.4.1) - 2019-02-06
 
-* [Fixed] failure of text width calculation with tab charactor
+* [Fixed] failure of text width calculation with tab character
 
 ## [v0.4.0](https://github.com/dalance/procs/compare/v0.3.5...v0.4.0) - 2019-02-06
 
