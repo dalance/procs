@@ -10,14 +10,14 @@ use std::time::Duration;
 use std::time::Instant;
 use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 
-#[derive(ValueEnum, Copy, Clone, Debug, PartialEq)]
+#[derive(ValueEnum, Copy, Clone, Debug, PartialEq, Eq)]
 pub enum ArgColorMode {
     Auto,
     Always,
     Disable,
 }
 
-#[derive(ValueEnum, Copy, Clone, Debug, PartialEq)]
+#[derive(ValueEnum, Copy, Clone, Debug, PartialEq, Eq)]
 pub enum ArgThemeMode {
     Auto,
     Dark,
@@ -34,7 +34,7 @@ impl From<ArgThemeMode> for ConfigTheme {
     }
 }
 
-#[derive(ValueEnum, Copy, Clone, Debug, PartialEq)]
+#[derive(ValueEnum, Copy, Clone, Debug, PartialEq, Eq)]
 pub enum ArgPagerMode {
     Auto,
     Always,
