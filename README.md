@@ -145,7 +145,7 @@ $ sudo procs
 
 If you want to skip password input, you can add the following entry to `/etc/sudoers`.
 
-```
+```text
 [user or group] ALL= NOPASSWD: [procs binary path]
 // ex. myuser ALL= NOPASSWD: /usr/local/bin/procs
 ```
@@ -159,7 +159,7 @@ In the following screenshots, `config/large.toml` is used as the configuration.
 Type `procs` only. It shows the information of all processes.
 
 ```console
-$ procs
+procs
 ```
 
 ![procs](https://user-images.githubusercontent.com/4331004/55446625-5e5fce00-55fb-11e9-8914-69e8640d89d7.png)
@@ -169,7 +169,7 @@ $ procs
 If you add any keyword as argument, it is matched to `USER`, `Command` by default.
 
 ```console
-$ procs zsh
+procs zsh
 ```
 
 If you want to add columns matching to non-numeric keyword, `nonnumeric_search` option can be used in configuration file.
@@ -182,7 +182,7 @@ If a numeric is used as the keyword, it is matched to `PID` by default.
 Numeric is treated as exact match, and non-numeric is treated as partial match by default.
 
 ```console
-$ procs --or 6000 60000 60001 16723
+procs --or 6000 60000 60001 16723
 ```
 
 If you want to add columns matching to numeric keyword, `numeric_search` option can be used in configuration file.
@@ -207,7 +207,7 @@ The default operation can be specified in the [configuration file](#configuratio
 If you have access permission to docker daemon ( `unix:///var/run/docker.sock` ), `Docker` column is added.
 
 ```console
-$ procs growi
+procs growi
 ```
 
 ![procs_docker](https://user-images.githubusercontent.com/4331004/55446681-91a25d00-55fb-11e9-943d-5b5caeb23c62.png)
@@ -238,7 +238,7 @@ There are some keyboard shortcuts to control.
 If `--tree` option is used, processes are sorted by dependency order and dependency tree is shown at left side.
 
 ```console
-$ procs --tree
+procs --tree
 ```
 
 ![procs_tree](https://user-images.githubusercontent.com/4331004/55446692-9ff07900-55fb-11e9-8b66-a8432df0a8e1.png)
@@ -259,7 +259,7 @@ The keyword is matched partially and case is ignored.
 The default sort is specified by `[sort]` section in the [configuration file](#configuration).
 
 ```console
-$ procs --sortd cpu
+procs --sortd cpu
 ```
 
 ![procs_sort](https://user-images.githubusercontent.com/4331004/55446704-ab43a480-55fb-11e9-81dc-e3ac1a1e2507.png)
@@ -289,8 +289,8 @@ The following shells are supported.
 `--completion-out` option generates shell completion to stdout.
 You can source it directly on some shells.
 
-```
-$ source <(procs --completion-out bash)
+```console
+source <(procs --completion-out bash)
 ```
 
 ## Configuration
@@ -617,13 +617,13 @@ Some terminal don't support the automatic detection, so `Dark` or `Light` can be
 Windows SID is too long, so it is abbreviated by default.
 If `abbr_sid` is `false`, SID is fully shown like below:
 
-```
+```text
 S-1-5-21-789457439-2186958450-1652286173-1001
 ```
 
 If `abbr_sid` is `true`, SID is shown like below:
 
-```
+```text
 S-1-5-21-...-1001
 ```
 
