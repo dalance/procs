@@ -1272,7 +1272,7 @@ dependencies = [
 
 [[package]]
 name = "procs"
-version = "0.13.1-pre"
+version = "0.13.1"
 dependencies = [
  "anyhow",
  "atty",
