@@ -1,5 +1,7 @@
 use crate::process::ProcessInfo;
 use crate::{column_default, Column};
+#[cfg(target_os = "macos")]
+use nix::unistd::{self, Pid};
 use std::cmp;
 use std::collections::HashMap;
 
@@ -33,6 +35,22 @@ impl Column for Session {
             crate::process::ProcessTask::Process { .. } => format!("{}", raw_content),
             _ => format!("[{}]", raw_content),
         };
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(i32);
+}
+
+#[cfg(target_os = "macos")]
+impl Column for Session {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let sid = unistd::getsid(Some(Pid::from_raw(proc.pid)))
+            .map(|x| x.as_raw())
+            .unwrap_or(0);
+        let raw_content = sid;
+        let fmt_content = format!("{}", raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);
