@@ -22,6 +22,7 @@ pub mod ppid;
 pub mod priority;
 pub mod read_bytes;
 pub mod separator;
+pub mod session;
 pub mod slot;
 pub mod start_time;
 pub mod state;
@@ -67,6 +68,7 @@ pub use self::ppid::Ppid;
 pub use self::priority::Priority;
 pub use self::read_bytes::ReadBytes;
 pub use self::separator::Separator;
+pub use self::session::Session;
 pub use self::slot::Slot;
 pub use self::start_time::StartTime;
 pub use self::state::State;
@@ -122,6 +124,7 @@ pub enum ConfigColumnKind {
     Priority,
     ReadBytes,
     Separator,
+    Session,
     Slot,
     StartTime,
     State,
@@ -184,6 +187,7 @@ pub fn gen_column(
         ConfigColumnKind::Priority => Box::new(Priority::new(header)),
         ConfigColumnKind::ReadBytes => Box::new(ReadBytes::new(header)),
         ConfigColumnKind::Separator => Box::new(Separator::new(separator)),
+        ConfigColumnKind::Session => Box::new(Session::new(header)),
         ConfigColumnKind::Slot => Box::new(Slot::new()),
         ConfigColumnKind::StartTime => Box::new(StartTime::new(header)),
         ConfigColumnKind::State => Box::new(State::new(header)),
@@ -274,6 +278,7 @@ pub static KIND_LIST: Lazy<HashMap<ConfigColumnKind, (&'static str, &'static str
                 ConfigColumnKind::Separator,
                 ("Separator", "Show | for column separation"),
             ),
+            (ConfigColumnKind::Session, ("Session", "Process Session ID")),
             (
                 ConfigColumnKind::Slot,
                 ("Slot", "Slot for `--insert` option"),
@@ -452,6 +457,9 @@ style = "Cyan"
 [[columns]]
 kind = "Separator"
 style = "White"
+[[columns]]
+kind = "Session"
+style = "Yellow"
 [[columns]]
 kind = "StartTime"
 style = "White"
