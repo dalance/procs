@@ -303,7 +303,7 @@ The location of the configuration file is OS-specific:
 
  * Linux: `~/.config/procs/config.toml`
  * macOS: `~/Library/Preferences/com.github.dalance.procs/config.toml`
- * Windows: `~/AppData/Roaming/dalance/procs/config.toml`
+ * Windows: `~/AppData/Roaming/dalance/procs/config/config.toml`
 
 For compatibility, if `~/.procs.toml` exists, it will be preferred to
 the OS-specific locations.
