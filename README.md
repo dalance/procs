@@ -419,6 +419,7 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | MinFlt       | min_flt               | Minor page fault count                        | o     | o     |         |
 | MultiSlot    | -not supported-       | Slot for `--insert` option                    | o     | o     | o       |
 | Nice         | ni                    | Nice value                                    | o     | o     |         |
+| Pgid         | pgid                  | Process group ID                              | o     | o     |         |
 | Pid          | pid                   | Process ID ( or Thread ID sorrunded by `[]` ) | o     | o     | o       |
 | Policy       | policy                | Scheduling policy                             | o     | o     |         |
 | Ppid         | ppid                  | Parent process ID                             | o     | o     | o       |
@@ -427,12 +428,13 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | ReadBytes    | -not supported-       | Read bytes from storage                       | o     | o     | o       |
 | RtPriority   | rtprio                | Real-time priority                            | o     |       |         |
 | Separator    | -not supported-       | Show `\|` for column separation               | o     | o     | o       |
+| Session      | sid                   | Session ID                                    | o     |       |         |
 | ShdPnd       | pending               | Pending signal mask for process               | o     |       |         |
-| Slot         | -not supported-       | Slot for `--insert` option                    | o     | o     | o       |
 | SigBlk       | blocked               | Blocked signal mask                           | o     |       |         |
 | SigCgt       | caught                | Caught signal mask                            | o     |       |         |
 | SigIgn       | ignored               | Ignored signal mask                           | o     |       |         |
 | SigPnd       | pending               | Pending signal mask for thread                | o     |       |         |
+| Slot         | -not supported-       | Slot for `--insert` option                    | o     | o     | o       |
 | Ssb          | -not supported-       | Speculative store bypass status               | o     |       |         |
 | StartTime    | start_time            | Starting time                                 | o     | o     | o       |
 | State        | s                     | Process state                                 | o     | o     |         |
