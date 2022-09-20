@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.13.0...Unreleased) - ReleaseDate
 
+* [Added] session column on macOS [#361](https://github.com/dalance/procs/pull/361)
+
 ## [v0.13.0](https://github.com/dalance/procs/compare/v0.12.3...v0.13.0) - 2022-07-29
 
 * [Changed] Update procfs to v0.13.0
