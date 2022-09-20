@@ -428,7 +428,7 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | ReadBytes    | -not supported-       | Read bytes from storage                       | o     | o     | o       |
 | RtPriority   | rtprio                | Real-time priority                            | o     |       |         |
 | Separator    | -not supported-       | Show `\|` for column separation               | o     | o     | o       |
-| Session      | sid                   | Session ID                                    | o     |       |         |
+| Session      | sid                   | Session ID                                    | o     | o     |         |
 | ShdPnd       | pending               | Pending signal mask for process               | o     |       |         |
 | SigBlk       | blocked               | Blocked signal mask                           | o     |       |         |
 | SigCgt       | caught                | Caught signal mask                            | o     |       |         |
