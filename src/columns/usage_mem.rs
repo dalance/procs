@@ -65,16 +65,14 @@ fn get_mem_total() -> u64 {
 
 #[cfg(target_os = "windows")]
 fn get_mem_total() -> u64 {
-    
-        let mut info: PERFORMANCE_INFORMATION = unsafe { zeroed() };
-        let ret = unsafe { GetPerformanceInfo(&mut info, size_of::<PERFORMANCE_INFORMATION>() as u32) };
+    let mut info: PERFORMANCE_INFORMATION = unsafe { zeroed() };
+    let ret = unsafe { GetPerformanceInfo(&mut info, size_of::<PERFORMANCE_INFORMATION>() as u32) };
 
-        if ret != 0 {
-            info.PhysicalTotal as u64 * info.PageSize as u64
-        } else {
-            0
-        }
-    
+    if ret != 0 {
+        info.PhysicalTotal as u64 * info.PageSize as u64
+    } else {
+        0
+    }
 }
 
 #[cfg(any(target_os = "linux", target_os = "android"))]
