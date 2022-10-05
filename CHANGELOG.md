@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.13.1...Unreleased) - ReleaseDate
 
+* [Fixed] invalid charset name issue [#366](https://github.com/dalance/procs/issues/366)
+
 ## [v0.13.1](https://github.com/dalance/procs/compare/v0.13.0...v0.13.1) - 2022-09-20
 
 * [Added] session column on macOS [#361](https://github.com/dalance/procs/pull/361)
