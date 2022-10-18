@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.13.2...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.13.3...Unreleased) - ReleaseDate
+
+## [v0.13.3](https://github.com/dalance/procs/compare/v0.13.2...v0.13.3) - 2022-10-18
 
 * [Changed] Release zip for Windows has the exe at toplevel
 
