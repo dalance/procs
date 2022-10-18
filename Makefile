@@ -26,7 +26,8 @@ release_lnx:
 
 release_win:
 	cargo build --locked --release --target=x86_64-pc-windows-msvc
-	7z a ${BIN_NAME}-v${VERSION}-x86_64-windows.zip target/x86_64-pc-windows-msvc/release/${BIN_NAME}.exe
+	mv -v target/x86_64-pc-windows-msvc/release/${BIN_NAME}.exe ./
+	7z a ${BIN_NAME}-v${VERSION}-x86_64-windows.zip ${BIN_NAME}.exe
 
 release_mac:
 	cargo build --locked --release --target=x86_64-apple-darwin
