@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.13.2...Unreleased) - ReleaseDate
 
+* [Changed] Release zip for Windows has the exe at toplevel
+
 ## [v0.13.2](https://github.com/dalance/procs/compare/v0.13.1...v0.13.2) - 2022-10-05
 
 * [Fixed] invalid charset name issue [#366](https://github.com/dalance/procs/issues/366)
