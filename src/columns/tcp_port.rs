@@ -121,12 +121,9 @@ impl Column for TcpPort {
     fn add(&mut self, proc: &ProcessInfo) {
         let mut ports = Vec::new();
         for tcp in &proc.curr_tcps {
-            match tcp.tcpsi_state.into() {
-                TcpSIState::Listen => {
-                    let port = crate::util::change_endian(tcp.tcpsi_ini.insi_lport as u32) >> 16;
-                    ports.push(port);
-                }
-                _ => (),
+            if let TcpSIState::Listen = tcp.tcpsi_state.into() {
+                let port = crate::util::change_endian(tcp.tcpsi_ini.insi_lport as u32) >> 16;
+                ports.push(port);
             }
         }
         ports.sort();
@@ -141,7 +138,7 @@ impl Column for TcpPort {
 
     fn find_exact(&self, pid: i32, keyword: &str, _content_to_lowercase: bool) -> bool {
         if let Some(content) = self.fmt_contents.get(&pid) {
-            let content = content.replace("[", "").replace("]", "");
+            let content = content.replace('[', "").replace(']', "");
             let content = content.split(',');
             for c in content {
                 if c == keyword {

@@ -70,7 +70,7 @@ impl Column for State {
             6 => "H",
             _ => "?",
         };
-        let fmt_content = format!("{}", state);
+        let fmt_content = state.to_string();
         let raw_content = fmt_content.clone();
 
         self.fmt_contents.insert(proc.pid, fmt_content);
