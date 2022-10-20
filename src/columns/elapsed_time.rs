@@ -85,7 +85,7 @@ impl Column for ElapsedTime {
     fn add(&mut self, proc: &ProcessInfo) {
         let start_time = Local.timestamp(proc.curr_task.pbsd.pbi_start_tvsec as i64, 0);
         let raw_content = Local::now().signed_duration_since(start_time);
-        let fmt_content = format!("{}", format_duration(raw_content));
+        let fmt_content = format_duration(raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);

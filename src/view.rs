@@ -584,7 +584,7 @@ impl View {
     #[cfg(not(any(target_os = "windows", any(target_os = "linux", target_os = "android"))))]
     fn pager(config: &Config) {
         if let Some(ref pager) = config.pager.command {
-            Pager::with_pager(&pager).setup();
+            Pager::with_pager(pager).setup();
         } else if which::which("less").is_ok() {
             Pager::with_pager("less -SR").setup();
         } else {
