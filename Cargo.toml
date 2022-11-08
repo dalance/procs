@@ -46,7 +46,7 @@ directories   = "4.0.1"
 dockworker    = { version = "0.0.24", optional = true }
 getch         = "0.3.1"
 libc          = "0.2"
-once_cell     = "1.15.0"
+once_cell     = "1.16.0"
 serde         = "1.0"
 serde_derive  = "1.0"
 termbg        = "0.4.1"
