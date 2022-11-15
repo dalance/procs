@@ -286,10 +286,7 @@ pub fn format_sid(sid: &[u64], abbr: bool) -> String {
 pub fn bytify(x: u64) -> String {
     let byte = Byte::from_bytes(x as u128);
     let byte = byte.get_appropriate_unit(true);
-    byte.format(3)
-        .replace(' ', "")
-        .replace('B', "")
-        .replace('i', "")
+    byte.format(3).replace([' ', 'B', 'i'], "")
 }
 
 pub fn lap(instant: &mut Instant, msg: &str) {

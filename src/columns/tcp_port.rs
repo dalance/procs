@@ -91,7 +91,7 @@ impl Column for TcpPort {
 
     fn find_exact(&self, pid: i32, keyword: &str, _content_to_lowercase: bool) -> bool {
         if let Some(content) = self.fmt_contents.get(&pid) {
-            let content = content.replace('[', "").replace(']', "");
+            let content = content.replace(['[', ']'], "");
             let content = content.split(',');
             for c in content {
                 if c == keyword {
@@ -138,7 +138,7 @@ impl Column for TcpPort {
 
     fn find_exact(&self, pid: i32, keyword: &str, _content_to_lowercase: bool) -> bool {
         if let Some(content) = self.fmt_contents.get(&pid) {
-            let content = content.replace('[', "").replace(']', "");
+            let content = content.replace(['[', ']'], "");
             let content = content.split(',');
             for c in content {
                 if c == keyword {
@@ -182,7 +182,7 @@ impl Column for TcpPort {
 
     fn find_exact(&self, pid: i32, keyword: &str, _content_to_lowercase: bool) -> bool {
         if let Some(content) = self.fmt_contents.get(&pid) {
-            let content = content.replace('[', "").replace(']', "");
+            let content = content.replace(['[', ']'], "");
             let content = content.split(',');
             for c in content {
                 if c == keyword {

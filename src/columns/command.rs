@@ -39,7 +39,7 @@ impl Column for Command {
                     })
                     .collect::<String>();
                 cmd.pop();
-                cmd = cmd.replace('\n', " ").replace('\t', " ");
+                cmd = cmd.replace(['\n', '\t'], " ");
                 cmd
             } else {
                 proc.curr_proc.stat().comm.clone()
@@ -72,7 +72,7 @@ impl Column for Command {
                     })
                     .collect::<String>();
                 cmd.pop();
-                cmd = cmd.replace('\n', " ").replace('\t', " ");
+                cmd = cmd.replace(['\n', '\t'], " ");
                 cmd
             } else {
                 String::from("")
