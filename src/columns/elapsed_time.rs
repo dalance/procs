@@ -34,7 +34,7 @@ impl ElapsedTime {
             header,
             unit,
             #[cfg(any(target_os = "linux", target_os = "android"))]
-            boot_time: procfs::boot_time().unwrap_or_else(|_| Local.timestamp(0, 0)),
+            boot_time: procfs::boot_time().unwrap_or_else(|_| Local.timestamp_opt(0, 0).unwrap()),
         }
     }
 }
