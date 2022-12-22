@@ -28,7 +28,7 @@ impl UserLogin {
 impl Column for UserLogin {
     fn add(&mut self, proc: &ProcessInfo) {
         let fmt_content = if let Ok(uid) = proc.curr_proc.loginuid() {
-            if let Some(user) = users::get_user_by_uid(uid as u32) {
+            if let Some(user) = users::get_user_by_uid(uid) {
                 format!("{}", user.name().to_string_lossy())
             } else {
                 format!("{}", uid)

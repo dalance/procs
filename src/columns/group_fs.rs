@@ -29,7 +29,7 @@ impl Column for GroupFs {
     fn add(&mut self, proc: &ProcessInfo) {
         let fmt_content = if let Some(ref status) = proc.curr_status {
             let gid = status.fgid;
-            if let Some(group) = users::get_group_by_gid(gid as u32) {
+            if let Some(group) = users::get_group_by_gid(gid) {
                 format!("{}", group.name().to_string_lossy())
             } else {
                 format!("{}", gid)

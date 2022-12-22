@@ -30,7 +30,7 @@ impl Column for UserReal {
     fn add(&mut self, proc: &ProcessInfo) {
         let fmt_content = if let Some(ref status) = proc.curr_status {
             let uid = status.ruid;
-            if let Some(user) = users::get_user_by_uid(uid as u32) {
+            if let Some(user) = users::get_user_by_uid(uid) {
                 format!("{}", user.name().to_string_lossy())
             } else {
                 format!("{}", uid)
