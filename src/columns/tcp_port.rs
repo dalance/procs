@@ -327,11 +327,11 @@ mod tests {
             .tcp_entry
             .iter()
             .chain(tcp_port.tcp6_entry.iter())
-            .filter(|entry| {
+            .find(|entry| {
                 entry.state == MIB_TCP_STATE_LISTEN
                     && entry.local_address == listener.local_addr().unwrap()
-            })
-            .next();
+            });
+
         found.is_some()
     }
 }
