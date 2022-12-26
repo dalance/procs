@@ -3,7 +3,7 @@ use chrono::{Local, NaiveDate};
 use libc::c_void;
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::mem::{size_of, zeroed};
+use std::mem::{size_of, zeroed, MaybeUninit};
 use std::ptr;
 use std::thread;
 use std::time::{Duration, Instant};
@@ -108,7 +108,9 @@ pub fn collect_proc(interval: Duration, _with_thread: bool) -> Vec<ProcessInfo> 
 
             let start_time = if let Some((start, _, _, _)) = times {
                 let time = chrono::Duration::seconds(start as i64 / 10_000_000);
-                let base = NaiveDate::from_ymd(1600, 1, 1).and_hms(0, 0, 0);
+                let base = NaiveDate::from_ymd_opt(1600, 1, 1)
+                    .and_then(|ndate| ndate.and_hms_opt(0, 0, 0))
+                    .unwrap();
                 let time = base + time;
                 let local = Local.from_utc_datetime(&time);
                 Some(local)
@@ -435,8 +437,10 @@ fn get_user(handle: HANDLE) -> Option<SidName> {
         )
     };
 
-    let mut buf: Vec<u8> = Vec::with_capacity(cb_needed as usize);
-    unsafe { buf.set_len(cb_needed as usize) };
+    let mut buf: Vec<MaybeUninit<u8>> = Vec::with_capacity(cb_needed as usize);
+    unsafe {
+        buf.set_len(cb_needed as usize);
+    }
 
     let ret = unsafe {
         GetTokenInformation(
@@ -489,7 +493,7 @@ fn get_groups(handle: HANDLE) -> Option<Vec<SidName>> {
             &mut cb_needed,
         );
 
-        let mut buf: Vec<u8> = Vec::with_capacity(cb_needed as usize);
+        let mut buf: Vec<MaybeUninit<u8>> = Vec::with_capacity(cb_needed as usize);
         buf.set_len(cb_needed as usize);
 
         let ret = GetTokenInformation(

@@ -99,7 +99,7 @@ impl Column for ElapsedTime {
 impl Column for ElapsedTime {
     fn add(&mut self, proc: &ProcessInfo) {
         let raw_content = Local::now().signed_duration_since(proc.start_time);
-        let fmt_content = format!("{}", format_duration(raw_content));
+        let fmt_content = format_duration(raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);

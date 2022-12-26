@@ -75,7 +75,7 @@ impl Column for Gid {
             }
         }
 
-        let fmt_content = format_sid(&sid, self.abbr_sid);
+        let fmt_content = format_sid(sid, self.abbr_sid);
         let raw_content = sid[sid.len() - 1] as u32;
 
         self.fmt_contents.insert(proc.pid, fmt_content);
