@@ -619,7 +619,8 @@ pub struct ConfigDocker {
 impl Default for ConfigDocker {
     fn default() -> Self {
         ConfigDocker {
-            path: String::from("unix:///var/run/docker.sock"),
+            path: std::env::var("DOCKER_HOST")
+                .unwrap_or(String::from("unix:///var/run/docker.sock")),
         }
     }
 }
