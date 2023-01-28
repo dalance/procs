@@ -22,7 +22,7 @@ pub struct UdpPort {
 impl UdpPort {
     pub fn new(header: Option<String>) -> Self {
         let header = header.unwrap_or_else(|| String::from("UDP"));
-        let unit = String::from("");
+        let unit = String::new();
         UdpPort {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
@@ -61,7 +61,7 @@ impl Column for UdpPort {
 
             format!("{:?}", ports)
         } else {
-            String::from("")
+            String::new()
         };
         let raw_content = fmt_content.clone();
 

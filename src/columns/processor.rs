@@ -14,7 +14,7 @@ pub struct Processor {
 impl Processor {
     pub fn new(header: Option<String>) -> Self {
         let header = header.unwrap_or_else(|| String::from("Processor"));
-        let unit = String::from("");
+        let unit = String::new();
         Processor {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
@@ -31,7 +31,7 @@ impl Column for Processor {
         let fmt_content = if let Some(p) = proc.curr_proc.stat().processor {
             format!("{}", p)
         } else {
-            String::from("")
+            String::new()
         };
 
         self.fmt_contents.insert(proc.pid, fmt_content);

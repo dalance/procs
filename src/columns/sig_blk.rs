@@ -14,7 +14,7 @@ pub struct SigBlk {
 impl SigBlk {
     pub fn new(header: Option<String>) -> Self {
         let header = header.unwrap_or_else(|| String::from("SigBlk"));
-        let unit = String::from("");
+        let unit = String::new();
         SigBlk {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
@@ -31,7 +31,7 @@ impl Column for SigBlk {
             let val = status.sigblk;
             (format!("{:016x}", val), val)
         } else {
-            (String::from(""), 0)
+            (String::new(), 0)
         };
 
         self.fmt_contents.insert(proc.pid, fmt_content);

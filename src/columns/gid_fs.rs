@@ -14,7 +14,7 @@ pub struct GidFs {
 impl GidFs {
     pub fn new(header: Option<String>) -> Self {
         let header = header.unwrap_or_else(|| String::from("FGID"));
-        let unit = String::from("");
+        let unit = String::new();
         GidFs {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
@@ -31,7 +31,7 @@ impl Column for GidFs {
             let gid = status.fgid;
             (format!("{}", gid), gid)
         } else {
-            (String::from(""), 0)
+            (String::new(), 0)
         };
 
         self.fmt_contents.insert(proc.pid, fmt_content);

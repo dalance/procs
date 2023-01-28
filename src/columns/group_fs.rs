@@ -14,7 +14,7 @@ pub struct GroupFs {
 impl GroupFs {
     pub fn new(header: Option<String>) -> Self {
         let header = header.unwrap_or_else(|| String::from("File System Group"));
-        let unit = String::from("");
+        let unit = String::new();
         GroupFs {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
@@ -35,7 +35,7 @@ impl Column for GroupFs {
                 format!("{}", gid)
             }
         } else {
-            String::from("")
+            String::new()
         };
         let raw_content = fmt_content.clone();
 

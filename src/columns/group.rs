@@ -18,7 +18,7 @@ pub struct Group {
 impl Group {
     pub fn new(header: Option<String>, abbr_sid: bool) -> Self {
         let header = header.unwrap_or_else(|| String::from("Group"));
-        let unit = String::from("");
+        let unit = String::new();
         Group {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
@@ -41,7 +41,7 @@ impl Column for Group {
                 format!("{}", gid)
             }
         } else {
-            String::from("")
+            String::new()
         };
         let raw_content = fmt_content.clone();
 

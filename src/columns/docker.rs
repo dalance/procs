@@ -21,7 +21,7 @@ pub struct Docker {
 impl Docker {
     pub fn new(header: Option<String>, path: &str) -> Self {
         let header = header.unwrap_or_else(|| String::from("Docker"));
-        let unit = String::from("");
+        let unit = String::new();
         let mut containers = HashMap::new();
         let mut available = true;
         if let Ok(docker) = dockworker::Docker::connect_with_unix(path) {
@@ -92,7 +92,7 @@ impl Docker {
 impl Column for Docker {
     fn add(&mut self, proc: &ProcessInfo) {
         let fmt_content = if let Ok(cgroups) = proc.curr_proc.cgroups() {
-            let mut ret = String::from("");
+            let mut ret = String::new();
             for cgroup in cgroups {
                 let cgroup_name = cgroup.pathname.clone();
                 if cgroup_name.starts_with("/docker") {
@@ -119,7 +119,7 @@ impl Column for Docker {
             }
             ret
         } else {
-            String::from("")
+            String::new()
         };
         let raw_content = fmt_content.clone();
 

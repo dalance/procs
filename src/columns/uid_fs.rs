@@ -14,7 +14,7 @@ pub struct UidFs {
 impl UidFs {
     pub fn new(header: Option<String>) -> Self {
         let header = header.unwrap_or_else(|| String::from("FUID"));
-        let unit = String::from("");
+        let unit = String::new();
         UidFs {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
@@ -31,7 +31,7 @@ impl Column for UidFs {
             let uid = status.fuid;
             (format!("{}", uid), uid)
         } else {
-            (String::from(""), 0)
+            (String::new(), 0)
         };
 
         self.fmt_contents.insert(proc.pid, fmt_content);

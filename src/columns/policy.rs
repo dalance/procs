@@ -14,7 +14,7 @@ pub struct Policy {
 impl Policy {
     pub fn new(header: Option<String>) -> Self {
         let header = header.unwrap_or_else(|| String::from("Policy"));
-        let unit = String::from("");
+        let unit = String::new();
         Policy {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
@@ -34,7 +34,7 @@ impl Column for Policy {
             Some(libc::SCHED_IDLE) => String::from("IDL"),
             Some(libc::SCHED_OTHER) => String::from("TS"),
             Some(libc::SCHED_RR) => String::from("RR"),
-            _ => String::from(""),
+            _ => String::new(),
         };
         let raw_content = fmt_content.clone();
 

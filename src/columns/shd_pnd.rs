@@ -14,7 +14,7 @@ pub struct ShdPnd {
 impl ShdPnd {
     pub fn new(header: Option<String>) -> Self {
         let header = header.unwrap_or_else(|| String::from("ShdPnd"));
-        let unit = String::from("");
+        let unit = String::new();
         ShdPnd {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
@@ -31,7 +31,7 @@ impl Column for ShdPnd {
             let val = status.shdpnd;
             (format!("{:016x}", val), val)
         } else {
-            (String::from(""), 0)
+            (String::new(), 0)
         };
 
         self.fmt_contents.insert(proc.pid, fmt_content);

@@ -14,8 +14,8 @@ pub struct TreeSlot {
 #[cfg_attr(tarpaulin, skip)]
 impl TreeSlot {
     pub fn new() -> Self {
-        let header = String::from("");
-        let unit = String::from("");
+        let header = String::new();
+        let unit = String::new();
         TreeSlot {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
@@ -29,8 +29,8 @@ impl TreeSlot {
 #[cfg_attr(tarpaulin, skip)]
 impl Column for TreeSlot {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = "".to_string();
-        let fmt_content = "".to_string();
+        let raw_content = String::new();
+        let fmt_content = String::new();
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);

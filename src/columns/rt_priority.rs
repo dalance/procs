@@ -14,7 +14,7 @@ pub struct RtPriority {
 impl RtPriority {
     pub fn new(header: Option<String>) -> Self {
         let header = header.unwrap_or_else(|| String::from("RT Priority"));
-        let unit = String::from("");
+        let unit = String::new();
         RtPriority {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
@@ -31,7 +31,7 @@ impl Column for RtPriority {
         let fmt_content = if let Some(p) = proc.curr_proc.stat().rt_priority {
             format!("{}", p)
         } else {
-            String::from("")
+            String::new()
         };
 
         self.fmt_contents.insert(proc.pid, fmt_content);

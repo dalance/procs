@@ -14,7 +14,7 @@ pub struct UidSaved {
 impl UidSaved {
     pub fn new(header: Option<String>) -> Self {
         let header = header.unwrap_or_else(|| String::from("SUID"));
-        let unit = String::from("");
+        let unit = String::new();
         UidSaved {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
@@ -32,7 +32,7 @@ impl Column for UidSaved {
             let uid = status.suid;
             (format!("{}", uid), uid)
         } else {
-            (String::from(""), 0)
+            (String::new(), 0)
         };
 
         self.fmt_contents.insert(proc.pid, fmt_content);

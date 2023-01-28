@@ -14,7 +14,7 @@ pub struct UserLogin {
 impl UserLogin {
     pub fn new(header: Option<String>) -> Self {
         let header = header.unwrap_or_else(|| String::from("Login User"));
-        let unit = String::from("");
+        let unit = String::new();
         UserLogin {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
@@ -34,7 +34,7 @@ impl Column for UserLogin {
                 format!("{}", uid)
             }
         } else {
-            String::from("")
+            String::new()
         };
         let raw_content = fmt_content.clone();
 

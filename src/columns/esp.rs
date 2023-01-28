@@ -14,7 +14,7 @@ pub struct Esp {
 impl Esp {
     pub fn new(header: Option<String>) -> Self {
         let header = header.unwrap_or_else(|| String::from("ESP"));
-        let unit = String::from("");
+        let unit = String::new();
         Esp {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),

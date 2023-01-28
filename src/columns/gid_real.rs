@@ -14,7 +14,7 @@ pub struct GidReal {
 impl GidReal {
     pub fn new(header: Option<String>) -> Self {
         let header = header.unwrap_or_else(|| String::from("RGID"));
-        let unit = String::from("");
+        let unit = String::new();
         GidReal {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
@@ -32,7 +32,7 @@ impl Column for GidReal {
             let gid = status.rgid;
             (format!("{}", gid), gid)
         } else {
-            (String::from(""), 0)
+            (String::new(), 0)
         };
 
         self.fmt_contents.insert(proc.pid, fmt_content);

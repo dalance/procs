@@ -14,7 +14,7 @@ pub struct Ssb {
 impl Ssb {
     pub fn new(header: Option<String>) -> Self {
         let header = header.unwrap_or_else(|| String::from("Speculative Store Bypass"));
-        let unit = String::from("");
+        let unit = String::new();
         Ssb {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
@@ -31,10 +31,10 @@ impl Column for Ssb {
             if let Some(ref val) = curr_status.speculation_store_bypass {
                 val.clone()
             } else {
-                String::from("")
+                String::new()
             }
         } else {
-            String::from("")
+            String::new()
         };
         let raw_content = fmt_content.clone();
 
