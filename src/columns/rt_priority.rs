@@ -29,7 +29,7 @@ impl Column for RtPriority {
     fn add(&mut self, proc: &ProcessInfo) {
         let raw_content = proc.curr_proc.stat().rt_priority.unwrap_or_default();
         let fmt_content = if let Some(p) = proc.curr_proc.stat().rt_priority {
-            format!("{}", p)
+            format!("{p}")
         } else {
             String::new()
         };

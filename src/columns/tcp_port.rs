@@ -79,7 +79,7 @@ impl Column for TcpPort {
             ports.sort_unstable();
             ports.dedup();
 
-            format!("{:?}", ports)
+            format!("{ports:?}")
         } else {
             String::new()
         };

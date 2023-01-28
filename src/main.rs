@@ -196,12 +196,12 @@ fn get_config() -> Result<Config, Error> {
     let cfg_path = dot_cfg_path.or(app_cfg_path).or(xdg_cfg_path);
 
     let config: Config = if let Some(path) = cfg_path {
-        let mut f = fs::File::open(&path).context(format!("failed to open file ({:?})", path))?;
+        let mut f = fs::File::open(&path).context(format!("failed to open file ({path:?})"))?;
         let mut s = String::new();
         f.read_to_string(&mut s)
-            .context(format!("failed to read file ({:?})", path))?;
+            .context(format!("failed to read file ({path:?})"))?;
         let c = toml::from_str(&s);
-        check_old_config(&s, c).context(format!("failed to parse toml ({:?})", path))?
+        check_old_config(&s, c).context(format!("failed to parse toml ({path:?})"))?
     } else {
         toml::from_str(CONFIG_DEFAULT).unwrap()
     };
@@ -268,7 +268,7 @@ fn run() -> Result<(), Error> {
             Shell::Zsh => "./_procs",
             x => return Err(anyhow!("unknown shell type: {}", x)),
         };
-        println!("completion file is generated: {}", path);
+        println!("completion file is generated: {path}");
         Ok(())
     } else if let Some(shell) = opt.completion_out {
         //Opt::clap().gen_completions_to("procs", shell, &mut stdout());
@@ -291,7 +291,7 @@ fn run() -> Result<(), Error> {
 fn run_config() -> Result<(), Error> {
     let config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
     let toml = toml::to_string(&config)?;
-    println!("{}", toml);
+    println!("{toml}");
     Ok(())
 }
 

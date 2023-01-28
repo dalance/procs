@@ -32,7 +32,7 @@ impl Column for UserFs {
             if let Some(user) = users::get_user_by_uid(uid) {
                 format!("{}", user.name().to_string_lossy())
             } else {
-                format!("{}", uid)
+                format!("{uid}")
             }
         } else {
             String::new()

@@ -29,7 +29,7 @@ impl Column for SigCgt {
     fn add(&mut self, proc: &ProcessInfo) {
         let (fmt_content, raw_content) = if let Some(ref status) = proc.curr_status {
             let val = status.sigcgt;
-            (format!("{:016x}", val), val)
+            (format!("{val:016x}"), val)
         } else {
             (String::new(), 0)
         };

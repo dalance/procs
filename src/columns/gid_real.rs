@@ -30,7 +30,7 @@ impl Column for GidReal {
     fn add(&mut self, proc: &ProcessInfo) {
         let (fmt_content, raw_content) = if let Some(ref status) = proc.curr_status {
             let gid = status.rgid;
-            (format!("{}", gid), gid)
+            (format!("{gid}"), gid)
         } else {
             (String::new(), 0)
         };

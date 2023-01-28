@@ -28,7 +28,7 @@ impl Eip {
 impl Column for Eip {
     fn add(&mut self, proc: &ProcessInfo) {
         let raw_content = proc.curr_proc.stat().kstkeip;
-        let fmt_content = format!("{:016x}", raw_content);
+        let fmt_content = format!("{raw_content:016x}");
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);

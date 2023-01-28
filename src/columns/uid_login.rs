@@ -28,7 +28,7 @@ impl UidLogin {
 impl Column for UidLogin {
     fn add(&mut self, proc: &ProcessInfo) {
         let (fmt_content, raw_content) = if let Ok(uid) = proc.curr_proc.loginuid() {
-            (format!("{}", uid), uid)
+            (format!("{uid}"), uid)
         } else {
             (String::new(), 0)
         };

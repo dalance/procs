@@ -182,11 +182,11 @@ pub fn parse_time(x: u64) -> String {
     let year = x as f64 / (365.0 * 60.0 * 60.0 * 24.0);
 
     if year >= 1.0 {
-        format!("{:.1}years", year)
+        format!("{year:.1}years")
     } else if day >= 1.0 {
-        format!("{:.1}days", day)
+        format!("{day:.1}days")
     } else {
-        format!("{:02}:{:02}:{:02}", hour, min, sec)
+        format!("{hour:02}:{min:02}:{sec:02}")
     }
 }
 
@@ -230,7 +230,7 @@ pub fn find_column_kind(pat: &str) -> Option<ConfigColumnKind> {
             return Some(k.clone());
         }
     }
-    eprintln!("Can't find column kind: {}", pat);
+    eprintln!("Can't find column kind: {pat}");
     None
 }
 

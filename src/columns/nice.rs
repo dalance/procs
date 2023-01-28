@@ -29,7 +29,7 @@ impl Nice {
 impl Column for Nice {
     fn add(&mut self, proc: &ProcessInfo) {
         let raw_content = proc.curr_proc.stat().nice;
-        let fmt_content = format!("{}", raw_content);
+        let fmt_content = format!("{raw_content}");
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);

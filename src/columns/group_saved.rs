@@ -33,7 +33,7 @@ impl Column for GroupSaved {
             if let Some(group) = users::get_group_by_gid(gid) {
                 format!("{}", group.name().to_string_lossy())
             } else {
-                format!("{}", gid)
+                format!("{gid}")
             }
         } else {
             String::new()

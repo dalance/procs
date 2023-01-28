@@ -30,7 +30,7 @@ impl Column for Tty {
     fn add(&mut self, proc: &ProcessInfo) {
         let (major, minor) = proc.curr_proc.stat().tty_nr();
         let fmt_content = if major == 136 {
-            format!("pts/{}", minor)
+            format!("pts/{minor}")
         } else {
             String::new()
         };
