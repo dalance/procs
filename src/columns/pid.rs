@@ -14,7 +14,7 @@ pub struct Pid {
 impl Pid {
     pub fn new(header: Option<String>) -> Self {
         let header = header.unwrap_or_else(|| String::from("PID"));
-        let unit = String::from("");
+        let unit = String::new();
         Pid {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
@@ -30,8 +30,8 @@ impl Column for Pid {
     fn add(&mut self, proc: &ProcessInfo) {
         let raw_content = proc.pid;
         let fmt_content = match proc.curr_proc {
-            crate::process::ProcessTask::Process { .. } => format!("{}", raw_content),
-            _ => format!("[{}]", raw_content),
+            crate::process::ProcessTask::Process { .. } => format!("{raw_content}"),
+            _ => format!("[{raw_content}]"),
         };
 
         self.fmt_contents.insert(proc.pid, fmt_content);

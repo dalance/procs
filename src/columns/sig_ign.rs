@@ -14,7 +14,7 @@ pub struct SigIgn {
 impl SigIgn {
     pub fn new(header: Option<String>) -> Self {
         let header = header.unwrap_or_else(|| String::from("SigIgn"));
-        let unit = String::from("");
+        let unit = String::new();
         SigIgn {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
@@ -29,9 +29,9 @@ impl Column for SigIgn {
     fn add(&mut self, proc: &ProcessInfo) {
         let (fmt_content, raw_content) = if let Some(ref status) = proc.curr_status {
             let val = status.sigign;
-            (format!("{:016x}", val), val)
+            (format!("{val:016x}"), val)
         } else {
-            (String::from(""), 0)
+            (String::new(), 0)
         };
 
         self.fmt_contents.insert(proc.pid, fmt_content);

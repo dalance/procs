@@ -14,8 +14,8 @@ pub struct Tree {
 
 impl Tree {
     pub fn new(symbols: &[String; 5]) -> Self {
-        let header = String::from("");
-        let unit = String::from("");
+        let header = String::new();
+        let unit = String::new();
         Tree {
             width: 0,
             header,
@@ -86,7 +86,7 @@ impl Column for Tree {
                 &self.rev_tree,
                 &self.symbols,
                 pid,
-                String::from(""),
+                String::new(),
             );
             let root: String = root.chars().rev().collect();
 

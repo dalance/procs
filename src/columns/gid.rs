@@ -18,7 +18,7 @@ pub struct Gid {
 impl Gid {
     pub fn new(header: Option<String>, abbr_sid: bool) -> Self {
         let header = header.unwrap_or_else(|| String::from("GID"));
-        let unit = String::from("");
+        let unit = String::new();
         Gid {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
@@ -35,9 +35,9 @@ impl Column for Gid {
     fn add(&mut self, proc: &ProcessInfo) {
         let (fmt_content, raw_content) = if let Some(ref status) = proc.curr_status {
             let gid = status.egid;
-            (format!("{}", gid), gid)
+            (format!("{gid}"), gid)
         } else {
-            (String::from(""), 0)
+            (String::new(), 0)
         };
 
         self.fmt_contents.insert(proc.pid, fmt_content);

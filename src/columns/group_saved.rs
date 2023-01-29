@@ -14,7 +14,7 @@ pub struct GroupSaved {
 impl GroupSaved {
     pub fn new(header: Option<String>) -> Self {
         let header = header.unwrap_or_else(|| String::from("Saved Group"));
-        let unit = String::from("");
+        let unit = String::new();
         GroupSaved {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
@@ -33,10 +33,10 @@ impl Column for GroupSaved {
             if let Some(group) = users::get_group_by_gid(gid) {
                 format!("{}", group.name().to_string_lossy())
             } else {
-                format!("{}", gid)
+                format!("{gid}")
             }
         } else {
-            String::from("")
+            String::new()
         };
         let raw_content = fmt_content.clone();
 

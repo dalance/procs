@@ -167,7 +167,7 @@ fn serialize_color(c: &ConfigColor) -> String {
         ConfigColor::Magenta => "Magenta".to_string(),
         ConfigColor::Cyan => "Cyan".to_string(),
         ConfigColor::White => "White".to_string(),
-        ConfigColor::Color256(x) => format!("{}", x),
+        ConfigColor::Color256(x) => format!("{x}"),
     }
 }
 
@@ -202,7 +202,7 @@ fn serialize_color_by_theme(c: &ConfigColorByTheme) -> String {
     } else {
         let dark = serialize_color(dark);
         let light = serialize_color(light);
-        format!("{}|{}", dark, light)
+        format!("{dark}|{light}")
     }
 }
 

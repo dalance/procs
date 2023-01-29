@@ -26,7 +26,7 @@ pub struct ElapsedTime {
 impl ElapsedTime {
     pub fn new(header: Option<String>) -> Self {
         let header = header.unwrap_or_else(|| String::from("Elapsed"));
-        let unit = String::from("");
+        let unit = String::new();
         ElapsedTime {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
@@ -48,17 +48,17 @@ fn format_duration(duration: Duration) -> String {
     let seconds = duration.num_seconds();
 
     if years > 1.0 {
-        format!("{:.1}years", years)
+        format!("{years:.1}years")
     } else if weeks > 1.0 {
-        format!("{:.1}weeks", weeks)
+        format!("{weeks:.1}weeks")
     } else if days > 1.0 {
-        format!("{:.1}days", days)
+        format!("{days:.1}days")
     } else if hours > 1.0 {
-        format!("{:.1}hours", hours)
+        format!("{hours:.1}hours")
     } else if minutes > 1.0 {
-        format!("{:.1}minutes", minutes)
+        format!("{minutes:.1}minutes")
     } else {
-        format!("{:.1}seconds", seconds)
+        format!("{seconds:.1}seconds")
     }
 }
 

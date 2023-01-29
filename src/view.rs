@@ -420,7 +420,7 @@ impl View {
     }
 
     fn display_header(&self, config: &Config, theme: &ConfigTheme) -> Result<(), Error> {
-        let mut row = String::from("");
+        let mut row = String::new();
         for (i, c) in self.columns.iter().enumerate() {
             if c.visible {
                 let order = if i == self.sort_info.idx {
@@ -447,7 +447,7 @@ impl View {
     }
 
     fn display_unit(&self, config: &Config, theme: &ConfigTheme) -> Result<(), Error> {
-        let mut row = String::from("");
+        let mut row = String::new();
         for c in &self.columns {
             if c.visible {
                 row = format!(
@@ -475,7 +475,7 @@ impl View {
         theme: &ConfigTheme,
         auxiliary: bool,
     ) -> Result<(), Error> {
-        let mut row = String::from("");
+        let mut row = String::new();
         for c in &self.columns {
             if c.visible {
                 row = format!(

@@ -34,10 +34,10 @@ impl Column for VmSwap {
                 let val = val.saturating_mul(1024);
                 (val, bytify(val))
             } else {
-                (0, String::from(""))
+                (0, String::new())
             }
         } else {
-            (0, String::from(""))
+            (0, String::new())
         };
 
         self.fmt_contents.insert(proc.pid, fmt_content);

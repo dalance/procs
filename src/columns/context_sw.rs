@@ -15,7 +15,7 @@ pub struct ContextSw {
 impl ContextSw {
     pub fn new(header: Option<String>) -> Self {
         let header = header.unwrap_or_else(|| String::from("ContextSw"));
-        let unit = String::from("");
+        let unit = String::new();
         ContextSw {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
@@ -37,10 +37,10 @@ impl Column for ContextSw {
                     + status.nonvoluntary_ctxt_switches.unwrap();
                 (bytify(sw), sw)
             } else {
-                (String::from(""), 0)
+                (String::new(), 0)
             }
         } else {
-            (String::from(""), 0)
+            (String::new(), 0)
         };
 
         self.fmt_contents.insert(proc.pid, fmt_content);

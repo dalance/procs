@@ -37,7 +37,7 @@ impl Column for UsageCpu {
         let interval_ms = proc.interval.as_secs() * 1000 + u64::from(proc.interval.subsec_millis());
         let usage = usage_ms as f64 * 100.0 / interval_ms as f64;
 
-        let fmt_content = format!("{:.1}", usage);
+        let fmt_content = format!("{usage:.1}");
         let raw_content = (usage * 1000.0) as u32;
 
         self.fmt_contents.insert(proc.pid, fmt_content);

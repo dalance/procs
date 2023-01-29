@@ -14,7 +14,7 @@ pub struct MajFlt {
 impl MajFlt {
     pub fn new(header: Option<String>) -> Self {
         let header = header.unwrap_or_else(|| String::from("MajorFaults"));
-        let unit = String::from("");
+        let unit = String::new();
         MajFlt {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
@@ -29,7 +29,7 @@ impl MajFlt {
 impl Column for MajFlt {
     fn add(&mut self, proc: &ProcessInfo) {
         let raw_content = proc.curr_proc.stat().majflt;
-        let fmt_content = format!("{}", raw_content);
+        let fmt_content = format!("{raw_content}");
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);

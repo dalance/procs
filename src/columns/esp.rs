@@ -14,7 +14,7 @@ pub struct Esp {
 impl Esp {
     pub fn new(header: Option<String>) -> Self {
         let header = header.unwrap_or_else(|| String::from("ESP"));
-        let unit = String::from("");
+        let unit = String::new();
         Esp {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
@@ -28,7 +28,7 @@ impl Esp {
 impl Column for Esp {
     fn add(&mut self, proc: &ProcessInfo) {
         let raw_content = proc.curr_proc.stat().kstkesp;
-        let fmt_content = format!("{:016x}", raw_content);
+        let fmt_content = format!("{raw_content:016x}");
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);

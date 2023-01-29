@@ -14,7 +14,7 @@ pub struct UidLogin {
 impl UidLogin {
     pub fn new(header: Option<String>) -> Self {
         let header = header.unwrap_or_else(|| String::from("LoginUID"));
-        let unit = String::from("");
+        let unit = String::new();
         UidLogin {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
@@ -28,9 +28,9 @@ impl UidLogin {
 impl Column for UidLogin {
     fn add(&mut self, proc: &ProcessInfo) {
         let (fmt_content, raw_content) = if let Ok(uid) = proc.curr_proc.loginuid() {
-            (format!("{}", uid), uid)
+            (format!("{uid}"), uid)
         } else {
-            (String::from(""), 0)
+            (String::new(), 0)
         };
 
         self.fmt_contents.insert(proc.pid, fmt_content);

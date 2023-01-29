@@ -14,7 +14,7 @@ pub struct UserFs {
 impl UserFs {
     pub fn new(header: Option<String>) -> Self {
         let header = header.unwrap_or_else(|| String::from("File System User"));
-        let unit = String::from("");
+        let unit = String::new();
         UserFs {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
@@ -32,10 +32,10 @@ impl Column for UserFs {
             if let Some(user) = users::get_user_by_uid(uid) {
                 format!("{}", user.name().to_string_lossy())
             } else {
-                format!("{}", uid)
+                format!("{uid}")
             }
         } else {
-            String::from("")
+            String::new()
         };
         let raw_content = fmt_content.clone();
 

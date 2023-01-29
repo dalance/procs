@@ -14,7 +14,7 @@ pub struct Ppid {
 impl Ppid {
     pub fn new(header: Option<String>) -> Self {
         let header = header.unwrap_or_else(|| String::from("Parent PID"));
-        let unit = String::from("");
+        let unit = String::new();
         Ppid {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
@@ -28,7 +28,7 @@ impl Ppid {
 impl Column for Ppid {
     fn add(&mut self, proc: &ProcessInfo) {
         let raw_content = proc.ppid;
-        let fmt_content = format!("{}", raw_content);
+        let fmt_content = format!("{raw_content}");
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);
