@@ -12,7 +12,6 @@ edition = "2021"
 exclude = ["img/*", "config/*"]
 
 [package.metadata.release]
-dev-version-ext             = "pre"
 pre-release-commit-message  = "Prepare to v{{version}}"
 post-release-commit-message = "Start next development iteration v{{version}}"
 tag-message                 = "Bump version to {{version}}"
