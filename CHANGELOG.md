@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.13.3...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.13.4...Unreleased) - ReleaseDate
+
+## [v0.13.4](https://github.com/dalance/procs/compare/v0.13.3...v0.13.4) - 2023-01-29
 
 * [Added] adding sort column to inserts [#396](https://github.com/dalance/procs/pull/396)
 * [Added] docker: Respect $DOCKER_HOST [#424](https://github.com/dalance/procs/pull/424)
