@@ -91,7 +91,7 @@ impl Watcher {
         Ok(())
     }
 
-    pub fn start(opt: &Opt, config: &Config, interval: u64) -> Result<(), Error> {
+    pub fn start(opt: &mut Opt, config: &Config, interval: u64) -> Result<(), Error> {
         let theme = get_theme(opt, config);
 
         let (tx_cmd, rx_cmd) = channel();

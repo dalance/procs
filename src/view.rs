@@ -31,7 +31,7 @@ pub struct View {
 }
 
 impl View {
-    pub fn new(opt: &Opt, config: &Config, clear_by_line: bool) -> Result<Self, Error> {
+    pub fn new(opt: &mut Opt, config: &Config, clear_by_line: bool) -> Result<Self, Error> {
         let mut slot_idx = 0;
         let mut columns = Vec::new();
         let mut only_kind_found = false;
@@ -47,6 +47,16 @@ impl View {
             min_width: None,
             header: None,
         };
+
+        // Adding the sort column to inserts if not already present
+        match (&opt.sorta, &opt.sortd) {
+            (_, Some(col)) | (Some(col), _) => {
+                if !opt.insert.contains(col) {
+                    opt.insert.push(col.clone());
+                }
+            }
+            _ => {}
+        }
 
         // Add default TreeSlot if there is not TreeSlot in config
         let config_columns = if config

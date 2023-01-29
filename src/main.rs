@@ -281,9 +281,9 @@ fn run() -> Result<(), Error> {
                 Some(n) => (n * 1000.0).round() as u64,
                 None => 1000,
             };
-            run_watch(&opt, &config, interval)
+            run_watch(&mut opt, &config, interval)
         } else {
-            run_default(&opt, &config)
+            run_default(&mut opt, &config)
         }
     }
 }
@@ -320,11 +320,11 @@ fn run_list() -> Result<(), Error> {
 }
 
 #[cfg_attr(tarpaulin, skip)]
-fn run_watch(opt: &Opt, config: &Config, interval: u64) -> Result<(), Error> {
+fn run_watch(opt: &mut Opt, config: &Config, interval: u64) -> Result<(), Error> {
     Watcher::start(opt, config, interval)
 }
 
-fn run_default(opt: &Opt, config: &Config) -> Result<(), Error> {
+fn run_default(opt: &mut Opt, config: &Config) -> Result<(), Error> {
     let mut time = Instant::now();
 
     let theme = get_theme(opt, config);
@@ -367,8 +367,8 @@ mod tests {
         config.display.theme = ConfigTheme::Dark;
 
         let args = vec!["procs"];
-        let opt = Opt::parse_from(args.iter());
-        let ret = run_default(&opt, &config);
+        let mut opt = Opt::parse_from(args.iter());
+        let ret = run_default(&mut opt, &config);
         assert!(ret.is_ok());
     }
 
@@ -379,40 +379,40 @@ mod tests {
         config.display.theme = ConfigTheme::Dark;
 
         let args = vec!["procs", "root"];
-        let opt = Opt::parse_from(args.iter());
-        let ret = run_default(&opt, &config);
+        let mut opt = Opt::parse_from(args.iter());
+        let ret = run_default(&mut opt, &config);
         assert!(ret.is_ok());
 
         let args = vec!["procs", "1"];
-        let opt = Opt::parse_from(args.iter());
-        let ret = run_default(&opt, &config);
+        let mut opt = Opt::parse_from(args.iter());
+        let ret = run_default(&mut opt, &config);
         assert!(ret.is_ok());
 
         let args = vec!["procs", "--or", "root", "1"];
-        let opt = Opt::parse_from(args.iter());
-        let ret = run_default(&opt, &config);
+        let mut opt = Opt::parse_from(args.iter());
+        let ret = run_default(&mut opt, &config);
         assert!(ret.is_ok());
 
         let args = vec!["procs", "--and", "root", "1"];
-        let opt = Opt::parse_from(args.iter());
-        let ret = run_default(&opt, &config);
+        let mut opt = Opt::parse_from(args.iter());
+        let ret = run_default(&mut opt, &config);
         assert!(ret.is_ok());
 
         let args = vec!["procs", "--nor", "root", "1"];
-        let opt = Opt::parse_from(args.iter());
-        let ret = run_default(&opt, &config);
+        let mut opt = Opt::parse_from(args.iter());
+        let ret = run_default(&mut opt, &config);
         assert!(ret.is_ok());
 
         let args = vec!["procs", "--nand", "root", "1"];
-        let opt = Opt::parse_from(args.iter());
-        let ret = run_default(&opt, &config);
+        let mut opt = Opt::parse_from(args.iter());
+        let ret = run_default(&mut opt, &config);
         assert!(ret.is_ok());
 
         config.search.nonnumeric_search = ConfigSearchKind::Exact;
         config.search.numeric_search = ConfigSearchKind::Partial;
         let args = vec!["procs", "root", "1"];
-        let opt = Opt::parse_from(args.iter());
-        let ret = run_default(&opt, &config);
+        let mut opt = Opt::parse_from(args.iter());
+        let ret = run_default(&mut opt, &config);
         assert!(ret.is_ok());
     }
 
@@ -435,9 +435,9 @@ mod tests {
         config.display.theme = ConfigTheme::Dark;
 
         let args = vec!["procs"];
-        let opt = Opt::parse_from(args.iter());
+        let mut opt = Opt::parse_from(args.iter());
         config.pager.mode = ConfigPagerMode::Disable;
-        let ret = run_default(&opt, &config);
+        let ret = run_default(&mut opt, &config);
         assert!(ret.is_ok());
     }
 
@@ -448,8 +448,8 @@ mod tests {
         config.display.theme = ConfigTheme::Dark;
 
         let args = vec!["procs", "--insert", "ppid"];
-        let opt = Opt::parse_from(args.iter());
-        let ret = run_default(&opt, &config);
+        let mut opt = Opt::parse_from(args.iter());
+        let ret = run_default(&mut opt, &config);
         assert!(ret.is_ok());
     }
 
@@ -460,13 +460,13 @@ mod tests {
         config.display.theme = ConfigTheme::Dark;
 
         let args = vec!["procs", "--sorta", "cpu"];
-        let opt = Opt::parse_from(args.iter());
-        let ret = run_default(&opt, &config);
+        let mut opt = Opt::parse_from(args.iter());
+        let ret = run_default(&mut opt, &config);
         assert!(ret.is_ok());
 
         let args = vec!["procs", "--sortd", "cpu"];
-        let opt = Opt::parse_from(args.iter());
-        let ret = run_default(&opt, &config);
+        let mut opt = Opt::parse_from(args.iter());
+        let ret = run_default(&mut opt, &config);
         assert!(ret.is_ok());
     }
 
@@ -477,8 +477,8 @@ mod tests {
         config.display.theme = ConfigTheme::Dark;
 
         let args = vec!["procs", "--tree"];
-        let opt = Opt::parse_from(args.iter());
-        let ret = run_default(&opt, &config);
+        let mut opt = Opt::parse_from(args.iter());
+        let ret = run_default(&mut opt, &config);
         assert!(ret.is_ok());
     }
 
@@ -492,8 +492,8 @@ mod tests {
         let _udp = std::net::UdpSocket::bind("127.0.0.1:10000");
 
         let args = vec!["procs"];
-        let opt = Opt::parse_from(args.iter());
-        let ret = run_default(&opt, &config);
+        let mut opt = Opt::parse_from(args.iter());
+        let ret = run_default(&mut opt, &config);
         assert!(ret.is_ok());
     }
 }
