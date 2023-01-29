@@ -2,6 +2,9 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.13.3...Unreleased) - ReleaseDate
 
+* [Added] adding sort column to inserts [#396](https://github.com/dalance/procs/pull/396)
+* [Added] docker: Respect $DOCKER_HOST [#424](https://github.com/dalance/procs/pull/424)
+
 ## [v0.13.3](https://github.com/dalance/procs/compare/v0.13.2...v0.13.3) - 2022-10-18
 
 * [Changed] Release zip for Windows has the exe at toplevel
