@@ -269,7 +269,7 @@ procs --sortd cpu
 `--insert` option inserts new column to the position of `Slot` column or `MultiSlot` column.
 The column for insert is selected by the option keyword.
 The keyword is the same as sort option.
-A `Slot` column can be used by a inserted column.
+A `Slot` column can be used by an inserted column.
 If many insertion is required, many `Slot` should be added.
 A `MultiSlot` column can be used by many inserted column.
 If there is a `MultiSlot`, all the remaining columns are inserted to the `MultiSlot`, and the subsequent `Slot` / `MultiSlot` is not used.
