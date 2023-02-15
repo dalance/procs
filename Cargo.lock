@@ -494,9 +494,9 @@ dependencies = [
 
 [[package]]
 name = "dockworker"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "92207625854d2fd6e069e712c7c3d48dd783ad40d6dd8d7201ae611f72c3d0e6"
+checksum = "0ae3ed933d13f056f11bf1099d6c13d89d8025993036334d3754da9f9d84167b"
 dependencies = [
  "base64",
  "byteorder",
