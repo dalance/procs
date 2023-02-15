@@ -270,8 +270,8 @@ procs --sortd cpu
 The column for insert is selected by the option keyword.
 The keyword is the same as sort option.
 A `Slot` column can be used by an inserted column.
-If many insertion is required, many `Slot` should be added.
-A `MultiSlot` column can be used by many inserted column.
+If many insertions are required, many `Slot` columns should be added.
+A `MultiSlot` column can be used by many inserted columns.
 If there is a `MultiSlot`, all the remaining columns are inserted to the `MultiSlot`, and the subsequent `Slot` / `MultiSlot` is not used.
 Unused `Slot` / `MultiSlot` is not shown.
 
