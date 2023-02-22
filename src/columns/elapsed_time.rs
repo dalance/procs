@@ -11,7 +11,7 @@ use std::cmp;
 use std::collections::HashMap;
 
 #[cfg(any(target_os = "linux", target_os = "android"))]
-static TICKS_PER_SECOND: Lazy<u64> = Lazy::new(|| procfs::ticks_per_second());
+static TICKS_PER_SECOND: Lazy<u64> = Lazy::new(procfs::ticks_per_second);
 
 pub struct ElapsedTime {
     header: String,
