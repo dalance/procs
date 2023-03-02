@@ -15,7 +15,7 @@ use crate::util::{adjust, get_theme, lap, ArgColorMode, ArgPagerMode, ArgThemeMo
 use crate::view::View;
 use crate::watcher::Watcher;
 use anyhow::{anyhow, Context, Error};
-use clap::{IntoApp, Parser};
+use clap::{ArgEnum, IntoApp, Parser};
 use clap_complete::Shell;
 use console::Term;
 use std::cmp;
@@ -29,6 +29,12 @@ use unicode_width::UnicodeWidthStr;
 // ---------------------------------------------------------------------------------------------------------------------
 // Opt
 // ---------------------------------------------------------------------------------------------------------------------
+
+#[derive(Clone, Debug, ArgEnum)]
+pub enum BuiltinConfig {
+    Default,
+    Large,
+}
 
 #[derive(Debug, Parser)]
 #[clap(long_version(option_env!("LONG_VERSION").unwrap_or(env!("CARGO_PKG_VERSION"))))]
@@ -153,6 +159,10 @@ pub struct Opt {
     )]
     pub interval: u64,
 
+    /// Use built-in configuration
+    #[clap(action, long = "use-config", value_name = "name")]
+    pub use_config: Option<BuiltinConfig>,
+
     /// Load configuration from file
     #[clap(action, long = "load-config", value_name = "path")]
     pub load_config: Option<PathBuf>,
@@ -183,7 +193,7 @@ pub struct Opt {
 // ---------------------------------------------------------------------------------------------------------------------
 
 #[cfg_attr(tarpaulin, skip)]
-fn get_config(load_path: Option<PathBuf>) -> Result<Config, Error> {
+fn get_config(opt: &Opt) -> Result<Config, Error> {
     let dot_cfg_path = directories::BaseDirs::new()
         .map(|base| base.home_dir().join(".procs.toml"))
         .filter(|path| path.exists());
@@ -198,7 +208,12 @@ fn get_config(load_path: Option<PathBuf>) -> Result<Config, Error> {
                 .join("config.toml")
         })
         .filter(|path| path.exists());
-    let cfg_path = load_path.or(dot_cfg_path).or(app_cfg_path).or(xdg_cfg_path);
+    let cfg_path = opt
+        .load_config
+        .clone()
+        .or(dot_cfg_path)
+        .or(app_cfg_path)
+        .or(xdg_cfg_path);
 
     let config: Config = if let Some(path) = cfg_path {
         let mut f = fs::File::open(&path).context(format!("failed to open file ({path:?})"))?;
@@ -211,7 +226,11 @@ fn get_config(load_path: Option<PathBuf>) -> Result<Config, Error> {
         toml::from_str(CONFIG_DEFAULT).unwrap()
     };
 
-    Ok(config)
+    match opt.use_config {
+        Some(BuiltinConfig::Default) => Ok(toml::from_str(CONFIG_DEFAULT).unwrap()),
+        Some(BuiltinConfig::Large) => Ok(toml::from_str(CONFIG_LARGE).unwrap()),
+        None => Ok(config),
+    }
 }
 
 fn check_old_config(s: &str, config: Result<Config, toml::de::Error>) -> Result<Config, Error> {
@@ -280,7 +299,7 @@ fn run() -> Result<(), Error> {
         clap_complete::generate(shell, &mut Opt::command(), "procs", &mut stdout());
         Ok(())
     } else {
-        let config = get_config(opt.load_config.clone())?;
+        let config = get_config(&opt)?;
         if opt.watch_mode {
             let interval = match opt.watch_interval {
                 Some(n) => (n * 1000.0).round() as u64,
@@ -497,6 +516,18 @@ mod tests {
         let _udp = std::net::UdpSocket::bind("127.0.0.1:10000");
 
         let args = vec!["procs"];
+        let mut opt = Opt::parse_from(args.iter());
+        let ret = run_default(&mut opt, &config);
+        assert!(ret.is_ok());
+    }
+
+    #[test]
+    fn test_run_use_config() {
+        let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
+        config.pager.mode = ConfigPagerMode::Disable;
+        config.display.theme = ConfigTheme::Dark;
+
+        let args = vec!["procs", "--use-config", "large"];
         let mut opt = Opt::parse_from(args.iter());
         let ret = run_default(&mut opt, &config);
         assert!(ret.is_ok());
