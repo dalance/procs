@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.13.4...Unreleased) - ReleaseDate
 
+* [Fixed] hang on terminals which ignore DSR request [#288](https://github.com/dalance/procs/issues/288)
+
 ## [v0.13.4](https://github.com/dalance/procs/compare/v0.13.3...v0.13.4) - 2023-01-29
 
 * [Added] adding sort column to inserts [#396](https://github.com/dalance/procs/pull/396)
