@@ -309,14 +309,15 @@ pub fn get_theme(opt: &Opt, config: &Config) -> ConfigTheme {
         ConfigTheme::Auto => {
             if atty::is(Stream::Stdout) && atty::is(Stream::Stderr) && atty::is(Stream::Stdin) {
                 let minimum_timeout = Duration::from_millis(100);
-                let timeout = if let Ok(latency) = termbg::latency(Duration::from_millis(10000)) {
+                let timeout = if let Ok(latency) = termbg::latency(Duration::from_millis(1000)) {
                     if latency * 2 > minimum_timeout {
                         latency * 2
                     } else {
                         minimum_timeout
                     }
                 } else {
-                    minimum_timeout
+                    // If latency detection failed, fallback to dark theme
+                    return ConfigTheme::Dark;
                 };
 
                 if let Ok(theme) = termbg::theme(timeout) {
