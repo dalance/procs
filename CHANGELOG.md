@@ -5,6 +5,7 @@
 * [Changed] --config option to --gen-config
 * [Changed] --completion option to --gen-completion
 * [Changed] --completion-out option to --gen-completion-out
+* [Added] --config option to specify config file [#394](https://github.com/dalance/procs/issues/394)
 * [Fixed] hang on terminals which ignore DSR request [#288](https://github.com/dalance/procs/issues/288)
 
 ## [v0.13.4](https://github.com/dalance/procs/compare/v0.13.3...v0.13.4) - 2023-01-29

@@ -22,6 +22,7 @@ use std::cmp;
 use std::collections::HashMap;
 use std::fs;
 use std::io::{stdout, Read};
+use std::path::PathBuf;
 use std::time::Instant;
 use unicode_width::UnicodeWidthStr;
 
@@ -152,6 +153,10 @@ pub struct Opt {
     )]
     pub interval: u64,
 
+    /// Load configuration from file
+    #[clap(action, long = "config")]
+    pub config: Option<PathBuf>,
+
     /// Generate configuration sample file
     #[clap(action, long = "gen-config")]
     pub gen_config: bool,
@@ -178,7 +183,7 @@ pub struct Opt {
 // ---------------------------------------------------------------------------------------------------------------------
 
 #[cfg_attr(tarpaulin, skip)]
-fn get_config() -> Result<Config, Error> {
+fn get_config(opt_path: Option<PathBuf>) -> Result<Config, Error> {
     let dot_cfg_path = directories::BaseDirs::new()
         .map(|base| base.home_dir().join(".procs.toml"))
         .filter(|path| path.exists());
@@ -193,7 +198,7 @@ fn get_config() -> Result<Config, Error> {
                 .join("config.toml")
         })
         .filter(|path| path.exists());
-    let cfg_path = dot_cfg_path.or(app_cfg_path).or(xdg_cfg_path);
+    let cfg_path = opt_path.or(dot_cfg_path).or(app_cfg_path).or(xdg_cfg_path);
 
     let config: Config = if let Some(path) = cfg_path {
         let mut f = fs::File::open(&path).context(format!("failed to open file ({path:?})"))?;
@@ -275,7 +280,7 @@ fn run() -> Result<(), Error> {
         clap_complete::generate(shell, &mut Opt::command(), "procs", &mut stdout());
         Ok(())
     } else {
-        let config = get_config()?;
+        let config = get_config(opt.config.clone())?;
         if opt.watch_mode {
             let interval = match opt.watch_interval {
                 Some(n) => (n * 1000.0).round() as u64,
