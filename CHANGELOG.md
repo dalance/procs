@@ -5,7 +5,7 @@
 * [Changed] `--config` option to `--gen-config`
 * [Changed] `--completion` option to `--gen-completion`
 * [Changed] `--completion-out` option to `--gen-completion-out`
-* [Added] `--config` option to specify config file [#394](https://github.com/dalance/procs/issues/394)
+* [Added] `--load-config` option to specify config file [#394](https://github.com/dalance/procs/issues/394)
 * [Added] `show_header` and `show_footer` config [#405](https://github.com/dalance/procs/issues/405)
 * [Fixed] hang on terminals which ignore DSR request [#288](https://github.com/dalance/procs/issues/288)
 

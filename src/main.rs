@@ -154,8 +154,8 @@ pub struct Opt {
     pub interval: u64,
 
     /// Load configuration from file
-    #[clap(action, long = "config")]
-    pub config: Option<PathBuf>,
+    #[clap(action, long = "load-config", value_name = "path")]
+    pub load_config: Option<PathBuf>,
 
     /// Generate configuration sample file
     #[clap(action, long = "gen-config")]
@@ -183,7 +183,7 @@ pub struct Opt {
 // ---------------------------------------------------------------------------------------------------------------------
 
 #[cfg_attr(tarpaulin, skip)]
-fn get_config(opt_path: Option<PathBuf>) -> Result<Config, Error> {
+fn get_config(load_path: Option<PathBuf>) -> Result<Config, Error> {
     let dot_cfg_path = directories::BaseDirs::new()
         .map(|base| base.home_dir().join(".procs.toml"))
         .filter(|path| path.exists());
@@ -198,7 +198,7 @@ fn get_config(opt_path: Option<PathBuf>) -> Result<Config, Error> {
                 .join("config.toml")
         })
         .filter(|path| path.exists());
-    let cfg_path = opt_path.or(dot_cfg_path).or(app_cfg_path).or(xdg_cfg_path);
+    let cfg_path = load_path.or(dot_cfg_path).or(app_cfg_path).or(xdg_cfg_path);
 
     let config: Config = if let Some(path) = cfg_path {
         let mut f = fs::File::open(&path).context(format!("failed to open file ({path:?})"))?;
@@ -280,7 +280,7 @@ fn run() -> Result<(), Error> {
         clap_complete::generate(shell, &mut Opt::command(), "procs", &mut stdout());
         Ok(())
     } else {
-        let config = get_config(opt.config.clone())?;
+        let config = get_config(opt.load_config.clone())?;
         if opt.watch_mode {
             let interval = match opt.watch_interval {
                 Some(n) => (n * 1000.0).round() as u64,
