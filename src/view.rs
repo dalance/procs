@@ -414,7 +414,7 @@ impl View {
             View::pager(config);
         }
 
-        if !opt.no_header {
+        if !opt.no_header && config.display.show_header {
             // Ignore display_* error
             //   `Broken pipe` may occur at pager mode. It can be ignored safely.
             let _ = self.display_header(config, theme);
@@ -424,6 +424,11 @@ impl View {
         for pid in &self.visible_pids {
             let auxiliary = self.auxiliary_pids.contains(pid);
             let _ = self.display_content(config, *pid, theme, auxiliary);
+        }
+
+        if !opt.no_header && config.display.show_footer {
+            let _ = self.display_unit(config, theme);
+            let _ = self.display_header(config, theme);
         }
 
         Ok(())

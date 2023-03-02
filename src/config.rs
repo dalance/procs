@@ -532,6 +532,10 @@ pub struct ConfigDisplay {
     #[serde(default = "default_true")]
     pub show_children_in_tree: bool,
     #[serde(default = "default_true")]
+    pub show_header: bool,
+    #[serde(default = "default_false")]
+    pub show_footer: bool,
+    #[serde(default = "default_true")]
     pub cut_to_terminal: bool,
     #[serde(default = "default_false")]
     pub cut_to_pager: bool,
@@ -561,6 +565,8 @@ impl Default for ConfigDisplay {
             show_thread_in_tree: true,
             show_parent_in_tree: true,
             show_children_in_tree: true,
+            show_header: true,
+            show_footer: false,
             cut_to_terminal: true,
             cut_to_pager: false,
             cut_to_pipe: false,

@@ -600,6 +600,8 @@ style = "223"     # 223 for both theme
 | show_thread_in_tree   | true, false           | true             | Whether the thread information is shown in tree mode ( Linux only )          |
 | show_parent_in_tree   | true, false           | true             | Whether the parent process is shown in tree mode                             |
 | show_children_in_tree | true, false           | true             | Whether the children processes are shown in tree mode                        |
+| show_header           | true, false           | true             | Whether header row is shown                                                  |
+| show_footer           | true, false           | false            | Whether footer row is shown                                                  |
 | cut_to_terminal       | true, false           | true             | Whether output lines are truncated for output into terminal                  |
 | cut_to_pager          | true, false           | false            | Whether output lines are truncated for output into pager                     |
 | cut_to_pipe           | true, false           | false            | Whether output lines are truncated for output into pipe                      |
