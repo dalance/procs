@@ -153,16 +153,16 @@ pub struct Opt {
     pub interval: u64,
 
     /// Generate configuration sample file
-    #[clap(action, long = "config")]
-    pub config: bool,
+    #[clap(action, long = "gen-config")]
+    pub gen_config: bool,
 
     /// Generate shell completion file
-    #[clap(action, long = "completion", value_name = "shell")]
-    pub completion: Option<Shell>,
+    #[clap(action, long = "gen-completion", value_name = "shell")]
+    pub gen_completion: Option<Shell>,
 
     /// Generate shell completion file and write to stdout
-    #[clap(action, long = "completion-out", value_name = "shell")]
-    pub completion_out: Option<Shell>,
+    #[clap(action, long = "gen-completion-out", value_name = "shell")]
+    pub gen_completion_out: Option<Shell>,
 
     /// Suppress header
     #[clap(action, long = "no-header")]
@@ -253,11 +253,11 @@ fn run() -> Result<(), Error> {
     let mut opt: Opt = Parser::parse();
     opt.watch_mode = opt.watch || opt.watch_interval.is_some();
 
-    if opt.config {
-        run_config()
+    if opt.gen_config {
+        run_gen_config()
     } else if opt.list {
         run_list()
-    } else if let Some(shell) = opt.completion {
+    } else if let Some(shell) = opt.gen_completion {
         //Opt::clap().gen_completions("procs", shell, "./");
         clap_complete::generate_to(shell, &mut Opt::command(), "procs", "./")?;
         let path = match shell {
@@ -270,7 +270,7 @@ fn run() -> Result<(), Error> {
         };
         println!("completion file is generated: {path}");
         Ok(())
-    } else if let Some(shell) = opt.completion_out {
+    } else if let Some(shell) = opt.gen_completion_out {
         //Opt::clap().gen_completions_to("procs", shell, &mut stdout());
         clap_complete::generate(shell, &mut Opt::command(), "procs", &mut stdout());
         Ok(())
@@ -288,7 +288,7 @@ fn run() -> Result<(), Error> {
     }
 }
 
-fn run_config() -> Result<(), Error> {
+fn run_gen_config() -> Result<(), Error> {
     let config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
     let toml = toml::to_string(&config)?;
     println!("{toml}");
