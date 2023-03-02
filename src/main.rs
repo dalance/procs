@@ -422,8 +422,8 @@ mod tests {
     }
 
     #[test]
-    fn test_run_config() {
-        let ret = run_config();
+    fn test_run_gen_config() {
+        let ret = run_gen_config();
         assert!(ret.is_ok());
     }
 
