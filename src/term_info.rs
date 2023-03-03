@@ -37,7 +37,7 @@ impl TermInfo {
             self.term.clear_line()?;
         }
         if self.use_pager {
-            writeln!(self.pager.borrow_mut().as_mut().unwrap(), "{}", s)?;
+            writeln!(self.pager.borrow_mut().as_mut().unwrap(), "{s}")?;
         } else {
             self.term.write_line(s)?;
         }

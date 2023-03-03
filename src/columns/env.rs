@@ -35,7 +35,7 @@ impl Column for Env {
                     fmt_content.push_str(&format!(
                         "{}=\"{}\" ",
                         k.to_string_lossy(),
-                        v.to_string_lossy().replace("\"", "\\\"")
+                        v.to_string_lossy().replace('\"', "\\\"")
                     ));
                 }
             }
