@@ -33,9 +33,9 @@ impl Column for Env {
             if let Ok(envs) = proc.environ() {
                 for (k, v) in envs {
                     fmt_content.push_str(&format!(
-                        "{}={} ",
+                        "{}=\"{}\" ",
                         k.to_string_lossy(),
-                        v.to_string_lossy()
+                        v.to_string_lossy().replace("\"", "\\\"")
                     ));
                 }
             }
