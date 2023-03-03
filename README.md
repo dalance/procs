@@ -424,6 +424,7 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | Docker       | -not supported-       | Docker container name                         | o     | o     |         |
 | Eip          | eip                   | Instruction pointer                           | o     |       |         |
 | ElapsedTime  | -not supported-       | Elapsed time                                  | o     | o     | o       |
+| Env          | `e` output modifier   | Environment variables                         | o     |       |         |
 | Esp          | esp                   | Stack pointer                                 | o     |       |         |
 | FileName     | comm                  | File name                                     | o     |       |         |
 | Gid          | egid                  | Group ID                                      | o     | o     | o       |

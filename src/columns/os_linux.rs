@@ -6,6 +6,7 @@ pub mod docker;
 pub mod eip;
 pub mod elapsed_time;
 pub mod empty;
+pub mod env;
 pub mod esp;
 pub mod file_name;
 pub mod gid;
@@ -82,6 +83,7 @@ pub use self::docker::Docker;
 pub use self::eip::Eip;
 pub use self::elapsed_time::ElapsedTime;
 pub use self::empty::Empty;
+pub use self::env::Env;
 pub use self::esp::Esp;
 pub use self::file_name::FileName;
 pub use self::gid::Gid;
@@ -168,6 +170,7 @@ pub enum ConfigColumnKind {
     Eip,
     ElapsedTime,
     Empty,
+    Env,
     Esp,
     FileName,
     Gid,
@@ -261,6 +264,7 @@ pub fn gen_column(
         ConfigColumnKind::Eip => Box::new(Eip::new(header)),
         ConfigColumnKind::ElapsedTime => Box::new(ElapsedTime::new(header)),
         ConfigColumnKind::Empty => Box::new(Empty::new()),
+        ConfigColumnKind::Env => Box::new(Env::new(header)),
         ConfigColumnKind::Esp => Box::new(Esp::new(header)),
         ConfigColumnKind::FileName => Box::new(FileName::new(header)),
         ConfigColumnKind::Gid => Box::new(Gid::new(header, abbr_sid)),
@@ -361,6 +365,7 @@ pub static KIND_LIST: Lazy<HashMap<ConfigColumnKind, (&'static str, &'static str
                 ("ElapsedTime", "Elapsed time"),
             ),
             (ConfigColumnKind::Empty, ("Empty", "Empty")),
+            (ConfigColumnKind::Env, ("Env", "Environment variables")),
             (ConfigColumnKind::Esp, ("Esp", "Stack pointer")),
             (ConfigColumnKind::FileName, ("FileName", "File name")),
             (ConfigColumnKind::Gid, ("Gid", "Group ID")),
@@ -735,6 +740,9 @@ kind = "ElapsedTime"
 style = "BrightYellow"
 [[columns]]
 kind = "Empty"
+style = "BrightYellow"
+[[columns]]
+kind = "Env"
 style = "BrightYellow"
 [[columns]]
 kind = "Esp"
