@@ -7,6 +7,7 @@ pub mod eip;
 pub mod elapsed_time;
 pub mod empty;
 pub mod esp;
+pub mod file_name;
 pub mod gid;
 pub mod gid_fs;
 pub mod gid_real;
@@ -81,6 +82,7 @@ pub use self::eip::Eip;
 pub use self::elapsed_time::ElapsedTime;
 pub use self::empty::Empty;
 pub use self::esp::Esp;
+pub use self::file_name::FileName;
 pub use self::gid::Gid;
 pub use self::gid_fs::GidFs;
 pub use self::gid_real::GidReal;
@@ -165,6 +167,7 @@ pub enum ConfigColumnKind {
     ElapsedTime,
     Empty,
     Esp,
+    FileName,
     Gid,
     GidFs,
     GidReal,
@@ -256,6 +259,7 @@ pub fn gen_column(
         ConfigColumnKind::ElapsedTime => Box::new(ElapsedTime::new(header)),
         ConfigColumnKind::Empty => Box::new(Empty::new()),
         ConfigColumnKind::Esp => Box::new(Esp::new(header)),
+        ConfigColumnKind::FileName => Box::new(FileName::new(header)),
         ConfigColumnKind::Gid => Box::new(Gid::new(header, abbr_sid)),
         ConfigColumnKind::GidFs => Box::new(GidFs::new(header)),
         ConfigColumnKind::GidReal => Box::new(GidReal::new(header)),
@@ -354,6 +358,7 @@ pub static KIND_LIST: Lazy<HashMap<ConfigColumnKind, (&'static str, &'static str
             ),
             (ConfigColumnKind::Empty, ("Empty", "Empty")),
             (ConfigColumnKind::Esp, ("Esp", "Stack pointer")),
+            (ConfigColumnKind::FileName, ("FileName", "File name")),
             (ConfigColumnKind::Gid, ("Gid", "Group ID")),
             (ConfigColumnKind::GidFs, ("GidFs", "File system group ID")),
             (ConfigColumnKind::GidReal, ("GidReal", "Real group ID")),
@@ -725,6 +730,9 @@ kind = "Empty"
 style = "BrightYellow"
 [[columns]]
 kind = "Esp"
+style = "BrightBlue"
+[[columns]]
+kind = "FileName"
 style = "BrightBlue"
 [[columns]]
 kind = "Gid"

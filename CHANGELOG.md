@@ -9,6 +9,7 @@
 * [Added] `--use-config` option to specify built-in config [#152](https://github.com/dalance/procs/pull/152)
 * [Added] `show_header` and `show_footer` config [#405](https://github.com/dalance/procs/issues/405)
 * [Added] SecContext column [#260](https://github.com/dalance/procs/issues/260)
+* [Added] FileName column [#429](https://github.com/dalance/procs/issues/429)
 * [Fixed] hang on terminals which ignore DSR request [#288](https://github.com/dalance/procs/issues/288)
 
 ## [v0.13.4](https://github.com/dalance/procs/compare/v0.13.3...v0.13.4) - 2023-01-29
