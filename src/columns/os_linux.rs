@@ -27,6 +27,7 @@ pub mod priority;
 pub mod processor;
 pub mod read_bytes;
 pub mod rt_priority;
+pub mod sec_context;
 pub mod separator;
 pub mod session;
 pub mod shd_pnd;
@@ -100,6 +101,7 @@ pub use self::priority::Priority;
 pub use self::processor::Processor;
 pub use self::read_bytes::ReadBytes;
 pub use self::rt_priority::RtPriority;
+pub use self::sec_context::SecContext;
 pub use self::separator::Separator;
 pub use self::session::Session;
 pub use self::shd_pnd::ShdPnd;
@@ -183,6 +185,7 @@ pub enum ConfigColumnKind {
     Processor,
     ReadBytes,
     RtPriority,
+    SecContext,
     Separator,
     Session,
     ShdPnd,
@@ -273,6 +276,7 @@ pub fn gen_column(
         ConfigColumnKind::Processor => Box::new(Processor::new(header)),
         ConfigColumnKind::ReadBytes => Box::new(ReadBytes::new(header)),
         ConfigColumnKind::RtPriority => Box::new(RtPriority::new(header)),
+        ConfigColumnKind::SecContext => Box::new(SecContext::new(header)),
         ConfigColumnKind::Separator => Box::new(Separator::new(separator)),
         ConfigColumnKind::Session => Box::new(Session::new(header)),
         ConfigColumnKind::ShdPnd => Box::new(ShdPnd::new(header)),
@@ -396,6 +400,10 @@ pub static KIND_LIST: Lazy<HashMap<ConfigColumnKind, (&'static str, &'static str
             (
                 ConfigColumnKind::RtPriority,
                 ("RtPriority", "Real-time priority"),
+            ),
+            (
+                ConfigColumnKind::SecContext,
+                ("SecContext", "Security context"),
             ),
             (
                 ConfigColumnKind::Separator,
@@ -777,6 +785,9 @@ kind = "ReadBytes"
 style = "Cyan"
 [[columns]]
 kind = "RtPriority"
+style = "White"
+[[columns]]
+kind = "SecContext"
 style = "White"
 [[columns]]
 kind = "Separator"
