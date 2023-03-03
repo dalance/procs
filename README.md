@@ -38,8 +38,7 @@
 - macOS is experimentally supported.
     - macOS version is checked on Travis CI environment only.
     - The issues caused by real-machine are welcome.
-- Windows is experimentally supported.
-    - Paging is not supported
+- Windows is supported.
 
 ## Installation
 
@@ -218,7 +217,17 @@ Note that procs gets the container information through UNIX domain socket, so [D
 ### Pager
 
 If output lines exceed terminal height, pager is used automatically.
-This behavior and pager command can be specified by configuration file.
+This behavior and pager command can be specified by [configuration file](#pager-section).
+
+#### Linux / macOS
+
+On Linux and macOS, `less` is the default pager.
+If there is not `less`, `more` is used.
+Instead of them, built-in pager can be used by configuration `use_builtin`.
+
+#### Windows
+
+On Windows, built-in pager is always used.
 
 ### Watch mode
 
@@ -671,6 +680,7 @@ If `column` is 0, value is sorted by the left column.
 | ------------ | --------------------- | -------- | ------------------------------------------------------------------------ |
 | mode         | Auto, Always, Disable | Auto     | The default behavior of pager usage without `--pager` commandline option |
 | detect_width | true, false           | false    | Whether `auto` mode detects terminal width overflow                      |
+| use_builtin  | true, false           | false    | Whether built-in pager is used                                           |
 | command      | [Command]             | less -SR | Pager command                                                            |
 
 If `mode` is `Auto`, pager is used only when output lines exceed terminal height.

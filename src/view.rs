@@ -188,7 +188,7 @@ impl View {
             }
         }
 
-        let term_info = TermInfo::new(clear_by_line);
+        let term_info = TermInfo::new(clear_by_line, false);
         let mut sort_info = View::get_sort_info(opt, config, &columns);
 
         if opt.only.is_some() {
@@ -365,27 +365,37 @@ impl View {
             std::usize::MIN
         };
 
-        let use_pager = if cfg!(target_os = "windows") {
-            false
+        let use_builtin_pager = if cfg!(target_os = "windows") {
+            true
         } else {
-            match (opt.watch_mode, opt.pager.as_ref(), &config.pager.mode) {
-                (true, _, _) => false,
-                (false, Some(ArgPagerMode::Auto), _) => {
-                    self.term_info.height < pager_threshold_height
-                        || self.term_info.width < pager_threshold_width
-                }
-                (false, Some(ArgPagerMode::Always), _) => true,
-                (false, Some(ArgPagerMode::Disable), _) => false,
-                (false, None, ConfigPagerMode::Auto) => {
-                    self.term_info.height < pager_threshold_height
-                        || self.term_info.width < pager_threshold_width
-                }
-                (false, None, ConfigPagerMode::Always) => true,
-                (false, None, ConfigPagerMode::Disable) => false,
-            }
+            config.pager.use_builtin
         };
 
-        let mut truncate = use_terminal && use_pager && config.display.cut_to_pager;
+        let use_pager = match (opt.watch_mode, opt.pager.as_ref(), &config.pager.mode) {
+            (true, _, _) => false,
+            (false, Some(ArgPagerMode::Auto), _) => {
+                self.term_info.height < pager_threshold_height
+                    || self.term_info.width < pager_threshold_width
+            }
+            (false, Some(ArgPagerMode::Always), _) => true,
+            (false, Some(ArgPagerMode::Disable), _) => false,
+            (false, None, ConfigPagerMode::Auto) => {
+                self.term_info.height < pager_threshold_height
+                    || self.term_info.width < pager_threshold_width
+            }
+            (false, None, ConfigPagerMode::Always) => true,
+            (false, None, ConfigPagerMode::Disable) => false,
+        };
+
+        // Minus doesn't support horizontal scroll yet
+        // https://github.com/arijit79/minus/issues/59
+        let cut_to_pager = if use_builtin_pager {
+            true
+        } else {
+            config.display.cut_to_pager
+        };
+
+        let mut truncate = use_terminal && use_pager && cut_to_pager;
         truncate |= use_terminal && !use_pager && config.display.cut_to_terminal;
         truncate |= !use_terminal && config.display.cut_to_pipe;
 
@@ -411,7 +421,11 @@ impl View {
         }
 
         if use_pager {
-            View::pager(config);
+            if use_builtin_pager {
+                self.term_info.use_pager = true;
+            } else {
+                View::pager(config);
+            }
         }
 
         if !opt.no_header && config.display.show_header {
@@ -429,6 +443,10 @@ impl View {
         if !opt.no_header && config.display.show_footer {
             let _ = self.display_unit(config, theme);
             let _ = self.display_header(config, theme);
+        }
+
+        if self.term_info.use_pager {
+            minus::page_all(self.term_info.pager.replace(None).unwrap())?;
         }
 
         Ok(())

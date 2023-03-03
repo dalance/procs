@@ -1,26 +1,34 @@
 use anyhow::Error;
 use console::Term;
+use minus::Pager;
+use std::cell::RefCell;
+use std::fmt::Write;
 
 pub struct TermInfo {
     term: Term,
+    pub pager: RefCell<Option<Pager>>,
     pub height: usize,
     pub width: usize,
     pub clear_by_line: bool,
+    pub use_pager: bool,
 }
 
 #[cfg_attr(tarpaulin, skip)]
 impl TermInfo {
-    pub fn new(clear_by_line: bool) -> Self {
+    pub fn new(clear_by_line: bool, use_pager: bool) -> Self {
         let term = Term::stdout();
+        let pager = RefCell::new(Some(Pager::new()));
         let (term_h, term_w) = term.size();
         let height = term_h as usize;
         let width = term_w as usize;
 
         TermInfo {
             term,
+            pager,
             height,
             width,
             clear_by_line,
+            use_pager,
         }
     }
 
@@ -28,7 +36,11 @@ impl TermInfo {
         if self.clear_by_line {
             self.term.clear_line()?;
         }
-        self.term.write_line(s)?;
+        if self.use_pager {
+            writeln!(self.pager.borrow_mut().as_mut().unwrap(), "{}", s)?;
+        } else {
+            self.term.write_line(s)?;
+        }
         Ok(())
     }
 

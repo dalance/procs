@@ -637,6 +637,8 @@ pub struct ConfigPager {
     pub mode: ConfigPagerMode,
     #[serde(default = "default_false")]
     pub detect_width: bool,
+    #[serde(default = "default_false")]
+    pub use_builtin: bool,
     pub command: Option<String>,
 }
 
@@ -645,6 +647,7 @@ impl Default for ConfigPager {
         ConfigPager {
             mode: ConfigPagerMode::Auto,
             detect_width: false,
+            use_builtin: false,
             command: None,
         }
     }

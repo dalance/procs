@@ -11,6 +11,7 @@
 * [Added] SecContext column [#260](https://github.com/dalance/procs/issues/260)
 * [Added] FileName column [#429](https://github.com/dalance/procs/issues/429)
 * [Added] WorkDir column [#410](https://github.com/dalance/procs/issues/410)
+* [Added] Built-in pager and Windows pager support [#119](https://github.com/dalance/procs/issues/119)
 * [Fixed] hang on terminals which ignore DSR request [#288](https://github.com/dalance/procs/issues/288)
 
 ## [v0.13.4](https://github.com/dalance/procs/compare/v0.13.3...v0.13.4) - 2023-01-29
