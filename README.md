@@ -479,6 +479,7 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | VmStack      | -not supported-       | Stack size                                    | o     |       |         |
 | VmSwap       | -not supported-       | Swapped-out virtual memory size               | o     |       | o       |
 | Wchan        | wchan                 | Process sleeping kernel function              | o     |       |         |
+| WorkDir      | -not supported-       | Current working directory                     | o     |       |         |
 | WriteByte    | -not supported-       | Write bytes to storage                        | o     | o     | o       |
 
 #### `style` list

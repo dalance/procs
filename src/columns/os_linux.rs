@@ -71,6 +71,7 @@ pub mod vm_size;
 pub mod vm_stack;
 pub mod vm_swap;
 pub mod wchan;
+pub mod work_dir;
 pub mod write_bytes;
 
 pub use self::command::Command;
@@ -146,6 +147,7 @@ pub use self::vm_size::VmSize;
 pub use self::vm_stack::VmStack;
 pub use self::vm_swap::VmSwap;
 pub use self::wchan::Wchan;
+pub use self::work_dir::WorkDir;
 pub use self::write_bytes::WriteBytes;
 
 use crate::column::Column;
@@ -232,6 +234,7 @@ pub enum ConfigColumnKind {
     VmStack,
     VmSwap,
     Wchan,
+    WorkDir,
     WriteBytes,
 }
 
@@ -324,6 +327,7 @@ pub fn gen_column(
         ConfigColumnKind::VmStack => Box::new(VmStack::new(header)),
         ConfigColumnKind::VmSwap => Box::new(VmSwap::new(header)),
         ConfigColumnKind::Wchan => Box::new(Wchan::new(header)),
+        ConfigColumnKind::WorkDir => Box::new(WorkDir::new(header)),
         ConfigColumnKind::WriteBytes => Box::new(WriteBytes::new(header)),
     }
 }
@@ -492,6 +496,10 @@ pub static KIND_LIST: Lazy<HashMap<ConfigColumnKind, (&'static str, &'static str
             (
                 ConfigColumnKind::Wchan,
                 ("Wchan", "Process sleeping kernel function"),
+            ),
+            (
+                ConfigColumnKind::WorkDir,
+                ("WorkDir", "Current working directory"),
             ),
             (
                 ConfigColumnKind::WriteBytes,
@@ -916,6 +924,9 @@ kind = "VmSwap"
 style = "ByUnit"
 [[columns]]
 kind = "Wchan"
+style = "White"
+[[columns]]
+kind = "WorkDir"
 style = "White"
 [[columns]]
 kind = "WriteBytes"
