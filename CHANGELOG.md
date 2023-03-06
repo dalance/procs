@@ -14,6 +14,7 @@
 * [Added] Env column [#143](https://github.com/dalance/procs/issues/143)
 * [Added] Built-in pager and Windows pager support [#119](https://github.com/dalance/procs/issues/119)
 * [Fixed] hang on terminals which ignore DSR request [#288](https://github.com/dalance/procs/issues/288)
+* [Fixed] Column UserLogin shows 4294967295 [#441](https://github.com/dalance/procs/issues/441)
 
 ## [v0.13.4](https://github.com/dalance/procs/compare/v0.13.3...v0.13.4) - 2023-01-29
 

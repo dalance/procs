@@ -3,6 +3,8 @@ use crate::{column_default, Column};
 use std::cmp;
 use std::collections::HashMap;
 
+const UID_NOT_SET: u32 = 0xffffffff;
+
 pub struct UserLogin {
     header: String,
     unit: String,
@@ -30,6 +32,8 @@ impl Column for UserLogin {
         let fmt_content = if let Ok(uid) = proc.curr_proc.loginuid() {
             if let Some(user) = users::get_user_by_uid(uid) {
                 format!("{}", user.name().to_string_lossy())
+            } else if uid == UID_NOT_SET {
+                String::new()
             } else {
                 format!("{uid}")
             }
