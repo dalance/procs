@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.13.4...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.14.0...Unreleased) - ReleaseDate
+
+## [v0.14.0](https://github.com/dalance/procs/compare/v0.13.4...v0.14.0) - 2023-03-07
 
 * [Changed] `--config` option to `--gen-config`
 * [Changed] `--completion` option to `--gen-completion`
