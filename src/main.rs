@@ -186,6 +186,10 @@ pub struct Opt {
     /// Show debug message
     #[clap(action, long = "debug", hide = true)]
     pub debug: bool,
+
+    /// Do not show kernel threads (Linux only)
+    #[clap(action, long="no-kthreads")]
+    pub no_kthreads: bool,
 }
 
 // ---------------------------------------------------------------------------------------------------------------------

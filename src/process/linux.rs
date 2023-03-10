@@ -81,7 +81,7 @@ pub struct ProcessInfo {
     pub interval: Duration,
 }
 
-pub fn collect_proc(interval: Duration, with_thread: bool) -> Vec<ProcessInfo> {
+pub fn collect_proc(interval: Duration, with_thread: bool, without_kthread: bool) -> Vec<ProcessInfo> {
     let mut base_procs = Vec::new();
     let mut base_tasks = HashMap::new();
     let mut ret = Vec::new();
@@ -127,6 +127,12 @@ pub fn collect_proc(interval: Duration, with_thread: bool) -> Vec<ProcessInfo> {
         let curr_time = Instant::now();
         let interval = curr_time - prev_time;
         let ppid = curr_stat.ppid;
+
+        if without_kthread {
+            if ppid == 2 || pid == 2 {
+                continue;
+            }
+        }
 
         let mut curr_tasks = HashMap::new();
         if with_thread {
