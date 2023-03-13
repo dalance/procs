@@ -81,7 +81,11 @@ pub struct ProcessInfo {
     pub interval: Duration,
 }
 
-pub fn collect_proc(interval: Duration, with_thread: bool, without_kthread: bool) -> Vec<ProcessInfo> {
+pub fn collect_proc(
+    interval: Duration,
+    with_thread: bool,
+    without_kthread: bool,
+) -> Vec<ProcessInfo> {
     let mut base_procs = Vec::new();
     let mut base_tasks = HashMap::new();
     let mut ret = Vec::new();

@@ -70,7 +70,11 @@ pub struct CpuInfo {
 }
 
 #[cfg_attr(tarpaulin, skip)]
-pub fn collect_proc(interval: Duration, _with_thread: bool, _without_kthread: bool) -> Vec<ProcessInfo> {
+pub fn collect_proc(
+    interval: Duration,
+    _with_thread: bool,
+    _without_kthread: bool,
+) -> Vec<ProcessInfo> {
     let mut base_procs = Vec::new();
     let mut ret = Vec::new();
 
