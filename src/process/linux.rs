@@ -128,10 +128,8 @@ pub fn collect_proc(interval: Duration, with_thread: bool, without_kthread: bool
         let interval = curr_time - prev_time;
         let ppid = curr_stat.ppid;
 
-        if without_kthread {
-            if ppid == 2 || pid == 2 {
-                continue;
-            }
+        if without_kthread && (ppid == 2 || pid == 2) {
+            continue;
         }
 
         let mut curr_tasks = HashMap::new();
