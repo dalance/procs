@@ -73,7 +73,7 @@ pub struct CpuInfo {
 pub fn collect_proc(
     interval: Duration,
     _with_thread: bool,
-    _without_kthread: bool,
+    _show_kthreads: bool,
 ) -> Vec<ProcessInfo> {
     let mut base_procs = Vec::new();
     let mut ret = Vec::new();

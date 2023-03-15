@@ -171,7 +171,7 @@ impl View {
         let proc = collect_proc(
             Duration::from_millis(opt.interval),
             show_thread,
-            opt.no_kthreads,
+            config.display.show_kthreads,
         );
         for c in columns.iter_mut() {
             for p in &proc {
