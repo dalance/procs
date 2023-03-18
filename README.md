@@ -132,7 +132,7 @@ cargo install procs
 
 ### Permissions issues
 
-On macOS, normal users can't access any information on other users' processes
+On macOS, normal users can't access any information on other users' processes.
 On Linux, normal users can't access some information (ex. Read/Write throughput) of other users.
 
 If you want to show this information, you should use `sudo`.
