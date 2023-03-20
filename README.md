@@ -622,6 +622,7 @@ style = "223"     # 223 for both theme
 | show_children_in_tree | true, false           | true             | Whether the children processes are shown in tree mode                        |
 | show_header           | true, false           | true             | Whether header row is shown                                                  |
 | show_footer           | true, false           | false            | Whether footer row is shown                                                  |
+| show_kthreads         | true, false           | true             | Whether processes which belong to kthread are shown ( Linux only )           |
 | cut_to_terminal       | true, false           | true             | Whether output lines are truncated for output into terminal                  |
 | cut_to_pager          | true, false           | false            | Whether output lines are truncated for output into pager                     |
 | cut_to_pipe           | true, false           | false            | Whether output lines are truncated for output into pipe                      |

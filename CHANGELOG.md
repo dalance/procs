@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.14.0...Unreleased) - ReleaseDate
 
+* [Added] `show_kthreads` config [#446](https://github.com/dalance/procs/pull/446)
+
 ## [v0.14.0](https://github.com/dalance/procs/compare/v0.13.4...v0.14.0) - 2023-03-07
 
 * [Changed] `--config` option to `--gen-config`
