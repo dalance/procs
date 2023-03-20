@@ -555,6 +555,8 @@ pub struct ConfigDisplay {
     pub abbr_sid: bool,
     #[serde(default = "default_theme_auto")]
     pub theme: ConfigTheme,
+    #[serde(default = "default_true")]
+    pub show_kthreads: bool,
 }
 
 impl Default for ConfigDisplay {
@@ -583,6 +585,7 @@ impl Default for ConfigDisplay {
             ],
             abbr_sid: true,
             theme: ConfigTheme::Auto,
+            show_kthreads: true,
         }
     }
 }

@@ -42,7 +42,7 @@ impl Column for Command {
                 cmd = cmd.replace(['\n', '\t'], " ");
                 cmd
             } else {
-                proc.curr_proc.stat().comm.clone()
+                format!("[{}]", proc.curr_proc.stat().comm)
             }
         } else {
             proc.curr_proc.stat().comm.clone()
