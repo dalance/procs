@@ -168,7 +168,11 @@ impl View {
             config.display.show_thread
         };
 
-        let proc = collect_proc(Duration::from_millis(opt.interval), show_thread);
+        let proc = collect_proc(
+            Duration::from_millis(opt.interval),
+            show_thread,
+            config.display.show_kthreads,
+        );
         for c in columns.iter_mut() {
             for p in &proc {
                 c.column.add(p);
