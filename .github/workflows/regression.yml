@@ -14,74 +14,45 @@ jobs:
           - os: ubuntu-latest
             rust: stable
             target: x86_64-unknown-linux-gnu
-            use-cross: false
           - os: macOS-latest
             rust: stable
             target: x86_64-apple-darwin
-            use-cross: false
           - os: windows-latest
             rust: stable
             target: x86_64-pc-windows-msvc
-            use-cross: false
-#          - os: ubuntu-latest
-#            rust: stable
-#            target: armv7-linux-androideabi
-#            use-cross: true
 
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: ${{ matrix.rust }}
-          target: ${{ matrix.target }}
-          override: true
+          targets: ${{ matrix.target }}
       - name: Run tests
-        uses: actions-rs/cargo@v1
-        with:
-          use-cross: ${{ matrix.use-cross }}
-          command: test
-          args: --locked --target ${{ matrix.target }}
+        run: cargo test --locked --target ${{ matrix.target }}
       - name: Run tests feature variation
-        uses: actions-rs/cargo@v1
-        with:
-          use-cross: ${{ matrix.use-cross }}
-          command: test
-          args: --locked --target ${{ matrix.target }} --no-default-features
+        run: cargo test --locked --target ${{ matrix.target }} --no-default-features
 
   rustfmt:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: stable
-          override: true
-          profile: minimal
           components: rustfmt
       - name: Run rustfmt
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: -- --check
+        run: cargo fmt -- --check 
 
   clippy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: stable
-          override: true
-          profile: minimal
           components: clippy
       - name: Run clippy
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: -- -D warnings
+        run: cargo clippy -- -D warnings
       - name: Run clippy feature variation
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --no-default-features -- -D warnings
+        run: cargo clippy --no-default-features -- -D warnings
