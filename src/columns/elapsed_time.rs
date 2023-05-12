@@ -83,7 +83,9 @@ impl Column for ElapsedTime {
 #[cfg(target_os = "macos")]
 impl Column for ElapsedTime {
     fn add(&mut self, proc: &ProcessInfo) {
-        let start_time = Local.timestamp(proc.curr_task.pbsd.pbi_start_tvsec as i64, 0);
+        let start_time = Local
+            .timestamp_opt(proc.curr_task.pbsd.pbi_start_tvsec as i64, 0)
+            .unwrap();
         let raw_content = Local::now().signed_duration_since(start_time);
         let fmt_content = format_duration(raw_content);
 

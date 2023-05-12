@@ -69,7 +69,7 @@ impl Docker {
                 for c in cont {
                     // remove the first letter '/' from container name
                     let name = String::from(&c.Names[0][1..]);
-                    if let Ok(processes) = docker.processes(c.Id.as_str()) {
+                    if let Ok(processes) = rt.block_on(docker.processes(c.Id.as_str())) {
                         for p in processes {
                             if let Ok(pid) = p.pid.parse::<i32>() {
                                 containers.insert(pid, name.clone());

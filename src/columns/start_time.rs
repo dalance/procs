@@ -59,7 +59,9 @@ impl Column for StartTime {
 #[cfg(target_os = "macos")]
 impl Column for StartTime {
     fn add(&mut self, proc: &ProcessInfo) {
-        let start_time = Local.timestamp(proc.curr_task.pbsd.pbi_start_tvsec as i64, 0);
+        let start_time = Local
+            .timestamp_opt(proc.curr_task.pbsd.pbi_start_tvsec as i64, 0)
+            .unwrap();
         let raw_content = start_time;
         let fmt_content = format!("{}", start_time.format("%Y/%m/%d %H:%M"));
 
