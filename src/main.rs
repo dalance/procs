@@ -329,8 +329,6 @@ fn run_list() -> Result<(), Error> {
         width = cmp::max(width, UnicodeWidthStr::width(*v));
     }
 
-    list.sort();
-
     println!("Column kind list:");
     for l in list {
         println!(

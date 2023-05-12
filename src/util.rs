@@ -225,6 +225,13 @@ pub fn truncate(s: &'_ str, width: usize) -> Cow<'_, str> {
 }
 
 pub fn find_column_kind(pat: &str) -> Option<ConfigColumnKind> {
+    // strict search at first
+    for (k, (v, _)) in KIND_LIST.iter() {
+        if v.to_lowercase().eq(&pat.to_lowercase()) {
+            return Some(k.clone());
+        }
+    }
+
     for (k, (v, _)) in KIND_LIST.iter() {
         if v.to_lowercase().contains(&pat.to_lowercase()) {
             return Some(k.clone());
