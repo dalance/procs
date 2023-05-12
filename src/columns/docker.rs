@@ -3,6 +3,7 @@ use crate::{column_default, Column};
 use dockworker::container::ContainerFilters;
 use std::cmp;
 use std::collections::HashMap;
+use tokio::runtime::Runtime;
 
 pub struct Docker {
     header: String,
@@ -25,7 +26,10 @@ impl Docker {
         let mut containers = HashMap::new();
         let mut available = true;
         if let Ok(docker) = dockworker::Docker::connect_with_unix(path) {
-            if let Ok(cont) = docker.list_containers(None, None, None, ContainerFilters::new()) {
+            let rt = Runtime::new().unwrap();
+            if let Ok(cont) =
+                rt.block_on(docker.list_containers(None, None, None, ContainerFilters::new()))
+            {
                 for c in cont {
                     // remove the first letter '/' from container name
                     let name = String::from(&c.Names[0][1..]);
@@ -58,7 +62,10 @@ impl Docker {
         let mut containers = HashMap::new();
         let mut available = true;
         if let Ok(docker) = dockworker::Docker::connect_with_unix(path) {
-            if let Ok(cont) = docker.list_containers(None, None, None, ContainerFilters::new()) {
+            let rt = Runtime::new().unwrap();
+            if let Ok(cont) =
+                rt.block_on(docker.list_containers(None, None, None, ContainerFilters::new()))
+            {
                 for c in cont {
                     // remove the first letter '/' from container name
                     let name = String::from(&c.Names[0][1..]);
