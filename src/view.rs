@@ -192,7 +192,7 @@ impl View {
             }
         }
 
-        let term_info = TermInfo::new(clear_by_line, false);
+        let term_info = TermInfo::new(clear_by_line, false)?;
         let mut sort_info = View::get_sort_info(opt, config, &columns);
 
         if opt.only.is_some() {

@@ -100,7 +100,7 @@ impl Watcher {
         let (tx_sleep, rx_sleep) = channel();
         Watcher::spawn_sleep(rx_sleep, tx_cmd, interval);
 
-        let term_info = TermInfo::new(false, false);
+        let term_info = TermInfo::new(false, false)?;
         term_info.clear_screen()?;
 
         let mut sort_idx = None;
