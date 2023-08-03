@@ -540,9 +540,9 @@ dependencies = [
 
 [[package]]
 name = "dockworker"
-version = "0.2.1"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bff0297e644728ed7c6e0612dc53ad17b278c055d77ae5f5aa33fcd496e546b9"
+checksum = "b0a38dfe952d0d30c4d5d419e424b0e4f09df601b913b8af47d20aa5381701d7"
 dependencies = [
  "async-stream",
  "async-trait",
