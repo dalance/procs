@@ -51,7 +51,7 @@ serde         = "1.0"
 serde_derive  = "1.0"
 termbg        = "0.4.3"
 tokio         = { version = "1.32", optional = true, features = ["rt"] }
-toml          = "0.7"
+toml          = "0.8"
 unicode-width = "0.1"
 
 [target.'cfg(any(target_os = "linux", target_os = "android"))'.dependencies]
