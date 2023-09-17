@@ -208,12 +208,16 @@ fn get_config(opt: &Opt) -> Result<Config, Error> {
                 .join("config.toml")
         })
         .filter(|path| path.exists());
+    let etc_cfg_path = match PathBuf::from("/etc/procs/procs.toml") {
+        etc_path => etc_path.exists().then(|| etc_path),
+    };
     let cfg_path = opt
         .load_config
         .clone()
         .or(dot_cfg_path)
         .or(app_cfg_path)
-        .or(xdg_cfg_path);
+        .or(xdg_cfg_path)
+        .or(etc_cfg_path);
 
     let config: Config = if let Some(path) = cfg_path {
         let mut f = fs::File::open(&path).context(format!("failed to open file ({path:?})"))?;
