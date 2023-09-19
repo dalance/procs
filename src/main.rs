@@ -209,7 +209,7 @@ fn get_config(opt: &Opt) -> Result<Config, Error> {
         })
         .filter(|path| path.exists());
     let etc_cfg_path = match PathBuf::from("/etc/procs/procs.toml") {
-        etc_path => etc_path.exists().then(|| etc_path),
+        etc_path => etc_path.exists().then_some(etc_path),
     };
     let cfg_path = opt
         .load_config
