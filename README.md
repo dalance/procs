@@ -310,10 +310,10 @@ You can change configuration by writing a configuration file.
 There are some configuration examples in `config` directory of this repository.
 `config/large.toml` is the default configuration before procs v0.9.21.
 
-The location of the configuration file is OS-specific:
+The locations of the configuration file is OS-specific:
 
- * Linux: `~/.config/procs/config.toml`
- * macOS: `~/Library/Preferences/com.github.dalance.procs/config.toml`
+ * Linux: `~/.config/procs/config.toml`, `/etc/procs/procs.toml`
+ * macOS: `~/Library/Preferences/com.github.dalance.procs/config.toml`, `/etc/procs/procs.toml`
  * Windows: `~/AppData/Roaming/dalance/procs/config/config.toml`
 
 For compatibility, if `~/.procs.toml` exists, it will be preferred to
