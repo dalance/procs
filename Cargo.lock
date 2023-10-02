@@ -599,9 +599,9 @@ dependencies = [
 
 [[package]]
 name = "errno"
-version = "0.3.3"
+version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "136526188508e25c6fef639d7927dfb3e0e3084488bf202267829cf7fc23dbdd"
+checksum = "add4f07d43996f76ef320709726a556a9d4f965d9410d8d0271132d2f8293480"
 dependencies = [
  "errno-dragonfly",
  "libc",
@@ -1057,7 +1057,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "229004ebba9d1d5caf41623f1523b6d52abb47d9f6ab87f7e6fc992e3b854aef"
 dependencies = [
  "bindgen",
- "errno 0.3.3",
+ "errno 0.3.4",
  "libc",
 ]
 
@@ -1467,7 +1467,7 @@ dependencies = [
  "console",
  "directories",
  "dockworker",
- "errno 0.3.3",
+ "errno 0.3.4",
  "getch",
  "libc",
  "libproc",
@@ -1552,7 +1552,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3a38f9520be93aba504e8ca974197f46158de5dcaa9fa04b57c57cd6a679d658"
 dependencies = [
  "bitflags 1.3.2",
- "errno 0.3.3",
+ "errno 0.3.4",
  "io-lifetimes",
  "libc",
  "linux-raw-sys 0.1.4",
@@ -1566,7 +1566,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "acf8729d8542766f1b2cf77eb034d52f40d375bb8b615d0b147089946e16613d"
 dependencies = [
  "bitflags 1.3.2",
- "errno 0.3.3",
+ "errno 0.3.4",
  "io-lifetimes",
  "libc",
  "linux-raw-sys 0.3.7",
