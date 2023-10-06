@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.14.0...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.14.1...Unreleased) - ReleaseDate
+
+## [v0.14.1](https://github.com/dalance/procs/compare/v0.14.0...v0.14.1) - 2023-10-06
 
 * [Added] Also look for a config file in /etc/procs/procs.toml [#533](https://github.com/dalance/procs/pull/533)
 * [Added] less compatible keybinding of built-in pager
