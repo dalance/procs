@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.14.0...Unreleased) - ReleaseDate
 
+* [Added] Also look for a config file in /etc/procs/procs.toml [#533](https://github.com/dalance/procs/pull/533)
 * [Added] less compatible keybinding of built-in pager
 * [Added] `show_kthreads` config [#446](https://github.com/dalance/procs/pull/446)
 * [Fixed] procs -i Pid displays Parent PID, not PID, sometimes [#457](https://github.com/dalance/procs/issues/457)
