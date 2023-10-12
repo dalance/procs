@@ -55,5 +55,5 @@ Keyboard shortcuts are available for control.
 *d*:: Change the sort order to descending
 *q*:: Quit
 
-== Resources
+== RESOURCES
 *Project source code:* https://github.com/dalance/procs
