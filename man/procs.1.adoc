@@ -1,0 +1,59 @@
+= procs(1)
+:doctype: manpage
+:manmanual: User Commands
+:mansource: procs
+:man-linkstyle: pass:[blue R < >]
+
+== NAME
+
+procs - a replacement for `ps` written in Rust
+
+== SYNOPSIS
+
+*procs* [OPTIONS] [KEYWORDS]
+
+== DESCRIPTION
+
+*procs* is a command-line tool that provides an alternative to the `ps` command.
+
+== OPTIONS
+
+*--and*:: Show processes that match all keywords.
+*--or*:: Show processes that match any keyword.
+*--nand*:: Show processes unless they match all keywords.
+*--nor*:: Show processes unless they match any keyword.
+*--watch*:: Enable watch mode for real-time updates.
+*--watch-interval <second>*:: Set the update interval for watch mode.
+*--tree*:: Display processes in a tree view.
+*--sorta <column>*:: Sort processes in ascending order by the specified column.
+*--sortd <column>*:: Sort processes in descending order by the specified column.
+*--insert <column>*:: Insert a new column at the position of `Slot` or `MultiSlot`.
+*--gen-completion*:: Generate shell completion files for supported shells.
+
+== EXAMPLES
+
+*Show all processes*:: procs
+
+*Search by non-numeric keyword*:: procs zsh
+
+*Search by numeric keyword*:: procs --or 6000 60000 60001 16723
+
+*Show Docker container name*:: procs growi
+
+== PAGER
+
+On Linux and macOS, `less` is the default pager. If not available, `more` is used. Built-in pager can be used by configuring `use_builtin`. On Windows, the built-in pager is always used.
+
+== WATCH MODE SHORTCUTS
+
+If `--watch` or `--watch-interval <second>` option is used, procs automatically updates output like `top`.
+Keyboard shortcuts are available for control.
+
+*n*:: Change the sort column to the next column
+*p*:: Change the sort column to the previous column
+*a*:: Change the sort order to ascending
+*d*:: Change the sort order to descending
+*q*:: Quit
+
+== RESOURCES
+*Project source code:* https://github.com/dalance/procs
