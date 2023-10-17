@@ -5,7 +5,6 @@ use crate::Opt;
 use byte_unit::Byte;
 use clap::ValueEnum;
 use std::borrow::Cow;
-use std::cell::RefCell;
 use std::io::{self, IsTerminal};
 use std::time::Duration;
 use std::time::Instant;
@@ -351,5 +350,5 @@ pub fn get_theme(opt: &Opt, config: &Config) -> ConfigTheme {
 
 #[cfg(not(target_os = "windows"))]
 thread_local! {
-    pub static USERS_CACHE: RefCell<UsersCache> = UsersCache::new().into();
+    pub static USERS_CACHE: std::cell::RefCell<UsersCache> = UsersCache::new().into();
 }
