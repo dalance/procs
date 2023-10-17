@@ -15,7 +15,7 @@ use crate::util::{adjust, get_theme, lap, ArgColorMode, ArgPagerMode, ArgThemeMo
 use crate::view::View;
 use crate::watcher::Watcher;
 use anyhow::{anyhow, Context, Error};
-use clap::{ArgEnum, IntoApp, Parser};
+use clap::{CommandFactory, Parser, ValueEnum};
 use clap_complete::Shell;
 use console::Term;
 use std::cmp;
@@ -30,7 +30,7 @@ use unicode_width::UnicodeWidthStr;
 // Opt
 // ---------------------------------------------------------------------------------------------------------------------
 
-#[derive(Clone, Debug, ArgEnum)]
+#[derive(Clone, Debug, ValueEnum)]
 pub enum BuiltinConfig {
     Default,
     Large,
@@ -38,7 +38,6 @@ pub enum BuiltinConfig {
 
 #[derive(Debug, Parser)]
 #[clap(long_version(option_env!("LONG_VERSION").unwrap_or(env!("CARGO_PKG_VERSION"))))]
-#[clap(setting(clap::AppSettings::DeriveDisplayOrder))]
 /// A modern replacement for ps
 ///
 /// please see https://github.com/dalance/procs#configuration to configure columns
