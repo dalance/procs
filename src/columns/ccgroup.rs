@@ -66,8 +66,7 @@ impl Column for Ccgroup {
             let name = replace!(name, self.pat_lxc_payload, "/[lxc:{}]");
             let name = replace!(name, self.pat_scope, "/!{}");
             let name = replace!(name, self.pat_service, "/{}");
-            let name = replace!(name, self.pat_slice, "/[{}]");
-            name
+            replace!(name, self.pat_slice, "/[{}]")
         } else {
             "".to_string()
         };
