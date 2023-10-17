@@ -30,7 +30,7 @@ impl UserLogin {
 impl Column for UserLogin {
     fn add(&mut self, proc: &ProcessInfo) {
         let fmt_content = if let Ok(uid) = proc.curr_proc.loginuid() {
-            if let Some(user) = users::get_user_by_uid(uid) {
+            if let Some(user) = uzers::get_user_by_uid(uid) {
                 format!("{}", user.name().to_string_lossy())
             } else if uid == UID_NOT_SET {
                 String::new()

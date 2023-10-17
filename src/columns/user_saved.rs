@@ -30,7 +30,7 @@ impl Column for UserSaved {
     fn add(&mut self, proc: &ProcessInfo) {
         let fmt_content = if let Some(ref status) = proc.curr_status {
             let uid = status.suid;
-            if let Some(user) = users::get_user_by_uid(uid) {
+            if let Some(user) = uzers::get_user_by_uid(uid) {
                 format!("{}", user.name().to_string_lossy())
             } else {
                 format!("{uid}")
@@ -52,7 +52,7 @@ impl Column for UserSaved {
 impl Column for UserSaved {
     fn add(&mut self, proc: &ProcessInfo) {
         let uid = proc.curr_task.pbsd.pbi_svuid;
-        let fmt_content = if let Some(user) = users::get_user_by_uid(uid) {
+        let fmt_content = if let Some(user) = uzers::get_user_by_uid(uid) {
             format!("{}", user.name().to_string_lossy())
         } else {
             format!("{}", uid)

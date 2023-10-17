@@ -30,7 +30,7 @@ impl Column for GroupSaved {
     fn add(&mut self, proc: &ProcessInfo) {
         let fmt_content = if let Some(ref status) = proc.curr_status {
             let gid = status.sgid;
-            if let Some(group) = users::get_group_by_gid(gid) {
+            if let Some(group) = uzers::get_group_by_gid(gid) {
                 format!("{}", group.name().to_string_lossy())
             } else {
                 format!("{gid}")
@@ -52,7 +52,7 @@ impl Column for GroupSaved {
 impl Column for GroupSaved {
     fn add(&mut self, proc: &ProcessInfo) {
         let gid = proc.curr_task.pbsd.pbi_svgid;
-        let fmt_content = if let Some(group) = users::get_group_by_gid(gid) {
+        let fmt_content = if let Some(group) = uzers::get_group_by_gid(gid) {
             format!("{}", group.name().to_string_lossy())
         } else {
             format!("{}", gid)

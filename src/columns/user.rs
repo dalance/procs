@@ -33,7 +33,7 @@ impl User {
 #[cfg(any(target_os = "linux", target_os = "android"))]
 impl Column for User {
     fn add(&mut self, proc: &ProcessInfo) {
-        let user = users::get_user_by_uid(proc.curr_proc.owner());
+        let user = uzers::get_user_by_uid(proc.curr_proc.owner());
         let fmt_content = if let Some(user) = user {
             format!("{}", user.name().to_string_lossy())
         } else {
@@ -53,7 +53,7 @@ impl Column for User {
 impl Column for User {
     fn add(&mut self, proc: &ProcessInfo) {
         let uid = proc.curr_task.pbsd.pbi_uid;
-        let fmt_content = if let Some(user) = users::get_user_by_uid(uid) {
+        let fmt_content = if let Some(user) = uzers::get_user_by_uid(uid) {
             format!("{}", user.name().to_string_lossy())
         } else {
             format!("{}", uid)
