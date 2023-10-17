@@ -10,6 +10,7 @@ use std::io::{self, IsTerminal};
 use std::time::Duration;
 use std::time::Instant;
 use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
+#[cfg(not(target_os = "windows"))]
 use uzers::UsersCache;
 
 #[derive(ValueEnum, Copy, Clone, Debug, PartialEq, Eq)]
@@ -348,6 +349,7 @@ pub fn get_theme(opt: &Opt, config: &Config) -> ConfigTheme {
     }
 }
 
+#[cfg(not(target_os = "windows"))]
 thread_local! {
     pub static USERS_CACHE: RefCell<UsersCache> = UsersCache::new().into();
 }

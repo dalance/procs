@@ -1,10 +1,12 @@
 use crate::process::ProcessInfo;
 #[cfg(target_os = "windows")]
 use crate::util::format_sid;
+#[cfg(not(target_os = "windows"))]
 use crate::util::USERS_CACHE;
 use crate::{column_default, Column};
 use std::cmp;
 use std::collections::HashMap;
+#[cfg(not(target_os = "windows"))]
 use uzers::Groups;
 
 pub struct Group {
