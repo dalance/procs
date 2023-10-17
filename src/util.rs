@@ -2,11 +2,11 @@ use crate::column::Column;
 use crate::columns::{ConfigColumnKind, KIND_LIST};
 use crate::config::{Config, ConfigColumnAlign, ConfigSearchCase, ConfigSearchLogic, ConfigTheme};
 use crate::Opt;
-use atty::Stream;
 use byte_unit::Byte;
 use clap::ValueEnum;
 use std::borrow::Cow;
 use std::cell::RefCell;
+use std::io::{self, IsTerminal};
 use std::time::Duration;
 use std::time::Instant;
 use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
@@ -316,7 +316,8 @@ pub fn get_theme(opt: &Opt, config: &Config) -> ConfigTheme {
     };
     match theme {
         ConfigTheme::Auto => {
-            if atty::is(Stream::Stdout) && atty::is(Stream::Stderr) && atty::is(Stream::Stdin) {
+            if io::stdout().is_terminal() && io::stderr().is_terminal() && io::stdin().is_terminal()
+            {
                 let minimum_timeout = Duration::from_millis(100);
                 let timeout = if let Ok(latency) = termbg::latency(Duration::from_millis(1000)) {
                     if latency * 2 > minimum_timeout {
