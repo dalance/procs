@@ -418,6 +418,8 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 
 | procs `kind` | `ps` STANDARD FORMAT  | Description                                   | Linux | macOS | Windows |
 | ------------ | --------------------- | --------------------------------------------- | ----- | ----- | ------- |
+| Ccgroup      | -not supported-       | Control group by compressed format            | o     |       |         |
+| Cgroup       | cgroup                | Control group                                 | o     |       |         |
 | Command      | args                  | Command with all arguments                    | o     | o     | o       |
 | ContextSw    | -not supported-       | Context switch count                          | o     | o     |         |
 | CpuTime      | cputime               | Cumulative CPU time                           | o     | o     | o       |

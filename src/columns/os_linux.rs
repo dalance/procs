@@ -1,3 +1,5 @@
+pub mod ccgroup;
+pub mod cgroup;
 pub mod command;
 pub mod context_sw;
 pub mod cpu_time;
@@ -75,6 +77,8 @@ pub mod wchan;
 pub mod work_dir;
 pub mod write_bytes;
 
+pub use self::ccgroup::Ccgroup;
+pub use self::cgroup::Cgroup;
 pub use self::command::Command;
 pub use self::context_sw::ContextSw;
 pub use self::cpu_time::CpuTime;
@@ -163,6 +167,8 @@ use std::collections::BTreeMap;
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum ConfigColumnKind {
+    Ccgroup,
+    Cgroup,
     Command,
     ContextSw,
     CpuTime,
@@ -254,6 +260,8 @@ pub fn gen_column(
     tree_symbols: &[String; 5],
 ) -> Box<dyn Column> {
     match kind {
+        ConfigColumnKind::Ccgroup => Box::new(Ccgroup::new(header)),
+        ConfigColumnKind::Cgroup => Box::new(Cgroup::new(header)),
         ConfigColumnKind::Command => Box::new(Command::new(header)),
         ConfigColumnKind::ContextSw => Box::new(ContextSw::new(header)),
         ConfigColumnKind::CpuTime => Box::new(CpuTime::new(header)),
@@ -343,6 +351,16 @@ pub fn gen_column(
 pub static KIND_LIST: Lazy<BTreeMap<ConfigColumnKind, (&'static str, &'static str)>> =
     Lazy::new(|| {
         [
+            (
+                ConfigColumnKind::Ccgroup,
+                ("Ccgroup", "Control group by compressed format"),
+            ),
+            (ConfigColumnKind::Cgroup, ("Cgroup", "Control group")),
+            (
+                ConfigColumnKind::Command,
+                ("Command", "Command with all arguments"),
+            ),
+            (ConfigColumnKind::Cgroup, ("Cgroup", "Control group")),
             (
                 ConfigColumnKind::Command,
                 ("Command", "Command with all arguments"),
@@ -717,6 +735,14 @@ align = "Left"
 
 #[cfg(test)]
 pub static CONFIG_ALL: &str = r#"
+[[columns]]
+kind = "Ccgroup"
+style = "BrightRed"
+align = "Left"
+[[columns]]
+kind = "Cgroup"
+style = "BrightRed"
+align = "Left"
 [[columns]]
 kind = "Command"
 style = "BrightRed"
