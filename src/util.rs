@@ -6,9 +6,11 @@ use atty::Stream;
 use byte_unit::Byte;
 use clap::ValueEnum;
 use std::borrow::Cow;
+use std::cell::RefCell;
 use std::time::Duration;
 use std::time::Instant;
 use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
+use uzers::UsersCache;
 
 #[derive(ValueEnum, Copy, Clone, Debug, PartialEq, Eq)]
 pub enum ArgColorMode {
@@ -343,4 +345,8 @@ pub fn get_theme(opt: &Opt, config: &Config) -> ConfigTheme {
         }
         x => x,
     }
+}
+
+thread_local! {
+    pub static USERS_CACHE: RefCell<UsersCache> = UsersCache::new().into();
 }

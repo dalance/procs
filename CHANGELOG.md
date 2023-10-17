@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.14.1...Unreleased) - ReleaseDate
 
+* [Added] User/group cache support
 * [Added] Cgroup/Ccgroup column [#529](https://github.com/dalance/procs/issues/529)
 
 ## [v0.14.1](https://github.com/dalance/procs/compare/v0.14.0...v0.14.1) - 2023-10-06

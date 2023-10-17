@@ -1,9 +1,11 @@
 use crate::process::ProcessInfo;
 #[cfg(target_os = "windows")]
 use crate::util::format_sid;
+use crate::util::USERS_CACHE;
 use crate::{column_default, Column};
 use std::cmp;
 use std::collections::HashMap;
+use uzers::Groups;
 
 pub struct Group {
     header: String,
@@ -35,7 +37,7 @@ impl Column for Group {
     fn add(&mut self, proc: &ProcessInfo) {
         let fmt_content = if let Some(ref status) = proc.curr_status {
             let gid = status.egid;
-            if let Some(group) = uzers::get_group_by_gid(gid) {
+            if let Some(group) = USERS_CACHE.with_borrow_mut(|x| x.get_group_by_gid(gid)) {
                 format!("{}", group.name().to_string_lossy())
             } else {
                 format!("{gid}")
@@ -57,11 +59,12 @@ impl Column for Group {
 impl Column for Group {
     fn add(&mut self, proc: &ProcessInfo) {
         let gid = proc.curr_task.pbsd.pbi_gid;
-        let fmt_content = if let Some(group) = uzers::get_group_by_gid(gid) {
-            format!("{}", group.name().to_string_lossy())
-        } else {
-            format!("{}", gid)
-        };
+        let fmt_content =
+            if let Some(group) = USERS_CACHE.with_borrow_mut(|x| x.get_group_by_gid(gid)) {
+                format!("{}", group.name().to_string_lossy())
+            } else {
+                format!("{}", gid)
+            };
         let raw_content = fmt_content.clone();
 
         self.fmt_contents.insert(proc.pid, fmt_content);

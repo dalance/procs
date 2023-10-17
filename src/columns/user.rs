@@ -1,9 +1,11 @@
 use crate::process::ProcessInfo;
 #[cfg(target_os = "windows")]
 use crate::util::format_sid;
+use crate::util::USERS_CACHE;
 use crate::{column_default, Column};
 use std::cmp;
 use std::collections::HashMap;
+use uzers::Users;
 
 pub struct User {
     header: String,
@@ -33,7 +35,7 @@ impl User {
 #[cfg(any(target_os = "linux", target_os = "android"))]
 impl Column for User {
     fn add(&mut self, proc: &ProcessInfo) {
-        let user = uzers::get_user_by_uid(proc.curr_proc.owner());
+        let user = USERS_CACHE.with_borrow_mut(|x| x.get_user_by_uid(proc.curr_proc.owner()));
         let fmt_content = if let Some(user) = user {
             format!("{}", user.name().to_string_lossy())
         } else {
@@ -53,11 +55,12 @@ impl Column for User {
 impl Column for User {
     fn add(&mut self, proc: &ProcessInfo) {
         let uid = proc.curr_task.pbsd.pbi_uid;
-        let fmt_content = if let Some(user) = uzers::get_user_by_uid(uid) {
-            format!("{}", user.name().to_string_lossy())
-        } else {
-            format!("{}", uid)
-        };
+        let fmt_content =
+            if let Some(user) = USERS_CACHE.with_borrow_mut(|x| x.get_user_by_uid(uid)) {
+                format!("{}", user.name().to_string_lossy())
+            } else {
+                format!("{}", uid)
+            };
         let raw_content = fmt_content.clone();
 
         self.fmt_contents.insert(proc.pid, fmt_content);
