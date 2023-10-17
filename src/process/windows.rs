@@ -112,7 +112,7 @@ pub fn collect_proc(
 
             let start_time = if let Some((start, _, _, _)) = times {
                 let time = chrono::Duration::seconds(start as i64 / 10_000_000);
-                let base = NaiveDate::from_ymd_opt(1600, 1, 1)
+                let base = NaiveDate::from_ymd_opt(1601, 1, 1)
                     .and_then(|ndate| ndate.and_hms_opt(0, 0, 0))
                     .unwrap();
                 let time = base + time;
