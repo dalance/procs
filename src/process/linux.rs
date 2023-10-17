@@ -1,6 +1,5 @@
 use procfs::process::{FDInfo, Io, Process, Stat, Status, TasksIter};
 use procfs::ProcError;
-#[cfg(feature = "docker")]
 use procfs::ProcessCgroup;
 use std::collections::HashMap;
 use std::thread;
@@ -33,7 +32,6 @@ impl ProcessTask {
         }
     }
 
-    #[cfg(feature = "docker")]
     pub fn cgroups(&self) -> Result<Vec<ProcessCgroup>, ProcError> {
         match self {
             ProcessTask::Process { proc: x, .. } => x.cgroups(),
