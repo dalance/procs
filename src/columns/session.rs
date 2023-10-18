@@ -58,3 +58,16 @@ impl Column for Session {
 
     column_default!(i32);
 }
+
+#[cfg(target_os = "freebsd")]
+impl Column for Session {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let raw_content = proc.curr_proc.info.sid;
+        let fmt_content = format!("{}", raw_content);
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(i32);
+}

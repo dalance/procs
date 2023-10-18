@@ -74,3 +74,23 @@ impl Column for CpuTime {
 
     column_default!(u64);
 }
+
+#[cfg_attr(tarpaulin, skip)]
+#[cfg(target_os = "freebsd")]
+impl Column for CpuTime {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let time_sec = ((proc.curr_proc.info.rusage.utime.sec * 1_000_000i64
+            + proc.curr_proc.info.rusage.utime.usec
+            + proc.curr_proc.info.rusage.stime.sec * 1_000_000i64
+            + proc.curr_proc.info.rusage.stime.usec)
+            / 1_000_000) as u64;
+
+        let fmt_content = util::parse_time(time_sec);
+        let raw_content = time_sec;
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(u64);
+}

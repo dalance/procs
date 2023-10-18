@@ -84,3 +84,18 @@ impl Column for Gid {
 
     column_default!(u32);
 }
+
+#[cfg_attr(tarpaulin, skip)]
+#[cfg(target_os = "freebsd")]
+impl Column for Gid {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let gid = proc.curr_proc.info.svgid;
+        let fmt_content = format!("{}", gid);
+        let raw_content = gid;
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(u32);
+}

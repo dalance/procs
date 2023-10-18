@@ -75,3 +75,18 @@ impl Column for Uid {
 
     column_default!(u32);
 }
+
+#[cfg_attr(tarpaulin, skip)]
+#[cfg(target_os = "freebsd")]
+impl Column for Uid {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let uid = proc.curr_proc.info.uid;
+        let fmt_content = format!("{}", uid);
+        let raw_content = uid;
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(u32);
+}

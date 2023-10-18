@@ -48,3 +48,19 @@ impl Column for Env {
 
     column_default!(String);
 }
+
+#[cfg(target_os = "freebsd")]
+impl Column for Env {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let mut fmt_content = String::new();
+        for env in &proc.curr_proc.env {
+            fmt_content.push_str(&format!("{} ", env.replace('\"', "\\\"")));
+        }
+        let raw_content = fmt_content.clone();
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(String);
+}

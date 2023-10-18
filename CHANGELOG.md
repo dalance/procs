@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.14.1...Unreleased) - ReleaseDate
 
+* [Added] BSD support [#313](https://github.com/dalance/procs/issues/313)
 * [Fixed] wrong time handling on Windows
 * [Added] User/group cache support
 * [Added] Cgroup/Ccgroup column [#529](https://github.com/dalance/procs/issues/529)

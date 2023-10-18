@@ -89,3 +89,23 @@ impl Column for User {
 
     column_default!(String);
 }
+
+#[cfg_attr(tarpaulin, skip)]
+#[cfg(target_os = "freebsd")]
+impl Column for User {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let uid = proc.curr_proc.info.uid;
+        let fmt_content =
+            if let Some(user) = USERS_CACHE.with_borrow_mut(|x| x.get_user_by_uid(uid)) {
+                format!("{}", user.name().to_string_lossy())
+            } else {
+                format!("{}", uid)
+            };
+        let raw_content = fmt_content.clone();
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(String);
+}

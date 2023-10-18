@@ -109,3 +109,20 @@ impl Column for ElapsedTime {
 
     column_default!(Duration);
 }
+
+#[cfg_attr(tarpaulin, skip)]
+#[cfg(target_os = "freebsd")]
+impl Column for ElapsedTime {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let start_time = Local
+            .timestamp_opt(proc.curr_proc.info.start.sec as i64, 0)
+            .unwrap();
+        let raw_content = Local::now().signed_duration_since(start_time);
+        let fmt_content = format_duration(raw_content);
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(Duration);
+}

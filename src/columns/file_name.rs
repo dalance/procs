@@ -37,3 +37,23 @@ impl Column for FileName {
 
     column_default!(String);
 }
+
+#[cfg_attr(tarpaulin, skip)]
+#[cfg(target_os = "freebsd")]
+impl Column for FileName {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let comm = crate::util::i8_to_cstr(proc.curr_proc.info.comm.as_ref());
+        let comm = if let Ok(comm) = comm {
+            comm.to_string_lossy().into_owned()
+        } else {
+            String::from("")
+        };
+        let fmt_content = comm;
+        let raw_content = fmt_content.clone();
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(String);
+}

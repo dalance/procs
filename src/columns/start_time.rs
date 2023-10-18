@@ -85,3 +85,20 @@ impl Column for StartTime {
 
     column_default!(DateTime<Local>);
 }
+
+#[cfg_attr(tarpaulin, skip)]
+#[cfg(target_os = "freebsd")]
+impl Column for StartTime {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let start_time = Local
+            .timestamp_opt(proc.curr_proc.info.start.sec as i64, 0)
+            .unwrap();
+        let raw_content = start_time;
+        let fmt_content = format!("{}", start_time.format("%Y/%m/%d %H:%M"));
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(DateTime<Local>);
+}

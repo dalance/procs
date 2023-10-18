@@ -4,3 +4,5 @@ include!("./columns/os_linux.rs");
 include!("./columns/os_macos.rs");
 #[cfg(target_os = "windows")]
 include!("./columns/os_windows.rs");
+#[cfg(target_os = "freebsd")]
+include!("./columns/os_bsd.rs");

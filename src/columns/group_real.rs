@@ -68,3 +68,22 @@ impl Column for GroupReal {
 
     column_default!(String);
 }
+
+#[cfg(target_os = "freebsd")]
+impl Column for GroupReal {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let gid = proc.curr_proc.info.rgid;
+        let fmt_content =
+            if let Some(group) = USERS_CACHE.with_borrow_mut(|x| x.get_group_by_gid(gid)) {
+                format!("{}", group.name().to_string_lossy())
+            } else {
+                format!("{gid}")
+            };
+        let raw_content = fmt_content.clone();
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(String);
+}

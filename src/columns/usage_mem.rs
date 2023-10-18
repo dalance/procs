@@ -75,6 +75,27 @@ fn get_mem_total() -> u64 {
     }
 }
 
+#[cfg_attr(tarpaulin, skip)]
+#[cfg(target_os = "freebsd")]
+fn get_mem_total() -> u64 {
+    let mut mem_total: u64 = 0;
+    let name = std::ffi::CString::new("hw.availpages").unwrap();
+    let mut size = std::mem::size_of::<u64>();
+    let ptr: *mut u64 = &mut mem_total;
+
+    unsafe {
+        libc::sysctlbyname(
+            name.as_ptr(),
+            ptr as *mut libc::c_void,
+            &mut size,
+            std::ptr::null(),
+            0,
+        );
+    }
+
+    mem_total
+}
+
 #[cfg(any(target_os = "linux", target_os = "android"))]
 impl Column for UsageMem {
     fn add(&mut self, proc: &ProcessInfo) {
@@ -109,6 +130,21 @@ impl Column for UsageMem {
 impl Column for UsageMem {
     fn add(&mut self, proc: &ProcessInfo) {
         let usage = proc.memory_info.working_set_size as f64 * 100.0 / self.mem_total as f64;
+        let fmt_content = format!("{:.1}", usage);
+        let raw_content = (usage * 1000.0) as u32;
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(u32);
+}
+
+#[cfg_attr(tarpaulin, skip)]
+#[cfg(target_os = "freebsd")]
+impl Column for UsageMem {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let usage = proc.curr_proc.info.rssize as f64 * 100.0 / self.mem_total as f64;
         let fmt_content = format!("{:.1}", usage);
         let raw_content = (usage * 1000.0) as u32;
 

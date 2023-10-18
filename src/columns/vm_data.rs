@@ -26,6 +26,7 @@ impl VmData {
     }
 }
 
+#[cfg(any(target_os = "linux", target_os = "android"))]
 impl Column for VmData {
     fn add(&mut self, proc: &ProcessInfo) {
         let (raw_content, fmt_content) = if let Some(ref curr_status) = proc.curr_status {
@@ -38,6 +39,19 @@ impl Column for VmData {
         } else {
             (0, String::new())
         };
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(u64);
+}
+
+#[cfg(target_os = "freebsd")]
+impl Column for VmData {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let raw_content = (proc.curr_proc.info.dsize as u64).saturating_mul(4096);
+        let fmt_content = bytify(raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);

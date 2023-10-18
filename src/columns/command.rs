@@ -102,3 +102,32 @@ impl Column for Command {
 
     column_default!(String);
 }
+
+#[cfg_attr(tarpaulin, skip)]
+#[cfg(target_os = "freebsd")]
+impl Column for Command {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let command = if proc.curr_proc.arg.is_empty() {
+            let comm = crate::util::i8_to_cstr(proc.curr_proc.info.comm.as_ref());
+            if let Ok(comm) = comm {
+                format!("[{}]", comm.to_string_lossy())
+            } else {
+                String::from("")
+            }
+        } else {
+            let mut x = String::from("");
+            for arg in &proc.curr_proc.arg {
+                x.push_str(&arg);
+                x.push_str(" ");
+            }
+            x
+        };
+        let fmt_content = command;
+        let raw_content = fmt_content.clone();
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(String);
+}

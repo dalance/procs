@@ -352,3 +352,11 @@ pub fn get_theme(opt: &Opt, config: &Config) -> ConfigTheme {
 thread_local! {
     pub static USERS_CACHE: std::cell::RefCell<UsersCache> = UsersCache::new().into();
 }
+
+#[cfg(target_os = "freebsd")]
+pub fn i8_to_cstr(x: &[i8]) -> Result<&std::ffi::CStr, std::ffi::FromBytesUntilNulError> {
+    let ptr = x.as_ptr() as *const u8;
+    let len = x.len();
+    let x = unsafe { std::slice::from_raw_parts::<u8>(ptr, len) };
+    std::ffi::CStr::from_bytes_until_nul(x)
+}
