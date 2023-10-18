@@ -40,7 +40,7 @@
     - The issues caused by real-machine are welcome.
 - Windows is supported.
 - BSD is experimentally supported.
-    - FreeBSD is checked.
+    - checked on FreeBSD 12.4.
 
 ## Installation
 
