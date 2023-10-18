@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.14.1...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.14.2...Unreleased) - ReleaseDate
+
+## [v0.14.2](https://github.com/dalance/procs/compare/v0.14.1...v0.14.2) - 2023-10-18
 
 * [Added] BSD support [#313](https://github.com/dalance/procs/issues/313)
 * [Fixed] wrong time handling on Windows
