@@ -428,7 +428,7 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | Ccgroup      | -not supported-       | Control group by compressed format            | o     |       |         |         |
 | Cgroup       | cgroup                | Control group                                 | o     |       |         |         |
 | Command      | args                  | Command with all arguments                    | o     | o     | o       | o       |
-| ContextSw    | -not supported-       | Context switch count                          | o     | o     |         |         |
+| ContextSw    | -not supported-       | Context switch count                          | o     | o     |         | o       |
 | CpuTime      | cputime               | Cumulative CPU time                           | o     | o     | o       | o       |
 | Docker       | -not supported-       | Docker container name                         | o     | o     |         |         |
 | Eip          | eip                   | Instruction pointer                           | o     |       |         |         |
@@ -454,15 +454,15 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | Ppid         | ppid                  | Parent process ID                             | o     | o     | o       | o       |
 | Priority     | pri                   | Priority                                      | o     | o     | o       | o       |
 | Processor    | psr                   | Currently assigned processor                  | o     |       |         | o       |
-| ReadBytes    | -not supported-       | Read bytes from storage                       | o     | o     | o       |         |
+| ReadBytes    | -not supported-       | Read bytes from storage                       | o     | o     | o       | o       |
 | RtPriority   | rtprio                | Real-time priority                            | o     |       |         |         |
 | SecContext   | label                 | Security context                              | o     |       |         |         |
 | Separator    | -not supported-       | Show `\|` for column separation               | o     | o     | o       | o       |
 | Session      | sid                   | Session ID                                    | o     | o     |         | o       |
-| ShdPnd       | pending               | Pending signal mask for process               | o     |       |         |         |
-| SigBlk       | blocked               | Blocked signal mask                           | o     |       |         |         |
-| SigCgt       | caught                | Caught signal mask                            | o     |       |         |         |
-| SigIgn       | ignored               | Ignored signal mask                           | o     |       |         |         |
+| ShdPnd       | pending               | Pending signal mask for process               | o     |       |         | o       |
+| SigBlk       | blocked               | Blocked signal mask                           | o     |       |         | o       |
+| SigCgt       | caught                | Caught signal mask                            | o     |       |         | o       |
+| SigIgn       | ignored               | Ignored signal mask                           | o     |       |         | o       |
 | SigPnd       | pending               | Pending signal mask for thread                | o     |       |         |         |
 | Slot         | -not supported-       | Slot for `--insert` option                    | o     | o     | o       | o       |
 | Ssb          | -not supported-       | Speculative store bypass status               | o     |       |         |         |
@@ -497,9 +497,9 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | VmSize       | vsz                   | Physical page size                            | o     | o     | o       | o       |
 | VmStack      | -not supported-       | Stack size                                    | o     |       |         | o       |
 | VmSwap       | -not supported-       | Swapped-out virtual memory size               | o     |       | o       |         |
-| Wchan        | wchan                 | Process sleeping kernel function              | o     |       |         |         |
+| Wchan        | wchan                 | Process sleeping kernel function              | o     |       |         | o       |
 | WorkDir      | -not supported-       | Current working directory                     | o     |       |         |         |
-| WriteByte    | -not supported-       | Write bytes to storage                        | o     | o     | o       |         |
+| WriteByte    | -not supported-       | Write bytes to storage                        | o     | o     | o       | o       |
 
 #### `style` list
 

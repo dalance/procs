@@ -1,4 +1,5 @@
 pub mod command;
+pub mod context_sw;
 pub mod cpu_time;
 pub mod elapsed_time;
 pub mod empty;
@@ -19,8 +20,13 @@ pub mod pid;
 pub mod ppid;
 pub mod priority;
 pub mod processor;
+pub mod read_bytes;
 pub mod separator;
 pub mod session;
+pub mod shd_pnd;
+pub mod sig_blk;
+pub mod sig_cgt;
+pub mod sig_ign;
 pub mod slot;
 pub mod start_time;
 pub mod state;
@@ -42,8 +48,11 @@ pub mod vm_hwm;
 pub mod vm_rss;
 pub mod vm_size;
 pub mod vm_stack;
+pub mod wchan;
+pub mod write_bytes;
 
 pub use self::command::Command;
+pub use self::context_sw::ContextSw;
 pub use self::cpu_time::CpuTime;
 pub use self::elapsed_time::ElapsedTime;
 pub use self::empty::Empty;
@@ -64,8 +73,13 @@ pub use self::pid::Pid;
 pub use self::ppid::Ppid;
 pub use self::priority::Priority;
 pub use self::processor::Processor;
+pub use self::read_bytes::ReadBytes;
 pub use self::separator::Separator;
 pub use self::session::Session;
+pub use self::shd_pnd::ShdPnd;
+pub use self::sig_blk::SigBlk;
+pub use self::sig_cgt::SigCgt;
+pub use self::sig_ign::SigIgn;
 pub use self::slot::Slot;
 pub use self::start_time::StartTime;
 pub use self::state::State;
@@ -87,6 +101,8 @@ pub use self::vm_hwm::VmHwm;
 pub use self::vm_rss::VmRss;
 pub use self::vm_size::VmSize;
 pub use self::vm_stack::VmStack;
+pub use self::wchan::Wchan;
+pub use self::write_bytes::WriteBytes;
 
 use crate::column::Column;
 use once_cell::sync::Lazy;
@@ -100,6 +116,7 @@ use std::collections::BTreeMap;
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum ConfigColumnKind {
     Command,
+    ContextSw,
     CpuTime,
     ElapsedTime,
     Empty,
@@ -120,9 +137,14 @@ pub enum ConfigColumnKind {
     Ppid,
     Priority,
     Processor,
+    ReadBytes,
     Separator,
     Session,
+    ShdPnd,
     Slot,
+    SigBlk,
+    SigCgt,
+    SigIgn,
     StartTime,
     State,
     Threads,
@@ -143,6 +165,8 @@ pub enum ConfigColumnKind {
     VmRss,
     VmSize,
     VmStack,
+    Wchan,
+    WriteBytes,
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -159,6 +183,7 @@ pub fn gen_column(
 ) -> Box<dyn Column> {
     match kind {
         ConfigColumnKind::Command => Box::new(Command::new(header)),
+        ConfigColumnKind::ContextSw => Box::new(ContextSw::new(header)),
         ConfigColumnKind::CpuTime => Box::new(CpuTime::new(header)),
         ConfigColumnKind::ElapsedTime => Box::new(ElapsedTime::new(header)),
         ConfigColumnKind::Empty => Box::new(Empty::new()),
@@ -179,9 +204,14 @@ pub fn gen_column(
         ConfigColumnKind::Ppid => Box::new(Ppid::new(header)),
         ConfigColumnKind::Priority => Box::new(Priority::new(header)),
         ConfigColumnKind::Processor => Box::new(Processor::new(header)),
+        ConfigColumnKind::ReadBytes => Box::new(ReadBytes::new(header)),
         ConfigColumnKind::Separator => Box::new(Separator::new(separator)),
         ConfigColumnKind::Session => Box::new(Session::new(header)),
+        ConfigColumnKind::ShdPnd => Box::new(ShdPnd::new(header)),
         ConfigColumnKind::Slot => Box::new(Slot::new()),
+        ConfigColumnKind::SigBlk => Box::new(SigBlk::new(header)),
+        ConfigColumnKind::SigCgt => Box::new(SigCgt::new(header)),
+        ConfigColumnKind::SigIgn => Box::new(SigIgn::new(header)),
         ConfigColumnKind::StartTime => Box::new(StartTime::new(header)),
         ConfigColumnKind::State => Box::new(State::new(header)),
         ConfigColumnKind::Threads => Box::new(Threads::new(header)),
@@ -202,6 +232,8 @@ pub fn gen_column(
         ConfigColumnKind::VmRss => Box::new(VmRss::new(header)),
         ConfigColumnKind::VmSize => Box::new(VmSize::new(header)),
         ConfigColumnKind::VmStack => Box::new(VmStack::new(header)),
+        ConfigColumnKind::Wchan => Box::new(Wchan::new(header)),
+        ConfigColumnKind::WriteBytes => Box::new(WriteBytes::new(header)),
     }
 }
 
@@ -215,6 +247,10 @@ pub static KIND_LIST: Lazy<BTreeMap<ConfigColumnKind, (&'static str, &'static st
             (
                 ConfigColumnKind::Command,
                 ("Command", "Command with all arguments"),
+            ),
+            (
+                ConfigColumnKind::ContextSw,
+                ("ContextSw", "Context switch count"),
             ),
             (
                 ConfigColumnKind::CpuTime,
@@ -261,14 +297,25 @@ pub static KIND_LIST: Lazy<BTreeMap<ConfigColumnKind, (&'static str, &'static st
                 ("Processor", "Currently assigned processor"),
             ),
             (
+                ConfigColumnKind::ReadBytes,
+                ("ReadBytes", "Read bytes from storage"),
+            ),
+            (
                 ConfigColumnKind::Separator,
                 ("Separator", "Show | for column separation"),
             ),
             (ConfigColumnKind::Session, ("Session", "Process Session ID")),
             (
+                ConfigColumnKind::ShdPnd,
+                ("ShdPnd", "Pending signal mask for process"),
+            ),
+            (
                 ConfigColumnKind::Slot,
                 ("Slot", "Slot for `--insert` option"),
             ),
+            (ConfigColumnKind::SigBlk, ("SigBlk", "Blocked signal mask")),
+            (ConfigColumnKind::SigCgt, ("SigCgt", "Caught signal mask")),
+            (ConfigColumnKind::SigIgn, ("SigIgn", "Ignored signal mask")),
             (ConfigColumnKind::StartTime, ("StartTime", "Starting time")),
             (ConfigColumnKind::State, ("State", "Process state")),
             (ConfigColumnKind::Threads, ("Threads", "Thread count")),
@@ -297,6 +344,14 @@ pub static KIND_LIST: Lazy<BTreeMap<ConfigColumnKind, (&'static str, &'static st
             (ConfigColumnKind::VmRss, ("VmRss", "Resident set size")),
             (ConfigColumnKind::VmSize, ("VmSize", "Physical page size")),
             (ConfigColumnKind::VmStack, ("VmStack", "Stack size")),
+            (
+                ConfigColumnKind::Wchan,
+                ("Wchan", "Process sleeping kernel function"),
+            ),
+            (
+                ConfigColumnKind::WriteBytes,
+                ("WriteBytes", "Write bytes to storage"),
+            ),
         ]
         .iter()
         .cloned()
@@ -429,6 +484,18 @@ numeric_search = false
 nonnumeric_search = false
 align = "Right"
 [[columns]]
+kind = "ReadBytes"
+style = "ByUnit"
+numeric_search = false
+nonnumeric_search = false
+align = "Right"
+[[columns]]
+kind = "WriteBytes"
+style = "ByUnit"
+numeric_search = false
+nonnumeric_search = false
+align = "Right"
+[[columns]]
 kind = "Slot"
 style = "ByUnit"
 numeric_search = false
@@ -476,6 +543,10 @@ pub static CONFIG_ALL: &str = r#"
 kind = "Command"
 style = "BrightRed"
 align = "Left"
+[[columns]]
+kind = "ContextSw"
+style = "BrightRed"
+align = "Right"
 [[columns]]
 kind = "CpuTime"
 style = "BrightGreen"
@@ -538,11 +609,26 @@ style = "Blue"
 kind = "Processor"
 style = "Magenta"
 [[columns]]
+kind = "ReadBytes"
+style = "Cyan"
+[[columns]]
 kind = "Separator"
 style = "White"
 [[columns]]
 kind = "Session"
 style = "Yellow"
+[[columns]]
+kind = "ShdPnd"
+style = "White"
+[[columns]]
+kind = "SigBlk"
+style = "White"
+[[columns]]
+kind = "SigCgt"
+style = "White"
+[[columns]]
+kind = "SigIgn"
+style = "White"
 [[columns]]
 kind = "StartTime"
 style = "White"
@@ -600,4 +686,10 @@ style = "ByUnit"
 [[columns]]
 kind = "VmStack"
 style = "ByUnit"
+[[columns]]
+kind = "Wchan"
+style = "White"
+[[columns]]
+kind = "WriteBytes"
+style = "White"
 "#;

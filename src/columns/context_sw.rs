@@ -63,3 +63,18 @@ impl Column for ContextSw {
 
     column_default!(u64);
 }
+
+#[cfg_attr(tarpaulin, skip)]
+#[cfg(target_os = "freebsd")]
+impl Column for ContextSw {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let raw_content =
+            (proc.curr_proc.info.rusage.nvcsw + proc.curr_proc.info.rusage.nivcsw) as u64;
+        let fmt_content = bytify(raw_content);
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(u64);
+}

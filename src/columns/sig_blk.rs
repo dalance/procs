@@ -25,6 +25,7 @@ impl SigBlk {
     }
 }
 
+#[cfg(any(target_os = "linux", target_os = "android"))]
 impl Column for SigBlk {
     fn add(&mut self, proc: &ProcessInfo) {
         let (fmt_content, raw_content) = if let Some(ref status) = proc.curr_status {
@@ -33,6 +34,19 @@ impl Column for SigBlk {
         } else {
             (String::new(), 0)
         };
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(u64);
+}
+
+#[cfg(target_os = "freebsd")]
+impl Column for SigBlk {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let raw_content = proc.curr_proc.info.sigmask.0[0] as u64;
+        let fmt_content = format!("{raw_content:016x}");
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);

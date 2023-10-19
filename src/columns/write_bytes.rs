@@ -85,3 +85,26 @@ impl Column for WriteBytes {
 
     column_default!(u64);
 }
+
+#[cfg_attr(tarpaulin, skip)]
+#[cfg(target_os = "freebsd")]
+impl Column for WriteBytes {
+    fn add(&mut self, proc: &ProcessInfo) {
+        // io block size: 128KB
+        let block_size = 128 * 1024;
+        let interval_ms = proc.interval.as_secs() + u64::from(proc.interval.subsec_millis());
+        let io = (proc.curr_proc.info.rusage.oublock as u64
+            - proc.prev_proc.info.rusage.oublock as u64)
+            * block_size
+            * 1000
+            / interval_ms;
+
+        let raw_content = io;
+        let fmt_content = bytify(raw_content);
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(u64);
+}
