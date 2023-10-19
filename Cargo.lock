@@ -245,7 +245,7 @@ dependencies = [
  "rustc-hash",
  "shlex",
  "syn 2.0.38",
- "which",
+ "which 4.4.2",
 ]
 
 [[package]]
@@ -298,19 +298,20 @@ dependencies = [
 
 [[package]]
 name = "bsd-kvm"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "88334c0fa065b1f6837bd5fd452765ed7904790a74e4bdf672024fad638d2a23"
+checksum = "8b9d56ed2af9619253575a07cdda8b05d228f6be7c6770ef3d1583c56266a9e6"
 dependencies = [
  "bsd-kvm-sys",
+ "libc",
  "thiserror",
 ]
 
 [[package]]
 name = "bsd-kvm-sys"
-version = "0.1.0"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fca9cf07f3919813213be25dc046d0797bc920cb065a8a8d497b28d97a6eb388"
+checksum = "65408f926d3766661595309e0a70bbed02ef27bb74603db6199ab9394103c932"
 dependencies = [
  "bindgen 0.65.1",
 ]
@@ -1543,7 +1544,7 @@ dependencies = [
  "toml",
  "unicode-width",
  "uzers",
- "which",
+ "which 5.0.0",
  "winapi",
 ]
 
@@ -2204,6 +2205,19 @@ dependencies = [
  "home",
  "once_cell",
  "rustix 0.38.19",
+]
+
+[[package]]
+name = "which"
+version = "5.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9bf3ea8596f3a0dd5980b46430f2058dfe2c36a27ccfbb1845d6fbfcd9ba6e14"
+dependencies = [
+ "either",
+ "home",
+ "once_cell",
+ "rustix 0.38.19",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
