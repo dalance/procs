@@ -72,8 +72,8 @@ which         = "4"
 winapi        = { version = "0.3", features = ["handleapi", "minwindef", "psapi", "securitybaseapi", "tlhelp32", "winbase", "winnt", "iphlpapi"] }
 
 [target.'cfg(target_os = "freebsd")'.dependencies]
-bsd-kvm       = "0.1.0"
-bsd-kvm-sys   = "0.1.0"
+bsd-kvm       = "0.1.1"
+bsd-kvm-sys   = "0.2.0"
 pager         = "0.16.1"
 uzers         = "0.11"
 which         = "4"
