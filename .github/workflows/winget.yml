@@ -1,0 +1,15 @@
+name: Publish to WinGet
+on:
+  release:
+    types: [released]
+  workflow_dispatch:
+jobs:
+  publish:
+    runs-on: windows-latest
+    steps:
+      - uses: vedantmgoyal2009/winget-releaser@v2
+        with:
+          identifier: dalance.procs
+          max-versions-to-keep: 5 # keep only latest 5 versions
+          installers-regex: '\.x86_64-windows.zip$'
+          token: ${{ secrets.WINGET_TOKEN }}
