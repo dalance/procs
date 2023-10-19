@@ -114,6 +114,12 @@ scoop install procs
 sudo dnf install procs
 ```
 
+### Windows
+
+```
+winget install procs
+```
+
 ### RPM
 
 You can install with rpm.
