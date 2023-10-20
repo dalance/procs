@@ -2,6 +2,9 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.14.2...Unreleased) - ReleaseDate
 
+* [Changed] MSRV to Rust 1.67
+* [Added] Some columns on FreeBSD
+
 ## [v0.14.2](https://github.com/dalance/procs/compare/v0.14.1...v0.14.2) - 2023-10-18
 
 * [Added] BSD support [#313](https://github.com/dalance/procs/issues/313)

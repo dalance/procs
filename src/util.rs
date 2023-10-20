@@ -4,8 +4,9 @@ use crate::config::{Config, ConfigColumnAlign, ConfigSearchCase, ConfigSearchLog
 use crate::Opt;
 use byte_unit::Byte;
 use clap::ValueEnum;
+use is_terminal::IsTerminal;
 use std::borrow::Cow;
-use std::io::{self, IsTerminal};
+use std::io;
 use std::time::Duration;
 use std::time::Instant;
 use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
