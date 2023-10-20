@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.14.2...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.14.3...Unreleased) - ReleaseDate
+
+## [v0.14.3](https://github.com/dalance/procs/compare/v0.14.2...v0.14.3) - 2023-10-20
 
 * [Changed] MSRV to Rust 1.67
 * [Added] Some columns on FreeBSD
