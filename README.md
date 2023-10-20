@@ -47,7 +47,7 @@
 
 Download from [release page](https://github.com/dalance/procs/releases/latest), and extract to the directory in PATH.
 
-### [![Packaging status](https://repology.org/badge/vertical-allrepos/procs.svg)](https://repology.org/project/procs/versions)
+### [![Packaging status](https://repology.org/badge/vertical-allrepos/procs.svg?columns=3)](https://repology.org/project/procs/versions)
 
 ### Nixpkgs
 
