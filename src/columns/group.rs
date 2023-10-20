@@ -39,7 +39,7 @@ impl Column for Group {
     fn add(&mut self, proc: &ProcessInfo) {
         let fmt_content = if let Some(ref status) = proc.curr_status {
             let gid = status.egid;
-            if let Some(group) = USERS_CACHE.with_borrow_mut(|x| x.get_group_by_gid(gid)) {
+            if let Some(group) = USERS_CACHE.with(|x| x.borrow_mut().get_group_by_gid(gid)) {
                 format!("{}", group.name().to_string_lossy())
             } else {
                 format!("{gid}")
@@ -62,7 +62,7 @@ impl Column for Group {
     fn add(&mut self, proc: &ProcessInfo) {
         let gid = proc.curr_task.pbsd.pbi_gid;
         let fmt_content =
-            if let Some(group) = USERS_CACHE.with_borrow_mut(|x| x.get_group_by_gid(gid)) {
+            if let Some(group) = USERS_CACHE.with(|x| x.borrow_mut().get_group_by_gid(gid)) {
                 format!("{}", group.name().to_string_lossy())
             } else {
                 format!("{}", gid)
@@ -108,7 +108,7 @@ impl Column for Group {
     fn add(&mut self, proc: &ProcessInfo) {
         let gid = proc.curr_proc.info.svgid;
         let fmt_content =
-            if let Some(group) = USERS_CACHE.with_borrow_mut(|x| x.get_group_by_gid(gid)) {
+            if let Some(group) = USERS_CACHE.with(|x| x.borrow_mut().get_group_by_gid(gid)) {
                 format!("{}", group.name().to_string_lossy())
             } else {
                 format!("{gid}")

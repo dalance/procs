@@ -37,7 +37,7 @@ impl User {
 #[cfg(any(target_os = "linux", target_os = "android"))]
 impl Column for User {
     fn add(&mut self, proc: &ProcessInfo) {
-        let user = USERS_CACHE.with_borrow_mut(|x| x.get_user_by_uid(proc.curr_proc.owner()));
+        let user = USERS_CACHE.with(|x| x.borrow_mut().get_user_by_uid(proc.curr_proc.owner()));
         let fmt_content = if let Some(user) = user {
             format!("{}", user.name().to_string_lossy())
         } else {
@@ -58,7 +58,7 @@ impl Column for User {
     fn add(&mut self, proc: &ProcessInfo) {
         let uid = proc.curr_task.pbsd.pbi_uid;
         let fmt_content =
-            if let Some(user) = USERS_CACHE.with_borrow_mut(|x| x.get_user_by_uid(uid)) {
+            if let Some(user) = USERS_CACHE.with(|x| x.borrow_mut().get_user_by_uid(uid)) {
                 format!("{}", user.name().to_string_lossy())
             } else {
                 format!("{}", uid)
@@ -96,7 +96,7 @@ impl Column for User {
     fn add(&mut self, proc: &ProcessInfo) {
         let uid = proc.curr_proc.info.uid;
         let fmt_content =
-            if let Some(user) = USERS_CACHE.with_borrow_mut(|x| x.get_user_by_uid(uid)) {
+            if let Some(user) = USERS_CACHE.with(|x| x.borrow_mut().get_user_by_uid(uid)) {
                 format!("{}", user.name().to_string_lossy())
             } else {
                 format!("{}", uid)

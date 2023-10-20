@@ -33,6 +33,17 @@ jobs:
       - name: Run tests feature variation
         run: cargo test --locked --target ${{ matrix.target }} --no-default-features
 
+  msrv:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: 1.70.0
+          targets: x86_64-unknown-linux-gnu
+      - name: Run build
+        run: cargo build
+
   rustfmt:
     runs-on: ubuntu-latest
     steps:
