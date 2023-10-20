@@ -11,5 +11,5 @@ jobs:
         with:
           identifier: dalance.procs
           max-versions-to-keep: 5 # keep only latest 5 versions
-          installers-regex: '\.x86_64-windows.zip$'
+          installers-regex: 'x86_64-windows\.zip$'
           token: ${{ secrets.WINGET_TOKEN }}
