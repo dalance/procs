@@ -1,6 +1,6 @@
 use procfs::process::{FDInfo, Io, Process, Stat, Status, TasksIter};
 use procfs::ProcError;
-use procfs::ProcessCgroup;
+use procfs::ProcessCGroup;
 use std::collections::HashMap;
 use std::thread;
 use std::time::{Duration, Instant};
@@ -32,9 +32,9 @@ impl ProcessTask {
         }
     }
 
-    pub fn cgroups(&self) -> Result<Vec<ProcessCgroup>, ProcError> {
+    pub fn cgroups(&self) -> Result<Vec<ProcessCGroup>, ProcError> {
         match self {
-            ProcessTask::Process { proc: x, .. } => x.cgroups(),
+            ProcessTask::Process { proc: x, .. } => x.cgroups().map(|x| x.0),
             _ => Err(ProcError::Other("not supported".to_string())),
         }
     }

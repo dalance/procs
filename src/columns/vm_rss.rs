@@ -29,7 +29,8 @@ impl VmRss {
 #[cfg(any(target_os = "linux", target_os = "android"))]
 impl Column for VmRss {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = proc.curr_proc.stat().rss_bytes();
+        use procfs::WithCurrentSystemInfo;
+        let raw_content = proc.curr_proc.stat().rss_bytes().get();
         let fmt_content = bytify(raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);

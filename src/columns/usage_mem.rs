@@ -1,7 +1,7 @@
 use crate::process::ProcessInfo;
 use crate::{column_default, Column};
 #[cfg(any(target_os = "linux", target_os = "android"))]
-use procfs::Meminfo;
+use procfs::{Current, Meminfo, WithCurrentSystemInfo};
 use std::cmp;
 use std::collections::HashMap;
 #[cfg(target_os = "windows")]
@@ -36,7 +36,7 @@ impl UsageMem {
 
 #[cfg(any(target_os = "linux", target_os = "android"))]
 fn get_mem_total() -> u64 {
-    let meminfo = Meminfo::new();
+    let meminfo = Meminfo::current();
     if let Ok(meminfo) = meminfo {
         meminfo.mem_total
     } else {
@@ -99,7 +99,7 @@ fn get_mem_total() -> u64 {
 #[cfg(any(target_os = "linux", target_os = "android"))]
 impl Column for UsageMem {
     fn add(&mut self, proc: &ProcessInfo) {
-        let usage = proc.curr_proc.stat().rss_bytes() as f64 * 100.0 / self.mem_total as f64;
+        let usage = proc.curr_proc.stat().rss_bytes().get() as f64 * 100.0 / self.mem_total as f64;
         let fmt_content = format!("{usage:.1}");
         let raw_content = (usage * 1000.0) as u32;
 
