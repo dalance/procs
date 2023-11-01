@@ -355,7 +355,9 @@ thread_local! {
 }
 
 #[cfg(target_os = "freebsd")]
-pub fn i8_to_cstr(x: &[i8]) -> Result<&std::ffi::CStr, std::ffi::FromBytesUntilNulError> {
+// std::ffi::FromBytesUntilNulError is missing until Rust 1.73.0
+// https://github.com/rust-lang/rust/pull/113701
+pub fn i8_to_cstr(x: &[i8]) -> Result<&std::ffi::CStr, core::ffi::FromBytesUntilNulError> {
     let ptr = x.as_ptr() as *const u8;
     let len = x.len();
     let x = unsafe { std::slice::from_raw_parts::<u8>(ptr, len) };
