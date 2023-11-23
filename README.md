@@ -93,7 +93,7 @@ sudo apk add procs
 
 ### Arch Linux
 
-You can install from the [Arch Linux community repository](https://archlinux.org/packages/community/x86_64/procs/).
+You can install from the [Arch Linux extra repository](https://archlinux.org/packages/extra/x86_64/procs/).
 
 ```
 sudo pacman -S procs
