@@ -45,7 +45,7 @@ impl Column for Wchan {
 #[cfg(target_os = "freebsd")]
 impl Column for Wchan {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = if let Ok(wmesg) = crate::util::i8_to_cstr(&proc.curr_proc.info.wmesg) {
+        let raw_content = if let Ok(wmesg) = crate::util::ptr_to_cstr(&proc.curr_proc.info.wmesg) {
             wmesg.to_string_lossy().into_owned()
         } else {
             String::from("")

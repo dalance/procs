@@ -42,7 +42,7 @@ impl Column for FileName {
 #[cfg(target_os = "freebsd")]
 impl Column for FileName {
     fn add(&mut self, proc: &ProcessInfo) {
-        let comm = crate::util::i8_to_cstr(proc.curr_proc.info.comm.as_ref());
+        let comm = crate::util::ptr_to_cstr(proc.curr_proc.info.comm.as_ref());
         let comm = if let Ok(comm) = comm {
             comm.to_string_lossy().into_owned()
         } else {

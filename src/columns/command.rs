@@ -108,7 +108,7 @@ impl Column for Command {
 impl Column for Command {
     fn add(&mut self, proc: &ProcessInfo) {
         let command = if proc.curr_proc.arg.is_empty() {
-            let comm = crate::util::i8_to_cstr(proc.curr_proc.info.comm.as_ref());
+            let comm = crate::util::ptr_to_cstr(proc.curr_proc.info.comm.as_ref());
             if let Ok(comm) = comm {
                 format!("[{}]", comm.to_string_lossy())
             } else {

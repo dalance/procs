@@ -122,7 +122,7 @@ impl Column for State {
         if (flag & libc::P_TRACED as i64) != 0 {
             state.push_str("X");
         }
-        if (flag & libc::P_WEXIT as i64) != 0 && info.stat != libc::SZOMB as i8 {
+        if (flag & libc::P_WEXIT as i64) != 0 && info.stat != libc::SZOMB as std::os::raw::c_char {
             state.push_str("E");
         }
         if (flag & libc::P_PPWAIT as i64) != 0 {
