@@ -2,7 +2,7 @@ use crate::column::Column;
 use crate::columns::{ConfigColumnKind, KIND_LIST};
 use crate::config::{Config, ConfigColumnAlign, ConfigSearchCase, ConfigSearchLogic, ConfigTheme};
 use crate::Opt;
-use byte_unit::Byte;
+use byte_unit::{Byte, UnitType};
 use clap::ValueEnum;
 use is_terminal::IsTerminal;
 use std::borrow::Cow;
@@ -294,9 +294,9 @@ pub fn format_sid(sid: &[u64], abbr: bool) -> String {
 }
 
 pub fn bytify(x: u64) -> String {
-    let byte = Byte::from_bytes(x as u128);
-    let byte = byte.get_appropriate_unit(true);
-    byte.format(3).replace([' ', 'B', 'i'], "")
+    let byte = Byte::from_u64(x);
+    let byte = byte.get_appropriate_unit(UnitType::Binary);
+    format!("{:.3}", byte).replace([' ', 'B', 'i'], "")
 }
 
 pub fn lap(instant: &mut Instant, msg: &str) {
