@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.14.4...Unreleased) - ReleaseDate
 
+* [Changed] MSRV to Rust 1.70
+
 ## [v0.14.4](https://github.com/dalance/procs/compare/v0.14.3...v0.14.4) - 2023-11-24
 
 * [Fixed] Build breaks on FreeBSD/arm64,i386

@@ -10,7 +10,7 @@ readme = "README.md"
 description = "A modern replacement for ps"
 edition = "2021"
 exclude = ["img/*", "config/*"]
-rust-version = "1.67"
+rust-version = "1.70"
 
 [package.metadata.release]
 pre-release-commit-message  = "Prepare to v{{version}}"
@@ -37,14 +37,13 @@ codecov   = { repository = "dalance/procs", branch = "master", service = "github
 [dependencies]
 anyhow        = "1.0"
 byte-unit     = "5.0"
-clap          = {version = "3.2.25", features = ["derive"]}
-clap_complete = "3.2.5"
+clap          = {version = "4.4", features = ["derive"]}
+clap_complete = "4.4"
 console       = "0.15.7"
 chrono        = {version = "0.4.31", default-features = false, features = ["clock"]}
 directories   = "5.0.1"
 dockworker    = { version = "0.3.0", optional = true }
 getch         = "0.3.1"
-is-terminal   = "0.4.10"
 libc          = "0.2"
 minus         = { version = "5.5", features = ["static_output", "search"] }
 once_cell     = "1.19.0"
