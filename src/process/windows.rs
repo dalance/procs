@@ -1,12 +1,12 @@
 use chrono::offset::TimeZone;
 use chrono::{Local, NaiveDate};
-use libc::c_void;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::mem::{size_of, zeroed, MaybeUninit};
 use std::ptr;
 use std::thread;
 use std::time::{Duration, Instant};
+use winapi::ctypes::c_void;
 use winapi::shared::minwindef::{DWORD, FALSE, FILETIME, MAX_PATH};
 use winapi::um::handleapi::CloseHandle;
 use winapi::um::processthreadsapi::{
