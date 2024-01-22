@@ -431,9 +431,9 @@ dependencies = [
 
 [[package]]
 name = "bsd-kvm"
-version = "0.1.4"
+version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ff545acee2fefa5fd654a77cd4e6bd0c5efd4f358cc5ddbae6d53c4c6fafeddb"
+checksum = "94b4eb28b17b77a2974f6307a6f7f18c294d71543ceac0f021b89a4eb9e3ccbe"
 dependencies = [
  "bsd-kvm-sys",
  "libc",
