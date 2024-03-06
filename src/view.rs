@@ -181,7 +181,7 @@ impl View {
 
         let mut parent_pids = HashMap::new();
         let mut child_pids = HashMap::<i32, Vec<i32>>::new();
-        if opt.tree {
+        if opt.tree || !config.display.show_self_parents {
             for p in &proc {
                 parent_pids.insert(p.pid, p.ppid);
                 if let Some(x) = child_pids.get_mut(&p.ppid) {
@@ -238,6 +238,23 @@ impl View {
 
         let self_pid = std::process::id() as i32;
 
+        let self_parents = if !config.display.show_self_parents {
+            let mut self_parents = Vec::new();
+            self.get_parent_pids(self_pid, &mut self_parents);
+            self_parents
+                .into_iter()
+                .filter(|x| {
+                    if let Some(x) = self.child_pids.get(x) {
+                        x.len() == 1
+                    } else {
+                        false
+                    }
+                })
+                .collect()
+        } else {
+            Vec::new()
+        };
+
         let logic = if opt.and {
             ConfigSearchLogic::And
         } else if opt.or {
@@ -252,7 +269,10 @@ impl View {
 
         let mut candidate_pids = Vec::new();
         for pid in &pids {
-            let candidate = if !config.display.show_self && *pid == self_pid {
+            let hidden_process = (!config.display.show_self && *pid == self_pid)
+                || (!config.display.show_self_parents && self_parents.contains(pid));
+
+            let candidate = if hidden_process {
                 false
             } else if opt.keyword.is_empty() {
                 true

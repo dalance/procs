@@ -625,6 +625,7 @@ style = "223"     # 223 for both theme
 | Key                   | Value                 | Default          | Description                                                                  |
 | --------------------- | --------------------- | ---------------- | ---------------------------------------------------------------------------- |
 | show_self             | true, false           | false            | Whether the self process ( `procs` ) is shown                                |
+| show_self_parents     | true, false           | false            | Whether the parents which have self as the only child process are shown      |
 | show_thread           | true, false           | false            | Whether the thread information is shown ( Linux only )                       |
 | show_thread_in_tree   | true, false           | true             | Whether the thread information is shown in tree mode ( Linux only )          |
 | show_parent_in_tree   | true, false           | true             | Whether the parent process is shown in tree mode                             |
