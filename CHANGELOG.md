@@ -2,6 +2,7 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.14.4...Unreleased) - ReleaseDate
 
+* [Added] Add show_self_parents option [#607](https://github.com/dalance/procs/pull/607)
 * [Changed] MSRV to Rust 1.70
 
 ## [v0.14.4](https://github.com/dalance/procs/compare/v0.14.3...v0.14.4) - 2023-11-24
