@@ -67,8 +67,8 @@ impl Column for ElapsedTime {
     fn add(&mut self, proc: &ProcessInfo) {
         let starttime = proc.curr_proc.stat().starttime;
         let seconds_since_boot = starttime as f32 / *TICKS_PER_SECOND as f32;
-        let start_time =
-            self.boot_time + Duration::milliseconds((seconds_since_boot * 1000.0) as i64);
+        let start_time = self.boot_time
+            + Duration::try_milliseconds((seconds_since_boot * 1000.0) as i64).unwrap_or_default();
         let raw_content = Local::now().signed_duration_since(start_time);
         let fmt_content = format_duration(raw_content);
 

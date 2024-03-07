@@ -44,8 +44,8 @@ impl Column for StartTime {
     fn add(&mut self, proc: &ProcessInfo) {
         let starttime = proc.curr_proc.stat().starttime;
         let seconds_since_boot = starttime as f32 / *TICKS_PER_SECOND as f32;
-        let raw_content =
-            self.boot_time + Duration::milliseconds((seconds_since_boot * 1000.0) as i64);
+        let raw_content = self.boot_time
+            + Duration::try_milliseconds((seconds_since_boot * 1000.0) as i64).unwrap_or_default();
         let fmt_content = format!("{}", raw_content.format("%Y/%m/%d %H:%M"));
 
         self.fmt_contents.insert(proc.pid, fmt_content);
