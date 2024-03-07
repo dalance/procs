@@ -524,6 +524,8 @@ pub struct ConfigDisplay {
     #[serde(default = "default_false")]
     pub show_self: bool,
     #[serde(default = "default_false")]
+    pub show_self_parents: bool,
+    #[serde(default = "default_false")]
     pub show_thread: bool,
     #[serde(default = "default_true")]
     pub show_thread_in_tree: bool,
@@ -563,6 +565,7 @@ impl Default for ConfigDisplay {
     fn default() -> Self {
         ConfigDisplay {
             show_self: false,
+            show_self_parents: false,
             show_thread: false,
             show_thread_in_tree: true,
             show_parent_in_tree: true,
