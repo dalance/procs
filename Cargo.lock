@@ -1278,9 +1278,9 @@ dependencies = [
 
 [[package]]
 name = "libproc"
-version = "0.14.5"
+version = "0.14.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "068fa8258265aeb61fcdf99015be9f8d1f4ad567787fcbf383b701dbf6818340"
+checksum = "8eb6497078a4c9c2aca63df56d8dce6eb4381d53a960f781a3a748f7ea97436d"
 dependencies = [
  "bindgen 0.69.4",
  "errno 0.3.8",
