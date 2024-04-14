@@ -1,0 +1,31 @@
+[package]
+name = "procs-lib"
+version = "0.14.5"
+authors = ["dalance@gmail.com"]
+repository = "https://github.com/dalance/procs"
+keywords = ["process", "procs"]
+license = "MIT"
+readme = "README.md"
+description = "Underlying process info library for the `procs' crate"
+edition = "2021"
+rust-version = "1.70"
+
+[lib]
+path = "src/lib.rs"
+name = "procs_lib"
+
+[dependencies]
+libc          = "0.2"
+
+[target.'cfg(any(target_os = "linux", target_os = "android"))'.dependencies]
+procfs        = "0.16.0"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+libproc       = "0.14"
+
+[target.'cfg(target_os = "windows")'.dependencies]
+winapi        = { version = "0.3", features = ["handleapi", "minwindef", "psapi", "securitybaseapi", "tlhelp32", "winbase", "winnt", "iphlpapi"] }
+
+[target.'cfg(target_os = "freebsd")'.dependencies]
+bsd-kvm       = "0.1.5"
+bsd-kvm-sys   = "0.2.0"
