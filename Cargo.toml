@@ -57,7 +57,7 @@ unicode-width = "0.1"
 pager         = "0.16.1"
 procfs        = "0.16.0"
 regex         = "1.10"
-uzers         = "0.11"
+uzers         = "0.12"
 which         = "6"
 
 [target.'cfg(target_os = "macos")'.dependencies]
@@ -65,7 +65,7 @@ libproc       = "0.14"
 nix           = {version = "0.28.0", features = ["process"]}
 errno         = "0.3"
 pager         = "0.16"
-uzers         = "0.11"
+uzers         = "0.12"
 which         = "6"
 
 [target.'cfg(target_os = "windows")'.dependencies]
@@ -75,7 +75,7 @@ winapi        = { version = "0.3", features = ["handleapi", "minwindef", "psapi"
 bsd-kvm       = "0.1.5"
 bsd-kvm-sys   = "0.2.0"
 pager         = "0.16.1"
-uzers         = "0.11"
+uzers         = "0.12"
 which         = "6"
 
 [package.metadata.rpm.cargo]
