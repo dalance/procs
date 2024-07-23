@@ -12,6 +12,10 @@ edition = "2021"
 exclude = ["img/*", "config/*"]
 rust-version = "1.70"
 
+[lib]
+path = "src/lib.rs"
+name = "procs"
+
 [package.metadata.release]
 pre-release-commit-message = "Prepare to v{{version}}"
 tag-message                = "Bump version to {{version}}"
@@ -26,7 +30,7 @@ pre-release-replacements = [
 ]
 
 [features]
-default = ["docker"]
+default = []
 docker = ["dockworker", "tokio"]
 
 [badges]

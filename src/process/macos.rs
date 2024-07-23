@@ -27,28 +27,52 @@ pub struct ProcessInfo {
 }
 
 #[cfg_attr(tarpaulin, skip)]
-pub fn collect_proc(
-    interval: Duration,
-    _with_thread: bool,
-    _show_kthreads: bool,
-) -> Vec<ProcessInfo> {
-    let mut base_procs = Vec::new();
-    let mut ret = Vec::new();
-    let arg_max = get_arg_max();
-
-    if let Ok(procs) = pids_by_type(ProcFilter::All) {
-        for p in procs {
-            if let Ok(task) = pidinfo::<TaskAllInfo>(p as i32, 0) {
-                let res = pidrusage::<RUsageInfoV2>(p as i32).ok();
-                let time = Instant::now();
-                base_procs.push((p as i32, task, res, time));
-            }
+impl Clone for ProcessInfo {
+    fn clone(&self) -> ProcessInfo {
+        ProcessInfo {
+            pid: self.pid,
+            ppid: self.ppid,
+            curr_task: clone_task_all_info(&self.curr_task),
+            prev_task: clone_task_all_info(&self.prev_task),
+            curr_path: self.curr_path.clone(),
+            curr_threads: self.curr_threads.iter().map(clone_thread_info).collect::<Vec<_>>(),
+            curr_udps: self.curr_udps.iter().map(clone_in_sock_info).collect::<Vec<_>>(),
+            curr_tcps: self.curr_tcps.iter().map(clone_tcp_sock_info).collect::<Vec<_>>(),
+            curr_res: match &self.curr_res {
+                Some(ruiv) => Some(clone_rusage_info_v2(&ruiv)),
+                None => None,
+            },
+            prev_res: match &self.prev_res {
+                Some(ruiv) => Some(clone_rusage_info_v2(&ruiv)),
+                None => None,
+            },
+            interval: self.interval,
         }
     }
+}
 
-    thread::sleep(interval);
+#[cfg_attr(tarpaulin, skip)]
+pub fn base_task_t(p: i32) -> Option<(i32, TaskAllInfo, RUsageInfoV2, Instant)> {
+    if let Ok(task) = pidinfo::<TaskAllInfo>(p as i32, 0) {
+        let res = pidrusage::<RUsageInfoV2>(p as i32).unwrap();
+        let time = Instant::now();
+        Some((p as i32, task, res, time))
+    } else {
+        None
+    }
+}
 
-    for (pid, prev_task, prev_res, prev_time) in base_procs {
+#[cfg_attr(tarpaulin, skip)]
+pub fn collect_proc_info(
+    p: i32,
+    _interval: Duration,
+    _with_thread: bool,
+    _show_kthreads: bool,
+) -> Option<ProcessInfo> {
+    let arg_max = get_arg_max();
+
+    if let Some(task) = base_task_t(p) {
+        let (pid, prev_task, prev_res, prev_time) = task;
         let curr_task = if let Ok(task) = pidinfo::<TaskAllInfo>(pid, 0) {
             task
         } else {
@@ -103,19 +127,39 @@ pub fn collect_proc(
             pid,
             ppid,
             curr_task,
-            prev_task,
+            prev_task: clone_task_all_info(&prev_task),
             curr_path,
             curr_threads,
             curr_udps,
             curr_tcps,
             curr_res,
-            prev_res,
+            prev_res: Some(clone_rusage_info_v2(&prev_res)),
             interval,
         };
-
-        ret.push(proc);
+        Some(proc)
+    } else {
+        None
     }
+}
 
+#[cfg_attr(tarpaulin, skip)]
+pub fn collect_proc(
+    interval: Duration,
+    _with_thread: bool,
+    _show_kthreads: bool,
+) -> Vec<ProcessInfo> {
+    let mut ret = Vec::new();
+
+    thread::sleep(interval);
+
+    if let Ok(procs) = pids_by_type(ProcFilter::All) {
+        for p in procs {
+            if let Some(proc) = collect_proc_info(p as i32, interval, _with_thread, _show_kthreads)
+            {
+                ret.push(proc);
+            }
+        }
+    }
     ret
 }
 
@@ -138,6 +182,7 @@ fn get_arg_max() -> size_t {
     arg_max as size_t
 }
 
+#[derive(Clone)]
 pub struct PathInfo {
     pub name: String,
     pub exe: PathBuf,
@@ -251,6 +296,23 @@ fn get_path_info(pid: i32, mut size: size_t) -> Option<PathInfo> {
 }
 
 #[cfg_attr(tarpaulin, skip)]
+fn clone_thread_info(src: &ThreadInfo) -> ThreadInfo {
+    ThreadInfo {
+        pth_user_time: src.pth_user_time,
+        pth_system_time: src.pth_system_time,
+        pth_cpu_usage: src.pth_cpu_usage,
+        pth_policy: src.pth_policy,
+        pth_run_state: src.pth_run_state,
+        pth_flags: src.pth_flags,
+        pth_sleep_time: src.pth_sleep_time,
+        pth_curpri: src.pth_curpri,
+        pth_priority: src.pth_priority,
+        pth_maxpriority: src.pth_maxpriority,
+        pth_name: src.pth_name,
+    }
+}
+
+#[cfg_attr(tarpaulin, skip)]
 fn clone_task_all_info(src: &TaskAllInfo) -> TaskAllInfo {
     let pbsd = BSDInfo {
         pbi_flags: src.pbsd.pbi_flags,
@@ -297,4 +359,58 @@ fn clone_task_all_info(src: &TaskAllInfo) -> TaskAllInfo {
         pti_priority: src.ptinfo.pti_priority,
     };
     TaskAllInfo { pbsd, ptinfo }
+}
+
+#[cfg_attr(tarpaulin, skip)]
+fn clone_rusage_info_v2(src: &RUsageInfoV2) -> RUsageInfoV2 {
+    RUsageInfoV2 {
+        ri_uuid: src.ri_uuid,
+        ri_user_time: src.ri_user_time,
+        ri_system_time: src.ri_system_time,
+        ri_pkg_idle_wkups: src.ri_pkg_idle_wkups,
+        ri_interrupt_wkups: src.ri_interrupt_wkups,
+        ri_pageins: src.ri_pageins,
+        ri_wired_size: src.ri_wired_size,
+        ri_resident_size: src.ri_resident_size,
+        ri_phys_footprint: src.ri_phys_footprint,
+        ri_proc_start_abstime: src.ri_proc_start_abstime,
+        ri_proc_exit_abstime: src.ri_proc_exit_abstime,
+        ri_child_user_time: src.ri_child_user_time,
+        ri_child_system_time: src.ri_child_system_time,
+        ri_child_pkg_idle_wkups: src.ri_child_pkg_idle_wkups,
+        ri_child_interrupt_wkups: src.ri_child_interrupt_wkups,
+        ri_child_pageins: src.ri_child_pageins,
+        ri_child_elapsed_abstime: src.ri_child_elapsed_abstime,
+        ri_diskio_bytesread: src.ri_diskio_bytesread,
+        ri_diskio_byteswritten: src.ri_diskio_byteswritten,
+    }
+}
+
+fn clone_in_sock_info(src: &InSockInfo) -> InSockInfo {
+    InSockInfo {
+        insi_fport: src.insi_fport,
+        insi_lport: src.insi_lport,
+        insi_gencnt: src.insi_gencnt,
+        insi_flags: src.insi_flags,
+        insi_flow: src.insi_flow,
+        insi_vflag: src.insi_vflag,
+        insi_ip_ttl: src.insi_ip_ttl,
+        rfu_1: src.rfu_1,
+        insi_faddr: src.insi_faddr,
+        insi_laddr: src.insi_laddr,
+        insi_v4: src.insi_v4,
+        insi_v6: src.insi_v6,
+    }
+}
+
+fn clone_tcp_sock_info(src: &TcpSockInfo) -> TcpSockInfo {
+    TcpSockInfo {
+        tcpsi_ini: clone_in_sock_info(&src.tcpsi_ini),
+        tcpsi_state: src.tcpsi_state,
+        tcpsi_timer: src.tcpsi_timer,
+        tcpsi_mss: src.tcpsi_mss,
+        tcpsi_flags: src.tcpsi_flags,
+        rfu_1: src.rfu_1,
+        tcpsi_tp: src.tcpsi_tp,
+    }
 }
