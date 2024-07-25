@@ -386,7 +386,7 @@ impl View {
                 + self.columns.len()
                 - 1
         } else {
-            std::usize::MIN
+            usize::MIN
         };
 
         let use_builtin_pager = if cfg!(target_os = "windows") {
@@ -424,7 +424,7 @@ impl View {
         truncate |= !use_terminal && config.display.cut_to_pipe;
 
         if !truncate {
-            self.term_info.width = std::usize::MAX;
+            self.term_info.width = usize::MAX;
         }
 
         match (opt.color.as_ref(), &config.display.color_mode) {

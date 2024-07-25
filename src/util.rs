@@ -209,11 +209,7 @@ pub fn truncate(s: &'_ str, width: usize) -> Cow<'_, str> {
             buf.push(c);
             continue;
         }
-        total_width += if let Some(x) = UnicodeWidthChar::width(c) {
-            x
-        } else {
-            0
-        };
+        total_width += UnicodeWidthChar::width(c).unwrap_or_default();
         if total_width > width {
             ret = Some(buf);
             break;
