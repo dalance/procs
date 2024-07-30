@@ -14,7 +14,6 @@ pub struct TermInfo {
     pub use_pager: bool,
 }
 
-#[cfg_attr(tarpaulin, skip)]
 impl TermInfo {
     pub fn new(clear_by_line: bool, use_pager: bool) -> Result<Self, Error> {
         let term = Term::stdout();

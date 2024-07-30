@@ -47,7 +47,6 @@ impl Column for VmSwap {
     column_default!(u64);
 }
 
-#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "windows")]
 impl Column for VmSwap {
     fn add(&mut self, proc: &ProcessInfo) {

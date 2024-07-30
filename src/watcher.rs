@@ -23,7 +23,6 @@ enum Command {
 
 pub struct Watcher;
 
-#[cfg_attr(tarpaulin, skip)]
 impl Watcher {
     fn spawn_cmd(tx: Sender<Command>) {
         let _ = thread::spawn(move || {

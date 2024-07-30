@@ -42,7 +42,6 @@ impl Column for GidSaved {
     column_default!(u32);
 }
 
-#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 impl Column for GidSaved {
     fn add(&mut self, proc: &ProcessInfo) {
@@ -57,7 +56,6 @@ impl Column for GidSaved {
     column_default!(u32);
 }
 
-#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "freebsd")]
 impl Column for GidSaved {
     fn add(&mut self, proc: &ProcessInfo) {

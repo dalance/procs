@@ -115,7 +115,6 @@ impl Column for TcpPort {
     crate::column_default_get_width!();
 }
 
-#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 impl Column for TcpPort {
     fn add(&mut self, proc: &ProcessInfo) {

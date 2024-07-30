@@ -69,7 +69,6 @@ pub struct CpuInfo {
     pub curr_user: u64,
 }
 
-#[cfg_attr(tarpaulin, skip)]
 pub fn collect_proc(
     interval: Duration,
     _with_thread: bool,
@@ -200,7 +199,6 @@ pub fn collect_proc(
     ret
 }
 
-#[cfg_attr(tarpaulin, skip)]
 fn set_privilege() -> bool {
     let handle = unsafe { GetCurrentProcess() };
     let mut token: HANDLE = unsafe { zeroed() };
@@ -241,7 +239,6 @@ fn set_privilege() -> bool {
     true
 }
 
-#[cfg_attr(tarpaulin, skip)]
 fn get_pids() -> Vec<i32> {
     let dword_size = size_of::<DWORD>();
     let mut pids: Vec<DWORD> = Vec::with_capacity(10192);
@@ -264,7 +261,6 @@ fn get_pids() -> Vec<i32> {
     pids.iter().map(|x| *x as i32).collect()
 }
 
-#[cfg_attr(tarpaulin, skip)]
 fn get_ppid_threads() -> (HashMap<i32, i32>, HashMap<i32, i32>) {
     let mut ppids = HashMap::new();
     let mut threads = HashMap::new();
@@ -285,7 +281,6 @@ fn get_ppid_threads() -> (HashMap<i32, i32>, HashMap<i32, i32>) {
     (ppids, threads)
 }
 
-#[cfg_attr(tarpaulin, skip)]
 fn get_handle(pid: i32) -> Option<HANDLE> {
     if pid == 0 {
         return None;
@@ -306,7 +301,6 @@ fn get_handle(pid: i32) -> Option<HANDLE> {
     }
 }
 
-#[cfg_attr(tarpaulin, skip)]
 fn get_times(handle: HANDLE) -> Option<(u64, u64, u64, u64)> {
     let mut start: FILETIME = unsafe { zeroed() };
     let mut exit: FILETIME = unsafe { zeroed() };
@@ -335,7 +329,6 @@ fn get_times(handle: HANDLE) -> Option<(u64, u64, u64, u64)> {
     }
 }
 
-#[cfg_attr(tarpaulin, skip)]
 fn get_memory_info(handle: HANDLE) -> Option<MemoryInfo> {
     let mut pmc: PROCESS_MEMORY_COUNTERS_EX = unsafe { zeroed() };
     let ret = unsafe {
@@ -366,7 +359,6 @@ fn get_memory_info(handle: HANDLE) -> Option<MemoryInfo> {
     }
 }
 
-#[cfg_attr(tarpaulin, skip)]
 fn get_command(handle: HANDLE) -> Option<String> {
     let mut exe_buf = [0u16; MAX_PATH + 1];
     let mut h_mod = std::ptr::null_mut();
@@ -403,7 +395,6 @@ fn get_command(handle: HANDLE) -> Option<String> {
     }
 }
 
-#[cfg_attr(tarpaulin, skip)]
 fn get_io(handle: HANDLE) -> Option<(u64, u64)> {
     let mut io: IO_COUNTERS = unsafe { zeroed() };
     let ret = unsafe { GetProcessIoCounters(handle, &mut io) };
@@ -421,7 +412,6 @@ pub struct SidName {
     pub domainname: Option<String>,
 }
 
-#[cfg_attr(tarpaulin, skip)]
 fn get_user(handle: HANDLE) -> Option<SidName> {
     let mut token: HANDLE = unsafe { zeroed() };
     let ret = unsafe { OpenProcessToken(handle, TOKEN_QUERY, &mut token) };
@@ -478,7 +468,6 @@ fn get_user(handle: HANDLE) -> Option<SidName> {
     })
 }
 
-#[cfg_attr(tarpaulin, skip)]
 fn get_groups(handle: HANDLE) -> Option<Vec<SidName>> {
     unsafe {
         let mut token: HANDLE = zeroed();
@@ -538,7 +527,6 @@ fn get_groups(handle: HANDLE) -> Option<Vec<SidName>> {
     }
 }
 
-#[cfg_attr(tarpaulin, skip)]
 fn get_sid(psid: PSID) -> Vec<u64> {
     let mut ret = Vec::new();
     let psid = psid as *const SID;
@@ -568,7 +556,6 @@ thread_local!(
         RefCell::new(HashMap::new());
 );
 
-#[cfg_attr(tarpaulin, skip)]
 fn get_name_cached(psid: PSID) -> Option<(String, String)> {
     NAME_CACHE.with(|c| {
         let mut c = c.borrow_mut();
@@ -582,7 +569,6 @@ fn get_name_cached(psid: PSID) -> Option<(String, String)> {
     })
 }
 
-#[cfg_attr(tarpaulin, skip)]
 fn get_name(psid: PSID) -> Option<(String, String)> {
     let mut cc_name = 0;
     let mut cc_domainname = 0;
@@ -626,7 +612,6 @@ fn get_name(psid: PSID) -> Option<(String, String)> {
     }
 }
 
-#[cfg_attr(tarpaulin, skip)]
 fn from_wide_ptr(ptr: *const u16) -> String {
     use std::ffi::OsString;
     use std::os::windows::ffi::OsStringExt;
@@ -639,7 +624,6 @@ fn from_wide_ptr(ptr: *const u16) -> String {
     OsString::from_wide(slice).to_string_lossy().into_owned()
 }
 
-#[cfg_attr(tarpaulin, skip)]
 fn get_priority(handle: HANDLE) -> u32 {
     unsafe { GetPriorityClass(handle) }
 }

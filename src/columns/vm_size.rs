@@ -39,7 +39,6 @@ impl Column for VmSize {
     column_default!(u64);
 }
 
-#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 impl Column for VmSize {
     fn add(&mut self, proc: &ProcessInfo) {
@@ -53,7 +52,6 @@ impl Column for VmSize {
     column_default!(u64);
 }
 
-#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "windows")]
 impl Column for VmSize {
     fn add(&mut self, proc: &ProcessInfo) {
@@ -67,7 +65,6 @@ impl Column for VmSize {
     column_default!(u64);
 }
 
-#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "freebsd")]
 impl Column for VmSize {
     fn add(&mut self, proc: &ProcessInfo) {

@@ -47,7 +47,6 @@ impl Column for VmPin {
     column_default!(u64);
 }
 
-#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "windows")]
 impl Column for VmPin {
     fn add(&mut self, proc: &ProcessInfo) {

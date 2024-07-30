@@ -11,7 +11,6 @@ pub struct TreeSlot {
     width: usize,
 }
 
-#[cfg_attr(tarpaulin, skip)]
 impl TreeSlot {
     pub fn new() -> Self {
         let header = String::new();
@@ -26,7 +25,6 @@ impl TreeSlot {
     }
 }
 
-#[cfg_attr(tarpaulin, skip)]
 impl Column for TreeSlot {
     fn add(&mut self, proc: &ProcessInfo) {
         let raw_content = String::new();

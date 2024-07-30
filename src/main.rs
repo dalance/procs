@@ -183,7 +183,6 @@ pub struct Opt {
 // Functions
 // ---------------------------------------------------------------------------------------------------------------------
 
-#[cfg_attr(tarpaulin, skip)]
 fn get_config(opt: &Opt) -> Result<Config, Error> {
     let dot_cfg_path = directories::BaseDirs::new()
         .map(|base| base.home_dir().join(".procs.toml"))
@@ -246,7 +245,6 @@ fn check_old_config(s: &str, config: Result<Config, toml::de::Error>) -> Result<
 // Main
 // ---------------------------------------------------------------------------------------------------------------------
 
-#[cfg_attr(tarpaulin, skip)]
 fn main() {
     let err = Term::stderr();
 
@@ -266,7 +264,6 @@ fn main() {
     }
 }
 
-#[cfg_attr(tarpaulin, skip)]
 fn run() -> Result<(), Error> {
     let mut opt: Opt = Parser::parse();
     opt.watch_mode = opt.watch || opt.watch_interval.is_some();
@@ -335,7 +332,6 @@ fn run_list() -> Result<(), Error> {
     Ok(())
 }
 
-#[cfg_attr(tarpaulin, skip)]
 fn run_watch(opt: &mut Opt, config: &Config, interval: u64) -> Result<(), Error> {
     Watcher::start(opt, config, interval)
 }

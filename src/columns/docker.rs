@@ -53,7 +53,6 @@ impl Docker {
     }
 }
 
-#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 impl Docker {
     pub fn new(header: Option<String>, path: &str) -> Self {
@@ -141,7 +140,6 @@ impl Column for Docker {
     column_default!(String);
 }
 
-#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 impl Column for Docker {
     fn add(&mut self, proc: &ProcessInfo) {

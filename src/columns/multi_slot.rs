@@ -11,7 +11,6 @@ pub struct MultiSlot {
     width: usize,
 }
 
-#[cfg_attr(tarpaulin, skip)]
 impl MultiSlot {
     pub fn new() -> Self {
         let header = String::new();
@@ -26,7 +25,6 @@ impl MultiSlot {
     }
 }
 
-#[cfg_attr(tarpaulin, skip)]
 impl Column for MultiSlot {
     fn add(&mut self, proc: &ProcessInfo) {
         let raw_content = String::new();

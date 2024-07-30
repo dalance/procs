@@ -38,7 +38,6 @@ impl Column for FileName {
     column_default!(String);
 }
 
-#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "freebsd")]
 impl Column for FileName {
     fn add(&mut self, proc: &ProcessInfo) {

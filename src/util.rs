@@ -240,7 +240,6 @@ pub fn find_column_kind(pat: &str) -> Option<ConfigColumnKind> {
     None
 }
 
-#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 pub fn change_endian(val: u32) -> u32 {
     let mut ret = 0;
@@ -251,7 +250,6 @@ pub fn change_endian(val: u32) -> u32 {
     ret
 }
 
-#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 pub unsafe fn get_sys_value(
     high: u32,
@@ -272,7 +270,6 @@ pub unsafe fn get_sys_value(
     ) == 0
 }
 
-#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "windows")]
 pub fn format_sid(sid: &[u64], abbr: bool) -> String {
     let mut ret = format!("S-{}-{}-{}", sid[0], sid[1], sid[2]);

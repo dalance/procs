@@ -44,7 +44,6 @@ fn get_mem_total() -> u64 {
     }
 }
 
-#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 fn get_mem_total() -> u64 {
     let mut mem_total: u64 = 0;
@@ -75,7 +74,6 @@ fn get_mem_total() -> u64 {
     }
 }
 
-#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "freebsd")]
 fn get_mem_total() -> u64 {
     let mut mem_total: u64 = 0;
@@ -110,7 +108,6 @@ impl Column for UsageMem {
     column_default!(u32);
 }
 
-#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 impl Column for UsageMem {
     fn add(&mut self, proc: &ProcessInfo) {
@@ -125,7 +122,6 @@ impl Column for UsageMem {
     column_default!(u32);
 }
 
-#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "windows")]
 impl Column for UsageMem {
     fn add(&mut self, proc: &ProcessInfo) {
@@ -140,7 +136,6 @@ impl Column for UsageMem {
     column_default!(u32);
 }
 
-#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "freebsd")]
 impl Column for UsageMem {
     fn add(&mut self, proc: &ProcessInfo) {

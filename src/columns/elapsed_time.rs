@@ -79,7 +79,6 @@ impl Column for ElapsedTime {
     column_default!(Duration);
 }
 
-#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 impl Column for ElapsedTime {
     fn add(&mut self, proc: &ProcessInfo) {
@@ -96,7 +95,6 @@ impl Column for ElapsedTime {
     column_default!(Duration);
 }
 
-#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "windows")]
 impl Column for ElapsedTime {
     fn add(&mut self, proc: &ProcessInfo) {
@@ -110,7 +108,6 @@ impl Column for ElapsedTime {
     column_default!(Duration);
 }
 
-#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "freebsd")]
 impl Column for ElapsedTime {
     fn add(&mut self, proc: &ProcessInfo) {

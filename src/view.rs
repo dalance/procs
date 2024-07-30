@@ -668,7 +668,6 @@ impl View {
     #[cfg(target_os = "windows")]
     fn pager(_config: &Config) {}
 
-    #[cfg_attr(tarpaulin, skip)]
     pub fn inc_sort_column(&mut self) -> usize {
         let current = self.sort_info.idx;
         let max_idx = self.columns.len();
@@ -682,7 +681,6 @@ impl View {
         current
     }
 
-    #[cfg_attr(tarpaulin, skip)]
     pub fn dec_sort_column(&mut self) -> usize {
         let current = self.sort_info.idx;
         let max_idx = self.columns.len();

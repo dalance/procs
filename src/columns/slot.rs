@@ -11,7 +11,6 @@ pub struct Slot {
     width: usize,
 }
 
-#[cfg_attr(tarpaulin, skip)]
 impl Slot {
     pub fn new() -> Self {
         let header = String::new();
@@ -26,7 +25,6 @@ impl Slot {
     }
 }
 
-#[cfg_attr(tarpaulin, skip)]
 impl Column for Slot {
     fn add(&mut self, proc: &ProcessInfo) {
         let raw_content = String::new();

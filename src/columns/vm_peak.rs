@@ -47,7 +47,6 @@ impl Column for VmPeak {
     column_default!(u64);
 }
 
-#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "windows")]
 impl Column for VmPeak {
     fn add(&mut self, proc: &ProcessInfo) {

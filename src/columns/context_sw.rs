@@ -50,7 +50,6 @@ impl Column for ContextSw {
     column_default!(u64);
 }
 
-#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 impl Column for ContextSw {
     fn add(&mut self, proc: &ProcessInfo) {
@@ -64,7 +63,6 @@ impl Column for ContextSw {
     column_default!(u64);
 }
 
-#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "freebsd")]
 impl Column for ContextSw {
     fn add(&mut self, proc: &ProcessInfo) {

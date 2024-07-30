@@ -56,7 +56,6 @@ impl Column for Group {
     column_default!(String);
 }
 
-#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "macos")]
 impl Column for Group {
     fn add(&mut self, proc: &ProcessInfo) {
@@ -76,7 +75,6 @@ impl Column for Group {
     column_default!(String);
 }
 
-#[cfg_attr(tarpaulin, skip)]
 #[cfg(target_os = "windows")]
 impl Column for Group {
     fn add(&mut self, proc: &ProcessInfo) {
