@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.14.5...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.14.6...Unreleased) - ReleaseDate
+
+## [v0.14.6](https://github.com/dalance/procs/compare/v0.14.5...v0.14.6) - 2024-07-30
 
 * [Changed] MSRV to Rust 1.74
 * [Added] aarch64-apple-darwin build release
