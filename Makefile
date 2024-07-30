@@ -31,7 +31,9 @@ release_win:
 
 release_mac:
 	cargo build --locked --release --target=x86_64-apple-darwin
+	cargo build --locked --release --target=aarch64-apple-darwin
 	zip -j ${BIN_NAME}-v${VERSION}-x86_64-mac.zip target/x86_64-apple-darwin/release/${BIN_NAME}
+	zip -j ${BIN_NAME}-v${VERSION}-aarch64-mac.zip target/aarch64-apple-darwin/release/${BIN_NAME}
 
 release_rpm:
 	mkdir -p target
