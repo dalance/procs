@@ -2,6 +2,9 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.14.5...Unreleased) - ReleaseDate
 
+* [Changed] MSRV to Rust 1.74
+* [Added] aarch64-apple-darwin build release
+
 ## [v0.14.5](https://github.com/dalance/procs/compare/v0.14.4...v0.14.5) - 2024-03-07
 
 * [Added] Add show_self_parents option [#607](https://github.com/dalance/procs/pull/607)
