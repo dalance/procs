@@ -19,7 +19,7 @@ impl Gid {
     pub fn new(header: Option<String>, abbr_sid: bool) -> Self {
         let header = header.unwrap_or_else(|| String::from("GID"));
         let unit = String::new();
-        Gid {
+        Self {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
             width: 0,
@@ -65,7 +65,7 @@ impl Column for Gid {
 impl Column for Gid {
     fn add(&mut self, proc: &ProcessInfo) {
         let mut sid = &proc.groups[0].sid;
-        let mut kind = std::u64::MAX;
+        let mut kind = u64::MAX;
         for g in &proc.groups {
             if g.sid.len() > 3 && g.sid[1] == 5 && g.sid[2] == 32 && kind > g.sid[3] {
                 sid = &g.sid;

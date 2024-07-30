@@ -15,7 +15,7 @@ impl Cgroup {
     pub fn new(header: Option<String>) -> Self {
         let header = header.unwrap_or_else(|| String::from("Cgroup"));
         let unit = String::new();
-        Cgroup {
+        Self {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
             width: 0,

@@ -271,7 +271,8 @@ fn run() -> Result<(), Error> {
     if opt.gen_config {
         run_gen_config()
     } else if opt.list {
-        run_list()
+        run_list();
+        Ok(())
     } else if let Some(shell) = opt.gen_completion {
         //Opt::clap().gen_completions("procs", shell, "./");
         clap_complete::generate_to(shell, &mut Opt::command(), "procs", "./")?;
@@ -310,7 +311,7 @@ fn run_gen_config() -> Result<(), Error> {
     Ok(())
 }
 
-fn run_list() -> Result<(), Error> {
+fn run_list() {
     let mut width = 0;
     let mut list = Vec::new();
     let mut desc = HashMap::new();
@@ -328,8 +329,6 @@ fn run_list() -> Result<(), Error> {
             desc[l]
         );
     }
-
-    Ok(())
 }
 
 fn run_watch(opt: &mut Opt, config: &Config, interval: u64) -> Result<(), Error> {
@@ -431,12 +430,6 @@ mod tests {
     #[test]
     fn test_run_gen_config() {
         let ret = run_gen_config();
-        assert!(ret.is_ok());
-    }
-
-    #[test]
-    fn test_run_list() {
-        let ret = run_list();
         assert!(ret.is_ok());
     }
 

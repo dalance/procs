@@ -16,7 +16,7 @@ impl VmSwap {
     pub fn new(header: Option<String>) -> Self {
         let header = header.unwrap_or_else(|| String::from("VmSwap"));
         let unit = String::from("[bytes]");
-        VmSwap {
+        Self {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
             width: 0,

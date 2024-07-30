@@ -15,7 +15,7 @@ impl GidReal {
     pub fn new(header: Option<String>) -> Self {
         let header = header.unwrap_or_else(|| String::from("RGID"));
         let unit = String::new();
-        GidReal {
+        Self {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
             width: 0,
