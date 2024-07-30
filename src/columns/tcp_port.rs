@@ -209,6 +209,7 @@ impl Column for TcpPort {
 #[cfg(target_os = "windows")]
 pub struct TcpNetEntry {
     pub local_address: SocketAddr,
+    #[allow(dead_code)]
     pub remote_address: SocketAddr,
     pub state: MIB_TCP_STATE,
     pub pid: u32,

@@ -46,10 +46,13 @@ pub struct MemoryInfo {
     pub page_fault_count: u64,
     pub peak_working_set_size: u64,
     pub working_set_size: u64,
+    #[allow(dead_code)]
     pub quota_peak_paged_pool_usage: u64,
     pub quota_paged_pool_usage: u64,
+    #[allow(dead_code)]
     pub quota_peak_non_paged_pool_usage: u64,
     pub quota_non_paged_pool_usage: u64,
+    #[allow(dead_code)]
     pub page_file_usage: u64,
     pub peak_page_file_usage: u64,
     pub private_usage: u64,
@@ -409,6 +412,7 @@ fn get_io(handle: HANDLE) -> Option<(u64, u64)> {
 pub struct SidName {
     pub sid: Vec<u64>,
     pub name: Option<String>,
+    #[allow(dead_code)]
     pub domainname: Option<String>,
 }
 

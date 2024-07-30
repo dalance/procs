@@ -137,10 +137,14 @@ fn get_arg_max() -> size_t {
 }
 
 pub struct PathInfo {
+    #[allow(dead_code)]
     pub name: String,
+    #[allow(dead_code)]
     pub exe: PathBuf,
+    #[allow(dead_code)]
     pub root: PathBuf,
     pub cmd: Vec<String>,
+    #[allow(dead_code)]
     pub env: Vec<String>,
 }
 
