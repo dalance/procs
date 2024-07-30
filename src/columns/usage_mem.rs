@@ -7,7 +7,7 @@ use std::collections::HashMap;
 #[cfg(target_os = "windows")]
 use std::mem::{size_of, zeroed};
 #[cfg(target_os = "windows")]
-use winapi::um::psapi::{GetPerformanceInfo, PERFORMANCE_INFORMATION};
+use windows_sys::Win32::System::ProcessStatus::{GetPerformanceInfo, PERFORMANCE_INFORMATION};
 
 pub struct UsageMem {
     header: String,
