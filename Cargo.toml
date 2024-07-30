@@ -69,7 +69,7 @@ uzers         = "0.12"
 which         = "6"
 
 [target.'cfg(target_os = "windows")'.dependencies]
-winapi        = { version = "0.3", features = ["handleapi", "minwindef", "psapi", "securitybaseapi", "tlhelp32", "winbase", "winnt", "iphlpapi"] }
+windows-sys   = { version = "0.52", features = ["Win32_Foundation", "Win32_Networking_WinSock", "Win32_NetworkManagement_IpHelper", "Win32_Security", "Win32_System_Diagnostics_ToolHelp", "Win32_System_ProcessStatus", "Win32_System_Threading"] }
 
 [target.'cfg(target_os = "freebsd")'.dependencies]
 bsd-kvm       = "0.1.5"

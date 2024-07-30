@@ -1719,7 +1719,7 @@ dependencies = [
  "unicode-width",
  "uzers",
  "which 6.0.2",
- "winapi",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
