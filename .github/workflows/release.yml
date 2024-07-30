@@ -27,6 +27,11 @@ jobs:
       run: |
         rustup target add x86_64-unknown-linux-musl
         sudo apt-get -qq install musl-tools
+    - name: Setup aarch64 mac
+      if: matrix.os == 'macOS-latest'
+      run: |
+        rustup target add aarch64-apple-darwin
+        rustup target add x86_64-apple-darwin
     - name: Build for linux
       if: matrix.os == 'ubuntu-latest'
       run: |
