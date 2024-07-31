@@ -23,7 +23,7 @@ impl UsageMem {
         let header = header.unwrap_or_else(|| String::from("MEM"));
         let unit = String::from("[%]");
 
-        UsageMem {
+        Self {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
             width: 0,

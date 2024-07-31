@@ -16,7 +16,7 @@ impl Tree {
     pub fn new(symbols: &[String; 5]) -> Self {
         let header = String::new();
         let unit = String::new();
-        Tree {
+        Self {
             width: 0,
             header,
             unit,

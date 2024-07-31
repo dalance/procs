@@ -15,7 +15,7 @@ impl Pid {
     pub fn new(header: Option<String>) -> Self {
         let header = header.unwrap_or_else(|| String::from("PID"));
         let unit = String::new();
-        Pid {
+        Self {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
             width: 0,
@@ -45,7 +45,7 @@ impl Column for Pid {
 impl Column for Pid {
     fn add(&mut self, proc: &ProcessInfo) {
         let raw_content = proc.pid;
-        let fmt_content = format!("{}", raw_content);
+        let fmt_content = format!("{raw_content}");
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);

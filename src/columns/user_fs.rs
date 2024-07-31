@@ -17,7 +17,7 @@ impl UserFs {
     pub fn new(header: Option<String>) -> Self {
         let header = header.unwrap_or_else(|| String::from("File System User"));
         let unit = String::new();
-        UserFs {
+        Self {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
             width: 0,

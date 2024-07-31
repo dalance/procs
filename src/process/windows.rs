@@ -622,7 +622,7 @@ fn from_wide_ptr(ptr: *const u16) -> String {
     use std::os::windows::ffi::OsStringExt;
 
     assert!(!ptr.is_null());
-    let len = (0..std::isize::MAX)
+    let len = (0..isize::MAX)
         .position(|i| unsafe { *ptr.offset(i) == 0 })
         .unwrap();
     let slice = unsafe { std::slice::from_raw_parts(ptr, len) };

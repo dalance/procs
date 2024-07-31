@@ -15,7 +15,7 @@ impl Empty {
     pub fn new() -> Self {
         let header = String::new();
         let unit = String::new();
-        Empty {
+        Self {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
             width: 0,

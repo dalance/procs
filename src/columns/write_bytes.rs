@@ -16,7 +16,7 @@ impl WriteBytes {
     pub fn new(header: Option<String>) -> Self {
         let header = header.unwrap_or_else(|| String::from("Write"));
         let unit = String::from("[B/s]");
-        WriteBytes {
+        Self {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
             width: 0,

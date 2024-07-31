@@ -16,7 +16,7 @@ impl Separator {
     pub fn new(separator: &str) -> Self {
         let header = String::from(separator);
         let unit = String::from(separator);
-        Separator {
+        Self {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
             width: 0,
