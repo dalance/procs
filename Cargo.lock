@@ -670,6 +670,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "crossterm"
+version = "0.28.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "829d955a0bb380ef178a640b91779e3987da38c9aea133b20614cfed8cdea9c6"
+dependencies = [
+ "bitflags 2.6.0",
+ "crossterm_winapi",
+ "mio 1.0.1",
+ "parking_lot",
+ "rustix 0.38.34",
+ "signal-hook",
+ "signal-hook-mio",
+ "winapi",
+]
+
+[[package]]
 name = "crossterm_winapi"
 version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1204,17 +1220,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "is-terminal"
-version = "0.4.12"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f23ff5ef2b80d608d61efee834934d862cd92461afc0560dedf493e4c033738b"
-dependencies = [
- "hermit-abi 0.3.9",
- "libc",
- "windows-sys 0.52.0",
-]
-
-[[package]]
 name = "is_terminal_polyfill"
 version = "1.70.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1370,7 +1375,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "093bd0520d2a37943566a73750e6d44094dac75d66a978d1f0d97ffc78686832"
 dependencies = [
  "crossbeam-channel",
- "crossterm",
+ "crossterm 0.27.0",
  "once_cell",
  "parking_lot",
  "regex",
@@ -1398,6 +1403,7 @@ checksum = "4569e456d394deccd22ce1c1913e6ea0e54519f577285001215d33557431afe4"
 dependencies = [
  "hermit-abi 0.3.9",
  "libc",
+ "log",
  "wasi",
  "windows-sys 0.52.0",
 ]
@@ -2021,6 +2027,7 @@ checksum = "34db1a06d485c9142248b7a054f034b349b212551f3dfd19c94d45a754a217cd"
 dependencies = [
  "libc",
  "mio 0.8.11",
+ "mio 1.0.1",
  "signal-hook",
 ]
 
@@ -2133,13 +2140,12 @@ dependencies = [
 
 [[package]]
 name = "termbg"
-version = "0.5.0"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2c12e6e0bf9bc6ac887681aeddabfcc5dbdea20d3f43d6d18f237c34fe942dde"
+checksum = "8bc77395d133abffe2ff55fc005178ae410973936f706833b8f75272154887f2"
 dependencies = [
  "async-std",
- "crossterm",
- "is-terminal",
+ "crossterm 0.28.1",
  "thiserror",
  "winapi",
 ]
