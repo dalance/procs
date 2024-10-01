@@ -114,7 +114,7 @@ impl View {
             };
 
             for kind in kinds {
-                let visible = if let Some(ref only) = opt.only {
+                let visible = if let Some(only) = &opt.only {
                     let kind_name = KIND_LIST[&kind].0.to_lowercase();
                     if !kind_name.contains(&only.to_lowercase()) {
                         false
@@ -154,7 +154,7 @@ impl View {
             bail!("There is not enough slot for inserting columns {:?}.\nPlease add \"Slot\" or \"MultiSlot\" to your config.\nhttps://github.com/dalance/procs#insert-column", opt.insert);
         }
 
-        if let Some(ref only_kind) = opt.only {
+        if let Some(only_kind) = &opt.only {
             if !only_kind_found {
                 bail!("kind \"{}\" is not found in columns", only_kind);
             }

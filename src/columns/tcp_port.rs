@@ -11,15 +11,11 @@ use std::collections::HashMap;
 #[cfg(target_os = "windows")]
 use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6};
 #[cfg(target_os = "windows")]
-use winapi::shared::tcpmib::MIB_TCP_STATE;
+use windows_sys::Win32::NetworkManagement::IpHelper::{GetTcpTable2, GetTcp6Table2, MIB_TCP_STATE, MIB_TCPTABLE2, MIB_TCP_STATE_LISTEN, MIB_TCP6TABLE2};
 #[cfg(target_os = "windows")]
-use winapi::shared::tcpmib::{MIB_TCPTABLE2, MIB_TCP_STATE_LISTEN};
+use windows_sys::Win32::Foundation::{ERROR_INSUFFICIENT_BUFFER, NO_ERROR};
 #[cfg(target_os = "windows")]
-use winapi::shared::winerror::{ERROR_INSUFFICIENT_BUFFER, NO_ERROR};
-#[cfg(target_os = "windows")]
-use winapi::um::{iphlpapi::GetTcpTable2, winsock2::ntohl, winsock2::ntohs};
-#[cfg(target_os = "windows")]
-use winapi::{shared::tcpmib::MIB_TCP6TABLE2, um::iphlpapi::GetTcp6Table2};
+use windows_sys::Win32::Networking::WinSock::{ntohl, ntohs};
 
 pub struct TcpPort {
     header: String,
@@ -37,7 +33,7 @@ impl TcpPort {
     pub fn new(header: Option<String>) -> Self {
         let header = header.unwrap_or_else(|| String::from("TCP"));
         let unit = String::new();
-        TcpPort {
+        Self {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
             width: 0,
@@ -250,7 +246,7 @@ fn get_tcp_entry_list() -> Result<Vec<TcpNetEntry>, anyhow::Error> {
                 unsafe { ntohs(entry.dwRemotePort as u16) },
             )),
             pid: entry.dwOwningPid,
-            state: entry.dwState,
+            state: entry.dwState as i32,
         });
     }
 
@@ -284,13 +280,13 @@ fn get_tcp6_entry_list() -> Result<Vec<TcpNetEntry>, anyhow::Error> {
         let entry = unsafe { *tcp_table.table.as_ptr().add(i as usize) };
         entry_list.push(TcpNetEntry {
             local_address: SocketAddr::V6(SocketAddrV6::new(
-                Ipv6Addr::from(unsafe { *entry.LocalAddr.u.Byte() }),
+                Ipv6Addr::from(u128::from_be_bytes(unsafe { entry.LocalAddr.u.Byte })),
                 unsafe { ntohs(entry.dwLocalPort as u16) },
                 0,
                 entry.dwLocalScopeId,
             )),
             remote_address: SocketAddr::V6(SocketAddrV6::new(
-                Ipv6Addr::from(unsafe { *entry.RemoteAddr.u.Byte() }),
+                Ipv6Addr::from(u128::from_be_bytes(unsafe { entry.RemoteAddr.u.Byte })),
                 unsafe { ntohs(entry.dwRemotePort as u16) },
                 0,
                 entry.dwRemoteScopeId,
@@ -308,7 +304,7 @@ fn get_tcp6_entry_list() -> Result<Vec<TcpNetEntry>, anyhow::Error> {
 mod tests {
     use std::net::TcpListener;
 
-    use winapi::shared::tcpmib::MIB_TCP_STATE_LISTEN;
+    use windows_sys::Win32::NetworkManagement::IpHelper::MIB_TCP_STATE_LISTEN;
 
     use super::TcpPort;
 

@@ -2,29 +2,29 @@ use chrono::offset::TimeZone;
 use chrono::{Local, NaiveDate};
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::ffi::c_void;
 use std::mem::{size_of, zeroed, MaybeUninit};
 use std::ptr;
 use std::thread;
 use std::time::{Duration, Instant};
-use winapi::ctypes::c_void;
-use winapi::shared::minwindef::{DWORD, FALSE, FILETIME, MAX_PATH};
-use winapi::um::handleapi::CloseHandle;
-use winapi::um::processthreadsapi::{
-    GetCurrentProcess, GetPriorityClass, GetProcessTimes, OpenProcess, OpenProcessToken,
+use windows_sys::Win32::Foundation::{
+    CloseHandle, FALSE, FILETIME, HANDLE, HMODULE, MAX_PATH, PSID,
 };
-use winapi::um::psapi::{
+use windows_sys::Win32::Security::{
+    AdjustTokenPrivileges, GetTokenInformation, LookupAccountSidW, LookupPrivilegeValueW,
+    TokenGroups, TokenUser, SE_DEBUG_NAME, SE_PRIVILEGE_ENABLED, SID, TOKEN_ADJUST_PRIVILEGES,
+    TOKEN_GROUPS, TOKEN_PRIVILEGES, TOKEN_QUERY, TOKEN_USER,
+};
+use windows_sys::Win32::System::Diagnostics::ToolHelp::{
+    CreateToolhelp32Snapshot, Process32First, Process32Next, PROCESSENTRY32, TH32CS_SNAPPROCESS,
+};
+use windows_sys::Win32::System::ProcessStatus::{
     EnumProcessModulesEx, GetModuleBaseNameW, GetProcessMemoryInfo, K32EnumProcesses,
     LIST_MODULES_ALL, PROCESS_MEMORY_COUNTERS, PROCESS_MEMORY_COUNTERS_EX,
 };
-use winapi::um::securitybaseapi::{AdjustTokenPrivileges, GetTokenInformation};
-use winapi::um::tlhelp32::{
-    CreateToolhelp32Snapshot, Process32First, Process32Next, PROCESSENTRY32, TH32CS_SNAPPROCESS,
-};
-use winapi::um::winbase::{GetProcessIoCounters, LookupAccountSidW, LookupPrivilegeValueW};
-use winapi::um::winnt::{
-    TokenGroups, TokenUser, HANDLE, IO_COUNTERS, PROCESS_QUERY_INFORMATION, PROCESS_VM_READ, PSID,
-    SE_DEBUG_NAME, SE_PRIVILEGE_ENABLED, SID, TOKEN_ADJUST_PRIVILEGES, TOKEN_GROUPS,
-    TOKEN_PRIVILEGES, TOKEN_QUERY, TOKEN_USER,
+use windows_sys::Win32::System::Threading::{
+    GetCurrentProcess, GetPriorityClass, GetProcessIoCounters, GetProcessTimes, OpenProcess,
+    OpenProcessToken, IO_COUNTERS, PROCESS_QUERY_INFORMATION, PROCESS_VM_READ,
 };
 
 pub struct ProcessInfo {
@@ -211,7 +211,9 @@ fn set_privilege() -> bool {
     }
 
     let mut tps: TOKEN_PRIVILEGES = unsafe { zeroed() };
-    let se_debug_name: Vec<u16> = format!("{}\0", SE_DEBUG_NAME).encode_utf16().collect();
+    let se_debug_name: Vec<u16> = format!("{}\0", unsafe { *SE_DEBUG_NAME })
+        .encode_utf16()
+        .collect();
     tps.PrivilegeCount = 1;
     let ret = unsafe {
         LookupPrivilegeValueW(
@@ -229,7 +231,7 @@ fn set_privilege() -> bool {
         AdjustTokenPrivileges(
             token,
             FALSE,
-            &mut tps,
+            &tps as *const _,
             0,
             ptr::null::<TOKEN_PRIVILEGES>() as *mut TOKEN_PRIVILEGES,
             ptr::null::<u32>() as *mut u32,
@@ -243,22 +245,22 @@ fn set_privilege() -> bool {
 }
 
 fn get_pids() -> Vec<i32> {
-    let dword_size = size_of::<DWORD>();
-    let mut pids: Vec<DWORD> = Vec::with_capacity(10192);
+    let dword_size = size_of::<u32>();
+    let mut pids = Vec::with_capacity(10192);
     let mut cb_needed = 0;
 
     unsafe { pids.set_len(10192) };
     let result = unsafe {
         K32EnumProcesses(
             pids.as_mut_ptr(),
-            (dword_size * pids.len()) as DWORD,
+            (dword_size * pids.len()) as u32,
             &mut cb_needed,
         )
     };
     if result == 0 {
         return Vec::new();
     }
-    let pids_len = cb_needed / dword_size as DWORD;
+    let pids_len = cb_needed / dword_size as u32;
     unsafe { pids.set_len(pids_len as usize) };
 
     pids.iter().map(|x| *x as i32).collect()
@@ -293,11 +295,11 @@ fn get_handle(pid: i32) -> Option<HANDLE> {
         OpenProcess(
             PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,
             FALSE,
-            pid as DWORD,
+            pid as u32,
         )
     };
 
-    if handle.is_null() {
+    if handle == 0 {
         None
     } else {
         Some(handle)
@@ -339,7 +341,7 @@ fn get_memory_info(handle: HANDLE) -> Option<MemoryInfo> {
             handle,
             &mut pmc as *mut PROCESS_MEMORY_COUNTERS_EX as *mut c_void
                 as *mut PROCESS_MEMORY_COUNTERS,
-            size_of::<PROCESS_MEMORY_COUNTERS_EX>() as DWORD,
+            size_of::<PROCESS_MEMORY_COUNTERS_EX>() as u32,
         )
     };
 
@@ -363,15 +365,15 @@ fn get_memory_info(handle: HANDLE) -> Option<MemoryInfo> {
 }
 
 fn get_command(handle: HANDLE) -> Option<String> {
-    let mut exe_buf = [0u16; MAX_PATH + 1];
-    let mut h_mod = std::ptr::null_mut();
+    let mut exe_buf = [0u16; MAX_PATH as usize + 1];
+    let h_mod: HMODULE = 0;
     let mut cb_needed = 0;
 
     let ret = unsafe {
         EnumProcessModulesEx(
             handle,
-            &mut h_mod,
-            size_of::<DWORD>() as DWORD,
+            h_mod as *mut HMODULE,
+            size_of::<u32>() as u32,
             &mut cb_needed,
             LIST_MODULES_ALL,
         )
@@ -380,8 +382,7 @@ fn get_command(handle: HANDLE) -> Option<String> {
         return None;
     }
 
-    let ret =
-        unsafe { GetModuleBaseNameW(handle, h_mod, exe_buf.as_mut_ptr(), MAX_PATH as DWORD + 1) };
+    let ret = unsafe { GetModuleBaseNameW(handle, h_mod, exe_buf.as_mut_ptr(), MAX_PATH + 1) };
 
     let mut pos = 0;
     for x in exe_buf.iter() {
@@ -599,9 +600,9 @@ fn get_name(psid: PSID) -> Option<(String, String)> {
         let ret = LookupAccountSidW(
             ptr::null::<u16>() as *mut u16,
             psid,
-            name.as_mut_ptr() as *mut u16,
+            name.as_mut_ptr(),
             &mut cc_name,
-            domainname.as_mut_ptr() as *mut u16,
+            domainname.as_mut_ptr(),
             &mut cc_domainname,
             &mut pe_use,
         );
@@ -621,7 +622,7 @@ fn from_wide_ptr(ptr: *const u16) -> String {
     use std::os::windows::ffi::OsStringExt;
 
     assert!(!ptr.is_null());
-    let len = (0..std::isize::MAX)
+    let len = (0..isize::MAX)
         .position(|i| unsafe { *ptr.offset(i) == 0 })
         .unwrap();
     let slice = unsafe { std::slice::from_raw_parts(ptr, len) };

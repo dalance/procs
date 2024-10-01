@@ -67,7 +67,7 @@ impl Watcher {
         });
     }
 
-    fn display_header(term_info: &mut TermInfo, opt: &Opt, interval: u64) -> Result<(), Error> {
+    fn display_header(term_info: &TermInfo, opt: &Opt, interval: u64) -> Result<(), Error> {
         let header = if opt.tree {
             format!(
                 " Interval: {}ms, Last Updated: {} ( Quit: q or Ctrl-C )",
@@ -127,7 +127,7 @@ impl Watcher {
             if resized {
                 term_info.clear_screen()?;
             }
-            Watcher::display_header(&mut view.term_info, opt, interval)?;
+            Watcher::display_header(&view.term_info, opt, interval)?;
 
             view.display(opt, config, &theme)?;
 

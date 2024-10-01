@@ -26,16 +26,16 @@ fn apply_style_by_state(
     faded: bool,
 ) -> StyledObject<String> {
     match x {
-        ref x if x.contains('D') => apply_color(x.to_string(), &s.by_state.color_d, theme, faded),
-        ref x if x.contains('R') => apply_color(x.to_string(), &s.by_state.color_r, theme, faded),
-        ref x if x.contains('S') => apply_color(x.to_string(), &s.by_state.color_s, theme, faded),
-        ref x if x.contains('T') => apply_color(x.to_string(), &s.by_state.color_t, theme, faded),
-        ref x if x.contains('t') => apply_color(x.to_string(), &s.by_state.color_t, theme, faded),
-        ref x if x.contains('Z') => apply_color(x.to_string(), &s.by_state.color_z, theme, faded),
-        ref x if x.contains('X') => apply_color(x.to_string(), &s.by_state.color_x, theme, faded),
-        ref x if x.contains('K') => apply_color(x.to_string(), &s.by_state.color_k, theme, faded),
-        ref x if x.contains('W') => apply_color(x.to_string(), &s.by_state.color_w, theme, faded),
-        ref x if x.contains('P') => apply_color(x.to_string(), &s.by_state.color_p, theme, faded),
+        x if x.contains('D') => apply_color(x.to_string(), &s.by_state.color_d, theme, faded),
+        x if x.contains('R') => apply_color(x.to_string(), &s.by_state.color_r, theme, faded),
+        x if x.contains('S') => apply_color(x.to_string(), &s.by_state.color_s, theme, faded),
+        x if x.contains('T') => apply_color(x.to_string(), &s.by_state.color_t, theme, faded),
+        x if x.contains('t') => apply_color(x.to_string(), &s.by_state.color_t, theme, faded),
+        x if x.contains('Z') => apply_color(x.to_string(), &s.by_state.color_z, theme, faded),
+        x if x.contains('X') => apply_color(x.to_string(), &s.by_state.color_x, theme, faded),
+        x if x.contains('K') => apply_color(x.to_string(), &s.by_state.color_k, theme, faded),
+        x if x.contains('W') => apply_color(x.to_string(), &s.by_state.color_w, theme, faded),
+        x if x.contains('P') => apply_color(x.to_string(), &s.by_state.color_p, theme, faded),
         _ => apply_color(x, &s.by_state.color_x, theme, faded),
     }
 }
@@ -47,11 +47,11 @@ fn apply_style_by_unit(
     faded: bool,
 ) -> StyledObject<String> {
     match x {
-        ref x if x.contains('K') => apply_color(x.to_string(), &s.by_unit.color_k, theme, faded),
-        ref x if x.contains('M') => apply_color(x.to_string(), &s.by_unit.color_m, theme, faded),
-        ref x if x.contains('G') => apply_color(x.to_string(), &s.by_unit.color_g, theme, faded),
-        ref x if x.contains('T') => apply_color(x.to_string(), &s.by_unit.color_t, theme, faded),
-        ref x if x.contains('P') => apply_color(x.to_string(), &s.by_unit.color_p, theme, faded),
+        x if x.contains('K') => apply_color(x.to_string(), &s.by_unit.color_k, theme, faded),
+        x if x.contains('M') => apply_color(x.to_string(), &s.by_unit.color_m, theme, faded),
+        x if x.contains('G') => apply_color(x.to_string(), &s.by_unit.color_g, theme, faded),
+        x if x.contains('T') => apply_color(x.to_string(), &s.by_unit.color_t, theme, faded),
+        x if x.contains('P') => apply_color(x.to_string(), &s.by_unit.color_p, theme, faded),
         _ => apply_color(x, &s.by_unit.color_x, theme, faded),
     }
 }

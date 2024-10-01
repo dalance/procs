@@ -23,7 +23,7 @@ impl Group {
     pub fn new(header: Option<String>, abbr_sid: bool) -> Self {
         let header = header.unwrap_or_else(|| String::from("Group"));
         let unit = String::new();
-        Group {
+        Self {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
             width: 0,
@@ -79,7 +79,7 @@ impl Column for Group {
 impl Column for Group {
     fn add(&mut self, proc: &ProcessInfo) {
         let mut sid_name = &proc.groups[0];
-        let mut kind = std::u64::MAX;
+        let mut kind = u64::MAX;
         for g in &proc.groups {
             if g.sid.len() > 3 && g.sid[1] == 5 && g.sid[2] == 32 && kind > g.sid[3] {
                 sid_name = g;

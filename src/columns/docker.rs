@@ -41,7 +41,7 @@ impl Docker {
         } else {
             available = false;
         }
-        Docker {
+        Self {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
             width: 0,

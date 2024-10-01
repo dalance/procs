@@ -15,7 +15,7 @@ impl Slot {
     pub fn new() -> Self {
         let header = String::new();
         let unit = String::new();
-        Slot {
+        Self {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
             width: 0,

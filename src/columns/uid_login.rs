@@ -17,7 +17,7 @@ impl UidLogin {
     pub fn new(header: Option<String>) -> Self {
         let header = header.unwrap_or_else(|| String::from("LoginUID"));
         let unit = String::new();
-        UidLogin {
+        Self {
             fmt_contents: HashMap::new(),
             raw_contents: HashMap::new(),
             width: 0,
