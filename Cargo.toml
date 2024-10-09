@@ -55,7 +55,7 @@ unicode-width = "0.2"
 
 [target.'cfg(any(target_os = "linux", target_os = "android"))'.dependencies]
 pager         = "0.16.1"
-procfs        = "0.16.0"
+procfs        = "0.17.0"
 regex         = "1.11"
 uzers         = "0.12"
 which         = "6"
