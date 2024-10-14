@@ -346,7 +346,7 @@ fn run_default(opt: &mut Opt, config: &Config) -> Result<(), Error> {
         lap(&mut time, "Info: View::new");
     }
 
-    view.filter(opt, config, 0);
+    view.filter(opt, config, 1);
 
     if opt.debug {
         lap(&mut time, "Info: view.filter");
