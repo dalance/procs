@@ -358,3 +358,16 @@ pub fn ptr_to_cstr(
     let x = unsafe { std::slice::from_raw_parts::<u8>(ptr, len) };
     std::ffi::CStr::from_bytes_until_nul(x)
 }
+
+#[cfg(any(target_os = "linux", target_os = "android"))]
+pub fn process_new(
+    pid: i32,
+    procfs: &Option<std::path::PathBuf>,
+) -> procfs::ProcResult<procfs::process::Process> {
+    if let Some(ref x) = procfs {
+        let path = x.join(pid.to_string());
+        procfs::process::Process::new_with_root(path)
+    } else {
+        procfs::process::Process::new(pid)
+    }
+}
