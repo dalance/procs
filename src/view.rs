@@ -210,7 +210,7 @@ impl View {
         })
     }
 
-    pub fn filter(&mut self, opt: &Opt, config: &Config) {
+    pub fn filter(&mut self, opt: &Opt, config: &Config, header_lines: usize) {
         let mut cols_nonnumeric = Vec::new();
         let mut cols_numeric = Vec::new();
         for c in &self.columns {
@@ -321,7 +321,8 @@ impl View {
                 visible_pids.push(*pid);
             }
 
-            if opt.watch_mode && visible_pids.len() >= self.term_info.height - 5 {
+            let reserved_rows = 4 + header_lines;
+            if opt.watch_mode && visible_pids.len() >= self.term_info.height - reserved_rows {
                 break;
             }
         }
