@@ -7,13 +7,11 @@ use std::mem::{size_of, zeroed, MaybeUninit};
 use std::ptr;
 use std::thread;
 use std::time::{Duration, Instant};
-use windows_sys::Win32::Foundation::{
-    CloseHandle, FALSE, FILETIME, HANDLE, HMODULE, MAX_PATH, PSID,
-};
+use windows_sys::Win32::Foundation::{CloseHandle, FALSE, FILETIME, HANDLE, HMODULE, MAX_PATH};
 use windows_sys::Win32::Security::{
     AdjustTokenPrivileges, GetTokenInformation, LookupAccountSidW, LookupPrivilegeValueW,
-    TokenGroups, TokenUser, SE_DEBUG_NAME, SE_PRIVILEGE_ENABLED, SID, TOKEN_ADJUST_PRIVILEGES,
-    TOKEN_GROUPS, TOKEN_PRIVILEGES, TOKEN_QUERY, TOKEN_USER,
+    TokenGroups, TokenUser, PSID, SE_DEBUG_NAME, SE_PRIVILEGE_ENABLED, SID,
+    TOKEN_ADJUST_PRIVILEGES, TOKEN_GROUPS, TOKEN_PRIVILEGES, TOKEN_QUERY, TOKEN_USER,
 };
 use windows_sys::Win32::System::Diagnostics::ToolHelp::{
     CreateToolhelp32Snapshot, Process32First, Process32Next, PROCESSENTRY32, TH32CS_SNAPPROCESS,
@@ -299,7 +297,7 @@ fn get_handle(pid: i32) -> Option<HANDLE> {
         )
     };
 
-    if handle == 0 {
+    if handle == std::ptr::null_mut() {
         None
     } else {
         Some(handle)
@@ -366,7 +364,7 @@ fn get_memory_info(handle: HANDLE) -> Option<MemoryInfo> {
 
 fn get_command(handle: HANDLE) -> Option<String> {
     let mut exe_buf = [0u16; MAX_PATH as usize + 1];
-    let h_mod: HMODULE = 0;
+    let h_mod: HMODULE = std::ptr::null_mut();
     let mut cb_needed = 0;
 
     let ret = unsafe {
