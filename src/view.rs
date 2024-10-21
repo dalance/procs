@@ -133,6 +133,7 @@ impl View {
                     &config.display.separator,
                     config.display.abbr_sid,
                     &config.display.tree_symbols,
+                    opt.procfs.clone(),
                 );
                 if column.available() {
                     columns.push(ColumnInfo {
@@ -172,6 +173,7 @@ impl View {
             Duration::from_millis(opt.interval),
             show_thread,
             config.display.show_kthreads,
+            &opt.procfs,
         );
         for c in columns.iter_mut() {
             for p in &proc {

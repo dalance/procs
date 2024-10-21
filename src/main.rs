@@ -174,6 +174,10 @@ pub struct Opt {
     #[clap(long = "no-header")]
     pub no_header: bool,
 
+    /// Path to procfs
+    #[clap(long = "procfs")]
+    pub procfs: Option<PathBuf>,
+
     /// Show debug message
     #[clap(long = "debug", hide = true)]
     pub debug: bool,

@@ -108,6 +108,7 @@ use crate::column::Column;
 use once_cell::sync::Lazy;
 use serde_derive::{Deserialize, Serialize};
 use std::collections::BTreeMap;
+use std::path::PathBuf;
 
 // ---------------------------------------------------------------------------------------------------------------------
 // ConfigColumnKind
@@ -180,6 +181,7 @@ pub fn gen_column(
     separator: &str,
     abbr_sid: bool,
     tree_symbols: &[String; 5],
+    procfs: Option<PathBuf>,
 ) -> Box<dyn Column> {
     match kind {
         ConfigColumnKind::Command => Box::new(Command::new(header)),
@@ -187,7 +189,7 @@ pub fn gen_column(
         ConfigColumnKind::CpuTime => Box::new(CpuTime::new(header)),
         ConfigColumnKind::ElapsedTime => Box::new(ElapsedTime::new(header)),
         ConfigColumnKind::Empty => Box::new(Empty::new()),
-        ConfigColumnKind::Env => Box::new(Env::new(header)),
+        ConfigColumnKind::Env => Box::new(Env::new(header, procfs)),
         ConfigColumnKind::FileName => Box::new(FileName::new(header)),
         ConfigColumnKind::Gid => Box::new(Gid::new(header, abbr_sid)),
         ConfigColumnKind::GidReal => Box::new(GidReal::new(header)),

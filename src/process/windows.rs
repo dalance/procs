@@ -4,6 +4,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::ffi::c_void;
 use std::mem::{size_of, zeroed, MaybeUninit};
+use std::path::PathBuf;
 use std::ptr;
 use std::thread;
 use std::time::{Duration, Instant};
@@ -74,6 +75,7 @@ pub fn collect_proc(
     interval: Duration,
     _with_thread: bool,
     _show_kthreads: bool,
+    _procfs_path: &Option<PathBuf>,
 ) -> Vec<ProcessInfo> {
     let mut base_procs = Vec::new();
     let mut ret = Vec::new();

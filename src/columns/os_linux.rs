@@ -160,6 +160,7 @@ use crate::column::Column;
 use once_cell::sync::Lazy;
 use serde_derive::{Deserialize, Serialize};
 use std::collections::BTreeMap;
+use std::path::PathBuf;
 
 // ---------------------------------------------------------------------------------------------------------------------
 // ConfigColumnKind
@@ -258,6 +259,7 @@ pub fn gen_column(
     separator: &str,
     abbr_sid: bool,
     tree_symbols: &[String; 5],
+    procfs: Option<PathBuf>,
 ) -> Box<dyn Column> {
     match kind {
         ConfigColumnKind::Ccgroup => Box::new(Ccgroup::new(header)),
@@ -272,7 +274,7 @@ pub fn gen_column(
         ConfigColumnKind::Eip => Box::new(Eip::new(header)),
         ConfigColumnKind::ElapsedTime => Box::new(ElapsedTime::new(header)),
         ConfigColumnKind::Empty => Box::new(Empty::new()),
-        ConfigColumnKind::Env => Box::new(Env::new(header)),
+        ConfigColumnKind::Env => Box::new(Env::new(header, procfs)),
         ConfigColumnKind::Esp => Box::new(Esp::new(header)),
         ConfigColumnKind::FileName => Box::new(FileName::new(header)),
         ConfigColumnKind::Gid => Box::new(Gid::new(header, abbr_sid)),
@@ -295,7 +297,7 @@ pub fn gen_column(
         ConfigColumnKind::Processor => Box::new(Processor::new(header)),
         ConfigColumnKind::ReadBytes => Box::new(ReadBytes::new(header)),
         ConfigColumnKind::RtPriority => Box::new(RtPriority::new(header)),
-        ConfigColumnKind::SecContext => Box::new(SecContext::new(header)),
+        ConfigColumnKind::SecContext => Box::new(SecContext::new(header, procfs)),
         ConfigColumnKind::Separator => Box::new(Separator::new(separator)),
         ConfigColumnKind::Session => Box::new(Session::new(header)),
         ConfigColumnKind::ShdPnd => Box::new(ShdPnd::new(header)),
@@ -339,7 +341,7 @@ pub fn gen_column(
         ConfigColumnKind::VmStack => Box::new(VmStack::new(header)),
         ConfigColumnKind::VmSwap => Box::new(VmSwap::new(header)),
         ConfigColumnKind::Wchan => Box::new(Wchan::new(header)),
-        ConfigColumnKind::WorkDir => Box::new(WorkDir::new(header)),
+        ConfigColumnKind::WorkDir => Box::new(WorkDir::new(header, procfs)),
         ConfigColumnKind::WriteBytes => Box::new(WriteBytes::new(header)),
     }
 }

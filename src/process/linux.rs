@@ -2,6 +2,7 @@ use procfs::process::{FDInfo, Io, Process, Stat, Status, TasksIter};
 use procfs::ProcError;
 use procfs::ProcessCGroup;
 use std::collections::HashMap;
+use std::path::PathBuf;
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -83,12 +84,19 @@ pub fn collect_proc(
     interval: Duration,
     with_thread: bool,
     show_kthreads: bool,
+    procfs_path: &Option<PathBuf>,
 ) -> Vec<ProcessInfo> {
     let mut base_procs = Vec::new();
     let mut base_tasks = HashMap::new();
     let mut ret = Vec::new();
 
-    if let Ok(all_proc) = procfs::process::all_processes() {
+    let all_proc = if let Some(ref x) = procfs_path {
+        procfs::process::all_processes_with_root(x)
+    } else {
+        procfs::process::all_processes()
+    };
+
+    if let Ok(all_proc) = all_proc {
         for proc in all_proc.flatten() {
             if let Ok(stat) = proc.stat() {
                 let io = proc.io().ok();
@@ -106,7 +114,7 @@ pub fn collect_proc(
     thread::sleep(interval);
 
     for (pid, prev_stat, prev_io, prev_time) in base_procs {
-        let curr_proc = if let Ok(proc) = Process::new(pid) {
+        let curr_proc = if let Ok(proc) = crate::util::process_new(pid, procfs_path) {
             proc
         } else {
             continue;

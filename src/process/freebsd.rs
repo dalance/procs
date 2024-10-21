@@ -15,6 +15,7 @@ pub fn collect_proc(
     interval: Duration,
     _with_thread: bool,
     _show_kthreads: bool,
+    _procfs_path: &Option<PathBuf>,
 ) -> Vec<ProcessInfo> {
     let mut base_procs = HashMap::new();
     let mut ret = Vec::new();

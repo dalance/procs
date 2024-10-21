@@ -4,6 +4,7 @@ use std::cmp;
 use std::collections::HashMap;
 #[cfg(any(target_os = "linux", target_os = "android"))]
 use std::io::Read;
+use std::path::PathBuf;
 
 pub struct SecContext {
     header: String,
@@ -11,10 +12,11 @@ pub struct SecContext {
     fmt_contents: HashMap<i32, String>,
     raw_contents: HashMap<i32, String>,
     width: usize,
+    procfs: Option<PathBuf>,
 }
 
 impl SecContext {
-    pub fn new(header: Option<String>) -> Self {
+    pub fn new(header: Option<String>, procfs: Option<PathBuf>) -> Self {
         let header = header.unwrap_or_else(|| String::from("Context"));
         let unit = String::new();
         Self {
@@ -23,6 +25,7 @@ impl SecContext {
             width: 0,
             header,
             unit,
+            procfs,
         }
     }
 }
@@ -30,7 +33,7 @@ impl SecContext {
 #[cfg(any(target_os = "linux", target_os = "android"))]
 impl Column for SecContext {
     fn add(&mut self, proc: &ProcessInfo) {
-        let fmt_content = if let Ok(proc) = procfs::process::Process::new(proc.pid) {
+        let fmt_content = if let Ok(proc) = crate::util::process_new(proc.pid, &self.procfs) {
             if let Ok(mut file) = proc.open_relative("attr/current") {
                 let mut ret = String::new();
                 let _ = file.read_to_string(&mut ret);

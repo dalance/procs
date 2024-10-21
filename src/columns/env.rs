@@ -2,6 +2,7 @@ use crate::process::ProcessInfo;
 use crate::{column_default, Column};
 use std::cmp;
 use std::collections::HashMap;
+use std::path::PathBuf;
 
 pub struct Env {
     header: String,
@@ -9,10 +10,11 @@ pub struct Env {
     fmt_contents: HashMap<i32, String>,
     raw_contents: HashMap<i32, String>,
     width: usize,
+    procfs: Option<PathBuf>,
 }
 
 impl Env {
-    pub fn new(header: Option<String>) -> Self {
+    pub fn new(header: Option<String>, procfs: Option<PathBuf>) -> Self {
         let header = header.unwrap_or_else(|| String::from("Env"));
         let unit = String::new();
         Self {
@@ -21,6 +23,7 @@ impl Env {
             width: 0,
             header,
             unit,
+            procfs,
         }
     }
 }
@@ -29,7 +32,7 @@ impl Env {
 impl Column for Env {
     fn add(&mut self, proc: &ProcessInfo) {
         let mut fmt_content = String::new();
-        if let Ok(proc) = procfs::process::Process::new(proc.pid) {
+        if let Ok(proc) = crate::util::process_new(proc.pid, &self.procfs) {
             if let Ok(envs) = proc.environ() {
                 for (k, v) in envs {
                     fmt_content.push_str(&format!(
