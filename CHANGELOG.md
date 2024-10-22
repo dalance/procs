@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.14.6...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.14.7...Unreleased) - ReleaseDate
+
+## [v0.14.7](https://github.com/dalance/procs/compare/v0.14.6...v0.14.7) - 2024-10-22
 
 * [Changed] Header line wrapping [#695](https://github.com/dalance/procs/pull/695)
 * [Fixed] First key press is ignored [#443](https://github.com/dalance/procs/issues/443)
