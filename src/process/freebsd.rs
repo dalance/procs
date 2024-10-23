@@ -1,5 +1,6 @@
 use bsd_kvm::{Access, KernProc, Kvm, Process};
 use std::collections::HashMap;
+use std::path::PathBuf;
 use std::thread;
 use std::time::{Duration, Instant};
 
