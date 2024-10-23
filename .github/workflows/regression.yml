@@ -33,6 +33,18 @@ jobs:
       - name: Run tests feature variation
         run: cargo test --locked --target ${{ matrix.target }} --no-default-features
 
+  build-freebsd:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: vmactions/freebsd-vm@v1
+        with:
+          usesh: true
+          prepare: |
+            pkg install -y rust
+          run: |
+            cargo test --locked
+
   msrv:
     runs-on: ubuntu-latest
     steps:
