@@ -10,6 +10,7 @@ pub struct Env {
     fmt_contents: HashMap<i32, String>,
     raw_contents: HashMap<i32, String>,
     width: usize,
+    #[allow(dead_code)]
     procfs: Option<PathBuf>,
 }
 
