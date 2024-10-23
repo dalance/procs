@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.14.7...Unreleased) - ReleaseDate
 
+* [Fixed] Build breaks on FreeBSD [#703](https://github.com/dalance/procs/issues/703)
+
 ## [v0.14.7](https://github.com/dalance/procs/compare/v0.14.6...v0.14.7) - 2024-10-22
 
 * [Changed] Header line wrapping [#695](https://github.com/dalance/procs/pull/695)
