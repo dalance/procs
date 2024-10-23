@@ -42,6 +42,7 @@ jobs:
           usesh: true
           prepare: |
             pkg install -y rust
+            pkg install -y llvm15
           run: |
             cargo test --locked
 
