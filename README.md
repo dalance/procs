@@ -134,6 +134,16 @@ You can install with [cargo](https://crates.io/crates/procs).
 cargo install procs
 ```
 
+### X-CMD
+
+You can install with [x-cmd](https://www.x-cmd.com).
+
+```
+x env use procs
+# or
+x procs # Download procs, and invoke procs in a way that does not affect the current environment
+```
+
 ## Installation Notes
 
 ### Permissions issues
