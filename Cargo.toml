@@ -39,7 +39,7 @@ byte-unit     = "5.1"
 clap          = {version = "4.4", features = ["derive"]}
 clap_complete = "4.4"
 console       = "0.15.8"
-chrono        = {version = "0.4.38", default-features = false, features = ["clock"]}
+chrono        = {version = "0.4.39", default-features = false, features = ["clock"]}
 directories   = "5.0.1"
 dockworker    = { version = "0.5.1", optional = true }
 getch         = "0.3.1"
