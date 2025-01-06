@@ -37,7 +37,7 @@ impl Column for SecContext {
             if let Ok(mut file) = proc.open_relative("attr/current") {
                 let mut ret = String::new();
                 let _ = file.read_to_string(&mut ret);
-                ret.trim().to_string()
+                ret.trim_end_matches('\x00').to_string()
             } else {
                 String::from("")
             }
