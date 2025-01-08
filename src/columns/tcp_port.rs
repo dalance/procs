@@ -11,9 +11,11 @@ use std::collections::HashMap;
 #[cfg(target_os = "windows")]
 use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6};
 #[cfg(target_os = "windows")]
-use windows_sys::Win32::NetworkManagement::IpHelper::{GetTcpTable2, GetTcp6Table2, MIB_TCP_STATE, MIB_TCPTABLE2, MIB_TCP_STATE_LISTEN, MIB_TCP6TABLE2};
-#[cfg(target_os = "windows")]
 use windows_sys::Win32::Foundation::{ERROR_INSUFFICIENT_BUFFER, NO_ERROR};
+#[cfg(target_os = "windows")]
+use windows_sys::Win32::NetworkManagement::IpHelper::{
+    GetTcp6Table2, GetTcpTable2, MIB_TCP6TABLE2, MIB_TCPTABLE2, MIB_TCP_STATE, MIB_TCP_STATE_LISTEN,
+};
 #[cfg(target_os = "windows")]
 use windows_sys::Win32::Networking::WinSock::{ntohl, ntohs};
 
@@ -103,6 +105,7 @@ impl Column for TcpPort {
     crate::column_default_display_header!();
     crate::column_default_display_unit!();
     crate::column_default_display_content!();
+    crate::column_default_display_json!();
     crate::column_default_find_partial!();
     crate::column_default_sorted_pid!(String);
     crate::column_default_apply_visible!();
@@ -149,6 +152,7 @@ impl Column for TcpPort {
     crate::column_default_display_header!();
     crate::column_default_display_unit!();
     crate::column_default_display_content!();
+    crate::column_default_display_json!();
     crate::column_default_find_partial!();
     crate::column_default_sorted_pid!(String);
     crate::column_default_apply_visible!();
@@ -193,6 +197,7 @@ impl Column for TcpPort {
     crate::column_default_display_header!();
     crate::column_default_display_unit!();
     crate::column_default_display_content!();
+    crate::column_default_display_json!();
     crate::column_default_find_partial!();
     crate::column_default_sorted_pid!(String);
     crate::column_default_apply_visible!();

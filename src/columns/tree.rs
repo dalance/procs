@@ -118,6 +118,11 @@ impl Column for Tree {
         }
     }
 
+    // Tree doesn't support JSON
+    fn display_json(&self, _pid: i32) -> String {
+        "".to_string()
+    }
+
     fn find_partial(&self, _pid: i32, _keyword: &str, _content_to_lowercase: bool) -> bool {
         false
     }
