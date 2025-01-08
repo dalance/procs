@@ -52,7 +52,7 @@ impl Column for StartTime {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(DateTime<Local>);
+    column_default!(DateTime<Local>, false);
 }
 
 #[cfg(target_os = "macos")]
@@ -68,7 +68,7 @@ impl Column for StartTime {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(DateTime<Local>);
+    column_default!(DateTime<Local>, false);
 }
 
 #[cfg(target_os = "windows")]
@@ -81,7 +81,7 @@ impl Column for StartTime {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(DateTime<Local>);
+    column_default!(DateTime<Local>, false);
 }
 
 #[cfg(target_os = "freebsd")]
@@ -97,5 +97,5 @@ impl Column for StartTime {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(DateTime<Local>);
+    column_default!(DateTime<Local>, false);
 }

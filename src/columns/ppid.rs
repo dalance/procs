@@ -34,5 +34,5 @@ impl Column for Ppid {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(i32);
+    column_default!(i32, true);
 }

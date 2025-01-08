@@ -43,5 +43,5 @@ impl Column for UidLogin {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(u32);
+    column_default!(u32, true);
 }

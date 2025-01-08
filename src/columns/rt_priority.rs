@@ -38,5 +38,5 @@ impl Column for RtPriority {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(u32);
+    column_default!(u32, true);
 }
