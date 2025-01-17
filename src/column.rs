@@ -20,6 +20,7 @@ pub trait Column {
     ) -> String;
     fn display_unit(&self, align: &ConfigColumnAlign) -> String;
     fn display_content(&self, pid: i32, align: &ConfigColumnAlign) -> Option<String>;
+    fn display_json(&self, pid: i32) -> String;
     fn find_partial(&self, pid: i32, keyword: &str, content_to_lowercase: bool) -> bool;
     fn find_exact(&self, pid: i32, keyword: &str, content_to_lowercase: bool) -> bool;
     fn sorted_pid(&self, order: &ConfigSortOrder) -> Vec<i32>;
@@ -81,6 +82,21 @@ macro_rules! column_default_display_content {
             self.fmt_contents
                 .get(&pid)
                 .map(|content| $crate::util::adjust(content, self.width, align))
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! column_default_display_json {
+    () => {
+        fn display_json(&self, pid: i32) -> String {
+            let value = self
+                .fmt_contents
+                .get(&pid)
+                .map(|x| x.clone())
+                .unwrap_or("".to_string());
+            let value = value.replace("\"", "\\\"");
+            format!("\"{}\": \"{}\"", self.header, value)
         }
     };
 }
@@ -207,6 +223,7 @@ macro_rules! column_default {
         $crate::column_default_display_header!();
         $crate::column_default_display_unit!();
         $crate::column_default_display_content!();
+        $crate::column_default_display_json!();
         $crate::column_default_find_partial!();
         $crate::column_default_find_exact!();
         $crate::column_default_sorted_pid!($x);
