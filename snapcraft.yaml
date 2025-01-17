@@ -1,5 +1,5 @@
 name: procs
-version: &version v0.14.8
+version: &version v0.14.9
 summary: A modern replacement for ps written in Rust
 description: |
   procs is a tool to display process information.

@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.14.8...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.14.9...Unreleased) - ReleaseDate
+
+## [v0.14.9](https://github.com/dalance/procs/compare/v0.14.8...v0.14.9) - 2025-01-17
 
 * [Fixed] Build failure on FreeBSD
 
