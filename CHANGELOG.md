@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.14.8...Unreleased) - ReleaseDate
 
+* [Fixed] Build failure on FreeBSD
+
 ## [v0.14.8](https://github.com/dalance/procs/compare/v0.14.7...v0.14.8) - 2024-10-23
 
 * [Fixed] Build breaks on FreeBSD [#703](https://github.com/dalance/procs/issues/703)
