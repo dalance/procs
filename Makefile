@@ -25,7 +25,7 @@ release_lnx:
 	zip -j ${BIN_NAME}-v${VERSION}-x86_64-linux.zip target/x86_64-unknown-linux-musl/release/${BIN_NAME}
 
 release_lnx_aarch64:
-	cargo build --locked --release --target=_aarch64-unknown-linux-musl
+	cargo build --locked --release --target=aarch64-unknown-linux-musl
 	zip -j ${BIN_NAME}-v${VERSION}-aarch64-linux.zip target/aarch64-unknown-linux-musl/release/${BIN_NAME}
 
 release_win:
