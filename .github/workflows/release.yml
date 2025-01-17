@@ -10,7 +10,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-latest, macOS-latest, windows-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macOS-latest, windows-latest]
         rust: [stable]
 
     runs-on: ${{ matrix.os }}
@@ -27,6 +27,11 @@ jobs:
       run: |
         rustup target add x86_64-unknown-linux-musl
         sudo apt-get -qq install musl-tools
+    - name: Setup MUSL aarch64
+      if: matrix.os == 'ubuntu-24.04-arm'
+      run: |
+        rustup target add aarch64-unknown-linux-musl
+        sudo apt-get -qq install musl-tools
     - name: Setup aarch64 mac
       if: matrix.os == 'macOS-latest'
       run: |
@@ -38,6 +43,9 @@ jobs:
         make release_lnx
         cargo install --locked cargo-rpm
         make release_rpm
+    - name: Build for linux aarch64
+      if: matrix.os == 'ubuntu-24.04-arm'
+      run: make release_lnx_aarch64
     - name: Build for macOS
       if: matrix.os == 'macOS-latest'
       run: make release_mac
