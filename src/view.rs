@@ -1,13 +1,11 @@
 use crate::column::Column;
 use crate::columns::*;
 use crate::config::*;
+use crate::opt::{ArgColorMode, ArgPagerMode};
 use crate::process::collect_proc;
 use crate::style::{apply_color, apply_style, color_to_column_style};
 use crate::term_info::TermInfo;
-use crate::util::{
-    classify, find_column_kind, find_exact, find_partial, truncate, ArgColorMode, ArgPagerMode,
-    KeywordClass,
-};
+use crate::util::{classify, find_column_kind, find_exact, find_partial, truncate, KeywordClass};
 use crate::Opt;
 use anyhow::{bail, Error};
 #[cfg(not(target_os = "windows"))]

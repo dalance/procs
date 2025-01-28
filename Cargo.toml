@@ -53,6 +53,11 @@ tokio         = { version = "1.43", optional = true, features = ["rt"] }
 toml          = "0.8"
 unicode-width = "0.2"
 
+[build-dependencies]
+anyhow        = "1.0"
+clap          = {version = "4.4", features = ["derive"]}
+clap_complete = "4.4"
+
 [target.'cfg(any(target_os = "linux", target_os = "android"))'.dependencies]
 pager         = "0.16.1"
 procfs        = "0.17.0"

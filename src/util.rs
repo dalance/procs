@@ -1,9 +1,9 @@
 use crate::column::Column;
 use crate::columns::{ConfigColumnKind, KIND_LIST};
 use crate::config::{Config, ConfigColumnAlign, ConfigSearchCase, ConfigSearchLogic, ConfigTheme};
+use crate::opt::ArgThemeMode;
 use crate::Opt;
 use byte_unit::{Byte, UnitType};
-use clap::ValueEnum;
 use std::borrow::Cow;
 use std::io;
 use std::io::IsTerminal;
@@ -13,20 +13,6 @@ use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 #[cfg(not(target_os = "windows"))]
 use uzers::UsersCache;
 
-#[derive(ValueEnum, Copy, Clone, Debug, PartialEq, Eq)]
-pub enum ArgColorMode {
-    Auto,
-    Always,
-    Disable,
-}
-
-#[derive(ValueEnum, Copy, Clone, Debug, PartialEq, Eq)]
-pub enum ArgThemeMode {
-    Auto,
-    Dark,
-    Light,
-}
-
 impl From<ArgThemeMode> for ConfigTheme {
     fn from(item: ArgThemeMode) -> Self {
         match item {
@@ -35,13 +21,6 @@ impl From<ArgThemeMode> for ConfigTheme {
             ArgThemeMode::Light => ConfigTheme::Light,
         }
     }
-}
-
-#[derive(ValueEnum, Copy, Clone, Debug, PartialEq, Eq)]
-pub enum ArgPagerMode {
-    Auto,
-    Always,
-    Disable,
 }
 
 pub enum KeywordClass {
