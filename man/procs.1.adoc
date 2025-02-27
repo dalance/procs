@@ -20,8 +20,8 @@ procs - a replacement for `ps` written in Rust
 
 *--and*:: Show processes that match all keywords.
 *--or*:: Show processes that match any keyword.
-*--nand*:: Show processes unless they match all keywords.
-*--nor*:: Show processes unless they match any keyword.
+*--nand*:: Hide processes that match all keywords.
+*--nor*:: Hide processes that match any keyword.
 *--watch*:: Enable watch mode for real-time updates.
 *--watch-interval <second>*:: Set the update interval for watch mode.
 *--tree*:: Display processes in a tree view.
