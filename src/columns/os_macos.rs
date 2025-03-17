@@ -1,3 +1,4 @@
+pub mod arch;
 pub mod command;
 pub mod context_sw;
 pub mod cpu_time;
@@ -44,6 +45,7 @@ pub mod vm_rss;
 pub mod vm_size;
 pub mod write_bytes;
 
+pub use self::arch::Arch;
 pub use self::command::Command;
 pub use self::context_sw::ContextSw;
 pub use self::cpu_time::CpuTime;
@@ -102,6 +104,7 @@ use std::path::PathBuf;
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum ConfigColumnKind {
+    Arch,
     Command,
     ContextSw,
     CpuTime,
@@ -163,6 +166,7 @@ pub fn gen_column(
     _procfs: Option<PathBuf>,
 ) -> Box<dyn Column> {
     match kind {
+        ConfigColumnKind::Arch => Box::new(Arch::new(header)),
         ConfigColumnKind::Command => Box::new(Command::new(header)),
         ConfigColumnKind::ContextSw => Box::new(ContextSw::new(header)),
         ConfigColumnKind::CpuTime => Box::new(CpuTime::new(header)),
