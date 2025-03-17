@@ -1,6 +1,4 @@
 use crate::process::ProcessInfo;
-
-#[cfg(not(target_os = "windows"))]
 use crate::{column_default, Column};
 use std::cmp;
 use std::collections::HashMap;
