@@ -72,9 +72,7 @@ errno         = "0.3"
 pager         = "0.16"
 uzers         = "0.12"
 which         = "7"
-
-[target.'cfg(target_os = "macos")'.build-dependencies]
-bindgen       = "0.71.1"
+mach2         = "0.4.2"
 
 [target.'cfg(target_os = "windows")'.dependencies]
 windows-sys   = { version = "0.59", features = ["Win32_Foundation", "Win32_Networking_WinSock", "Win32_NetworkManagement_IpHelper", "Win32_Security", "Win32_System_Diagnostics_ToolHelp", "Win32_System_ProcessStatus", "Win32_System_Threading"] }

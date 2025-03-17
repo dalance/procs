@@ -354,26 +354,12 @@ pub fn process_new(
 
 #[cfg(target_os = "macos")]
 use libc::{sysctl, sysctlnametomib, cpu_type_t, pid_t, size_t, CTL_KERN, KERN_PROC, KERN_PROC_PID};
-use std::mem;
-use std::ffi::CString;
 
 #[cfg(target_os = "macos")]
-pub const CTL_MAXNAME: usize = 24; // Typical value
-pub const CPU_TYPE_X86_64: i32 = 0x1000007; // From Apple's headers
-pub const CPU_TYPE_ARM64: i32 = 0x100000C; // From Apple's headers
-pub const P_TRANSLATED: i32 = 0x20000; // Used to check Rosetta translation
+use std::{mem, ffi::CString};
 
 #[cfg(target_os = "macos")]
-#[allow(non_upper_case_globals)]
-#[allow(non_camel_case_types)]
-#[allow(non_snake_case)]
-#[allow(unused)]
-mod bindings {
-    include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
-}
-
-#[cfg(target_os = "macos")]
-use bindings::{kinfo_proc};
+use crate::process::{kinfo_proc, CTL_MAXNAME, P_TRANSLATED, CPU_TYPE_ARM64, CPU_TYPE_X86_64};
 
 #[cfg(target_os = "macos")]
 pub fn arch_from_pid(pid: pid_t) -> &'static str {
