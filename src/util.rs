@@ -13,6 +13,13 @@ use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 #[cfg(not(target_os = "windows"))]
 use uzers::UsersCache;
 
+#[cfg(target_os = "macos")]
+use {
+    libc::{sysctl, sysctlnametomib, cpu_type_t, pid_t, size_t, CTL_KERN, KERN_PROC, KERN_PROC_PID},
+    std::{mem, ffi::CString},
+    crate::process::{kinfo_proc, CTL_MAXNAME, P_TRANSLATED, CPU_TYPE_ARM64, CPU_TYPE_X86_64},
+};
+
 impl From<ArgThemeMode> for ConfigTheme {
     fn from(item: ArgThemeMode) -> Self {
         match item {
@@ -352,14 +359,6 @@ pub fn process_new(
 }
 
 
-#[cfg(target_os = "macos")]
-use libc::{sysctl, sysctlnametomib, cpu_type_t, pid_t, size_t, CTL_KERN, KERN_PROC, KERN_PROC_PID};
-
-#[cfg(target_os = "macos")]
-use std::{mem, ffi::CString};
-
-#[cfg(target_os = "macos")]
-use crate::process::{kinfo_proc, CTL_MAXNAME, P_TRANSLATED, CPU_TYPE_ARM64, CPU_TYPE_X86_64};
 
 #[cfg(target_os = "macos")]
 pub fn arch_from_pid(pid: pid_t) -> &'static str {
