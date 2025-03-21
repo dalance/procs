@@ -427,8 +427,3 @@ pub struct kinfo_proc_eproc {
     pub e_login: [libc::c_char; 12],
     pub e_spare: [i32; 4],
 }
-
-pub const CTL_MAXNAME: i32 = 12;
-pub const P_TRANSLATED: i32 = 131072;
-pub const CPU_TYPE_X86_64: i32 = 16777223;
-pub const CPU_TYPE_ARM64: i32 = 16777228;
