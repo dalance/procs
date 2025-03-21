@@ -434,6 +434,7 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 
 | procs `kind` | `ps` STANDARD FORMAT  | Description                                   | Linux | macOS | Windows | FreeBSD |
 | ------------ | --------------------- | --------------------------------------------- | ----- | ----- | ------- | ------- |
+| Arch         | -not supported-       | Architecture of binary (macOS specific)       |       | o     |         |         |
 | Ccgroup      | -not supported-       | Control group by compressed format            | o     |       |         |         |
 | Cgroup       | cgroup                | Control group                                 | o     |       |         |         |
 | Command      | args                  | Command with all arguments                    | o     | o     | o       | o       |
