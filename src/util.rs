@@ -17,7 +17,7 @@ use uzers::UsersCache;
 use {
     libc::{sysctl, sysctlnametomib, cpu_type_t, pid_t, size_t, CTL_KERN, KERN_PROC, KERN_PROC_PID},
     std::{mem, ffi::CString},
-    crate::process::{kinfo_proc, CTL_MAXNAME, P_TRANSLATED, CPU_TYPE_ARM64, CPU_TYPE_X86_64},
+    crate::process::{kinfo_proc, P_TRANSLATED, CPU_TYPE_ARM64, CPU_TYPE_X86_64, CTL_MAXNAME},
 };
 
 impl From<ArgThemeMode> for ConfigTheme {
