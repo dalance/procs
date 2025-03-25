@@ -87,12 +87,14 @@ impl Column for UdpPort {
     crate::column_default_display_header!();
     crate::column_default_display_unit!();
     crate::column_default_display_content!();
+    crate::column_default_display_json!();
     crate::column_default_find_partial!();
     crate::column_default_sorted_pid!(String);
     crate::column_default_apply_visible!();
     crate::column_default_reset_width!();
     crate::column_default_update_width!();
     crate::column_default_get_width!();
+    crate::column_default_is_numeric!(false);
 }
 
 #[cfg(target_os = "macos")]
@@ -133,10 +135,12 @@ impl Column for UdpPort {
     crate::column_default_display_header!();
     crate::column_default_display_unit!();
     crate::column_default_display_content!();
+    crate::column_default_display_json!();
     crate::column_default_find_partial!();
     crate::column_default_sorted_pid!(String);
     crate::column_default_apply_visible!();
     crate::column_default_reset_width!();
     crate::column_default_update_width!();
     crate::column_default_get_width!();
+    crate::column_default_is_numeric!(false);
 }

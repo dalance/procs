@@ -35,7 +35,7 @@ impl Column for Nice {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(i64);
+    column_default!(i64, true);
 }
 
 #[cfg(target_os = "macos")]
@@ -48,7 +48,7 @@ impl Column for Nice {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(i64);
+    column_default!(i64, true);
 }
 
 #[cfg(target_os = "freebsd")]
@@ -61,5 +61,5 @@ impl Column for Nice {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(i64);
+    column_default!(i64, true);
 }

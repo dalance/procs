@@ -76,7 +76,7 @@ impl Column for ElapsedTime {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(Duration);
+    column_default!(Duration, false);
 }
 
 #[cfg(target_os = "macos")]
@@ -92,7 +92,7 @@ impl Column for ElapsedTime {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(Duration);
+    column_default!(Duration, false);
 }
 
 #[cfg(target_os = "windows")]
@@ -105,7 +105,7 @@ impl Column for ElapsedTime {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(Duration);
+    column_default!(Duration, false);
 }
 
 #[cfg(target_os = "freebsd")]
@@ -121,5 +121,5 @@ impl Column for ElapsedTime {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(Duration);
+    column_default!(Duration, false);
 }

@@ -36,7 +36,7 @@ impl Column for VmSize {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(u64);
+    column_default!(u64, true);
 }
 
 #[cfg(target_os = "macos")]
@@ -49,7 +49,7 @@ impl Column for VmSize {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(u64);
+    column_default!(u64, true);
 }
 
 #[cfg(target_os = "windows")]
@@ -62,7 +62,7 @@ impl Column for VmSize {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(u64);
+    column_default!(u64, true);
 }
 
 #[cfg(target_os = "freebsd")]
@@ -75,5 +75,5 @@ impl Column for VmSize {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(u64);
+    column_default!(u64, true);
 }

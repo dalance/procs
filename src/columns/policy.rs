@@ -42,7 +42,7 @@ impl Column for Policy {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(String);
+    column_default!(String, false);
 }
 
 #[cfg(target_os = "android")]
@@ -63,7 +63,7 @@ impl Column for Policy {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(String);
+    column_default!(String, false);
 }
 
 #[cfg(target_os = "macos")]
@@ -81,5 +81,5 @@ impl Column for Policy {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(String);
+    column_default!(String, false);
 }

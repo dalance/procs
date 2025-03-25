@@ -39,7 +39,7 @@ impl Column for SigCgt {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(u64);
+    column_default!(u64, true);
 }
 
 #[cfg(target_os = "freebsd")]
@@ -52,5 +52,5 @@ impl Column for SigCgt {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(u64);
+    column_default!(u64, true);
 }

@@ -40,5 +40,5 @@ impl Column for Separator {
         false
     }
 
-    column_default!(String);
+    column_default!(String, false);
 }

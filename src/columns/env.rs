@@ -50,7 +50,7 @@ impl Column for Env {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(String);
+    column_default!(String, false);
 }
 
 #[cfg(target_os = "freebsd")]
@@ -66,5 +66,5 @@ impl Column for Env {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(String);
+    column_default!(String, false);
 }
