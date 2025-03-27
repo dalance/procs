@@ -7,11 +7,11 @@ use libproc::libproc::proc_pid::{listpidinfo, pidinfo, ListThreads};
 use libproc::libproc::task_info::{TaskAllInfo, TaskInfo};
 use libproc::libproc::thread_info::ThreadInfo;
 use libproc::processes::{pids_by_type, ProcFilter};
+use mach2::{boolean, vm_types};
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::thread;
 use std::time::{Duration, Instant};
-use mach2::{boolean, vm_types};
 
 pub struct ProcessInfo {
     pub pid: i32,
