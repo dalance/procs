@@ -137,7 +137,7 @@ impl Column for Docker {
         self.available
     }
 
-    column_default!(String);
+    column_default!(String, false);
 }
 
 #[cfg(target_os = "macos")]
@@ -158,5 +158,5 @@ impl Column for Docker {
         self.available
     }
 
-    column_default!(String);
+    column_default!(String, false);
 }

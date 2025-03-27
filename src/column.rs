@@ -20,6 +20,7 @@ pub trait Column {
     ) -> String;
     fn display_unit(&self, align: &ConfigColumnAlign) -> String;
     fn display_content(&self, pid: i32, align: &ConfigColumnAlign) -> Option<String>;
+    fn display_json(&self, pid: i32) -> String;
     fn find_partial(&self, pid: i32, keyword: &str, content_to_lowercase: bool) -> bool;
     fn find_exact(&self, pid: i32, keyword: &str, content_to_lowercase: bool) -> bool;
     fn sorted_pid(&self, order: &ConfigSortOrder) -> Vec<i32>;
@@ -33,6 +34,7 @@ pub trait Column {
     );
     fn update_width(&mut self, pid: i32, max_width: Option<usize>);
     fn get_width(&self) -> usize;
+    fn is_numeric(&self) -> bool;
 }
 
 #[macro_export]
@@ -81,6 +83,30 @@ macro_rules! column_default_display_content {
             self.fmt_contents
                 .get(&pid)
                 .map(|content| $crate::util::adjust(content, self.width, align))
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! column_default_display_json {
+    () => {
+        fn display_json(&self, pid: i32) -> String {
+            let value = if self.is_numeric() {
+                self.raw_contents
+                    .get(&pid)
+                    .map(|x| x.to_string())
+                    .unwrap_or("".to_string())
+            } else {
+                let value = self
+                    .fmt_contents
+                    .get(&pid)
+                    .map(|x| x.clone())
+                    .unwrap_or("".to_string());
+                let value = value.replace("\\", "\\\\");
+                let value = value.replace("\"", "\\\"");
+                format!("\"{}\"", value)
+            };
+            format!("\"{}\": {}", self.header, value)
         }
     };
 }
@@ -202,11 +228,21 @@ macro_rules! column_default_get_width {
 }
 
 #[macro_export]
+macro_rules! column_default_is_numeric {
+    ($x:expr) => {
+        fn is_numeric(&self) -> bool {
+            $x
+        }
+    };
+}
+
+#[macro_export]
 macro_rules! column_default {
-    ($x:ty) => {
+    ($x:ty, $y:expr) => {
         $crate::column_default_display_header!();
         $crate::column_default_display_unit!();
         $crate::column_default_display_content!();
+        $crate::column_default_display_json!();
         $crate::column_default_find_partial!();
         $crate::column_default_find_exact!();
         $crate::column_default_sorted_pid!($x);
@@ -214,5 +250,6 @@ macro_rules! column_default {
         $crate::column_default_reset_width!();
         $crate::column_default_update_width!();
         $crate::column_default_get_width!();
+        $crate::column_default_is_numeric!($y);
     };
 }

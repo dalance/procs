@@ -47,7 +47,7 @@ impl Column for ContextSw {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(u64);
+    column_default!(u64, true);
 }
 
 #[cfg(target_os = "macos")]
@@ -60,7 +60,7 @@ impl Column for ContextSw {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(u64);
+    column_default!(u64, true);
 }
 
 #[cfg(target_os = "freebsd")]
@@ -74,5 +74,5 @@ impl Column for ContextSw {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(u64);
+    column_default!(u64, true);
 }

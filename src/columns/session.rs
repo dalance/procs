@@ -40,7 +40,7 @@ impl Column for Session {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(i32);
+    column_default!(i32, true);
 }
 
 #[cfg(target_os = "macos")]
@@ -56,7 +56,7 @@ impl Column for Session {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(i32);
+    column_default!(i32, true);
 }
 
 #[cfg(target_os = "freebsd")]
@@ -69,5 +69,5 @@ impl Column for Session {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(i32);
+    column_default!(i32, true);
 }

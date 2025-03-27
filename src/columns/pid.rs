@@ -38,7 +38,7 @@ impl Column for Pid {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(i32);
+    column_default!(i32, true);
 }
 
 #[cfg(not(any(target_os = "linux", target_os = "android")))]
@@ -51,5 +51,5 @@ impl Column for Pid {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(i32);
+    column_default!(i32, true);
 }

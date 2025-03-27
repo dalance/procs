@@ -373,6 +373,12 @@ impl View {
         config: &Config,
         theme: &ConfigTheme,
     ) -> Result<(), Error> {
+        if opt.json {
+            self.term_info.use_pager = false;
+            self.display_json()?;
+            return Ok(());
+        }
+
         let use_terminal = console::user_attended();
 
         // +3 means header/unit line and next prompt
@@ -552,6 +558,33 @@ impl View {
         row = row.trim_end().to_string();
         row = truncate(&row, self.term_info.width).to_string();
         self.term_info.write_line(&row)?;
+        Ok(())
+    }
+
+    fn display_json(&self) -> Result<(), Error> {
+        self.term_info.write_line("[")?;
+
+        let len_pid = self.visible_pids.len();
+        for (i, pid) in self.visible_pids.iter().enumerate() {
+            let mut line = "{".to_string();
+            let len_column = self.columns.len();
+            for (j, c) in self.columns.iter().enumerate() {
+                if c.visible {
+                    let text = c.column.display_json(*pid);
+                    line.push_str(&text);
+                    if j != len_column - 1 {
+                        line.push_str(", ");
+                    }
+                }
+            }
+            line.push('}');
+            if i != len_pid - 1 {
+                line.push(',');
+            }
+            self.term_info.write_line(&line)?;
+        }
+
+        self.term_info.write_line("]")?;
         Ok(())
     }
 

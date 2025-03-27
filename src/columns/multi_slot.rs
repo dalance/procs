@@ -34,5 +34,5 @@ impl Column for MultiSlot {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(String);
+    column_default!(String, false);
 }

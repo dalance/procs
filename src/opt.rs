@@ -145,6 +145,10 @@ pub struct Opt {
     #[clap(short = 'p', long = "pager")]
     pub pager: Option<ArgPagerMode>,
 
+    /// JSON output
+    #[clap(long = "json")]
+    pub json: bool,
+
     /// Interval to calculate throughput
     #[clap(long = "interval", default_value = "100", value_name = "millisec")]
     pub interval: u64,
