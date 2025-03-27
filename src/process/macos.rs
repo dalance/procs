@@ -427,4 +427,3 @@ pub struct kinfo_proc_eproc {
     pub e_login: [libc::c_char; 12],
     pub e_spare: [i32; 4],
 }
-
