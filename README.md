@@ -4,7 +4,7 @@
 
 [![Actions Status](https://github.com/dalance/procs/workflows/Regression/badge.svg)](https://github.com/dalance/procs/actions)
 
-[![Changelog](https://img.shields.io/badge/changelog-v0.14.9-green.svg)](https://github.com/dalance/procs/blob/master/CHANGELOG.md)
+[![Changelog](https://img.shields.io/badge/changelog-v0.14.10-green.svg)](https://github.com/dalance/procs/blob/master/CHANGELOG.md)
 [![Crates.io](https://img.shields.io/crates/v/procs.svg)](https://crates.io/crates/procs)
 [![procs](https://snapcraft.io/procs/badge.svg)](https://snapcraft.io/procs)
 [![homebrew](https://img.shields.io/homebrew/v/procs.svg)](https://formulae.brew.sh/formula/procs)
@@ -123,7 +123,7 @@ winget install procs
 You can install with rpm.
 
 ```
-sudo rpm -i https://github.com/dalance/procs/releases/download/v0.14.9/procs-0.14.9-1.x86_64.rpm
+sudo rpm -i https://github.com/dalance/procs/releases/download/v0.14.10/procs-0.14.10-1.x86_64.rpm
 ```
 
 ### Cargo

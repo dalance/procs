@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.14.9...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.14.10...Unreleased) - ReleaseDate
+
+## [v0.14.10](https://github.com/dalance/procs/compare/v0.14.9...v0.14.10) - 2025-03-28
 
 * [Added] Add Arch column for macOS (Rosetta 2) [#759](https://github.com/dalance/procs/pull/759)
 * [Added] Add JSON output support [#735](https://github.com/dalance/procs/pull/735)
