@@ -2,6 +2,11 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.14.9...Unreleased) - ReleaseDate
 
+* [Added] Add Arch column for macOS (Rosetta 2) [#759](https://github.com/dalance/procs/pull/759)
+* [Added] Add JSON output support [#735](https://github.com/dalance/procs/pull/735)
+* [Changed] Generate shell completions at build time [#739](https://github.com/dalance/procs/pull/739)
+* [Fixed] Trim null byte from /proc/<pid>/attr/current [#733](https://github.com/dalance/procs/pull/733)
+
 ## [v0.14.9](https://github.com/dalance/procs/compare/v0.14.8...v0.14.9) - 2025-01-17
 
 * [Fixed] Build failure on FreeBSD
