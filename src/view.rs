@@ -569,7 +569,7 @@ impl View {
             let mut line = "{".to_string();
             let len_column = self.columns.len();
             for (j, c) in self.columns.iter().enumerate() {
-                if c.visible {
+                if c.visible && c.kind != ConfigColumnKind::Separator {
                     let text = c.column.display_json(*pid);
                     line.push_str(&text);
                     if j != len_column - 1 {
