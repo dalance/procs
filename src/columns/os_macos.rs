@@ -43,6 +43,7 @@ pub mod user_real;
 pub mod user_saved;
 pub mod vm_rss;
 pub mod vm_size;
+pub mod vm_total;
 pub mod write_bytes;
 
 pub use self::arch::Arch;
@@ -90,6 +91,7 @@ pub use self::user_real::UserReal;
 pub use self::user_saved::UserSaved;
 pub use self::vm_rss::VmRss;
 pub use self::vm_size::VmSize;
+pub use self::vm_total::VmTotal;
 pub use self::write_bytes::WriteBytes;
 
 use crate::column::Column;
@@ -149,6 +151,7 @@ pub enum ConfigColumnKind {
     Username,
     VmRss,
     VmSize,
+    VmTotal,
     WriteBytes,
 }
 
@@ -214,6 +217,7 @@ pub fn gen_column(
         ConfigColumnKind::Username => Box::new(User::new(header, abbr_sid)),
         ConfigColumnKind::VmRss => Box::new(VmRss::new(header)),
         ConfigColumnKind::VmSize => Box::new(VmSize::new(header)),
+        ConfigColumnKind::VmTotal => Box::new(VmTotal::new(header)),
         ConfigColumnKind::WriteBytes => Box::new(WriteBytes::new(header)),
     }
 }
@@ -315,6 +319,10 @@ pub static KIND_LIST: Lazy<BTreeMap<ConfigColumnKind, (&'static str, &'static st
             ),
             (ConfigColumnKind::VmRss, ("VmRss", "Resident set size")),
             (ConfigColumnKind::VmSize, ("VmSize", "Physical page size")),
+            (
+                ConfigColumnKind::VmTotal,
+                ("VmTotal", "Total footprint size"),
+            ),
             (
                 ConfigColumnKind::WriteBytes,
                 ("WriteBytes", "Write bytes to storage"),
