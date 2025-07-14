@@ -6,6 +6,7 @@ pub mod cpu_time;
 pub mod docker;
 pub mod elapsed_time;
 pub mod empty;
+pub mod env;
 pub mod gid;
 pub mod gid_real;
 pub mod gid_saved;
@@ -43,6 +44,7 @@ pub mod user_real;
 pub mod user_saved;
 pub mod vm_rss;
 pub mod vm_size;
+pub mod vm_total;
 pub mod write_bytes;
 
 pub use self::arch::Arch;
@@ -53,6 +55,7 @@ pub use self::cpu_time::CpuTime;
 pub use self::docker::Docker;
 pub use self::elapsed_time::ElapsedTime;
 pub use self::empty::Empty;
+pub use self::env::Env;
 pub use self::gid::Gid;
 pub use self::gid_real::GidReal;
 pub use self::gid_saved::GidSaved;
@@ -90,6 +93,7 @@ pub use self::user_real::UserReal;
 pub use self::user_saved::UserSaved;
 pub use self::vm_rss::VmRss;
 pub use self::vm_size::VmSize;
+pub use self::vm_total::VmTotal;
 pub use self::write_bytes::WriteBytes;
 
 use crate::column::Column;
@@ -111,6 +115,7 @@ pub enum ConfigColumnKind {
     Docker,
     ElapsedTime,
     Empty,
+    Env,
     Gid,
     GidReal,
     GidSaved,
@@ -149,6 +154,7 @@ pub enum ConfigColumnKind {
     Username,
     VmRss,
     VmSize,
+    VmTotal,
     WriteBytes,
 }
 
@@ -163,7 +169,7 @@ pub fn gen_column(
     separator: &str,
     abbr_sid: bool,
     tree_symbols: &[String; 5],
-    _procfs: Option<PathBuf>,
+    procfs: Option<PathBuf>,
 ) -> Box<dyn Column> {
     match kind {
         ConfigColumnKind::Arch => Box::new(Arch::new(header)),
@@ -176,6 +182,7 @@ pub fn gen_column(
         ConfigColumnKind::Docker => Box::new(Empty::new()),
         ConfigColumnKind::ElapsedTime => Box::new(ElapsedTime::new(header)),
         ConfigColumnKind::Empty => Box::new(Empty::new()),
+        ConfigColumnKind::Env => Box::new(Env::new(header, procfs)),
         ConfigColumnKind::Gid => Box::new(Gid::new(header, abbr_sid)),
         ConfigColumnKind::GidReal => Box::new(GidReal::new(header)),
         ConfigColumnKind::GidSaved => Box::new(GidSaved::new(header)),
@@ -214,6 +221,7 @@ pub fn gen_column(
         ConfigColumnKind::Username => Box::new(User::new(header, abbr_sid)),
         ConfigColumnKind::VmRss => Box::new(VmRss::new(header)),
         ConfigColumnKind::VmSize => Box::new(VmSize::new(header)),
+        ConfigColumnKind::VmTotal => Box::new(VmTotal::new(header)),
         ConfigColumnKind::WriteBytes => Box::new(WriteBytes::new(header)),
     }
 }
@@ -246,6 +254,7 @@ pub static KIND_LIST: Lazy<BTreeMap<ConfigColumnKind, (&'static str, &'static st
                 ("ElapsedTime", "Elapsed time"),
             ),
             (ConfigColumnKind::Empty, ("Empty", "Empty")),
+            (ConfigColumnKind::Env, ("Env", "Environment variables")),
             (ConfigColumnKind::Gid, ("Gid", "Group ID")),
             (ConfigColumnKind::GidReal, ("GidReal", "Real group ID")),
             (ConfigColumnKind::GidSaved, ("GidSaved", "Saved group ID")),
@@ -315,6 +324,10 @@ pub static KIND_LIST: Lazy<BTreeMap<ConfigColumnKind, (&'static str, &'static st
             ),
             (ConfigColumnKind::VmRss, ("VmRss", "Resident set size")),
             (ConfigColumnKind::VmSize, ("VmSize", "Physical page size")),
+            (
+                ConfigColumnKind::VmTotal,
+                ("VmTotal", "Total footprint size"),
+            ),
             (
                 ConfigColumnKind::WriteBytes,
                 ("WriteBytes", "Write bytes to storage"),
