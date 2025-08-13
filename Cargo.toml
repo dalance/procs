@@ -38,7 +38,7 @@ anyhow        = "1.0"
 byte-unit     = "5.1"
 clap          = {version = "4.4", features = ["derive"]}
 clap_complete = "4.4"
-console       = "0.15.11"
+console       = "0.16.0"
 chrono        = {version = "0.4.41", default-features = false, features = ["clock"]}
 directories   = "6.0.0"
 dockworker    = { version = "0.7.0", optional = true }
