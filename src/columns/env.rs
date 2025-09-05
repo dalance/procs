@@ -1,5 +1,5 @@
 use crate::process::ProcessInfo;
-use crate::{column_default, Column};
+use crate::{column_default_custom_json, Column};
 use std::cmp;
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -73,16 +73,27 @@ impl Column for Env {
 impl Column for Env {
     fn add(&mut self, proc: &ProcessInfo) {
         let mut fmt_content = String::new();
+        let mut raw_content = Vec::new();
         if let Some(path) = &proc.curr_path {
             for env in &path.env {
-                fmt_content.push_str(&format!("{} ", env.replace('\"', "\\\"")));
+                let json_str = serde_json::json!(env);
+                fmt_content.push_str(json_str.to_string().as_str());
+                raw_content.push(env);
             }
         };
-        let raw_content = fmt_content.clone();
+        let raw_content = serde_json::json!(raw_content).to_string();
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(String, false);
+    column_default_custom_json!(String, false);
+
+    fn display_json(&self, pid: i32) -> String {
+        format!(
+            "\"{}\": {}",
+            self.header,
+            self.raw_contents.get(&pid).unwrap_or(&"[]".to_string())
+        )
+    }
 }
