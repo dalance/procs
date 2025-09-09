@@ -60,7 +60,7 @@ clap_complete = "4.4"
 
 [target.'cfg(any(target_os = "linux", target_os = "android"))'.dependencies]
 pager         = "0.16.1"
-procfs        = "0.17.0"
+procfs        = "0.18.0"
 regex         = "1.11"
 uzers         = "0.12"
 which         = "7"
