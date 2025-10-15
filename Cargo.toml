@@ -10,7 +10,7 @@ readme = "README.md"
 description = "A modern replacement for ps"
 edition = "2021"
 exclude = ["img/*", "config/*"]
-rust-version = "1.74"
+rust-version = "1.76"
 
 [package.metadata.release]
 pre-release-commit-message = "Prepare to v{{version}}"
@@ -38,10 +38,10 @@ anyhow        = "1.0"
 byte-unit     = "5.1"
 clap          = {version = "4.4", features = ["derive"]}
 clap_complete = "4.4"
-console       = "0.15.11"
-chrono        = {version = "0.4.40", default-features = false, features = ["clock"]}
+console       = "0.16.1"
+chrono        = {version = "0.4.42", default-features = false, features = ["clock"]}
 directories   = "6.0.0"
-dockworker    = { version = "0.7.0", optional = true }
+dockworker    = { version = "0.12.0", optional = true }
 getch         = "0.3.1"
 libc          = "0.2"
 minus         = { version = "5.6", features = ["static_output", "search"] }
@@ -49,8 +49,8 @@ once_cell     = "1.21.3"
 serde         = "1.0"
 serde_derive  = "1.0"
 termbg        = "0.6.2"
-tokio         = { version = "1.44", optional = true, features = ["rt"] }
-toml          = "0.8"
+tokio         = { version = "1.48", optional = true, features = ["rt"] }
+toml          = "0.9"
 unicode-width = "0.2"
 
 [build-dependencies]
@@ -60,29 +60,29 @@ clap_complete = "4.4"
 
 [target.'cfg(any(target_os = "linux", target_os = "android"))'.dependencies]
 pager         = "0.16.1"
-procfs        = "0.17.0"
-regex         = "1.11"
+procfs        = "0.18.0"
+regex         = "1.12"
 uzers         = "0.12"
-which         = "7"
+which         = "8"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 libproc       = "0.14"
-nix           = {version = "0.29.0", features = ["process"]}
+nix           = {version = "0.30.1", features = ["process"]}
 errno         = "0.3"
 pager         = "0.16"
 uzers         = "0.12"
-which         = "7"
-mach2         = "0.4.2"
+which         = "8"
+mach2         = "0.5.0"
 
 [target.'cfg(target_os = "windows")'.dependencies]
-windows-sys   = { version = "0.59", features = ["Win32_Foundation", "Win32_Networking_WinSock", "Win32_NetworkManagement_IpHelper", "Win32_Security", "Win32_System_Diagnostics_ToolHelp", "Win32_System_ProcessStatus", "Win32_System_Threading"] }
+windows-sys   = { version = "0.61", features = ["Win32_Foundation", "Win32_Networking_WinSock", "Win32_NetworkManagement_IpHelper", "Win32_Security", "Win32_System_Diagnostics_ToolHelp", "Win32_System_ProcessStatus", "Win32_System_Threading"] }
 
 [target.'cfg(target_os = "freebsd")'.dependencies]
 bsd-kvm       = "0.1.5"
 bsd-kvm-sys   = "0.2.0"
 pager         = "0.16.1"
 uzers         = "0.12"
-which         = "7"
+which         = "8"
 
 [package.metadata.rpm.cargo]
 buildflags = ["--release"]
