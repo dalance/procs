@@ -4,7 +4,7 @@ use crate::{column_default, Column};
 use std::cmp;
 use std::collections::HashMap;
 
-pub struct NonVoluntaryContextSw {
+pub struct InvoluntaryContextSw {
     header: String,
     unit: String,
     fmt_contents: HashMap<i32, String>,
@@ -12,9 +12,9 @@ pub struct NonVoluntaryContextSw {
     width: usize,
 }
 
-impl NonVoluntaryContextSw {
+impl InvoluntaryContextSw {
     pub fn new(header: Option<String>) -> Self {
-        let header = header.unwrap_or_else(|| String::from("NonVoluntaryContextSw"));
+        let header = header.unwrap_or_else(|| String::from("InvoluntaryContextSw"));
         let unit = String::new();
         Self {
             fmt_contents: HashMap::new(),
@@ -27,7 +27,7 @@ impl NonVoluntaryContextSw {
 }
 
 #[cfg(any(target_os = "linux", target_os = "android"))]
-impl Column for NonVoluntaryContextSw {
+impl Column for InvoluntaryContextSw {
     fn add(&mut self, proc: &ProcessInfo) {
         let (fmt_content, raw_content) = if let Some(ref status) = proc.curr_status {
             if status.nonvoluntary_ctxt_switches.is_some()
@@ -49,7 +49,7 @@ impl Column for NonVoluntaryContextSw {
 }
 
 #[cfg(target_os = "freebsd")]
-impl Column for NonVoluntaryContextSw {
+impl Column for InvoluntaryContextSw {
     fn add(&mut self, proc: &ProcessInfo) {
         let raw_content = proc.curr_proc.info.rusage.nivcsw as u64;
         let fmt_content = bytify(raw_content);

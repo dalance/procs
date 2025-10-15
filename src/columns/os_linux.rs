@@ -3,7 +3,7 @@ pub mod cgroup;
 pub mod command;
 pub mod context_sw;
 pub mod voluntary_context_sw;
-pub mod non_voluntary_context_sw;
+pub mod involuntary_context_sw;
 pub mod cpu_time;
 #[cfg(feature = "docker")]
 pub mod docker;
@@ -84,7 +84,7 @@ pub use self::cgroup::Cgroup;
 pub use self::command::Command;
 pub use self::context_sw::ContextSw;
 pub use self::voluntary_context_sw::VoluntaryContextSw;
-pub use self::non_voluntary_context_sw::NonVoluntaryContextSw;
+pub use self::involuntary_context_sw::InvoluntaryContextSw;
 pub use self::cpu_time::CpuTime;
 #[cfg(feature = "docker")]
 pub use self::docker::Docker;
@@ -177,7 +177,7 @@ pub enum ConfigColumnKind {
     Command,
     ContextSw,
     VoluntaryContextSw,
-    NonVoluntaryContextSw,
+    InvoluntaryContextSw,
     CpuTime,
     Docker,
     Eip,
@@ -273,7 +273,7 @@ pub fn gen_column(
         ConfigColumnKind::Command => Box::new(Command::new(header)),
         ConfigColumnKind::ContextSw => Box::new(ContextSw::new(header)),
         ConfigColumnKind::VoluntaryContextSw => Box::new(VoluntaryContextSw::new(header)),
-        ConfigColumnKind::NonVoluntaryContextSw => Box::new(NonVoluntaryContextSw::new(header)),
+        ConfigColumnKind::InvoluntaryContextSw => Box::new(InvoluntaryContextSw::new(header)),
         ConfigColumnKind::CpuTime => Box::new(CpuTime::new(header)),
         #[cfg(feature = "docker")]
         ConfigColumnKind::Docker => Box::new(Docker::new(header, _docker_path)),
@@ -379,8 +379,8 @@ pub static KIND_LIST: Lazy<BTreeMap<ConfigColumnKind, (&'static str, &'static st
                 ("VoluntaryContextSw", "Voluntary context switch count"),
             ),
             (
-                ConfigColumnKind::NonVoluntaryContextSw,
-                ("NonVoluntaryContextSw", "Nonvoluntary context switch count"),
+                ConfigColumnKind::InvoluntaryContextSw,
+                ("InvoluntaryContextSw", "Involuntary context switch count"),
             ),
             (
                 ConfigColumnKind::CpuTime,
@@ -769,7 +769,7 @@ kind = "VoluntaryContextSw"
 style = "BrightRed"
 align = "Right"
 [[columns]]
-kind = "NonVoluntaryContextSw"
+kind = "InvoluntaryContextSw"
 style = "BrightRed"
 align = "Right"
 [[columns]]
