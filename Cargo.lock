@@ -1577,6 +1577,7 @@ dependencies = [
  "regex",
  "serde",
  "serde_derive",
+ "serde_json",
  "termbg",
  "tokio",
  "toml",
