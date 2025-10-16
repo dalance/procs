@@ -432,84 +432,86 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 
 #### `kind` list
 
-| procs `kind` | `ps` STANDARD FORMAT  | Description                                   | Linux | macOS | Windows | FreeBSD |
-| ------------ | --------------------- | --------------------------------------------- | ----- | ----- | ------- | ------- |
-| Arch         | -not supported-       | Architecture of binary (macOS specific)       |       | o     |         |         |
-| Ccgroup      | -not supported-       | Control group by compressed format            | o     |       |         |         |
-| Cgroup       | cgroup                | Control group                                 | o     |       |         |         |
-| Command      | args                  | Command with all arguments                    | o     | o     | o       | o       |
-| ContextSw    | -not supported-       | Context switch count                          | o     | o     |         | o       |
-| CpuTime      | cputime               | Cumulative CPU time                           | o     | o     | o       | o       |
-| Docker       | -not supported-       | Docker container name                         | o     | o     |         |         |
-| Eip          | eip                   | Instruction pointer                           | o     |       |         |         |
-| ElapsedTime  | -not supported-       | Elapsed time                                  | o     | o     | o       | o       |
-| Env          | `e` output modifier   | Environment variables                         | o     |       |         | o       |
-| Esp          | esp                   | Stack pointer                                 | o     |       |         |         |
-| FileName     | comm                  | File name                                     | o     |       |         | o       |
-| Gid          | egid                  | Group ID                                      | o     | o     | o       | o       |
-| GidFs        | fgid                  | File system group ID                          | o     |       |         |         |
-| GidReal      | rgid                  | Real group ID                                 | o     | o     |         | o       |
-| GidSaved     | sgid                  | Saved group ID                                | o     | o     |         | o       |
-| Group        | egroup                | Group name                                    | o     | o     | o       | o       |
-| GroupFs      | fgroup                | File system group name                        | o     |       |         |         |
-| GroupReal    | rgroup                | Real group name                               | o     | o     |         | o       |
-| GroupSaved   | sgroup                | Saved group name                              | o     | o     |         | o       |
-| MajFlt       | maj_flt               | Major page fault count                        | o     | o     | o       | o       |
-| MinFlt       | min_flt               | Minor page fault count                        | o     | o     |         | o       |
-| MultiSlot    | -not supported-       | Slot for `--insert` option                    | o     | o     | o       | o       |
-| Nice         | ni                    | Nice value                                    | o     | o     |         | o       |
-| Pgid         | pgid                  | Process group ID                              | o     | o     |         | o       |
-| Pid          | pid                   | Process ID ( or Thread ID sorrunded by `[]` ) | o     | o     | o       | o       |
-| Policy       | policy                | Scheduling policy                             | o     | o     |         |         |
-| Ppid         | ppid                  | Parent process ID                             | o     | o     | o       | o       |
-| Priority     | pri                   | Priority                                      | o     | o     | o       | o       |
-| Processor    | psr                   | Currently assigned processor                  | o     |       |         | o       |
-| ReadBytes    | -not supported-       | Read bytes from storage                       | o     | o     | o       | o       |
-| RtPriority   | rtprio                | Real-time priority                            | o     |       |         |         |
-| SecContext   | label                 | Security context                              | o     |       |         |         |
-| Separator    | -not supported-       | Show `\|` for column separation               | o     | o     | o       | o       |
-| Session      | sid                   | Session ID                                    | o     | o     |         | o       |
-| ShdPnd       | pending               | Pending signal mask for process               | o     |       |         | o       |
-| SigBlk       | blocked               | Blocked signal mask                           | o     |       |         | o       |
-| SigCgt       | caught                | Caught signal mask                            | o     |       |         | o       |
-| SigIgn       | ignored               | Ignored signal mask                           | o     |       |         | o       |
-| SigPnd       | pending               | Pending signal mask for thread                | o     |       |         |         |
-| Slot         | -not supported-       | Slot for `--insert` option                    | o     | o     | o       | o       |
-| Ssb          | -not supported-       | Speculative store bypass status               | o     |       |         |         |
-| StartTime    | start_time            | Starting time                                 | o     | o     | o       | o       |
-| State        | s                     | Process state                                 | o     | o     |         | o       |
-| TcpPort      | -not supported-       | Bound TCP ports                               | o     | o     |         |         |
-| Threads      | nlwp                  | Thread count                                  | o     | o     |         | o       |
-| TreeSlot     | -not supported-       | Slot for tree column                          | o     | o     | o       | o       |
-| Tty          | tty                   | Controlling TTY                               | o     | o     |         | o       |
-| UdpPort      | -not supported-       | Bound UDP ports                               | o     | o     |         |         |
-| Uid          | euid                  | User ID                                       | o     | o     | o       | o       |
-| UidFs        | fuid                  | File system user ID                           | o     |       |         |         |
-| UidLogin     | -not supported-       | Login user ID                                 | o     |       |         |         |
-| UidReal      | ruid                  | Real user ID                                  | o     | o     |         | o       |
-| UidSaved     | suid                  | Saved user ID                                 | o     | o     |         | o       |
-| UsageCpu     | %cpu                  | CPU utilization                               | o     | o     | o       | o       |
-| UsageMem     | %mem                  | Memory utilization                            | o     | o     | o       | o       |
-| User         | euser                 | User name                                     | o     | o     | o       | o       |
-| UserFs       | fuser                 | File system user name                         | o     |       |         |         |
-| UserLogin    | -not supported-       | Login user name                               | o     |       |         |         |
-| UserReal     | ruser                 | Real user name                                | o     | o     |         | o       |
-| UserSaved    | suser                 | Saved user name                               | o     | o     |         | o       |
-| VmData       | -not supported-       | Data size                                     | o     |       |         | o       |
-| VmExe        | trs                   | Text segments size                            | o     |       |         | o       |
-| VmHwm        | -not supported-       | Peak resident set size                        | o     |       | o       | o       |
-| VmLib        | -not supported-       | Library code size                             | o     |       |         |         |
-| VmLock       | -not supported-       | Locked memory size                            | o     |       |         |         |
-| VmPeak       | -not supported-       | Peak virtual memory size                      | o     |       | o       |         |
-| VmPin        | -not supported-       | Pinned memory size                            | o     |       | o       |         |
-| VmPte        | -not supported-       | Page table entries size                       | o     |       |         |         |
-| VmRss        | rss                   | Resident set size                             | o     | o     | o       | o       |
-| VmSize       | vsz                   | Physical page size                            | o     | o     | o       | o       |
-| VmStack      | -not supported-       | Stack size                                    | o     |       |         | o       |
-| VmSwap       | -not supported-       | Swapped-out virtual memory size               | o     |       | o       |         |
-| Wchan        | wchan                 | Process sleeping kernel function              | o     |       |         | o       |
-| WorkDir      | -not supported-       | Current working directory                     | o     |       |         |         |
-| WriteByte    | -not supported-       | Write bytes to storage                        | o     | o     | o       | o       |
+| procs `kind`         | `ps` STANDARD FORMAT  | Description                                   | Linux | macOS | Windows | FreeBSD |
+| -------------------- | --------------------- | --------------------------------------------- | ----- | ----- | ------- | ------- |
+| Arch                 | -not supported-       | Architecture of binary (macOS specific)       |       | o     |         |         |
+| Ccgroup              | -not supported-       | Control group by compressed format            | o     |       |         |         |
+| Cgroup               | cgroup                | Control group                                 | o     |       |         |         |
+| Command              | args                  | Command with all arguments                    | o     | o     | o       | o       |
+| ContextSw            | -not supported-       | Context switch count                          | o     | o     |         | o       |
+| CpuTime              | cputime               | Cumulative CPU time                           | o     | o     | o       | o       |
+| Docker               | -not supported-       | Docker container name                         | o     | o     |         |         |
+| Eip                  | eip                   | Instruction pointer                           | o     |       |         |         |
+| ElapsedTime          | -not supported-       | Elapsed time                                  | o     | o     | o       | o       |
+| Env                  | `e` output modifier   | Environment variables                         | o     |       |         | o       |
+| Esp                  | esp                   | Stack pointer                                 | o     |       |         |         |
+| FileName             | comm                  | File name                                     | o     |       |         | o       |
+| Gid                  | egid                  | Group ID                                      | o     | o     | o       | o       |
+| GidFs                | fgid                  | File system group ID                          | o     |       |         |         |
+| GidReal              | rgid                  | Real group ID                                 | o     | o     |         | o       |
+| GidSaved             | sgid                  | Saved group ID                                | o     | o     |         | o       |
+| Group                | egroup                | Group name                                    | o     | o     | o       | o       |
+| GroupFs              | fgroup                | File system group name                        | o     |       |         |         |
+| GroupReal            | rgroup                | Real group name                               | o     | o     |         | o       |
+| GroupSaved           | sgroup                | Saved group name                              | o     | o     |         | o       |
+| InvoluntaryContextSw | -not supported-       | Involuntary context switch count              | o     |       |         | o       |
+| MajFlt               | maj_flt               | Major page fault count                        | o     | o     | o       | o       |
+| MinFlt               | min_flt               | Minor page fault count                        | o     | o     |         | o       |
+| MultiSlot            | -not supported-       | Slot for `--insert` option                    | o     | o     | o       | o       |
+| Nice                 | ni                    | Nice value                                    | o     | o     |         | o       |
+| Pgid                 | pgid                  | Process group ID                              | o     | o     |         | o       |
+| Pid                  | pid                   | Process ID ( or Thread ID sorrunded by `[]` ) | o     | o     | o       | o       |
+| Policy               | policy                | Scheduling policy                             | o     | o     |         |         |
+| Ppid                 | ppid                  | Parent process ID                             | o     | o     | o       | o       |
+| Priority             | pri                   | Priority                                      | o     | o     | o       | o       |
+| Processor            | psr                   | Currently assigned processor                  | o     |       |         | o       |
+| ReadBytes            | -not supported-       | Read bytes from storage                       | o     | o     | o       | o       |
+| RtPriority           | rtprio                | Real-time priority                            | o     |       |         |         |
+| SecContext           | label                 | Security context                              | o     |       |         |         |
+| Separator            | -not supported-       | Show `\|` for column separation               | o     | o     | o       | o       |
+| Session              | sid                   | Session ID                                    | o     | o     |         | o       |
+| ShdPnd               | pending               | Pending signal mask for process               | o     |       |         | o       |
+| SigBlk               | blocked               | Blocked signal mask                           | o     |       |         | o       |
+| SigCgt               | caught                | Caught signal mask                            | o     |       |         | o       |
+| SigIgn               | ignored               | Ignored signal mask                           | o     |       |         | o       |
+| SigPnd               | pending               | Pending signal mask for thread                | o     |       |         |         |
+| Slot                 | -not supported-       | Slot for `--insert` option                    | o     | o     | o       | o       |
+| Ssb                  | -not supported-       | Speculative store bypass status               | o     |       |         |         |
+| StartTime            | start_time            | Starting time                                 | o     | o     | o       | o       |
+| State                | s                     | Process state                                 | o     | o     |         | o       |
+| TcpPort              | -not supported-       | Bound TCP ports                               | o     | o     |         |         |
+| Threads              | nlwp                  | Thread count                                  | o     | o     |         | o       |
+| TreeSlot             | -not supported-       | Slot for tree column                          | o     | o     | o       | o       |
+| Tty                  | tty                   | Controlling TTY                               | o     | o     |         | o       |
+| UdpPort              | -not supported-       | Bound UDP ports                               | o     | o     |         |         |
+| Uid                  | euid                  | User ID                                       | o     | o     | o       | o       |
+| UidFs                | fuid                  | File system user ID                           | o     |       |         |         |
+| UidLogin             | -not supported-       | Login user ID                                 | o     |       |         |         |
+| UidReal              | ruid                  | Real user ID                                  | o     | o     |         | o       |
+| UidSaved             | suid                  | Saved user ID                                 | o     | o     |         | o       |
+| UsageCpu             | %cpu                  | CPU utilization                               | o     | o     | o       | o       |
+| UsageMem             | %mem                  | Memory utilization                            | o     | o     | o       | o       |
+| User                 | euser                 | User name                                     | o     | o     | o       | o       |
+| UserFs               | fuser                 | File system user name                         | o     |       |         |         |
+| UserLogin            | -not supported-       | Login user name                               | o     |       |         |         |
+| UserReal             | ruser                 | Real user name                                | o     | o     |         | o       |
+| UserSaved            | suser                 | Saved user name                               | o     | o     |         | o       |
+| VmData               | -not supported-       | Data size                                     | o     |       |         | o       |
+| VmExe                | trs                   | Text segments size                            | o     |       |         | o       |
+| VmHwm                | -not supported-       | Peak resident set size                        | o     |       | o       | o       |
+| VmLib                | -not supported-       | Library code size                             | o     |       |         |         |
+| VmLock               | -not supported-       | Locked memory size                            | o     |       |         |         |
+| VmPeak               | -not supported-       | Peak virtual memory size                      | o     |       | o       |         |
+| VmPin                | -not supported-       | Pinned memory size                            | o     |       | o       |         |
+| VmPte                | -not supported-       | Page table entries size                       | o     |       |         |         |
+| VmRss                | rss                   | Resident set size                             | o     | o     | o       | o       |
+| VmSize               | vsz                   | Physical page size                            | o     | o     | o       | o       |
+| VmStack              | -not supported-       | Stack size                                    | o     |       |         | o       |
+| VmSwap               | -not supported-       | Swapped-out virtual memory size               | o     |       | o       |         |
+| VoluntaryContextSw   | -not supported-       | Voluntary context switch count                | o     |       |         | o       |
+| Wchan                | wchan                 | Process sleeping kernel function              | o     |       |         | o       |
+| WorkDir              | -not supported-       | Current working directory                     | o     |       |         |         |
+| WriteByte            | -not supported-       | Write bytes to storage                        | o     | o     | o       | o       |
 
 #### `style` list
 
