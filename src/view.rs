@@ -113,12 +113,16 @@ impl View {
 
             for kind in kinds {
                 let visible = if let Some(only) = &opt.only {
-                    let kind_name = KIND_LIST[&kind].0.to_lowercase();
-                    if !kind_name.contains(&only.to_lowercase()) {
-                        false
-                    } else {
-                        only_kind_found = true;
+                    if kind == ConfigColumnKind::Tree {
                         true
+                    } else {
+                        let kind_name = KIND_LIST[&kind].0.to_lowercase();
+                        if !kind_name.contains(&only.to_lowercase()) {
+                            false
+                        } else {
+                            only_kind_found = true;
+                            true
+                        }
                     }
                 } else {
                     true
