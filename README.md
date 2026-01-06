@@ -508,10 +508,13 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | VmSize               | vsz                   | Physical page size                            | o     | o     | o       | o       |
 | VmStack              | -not supported-       | Stack size                                    | o     |       |         | o       |
 | VmSwap               | -not supported-       | Swapped-out virtual memory size               | o     |       | o       |         |
+| VmTotal              | -not supported-       | Total virtual memory size                     | *[^*] | o     | *[^*]   | *[^*]   |
 | VoluntaryContextSw   | -not supported-       | Voluntary context switch count                | o     |       |         | o       |
 | Wchan                | wchan                 | Process sleeping kernel function              | o     |       |         | o       |
 | WorkDir              | -not supported-       | Current working directory                     | o     |       |         |         |
 | WriteByte            | -not supported-       | Write bytes to storage                        | o     | o     | o       | o       |
+
+[^*]: Alias for VmRss on these platforms
 
 #### `style` list
 
