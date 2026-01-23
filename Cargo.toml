@@ -67,7 +67,7 @@ which         = "8"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 libproc       = "0.14"
-nix           = {version = "0.30.1", features = ["process"]}
+nix           = {version = "0.31.1", features = ["process"]}
 errno         = "0.3"
 pager         = "0.16"
 uzers         = "0.12"
