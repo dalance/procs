@@ -202,6 +202,65 @@ pub fn truncate(s: &'_ str, width: usize) -> Cow<'_, str> {
     }
 }
 
+/// Trims trailing whitespace from a string while preserving ANSI escape sequences.
+/// This function handles the case where trailing spaces are "protected" by ANSI reset codes.
+pub fn trim_trailing_ansi_aware(s: &str) -> String {
+    // Parse the string into segments of text and ANSI escape sequences
+    let mut segments: Vec<(String, bool)> = Vec::new(); // (content, is_escape_seq)
+    let mut current = String::new();
+    let mut in_escape = false;
+
+    for c in s.chars() {
+        if c == '\u{1b}' {
+            if !current.is_empty() {
+                segments.push((current.clone(), false));
+                current.clear();
+            }
+            in_escape = true;
+            current.push(c);
+        } else if in_escape {
+            current.push(c);
+            if c == 'm' {
+                segments.push((current.clone(), true));
+                current.clear();
+                in_escape = false;
+            }
+        } else {
+            current.push(c);
+        }
+    }
+    if !current.is_empty() {
+        segments.push((current, in_escape));
+    }
+
+    // Trim trailing whitespace from text segments at the end
+    let mut result = String::new();
+    let mut trailing_escapes: Vec<String> = Vec::new();
+    let mut found_non_whitespace = false;
+
+    for (content, is_escape) in segments.into_iter().rev() {
+        if is_escape {
+            if found_non_whitespace {
+                result = content + &result;
+            } else {
+                trailing_escapes.push(content);
+            }
+        } else if !found_non_whitespace {
+            let trimmed = content.trim_end();
+            if !trimmed.is_empty() {
+                found_non_whitespace = true;
+                result = trimmed.to_string()
+                    + &trailing_escapes.iter().rev().cloned().collect::<String>()
+                    + &result;
+            }
+        } else {
+            result = content + &result;
+        }
+    }
+
+    result
+}
+
 pub fn find_column_kind(pat: &str) -> Option<ConfigColumnKind> {
     // strict search at first
     for (k, (v, _)) in KIND_LIST.iter() {

@@ -5,7 +5,10 @@ use crate::opt::{ArgColorMode, ArgPagerMode};
 use crate::process::collect_proc;
 use crate::style::{apply_color, apply_style, color_to_column_style};
 use crate::term_info::TermInfo;
-use crate::util::{classify, find_column_kind, find_exact, find_partial, truncate, KeywordClass};
+use crate::util::{
+    classify, find_column_kind, find_exact, find_partial, trim_trailing_ansi_aware, truncate,
+    KeywordClass,
+};
 use crate::Opt;
 use anyhow::{bail, Error};
 #[cfg(not(target_os = "windows"))]
@@ -508,7 +511,7 @@ impl View {
                 );
             }
         }
-        row = row.trim_end().to_string();
+        row = trim_trailing_ansi_aware(&row);
         row = truncate(&row, self.term_info.width).to_string();
         self.term_info.write_line(&row)?;
         Ok(())
@@ -530,7 +533,7 @@ impl View {
                 );
             }
         }
-        row = row.trim_end().to_string();
+        row = trim_trailing_ansi_aware(&row);
         row = truncate(&row, self.term_info.width).to_string();
         self.term_info.write_line(&row)?;
         Ok(())
@@ -559,7 +562,7 @@ impl View {
                 );
             }
         }
-        row = row.trim_end().to_string();
+        row = trim_trailing_ansi_aware(&row);
         row = truncate(&row, self.term_info.width).to_string();
         self.term_info.write_line(&row)?;
         Ok(())
