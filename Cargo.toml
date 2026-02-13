@@ -50,7 +50,7 @@ serde         = "1.0"
 serde_derive  = "1.0"
 termbg        = "0.6.2"
 tokio         = { version = "1.49", optional = true, features = ["rt"] }
-toml          = "0.9"
+toml          = "1.0"
 unicode-width = "0.2"
 
 [build-dependencies]
