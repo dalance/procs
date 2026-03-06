@@ -1,5 +1,4 @@
 use anyhow::{Error, anyhow};
-use clap::CommandFactory;
 use clap::builder::styling::{AnsiColor, Effects, Styles};
 use clap::{Parser, ValueEnum};
 use clap_complete::Shell;
@@ -186,10 +185,13 @@ pub struct Opt {
     pub debug: bool,
 }
 
-pub fn gen_completion<P: AsRef<Path>>(shell: Shell, path: P) -> Result<(), Error> {
+pub fn gen_completion<P: AsRef<Path>>(
+    shell: Shell,
+    path: P,
+    cmd: &mut clap::Command,
+) -> Result<(), Error> {
     let path_str = path.as_ref().as_os_str();
-    //Opt::clap().gen_completions("procs", shell, path_str);
-    clap_complete::generate_to(shell, &mut Opt::command(), "procs", path_str)?;
+    clap_complete::generate_to(shell, cmd, "procs", path_str)?;
     let filename = match shell {
         Shell::Bash => "procs.bash",
         Shell::Elvish => "procs.elv",
