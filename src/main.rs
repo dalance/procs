@@ -18,6 +18,7 @@ use crate::view::View;
 use crate::watcher::Watcher;
 use anyhow::{Context, Error};
 use clap::{CommandFactory, Parser};
+use clap_mangen::Man;
 use console::Term;
 use once_cell::sync::Lazy;
 use std::cmp;
@@ -154,6 +155,11 @@ fn run() -> Result<(), Error> {
             "procs",
             &mut stdout(),
         );
+        Ok(())
+    } else if opt.gen_man_page {
+        let cmd = command_with_kind_values();
+        let man = Man::new(cmd);
+        man.render(&mut stdout())?;
         Ok(())
     } else {
         let config = get_config(&opt)?;

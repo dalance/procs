@@ -172,6 +172,10 @@ pub struct Opt {
     #[clap(long = "gen-completion-out", value_name = "shell")]
     pub gen_completion_out: Option<Shell>,
 
+    /// Generate man page and write to stdout
+    #[clap(long = "gen-man-page")]
+    pub gen_man_page: bool,
+
     /// Suppress header
     #[clap(long = "no-header")]
     pub no_header: bool,
