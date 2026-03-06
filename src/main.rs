@@ -19,6 +19,7 @@ use crate::watcher::Watcher;
 use anyhow::{Context, Error};
 use clap::{CommandFactory, Parser};
 use console::Term;
+use once_cell::sync::Lazy;
 use std::cmp;
 use std::collections::HashMap;
 use std::fs;
@@ -30,6 +31,29 @@ use unicode_width::UnicodeWidthStr;
 // ---------------------------------------------------------------------------------------------------------------------
 // Functions
 // ---------------------------------------------------------------------------------------------------------------------
+
+static KIND_NAMES_LOWER: Lazy<Vec<String>> = Lazy::new(|| {
+    KIND_LIST
+        .iter()
+        .map(|(_, (name, _))| name.to_lowercase())
+        .collect()
+});
+
+fn command_with_kind_values() -> clap::Command {
+    let kind_values: Vec<clap::builder::PossibleValue> = KIND_LIST
+        .iter()
+        .zip(KIND_NAMES_LOWER.iter())
+        .map(|((_, (_, desc)), lower)| {
+            clap::builder::PossibleValue::new(lower.as_str()).help(*desc)
+        })
+        .collect();
+    let parser = clap::builder::PossibleValuesParser::new(kind_values);
+    Opt::command()
+        .mut_arg("sorta", |a| a.value_parser(parser.clone()))
+        .mut_arg("sortd", |a| a.value_parser(parser.clone()))
+        .mut_arg("insert", |a| a.value_parser(parser.clone()))
+        .mut_arg("only", |a| a.value_parser(parser))
+}
 
 fn get_config(opt: &Opt) -> Result<Config, Error> {
     let dot_cfg_path = directories::BaseDirs::new()
@@ -122,10 +146,14 @@ fn run() -> Result<(), Error> {
         run_list();
         Ok(())
     } else if let Some(shell) = opt.gen_completion {
-        gen_completion(shell, "./")
+        gen_completion(shell, "./", &mut command_with_kind_values())
     } else if let Some(shell) = opt.gen_completion_out {
-        //Opt::clap().gen_completions_to("procs", shell, &mut stdout());
-        clap_complete::generate(shell, &mut Opt::command(), "procs", &mut stdout());
+        clap_complete::generate(
+            shell,
+            &mut command_with_kind_values(),
+            "procs",
+            &mut stdout(),
+        );
         Ok(())
     } else {
         let config = get_config(&opt)?;
