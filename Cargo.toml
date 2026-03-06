@@ -52,6 +52,7 @@ termbg        = "0.6.2"
 tokio         = { version = "1.50", optional = true, features = ["rt"] }
 toml          = "1.0"
 unicode-width = "0.2"
+regex         = "1.12"
 
 [build-dependencies]
 anyhow        = "1.0"
@@ -61,7 +62,6 @@ clap_complete = "4.4"
 [target.'cfg(any(target_os = "linux", target_os = "android"))'.dependencies]
 pager         = "0.16.1"
 procfs        = "0.18.0"
-regex         = "1.12"
 uzers         = "0.12"
 which         = "8"
 
