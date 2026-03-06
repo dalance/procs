@@ -128,6 +128,27 @@ pub fn classify(keyword: &str) -> KeywordClass {
     }
 }
 
+pub fn has_regex_syntax(pattern: &str) -> bool {
+    let mut escaped = false;
+    for c in pattern.chars() {
+        if escaped {
+            escaped = false;
+            continue;
+        }
+        if c == '\\' {
+            escaped = true;
+            continue;
+        }
+        if matches!(
+            c,
+            '|' | '(' | ')' | '[' | ']' | '{' | '}' | '*' | '+' | '?' | '^' | '$'
+        ) {
+            return true;
+        }
+    }
+    false
+}
+
 pub fn adjust(x: &str, len: usize, align: &ConfigColumnAlign) -> String {
     if len < UnicodeWidthStr::width(x) {
         String::from(truncate(x, len))

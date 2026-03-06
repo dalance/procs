@@ -1,11 +1,12 @@
 use crate::Opt;
 use crate::config::*;
 use crate::term_info::TermInfo;
-use crate::util::get_theme;
+use crate::util::{get_theme, has_regex_syntax};
 use crate::view::View;
 use anyhow::Error;
 use chrono::offset::Local;
 use getch::Getch;
+use regex::RegexBuilder;
 use std::collections::HashMap;
 use std::sync::mpsc::{Receiver, Sender, channel};
 use std::thread;
@@ -14,10 +15,7 @@ use std::time::Duration;
 enum Command {
     Wake,
     Sleep,
-    Next,
-    Prev,
-    Ascending,
-    Descending,
+    Key(u8),
     Quit,
 }
 
@@ -29,27 +27,14 @@ impl Watcher {
             let getch = Getch::new();
             loop {
                 match getch.getch() {
-                    Ok(x) if char::from(x) == 'q' => {
-                        let _ = tx.send(Command::Quit);
-                        break;
-                    }
-                    Ok(x) if char::from(x) == 'n' => {
-                        let _ = tx.send(Command::Next);
-                    }
-                    Ok(x) if char::from(x) == 'p' => {
-                        let _ = tx.send(Command::Prev);
-                    }
-                    Ok(x) if char::from(x) == 'a' => {
-                        let _ = tx.send(Command::Ascending);
-                    }
-                    Ok(x) if char::from(x) == 'd' => {
-                        let _ = tx.send(Command::Descending);
-                    }
                     // On windows, _getch return EXT(0x3) by Ctrl-C
                     #[cfg(target_os = "windows")]
                     Ok(x) if x == 3 => {
                         let _ = tx.send(Command::Quit);
                         break;
+                    }
+                    Ok(x) => {
+                        let _ = tx.send(Command::Key(x));
                     }
                     _ => (),
                 }
@@ -69,7 +54,14 @@ impl Watcher {
         });
     }
 
-    fn display_header(term_info: &TermInfo, opt: &Opt, interval: u64) -> Result<usize, Error> {
+    fn display_header(
+        term_info: &TermInfo,
+        opt: &Opt,
+        interval: u64,
+        regex_editing: bool,
+        regex_buffer: &str,
+        regex_error: &Option<String>,
+    ) -> Result<usize, Error> {
         let header = if opt.tree {
             format!(
                 " Interval: {}ms, Last Updated: {} ( Quit: q or Ctrl-C )",
@@ -89,8 +81,31 @@ impl Watcher {
             console::style(header).white().bold().underlined()
         ))?;
 
+        if opt.regex || opt.smart {
+            let active = if regex_editing {
+                format!(" Editing regex: {}", regex_buffer)
+            } else {
+                let current = opt.keyword.first().cloned().unwrap_or_default();
+                format!(
+                    " Regex filter: {} ( Edit: /, Apply: Enter, Cancel: Esc )",
+                    current
+                )
+            };
+            term_info.write_line(&active)?;
+            if let Some(err) = regex_error {
+                term_info.write_line(&format!(" Regex error: {err}"))?;
+            }
+        }
+
         term_info.write_line("")?;
-        Ok(result.div_ceil(term_info.width))
+        let mut lines = result.div_ceil(term_info.width) + 1;
+        if opt.regex || opt.smart {
+            lines += 1;
+            if regex_error.is_some() {
+                lines += 1;
+            }
+        }
+        Ok(lines)
     }
 
     pub fn start(opt: &mut Opt, config: &Config, interval: u64) -> Result<(), Error> {
@@ -110,6 +125,9 @@ impl Watcher {
         let mut min_widths = HashMap::new();
         let mut prev_term_width = 0;
         let mut prev_term_height = 0;
+        let mut regex_editing = false;
+        let mut regex_buffer = String::new();
+        let mut regex_error: Option<String> = None;
         'outer: loop {
             let mut view = View::new(opt, config, true)?;
 
@@ -124,9 +142,16 @@ impl Watcher {
             if resized {
                 term_info.clear_screen()?;
             }
-            let header_lines = Watcher::display_header(&view.term_info, opt, interval)?;
+            let header_lines = Watcher::display_header(
+                &view.term_info,
+                opt,
+                interval,
+                regex_editing,
+                &regex_buffer,
+                &regex_error,
+            )?;
 
-            view.filter(opt, config, header_lines);
+            view.filter(opt, config, header_lines)?;
             view.adjust(config, &min_widths);
             for (i, c) in view.columns.iter().enumerate() {
                 min_widths.insert(i, c.column.get_width());
@@ -153,10 +178,79 @@ impl Watcher {
                         view.term_info.clear_screen()?;
                         break 'outer;
                     }
-                    Command::Next => sort_idx = Some(view.inc_sort_column()),
-                    Command::Prev => sort_idx = Some(view.dec_sort_column()),
-                    Command::Ascending => sort_order = Some(ConfigSortOrder::Ascending),
-                    Command::Descending => sort_order = Some(ConfigSortOrder::Descending),
+                    Command::Key(x) => {
+                        if !regex_editing {
+                            match char::from(x) {
+                                'q' => {
+                                    tx_sleep.send(Command::Quit)?;
+                                    view.term_info.clear_screen()?;
+                                    break 'outer;
+                                }
+                                'n' => sort_idx = Some(view.inc_sort_column()),
+                                'p' => sort_idx = Some(view.dec_sort_column()),
+                                'a' => sort_order = Some(ConfigSortOrder::Ascending),
+                                'd' => sort_order = Some(ConfigSortOrder::Descending),
+                                '/' if opt.regex || opt.smart => {
+                                    regex_editing = true;
+                                    regex_buffer = opt.keyword.first().cloned().unwrap_or_default();
+                                }
+                                _ => (),
+                            }
+                        } else {
+                            match x {
+                                10 | 13 => {
+                                    let candidate = regex_buffer.clone();
+                                    if candidate.is_empty() {
+                                        opt.keyword.clear();
+                                        regex_error = None;
+                                        regex_editing = false;
+                                    } else {
+                                        let use_regex = opt.regex
+                                            || (opt.smart && has_regex_syntax(&candidate));
+                                        if use_regex {
+                                            let ignore_case = match config.search.case {
+                                                ConfigSearchCase::Smart => {
+                                                    candidate == candidate.to_ascii_lowercase()
+                                                }
+                                                ConfigSearchCase::Insensitive => true,
+                                                ConfigSearchCase::Sensitive => false,
+                                            };
+                                            match RegexBuilder::new(&candidate)
+                                                .case_insensitive(ignore_case)
+                                                .build()
+                                            {
+                                                Ok(_) => {
+                                                    opt.keyword = vec![candidate];
+                                                    regex_error = None;
+                                                    regex_editing = false;
+                                                }
+                                                Err(e) => {
+                                                    regex_error = Some(e.to_string());
+                                                }
+                                            }
+                                        } else {
+                                            opt.keyword = vec![candidate];
+                                            regex_error = None;
+                                            regex_editing = false;
+                                        }
+                                    }
+                                }
+                                27 => {
+                                    regex_editing = false;
+                                    regex_error = None;
+                                }
+                                8 | 127 => {
+                                    regex_buffer.pop();
+                                }
+                                _ => {
+                                    let c = char::from(x);
+                                    if !c.is_control() {
+                                        regex_buffer.push(c);
+                                    }
+                                }
+                            }
+                        }
+                    }
                     _ => (),
                 }
             }
