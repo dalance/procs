@@ -37,7 +37,7 @@ impl Column for Arch {
         let pid = proc.pid;
         let arch = arch_from_pid(pid);
 
-        let fmt_content = format!("{}", arch);
+        let fmt_content = arch.to_string();
         let raw_content = fmt_content.clone();
 
         self.fmt_contents.insert(proc.pid, fmt_content);

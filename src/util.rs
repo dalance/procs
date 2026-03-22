@@ -269,7 +269,7 @@ pub unsafe fn get_sys_value(
     mut len: usize,
     value: *mut libc::c_void,
     mib: &mut [i32; 2],
-) -> bool {
+) -> bool { unsafe {
     mib[0] = high as i32;
     mib[1] = low as i32;
     libc::sysctl(
@@ -280,7 +280,7 @@ pub unsafe fn get_sys_value(
         ::std::ptr::null_mut(),
         0,
     ) == 0
-}
+}}
 
 #[cfg(target_os = "windows")]
 pub fn format_sid(sid: &[u64], abbr: bool) -> String {
