@@ -7,11 +7,13 @@ use crate::process::collect_proc;
 use crate::style::{apply_color, apply_style, color_to_column_style};
 use crate::term_info::TermInfo;
 use crate::util::{
-    KeywordClass, ansi_trim_end, classify, find_column_kind, find_exact, find_partial, truncate,
+    KeywordClass, ansi_trim_end, classify, find_column_kind, find_exact, find_partial,
+    has_regex_syntax, truncate,
 };
 use anyhow::{Error, bail};
 #[cfg(not(target_os = "windows"))]
 use pager::Pager;
+use regex::RegexBuilder;
 use std::collections::HashMap;
 use std::time::Duration;
 
@@ -219,15 +221,20 @@ impl View {
         })
     }
 
-    pub fn filter(&mut self, opt: &Opt, config: &Config, header_lines: usize) {
+    pub fn filter(&mut self, opt: &Opt, config: &Config, header_lines: usize) -> Result<(), Error> {
         let mut cols_nonnumeric = Vec::new();
         let mut cols_numeric = Vec::new();
+        let mut cols_searchable = Vec::new();
         for c in &self.columns {
             if c.nonnumeric_search {
                 cols_nonnumeric.push(c.column.as_ref());
+                cols_searchable.push(c.column.as_ref());
             }
             if c.numeric_search {
                 cols_numeric.push(c.column.as_ref());
+                if !c.nonnumeric_search {
+                    cols_searchable.push(c.column.as_ref());
+                }
             }
         }
 
@@ -240,6 +247,29 @@ impl View {
                 KeywordClass::NonNumeric => keyword_nonnumeric.push(k),
             }
         }
+
+        let regex_mode = if opt.regex {
+            true
+        } else if opt.smart {
+            opt.keyword.len() == 1 && has_regex_syntax(&opt.keyword[0])
+        } else {
+            false
+        };
+
+        let regex = if regex_mode && !opt.keyword.is_empty() {
+            let pattern = &opt.keyword[0];
+            let ignore_case = match config.search.case {
+                ConfigSearchCase::Smart => pattern == &pattern.to_ascii_lowercase(),
+                ConfigSearchCase::Insensitive => true,
+                ConfigSearchCase::Sensitive => false,
+            };
+            let regex = RegexBuilder::new(pattern)
+                .case_insensitive(ignore_case)
+                .build()?;
+            Some(regex)
+        } else {
+            None
+        };
 
         let pids = self.columns[self.sort_info.idx]
             .column
@@ -285,6 +315,8 @@ impl View {
                 false
             } else if opt.keyword.is_empty() {
                 true
+            } else if let Some(regex) = &regex {
+                View::search_regex(*pid, cols_searchable.as_slice(), regex)
             } else {
                 View::search(
                     *pid,
@@ -338,6 +370,7 @@ impl View {
 
         self.visible_pids = visible_pids;
         self.auxiliary_pids = auxiliary_pids;
+        Ok(())
     }
 
     fn get_parent_pids(&self, pid: i32, parent_pids: &mut Vec<i32>) {
@@ -679,6 +712,10 @@ impl View {
             ConfigSearchLogic::Nand => !(ret_nonnumeric & ret_numeric),
             ConfigSearchLogic::Nor => !(ret_nonnumeric | ret_numeric),
         }
+    }
+
+    fn search_regex(pid: i32, cols: &[&dyn Column], regex: &regex::Regex) -> bool {
+        cols.iter().any(|c| regex.is_match(&c.display_json(pid)))
     }
 
     #[cfg(not(any(target_os = "windows", any(target_os = "linux", target_os = "android"))))]

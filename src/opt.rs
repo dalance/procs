@@ -53,6 +53,18 @@ pub struct Opt {
     #[clap(action, name = "KEYWORD")]
     pub keyword: Vec<String>,
 
+    /// Use plain text search mode (default)
+    #[clap(long = "text", conflicts_with_all(&["regex", "smart"]))]
+    pub text: bool,
+
+    /// Use regex search mode (single PATTERN)
+    #[clap(long = "regex", conflicts_with_all(&["text", "smart"]))]
+    pub regex: bool,
+
+    /// Use smart mode (auto-detect regex syntax)
+    #[clap(long = "smart", conflicts_with_all(&["text", "regex"]))]
+    pub smart: bool,
+
     /// AND  logic for multi-keyword
     #[clap(
         short = 'a',

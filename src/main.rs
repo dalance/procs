@@ -13,7 +13,7 @@ use crate::column::Column;
 use crate::columns::*;
 use crate::config::*;
 use crate::opt::*;
-use crate::util::{adjust, get_theme, lap};
+use crate::util::{adjust, get_theme, has_regex_syntax, lap};
 use crate::view::View;
 use crate::watcher::Watcher;
 use anyhow::{Context, Error};
@@ -140,6 +140,7 @@ fn main() {
 fn run() -> Result<(), Error> {
     let mut opt: Opt = Parser::parse();
     opt.watch_mode = opt.watch || opt.watch_interval.is_some();
+    validate_search_args(&opt)?;
 
     if opt.gen_config {
         run_gen_config()
@@ -217,7 +218,7 @@ fn run_default(opt: &mut Opt, config: &Config) -> Result<(), Error> {
         lap(&mut time, "Info: View::new");
     }
 
-    view.filter(opt, config, 1);
+    view.filter(opt, config, 1)?;
 
     if opt.debug {
         lap(&mut time, "Info: view.filter");
@@ -235,6 +236,16 @@ fn run_default(opt: &mut Opt, config: &Config) -> Result<(), Error> {
         lap(&mut time, "Info: view.display");
     }
 
+    Ok(())
+}
+
+fn validate_search_args(opt: &Opt) -> Result<(), Error> {
+    if opt.regex && opt.keyword.len() > 1 {
+        anyhow::bail!("--regex accepts a single PATTERN argument");
+    }
+    if opt.smart && opt.keyword.len() > 1 && opt.keyword.iter().any(|k| has_regex_syntax(k)) {
+        anyhow::bail!("--smart supports a single PATTERN when regex syntax is detected");
+    }
     Ok(())
 }
 
