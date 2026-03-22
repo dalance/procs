@@ -12,6 +12,12 @@ use std::sync::mpsc::{Receiver, Sender, channel};
 use std::thread;
 use std::time::Duration;
 
+const KEY_ENTER_LF: u8 = 10;
+const KEY_ENTER_CR: u8 = 13;
+const KEY_ESC: u8 = 27;
+const KEY_BACKSPACE: u8 = 8;
+const KEY_DELETE: u8 = 127;
+
 enum Command {
     Wake,
     Sleep,
@@ -198,7 +204,7 @@ impl Watcher {
                             }
                         } else {
                             match x {
-                                10 | 13 => {
+                                KEY_ENTER_LF | KEY_ENTER_CR => {
                                     let candidate = regex_buffer.clone();
                                     if candidate.is_empty() {
                                         opt.keyword.clear();
@@ -235,11 +241,11 @@ impl Watcher {
                                         }
                                     }
                                 }
-                                27 => {
+                                KEY_ESC => {
                                     regex_editing = false;
                                     regex_error = None;
                                 }
-                                8 | 127 => {
+                                KEY_BACKSPACE | KEY_DELETE => {
                                     regex_buffer.pop();
                                 }
                                 _ => {
