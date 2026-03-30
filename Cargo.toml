@@ -38,7 +38,7 @@ anyhow        = "1.0"
 byte-unit     = "5.2"
 clap          = {version = "4.4", features = ["derive"]}
 clap_complete = "4.4"
-clap_mangen   = "0.2"
+clap_mangen   = "0.3"
 console       = "0.16.3"
 chrono        = {version = "0.4.44", default-features = false, features = ["clock"]}
 directories   = "6.0.0"
@@ -59,7 +59,7 @@ regex         = "1.12"
 anyhow        = "1.0"
 clap          = {version = "4.4", features = ["derive"]}
 clap_complete = "4.4"
-clap_mangen   = "0.2"
+clap_mangen   = "0.3"
 
 [target.'cfg(any(target_os = "linux", target_os = "android"))'.dependencies]
 pager         = "0.16.1"
