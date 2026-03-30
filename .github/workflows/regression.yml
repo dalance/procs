@@ -17,6 +17,9 @@ jobs:
           - os: ubuntu-24.04-arm
             rust: stable
             target: aarch64-unknown-linux-gnu
+          - os: ubuntu-24.04-riscv
+            rust: stable
+            target: riscv64gc-unknown-linux-gnu
           - os: macOS-latest
             rust: stable
             target: x86_64-apple-darwin
