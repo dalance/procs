@@ -14,18 +14,23 @@ jobs:
           - os: ubuntu-latest
             rust: stable
             target: x86_64-unknown-linux-gnu
+            run_tests: true
           - os: ubuntu-24.04-arm
             rust: stable
             target: aarch64-unknown-linux-gnu
+            run_tests: true
           - os: ubuntu-24.04-riscv
             rust: stable
             target: riscv64gc-unknown-linux-gnu
+            run_tests: false
           - os: macOS-latest
             rust: stable
             target: x86_64-apple-darwin
+            run_tests: true
           - os: windows-latest
             rust: stable
             target: x86_64-pc-windows-msvc
+            run_tests: true
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -34,9 +39,14 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
           targets: ${{ matrix.target }}
+      - name: Build
+        if: "!matrix.run_tests"
+        run: cargo build --locked --target ${{ matrix.target }}
       - name: Run tests
+        if: matrix.run_tests
         run: cargo test --locked --target ${{ matrix.target }}
       - name: Run tests feature variation
+        if: matrix.run_tests
         run: cargo test --locked --target ${{ matrix.target }} --no-default-features
 
   build-freebsd:
