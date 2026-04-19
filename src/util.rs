@@ -232,7 +232,14 @@ pub fn ansi_trim_end(s: &str) -> String {
     if trimmed_width == UnicodeWidthStr::width(stripped.as_ref()) {
         return s.to_string();
     }
-    truncate(s, trimmed_width).into_owned()
+    // Truncating drops any ANSI reset code that was at the end of the original
+    // string, which leaves color/style open in the terminal. Append an explicit
+    // reset so every trimmed line always ends in a clean state.
+    let mut result = truncate(s, trimmed_width).into_owned();
+    if stripped.as_ref() != s {
+        result.push_str("\x1b[0m");
+    }
+    result
 }
 
 pub fn find_column_kind(pat: &str) -> Option<ConfigColumnKind> {
