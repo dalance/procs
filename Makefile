@@ -28,6 +28,10 @@ release_lnx_aarch64:
 	cargo build --locked --release --target=aarch64-unknown-linux-musl
 	zip -j ${BIN_NAME}-v${VERSION}-aarch64-linux.zip target/aarch64-unknown-linux-musl/release/${BIN_NAME}
 
+release_lnx_riscv64:
+	cargo build --locked --release
+	zip -j ${BIN_NAME}-v${VERSION}-riscv64-linux.zip target/release/${BIN_NAME}
+
 release_win:
 	cargo build --locked --release --target=x86_64-pc-windows-msvc
 	mv -v target/x86_64-pc-windows-msvc/release/${BIN_NAME}.exe ./
