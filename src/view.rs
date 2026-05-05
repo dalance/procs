@@ -52,10 +52,8 @@ impl View {
 
         // Adding the sort column to inserts if not already present
         match (&opt.sorta, &opt.sortd) {
-            (_, Some(col)) | (Some(col), _) => {
-                if !opt.insert.contains(col) {
-                    opt.insert.push(col.clone());
-                }
+            (_, Some(col)) | (Some(col), _) if !opt.insert.contains(col) => {
+                opt.insert.push(col.clone());
             }
             _ => {}
         }
