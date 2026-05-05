@@ -4,6 +4,7 @@ use crate::columns::*;
 use crate::config::*;
 use crate::opt::{ArgColorMode, ArgPagerMode};
 use crate::process::collect_proc;
+use crate::search_regex::SearchRegex;
 use crate::style::{apply_color, apply_style, color_to_column_style};
 use crate::term_info::TermInfo;
 use crate::util::{
@@ -13,7 +14,6 @@ use crate::util::{
 use anyhow::{Error, bail};
 #[cfg(not(target_os = "windows"))]
 use pager::Pager;
-use regex::RegexBuilder;
 use std::collections::HashMap;
 use std::time::Duration;
 
@@ -263,9 +263,7 @@ impl View {
                 ConfigSearchCase::Insensitive => true,
                 ConfigSearchCase::Sensitive => false,
             };
-            let regex = RegexBuilder::new(pattern)
-                .case_insensitive(ignore_case)
-                .build()?;
+            let regex = SearchRegex::new(pattern, ignore_case)?;
             Some(regex)
         } else {
             None
@@ -316,7 +314,7 @@ impl View {
             } else if opt.keyword.is_empty() {
                 true
             } else if let Some(regex) = &regex {
-                View::search_regex(*pid, cols_searchable.as_slice(), regex)
+                View::search_regex(*pid, cols_searchable.as_slice(), regex)?
             } else {
                 View::search(
                     *pid,
@@ -714,8 +712,13 @@ impl View {
         }
     }
 
-    fn search_regex(pid: i32, cols: &[&dyn Column], regex: &regex::Regex) -> bool {
-        cols.iter().any(|c| regex.is_match(&c.display_json(pid)))
+    fn search_regex(pid: i32, cols: &[&dyn Column], regex: &SearchRegex) -> Result<bool, Error> {
+        for c in cols {
+            if regex.is_match(&c.display_json(pid))? {
+                return Ok(true);
+            }
+        }
+        Ok(false)
     }
 
     #[cfg(not(any(target_os = "windows", any(target_os = "linux", target_os = "android"))))]
