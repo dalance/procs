@@ -1,12 +1,12 @@
 use crate::Opt;
 use crate::config::*;
+use crate::search_regex::SearchRegex;
 use crate::term_info::TermInfo;
 use crate::util::{get_theme, has_regex_syntax};
 use crate::view::View;
 use anyhow::Error;
 use chrono::offset::Local;
 use getch::Getch;
-use regex::RegexBuilder;
 use std::collections::HashMap;
 use std::sync::mpsc::{Receiver, Sender, channel};
 use std::thread;
@@ -221,10 +221,7 @@ impl Watcher {
                                                 ConfigSearchCase::Insensitive => true,
                                                 ConfigSearchCase::Sensitive => false,
                                             };
-                                            match RegexBuilder::new(&candidate)
-                                                .case_insensitive(ignore_case)
-                                                .build()
-                                            {
+                                            match SearchRegex::new(&candidate, ignore_case) {
                                                 Ok(_) => {
                                                     opt.keyword = vec![candidate];
                                                     regex_error = None;
