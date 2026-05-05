@@ -3,6 +3,7 @@ mod columns;
 mod config;
 mod opt;
 mod process;
+mod search_regex;
 mod style;
 mod term_info;
 mod util;
