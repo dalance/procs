@@ -54,6 +54,7 @@ tokio         = { version = "1.52", optional = true, features = ["rt"] }
 toml          = "1.1"
 unicode-width = "0.2"
 regex         = "1.12"
+fancy-regex   = "0.16"
 
 [build-dependencies]
 anyhow        = "1.0"
