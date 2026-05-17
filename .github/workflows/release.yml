@@ -10,7 +10,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm, macOS-latest, windows-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm, ubuntu-24.04-riscv, macOS-latest, windows-latest]
         rust: [stable]
 
     runs-on: ${{ matrix.os }}
@@ -46,6 +46,9 @@ jobs:
     - name: Build for linux aarch64
       if: matrix.os == 'ubuntu-24.04-arm'
       run: make release_lnx_aarch64
+    - name: Build for linux riscv64
+      if: matrix.os == 'ubuntu-24.04-riscv'
+      run: make release_lnx_riscv64
     - name: Build for macOS
       if: matrix.os == 'macOS-latest'
       run: make release_mac
