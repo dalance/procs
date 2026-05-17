@@ -35,7 +35,7 @@
 
 - Linux is supported.
 - macOS is experimentally supported.
-    - macOS version is checked on GitHub Actions environment only.
+    - macOS version is checked only in the GitHub Actions environment.
     - The issues caused by real-machine are welcome.
 - Windows is supported.
 - FreeBSD is experimentally supported.
