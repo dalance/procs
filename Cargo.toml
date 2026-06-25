@@ -42,7 +42,7 @@ clap_mangen   = "0.3"
 console       = "0.16.3"
 chrono        = {version = "0.4.45", default-features = false, features = ["clock"]}
 directories   = "6.0.0"
-dockworker    = { version = "0.16.0", optional = true }
+dockworker    = { version = "0.17.0", optional = true }
 getch         = "0.3.1"
 libc          = "0.2"
 minus         = { version = "5.7", features = ["static_output", "search"] }
