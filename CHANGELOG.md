@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased](https://github.com/dalance/procs/compare/v0.14.11...Unreleased) - ReleaseDate
+## [Unreleased](https://github.com/dalance/procs/compare/v0.14.12...Unreleased) - ReleaseDate
+
+## [v0.14.12](https://github.com/dalance/procs/compare/v0.14.11...v0.14.12) - 2026-06-25
 
 * [Added] Add fancy regex fallback for advanced filters [#913](https://github.com/dalance/procs/pull/913)
 * [Added] Add regex filtering support (Fixes #554) [#882](https://github.com/dalance/procs/pull/882)
