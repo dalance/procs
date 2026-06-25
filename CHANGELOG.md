@@ -2,6 +2,10 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.14.11...Unreleased) - ReleaseDate
 
+* [Added] Add fancy regex fallback for advanced filters [#913](https://github.com/dalance/procs/pull/913)
+* [Added] Add regex filtering support (Fixes #554) [#882](https://github.com/dalance/procs/pull/882)
+* [Added] Add shell completion kind values and man page generation [#878](https://github.com/dalance/procs/pull/878)
+
 ## [v0.14.11](https://github.com/dalance/procs/compare/v0.14.10...v0.14.11) - 2026-02-27
 
 * [Changed] use actual macos memory usage from libproc pid_rusage [#800](https://github.com/dalance/procs/pull/800)
