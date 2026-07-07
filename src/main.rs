@@ -3,6 +3,7 @@ mod columns;
 mod config;
 mod opt;
 mod process;
+mod search;
 mod search_regex;
 mod style;
 mod term_info;
@@ -308,6 +309,45 @@ mod tests {
         let mut opt = Opt::parse_from(args.iter());
         let ret = run_default(&mut opt, &config);
         assert!(ret.is_ok());
+    }
+
+    #[test]
+    fn test_run_predicate() {
+        let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
+        config.pager.mode = ConfigPagerMode::Disable;
+        config.display.theme = ConfigTheme::Dark;
+
+        let args = ["procs", "user==root"];
+        let mut opt = Opt::parse_from(args.iter());
+        let ret = run_default(&mut opt, &config);
+        assert!(ret.is_ok());
+
+        let args = ["procs", "command~=proc"];
+        let mut opt = Opt::parse_from(args.iter());
+        let ret = run_default(&mut opt, &config);
+        assert!(ret.is_ok());
+
+        let args = ["procs", "--and", "user==root", "pid~=1"];
+        let mut opt = Opt::parse_from(args.iter());
+        let ret = run_default(&mut opt, &config);
+        assert!(ret.is_ok());
+
+        let args = ["procs", "--or", "user==root", "1"];
+        let mut opt = Opt::parse_from(args.iter());
+        let ret = run_default(&mut opt, &config);
+        assert!(ret.is_ok());
+
+        // Unknown column is rejected.
+        let args = ["procs", "bogus==x"];
+        let mut opt = Opt::parse_from(args.iter());
+        let ret = run_default(&mut opt, &config);
+        assert!(ret.is_err());
+
+        // A column that exists but is not in the active layout is rejected.
+        let args = ["procs", "env==FOO"];
+        let mut opt = Opt::parse_from(args.iter());
+        let ret = run_default(&mut opt, &config);
+        assert!(ret.is_err());
     }
 
     #[test]
