@@ -7,6 +7,7 @@ use crate::process::collect_proc;
 use crate::search_regex::SearchRegex;
 use crate::style::{apply_color, apply_style, color_to_column_style};
 use crate::term_info::TermInfo;
+use crate::search::{ColumnPredicate, MatchOp, SearchTerm};
 use crate::util::{
     KeywordClass, ansi_trim_end, classify, find_column_kind, find_exact, find_partial,
     has_regex_syntax, truncate,
@@ -20,6 +21,132 @@ use std::time::Duration;
 pub struct SortInfo {
     pub idx: usize,
     pub order: ConfigSortOrder,
+}
+
+/// A search term reduced to the columns it matches against and how.
+struct CompiledTerm<'a> {
+    cols: Vec<&'a dyn Column>,
+    exact: bool,
+    needle: &'a str,
+}
+
+impl CompiledTerm<'_> {
+    fn matches(&self, pid: i32, case: &ConfigSearchCase) -> bool {
+        let needle = [self.needle];
+        if self.exact {
+            find_exact(&self.cols, pid, &needle, &ConfigSearchLogic::And, case)
+        } else {
+            find_partial(&self.cols, pid, &needle, &ConfigSearchLogic::And, case)
+        }
+    }
+}
+
+/// The compiled matching strategy for a set of search keywords.
+enum Search<'a> {
+    /// No keywords: every process matches.
+    All,
+    /// A single regex applied over the searchable columns.
+    Regex {
+        cols: Vec<&'a dyn Column>,
+        regex: SearchRegex,
+    },
+    /// Per-keyword terms folded together by the active logic.
+    Terms {
+        terms: Vec<CompiledTerm<'a>>,
+        case: ConfigSearchCase,
+        logic: ConfigSearchLogic,
+    },
+}
+
+impl<'a> Search<'a> {
+    /// Compile the keywords in `opt` against the columns of `view`.
+    fn new(view: &'a View, opt: &'a Opt, config: &Config) -> Result<Self, Error> {
+        if opt.keyword.is_empty() {
+            return Ok(Search::All);
+        }
+
+        let regex_mode = if opt.regex {
+            true
+        } else if opt.smart {
+            opt.keyword.len() == 1 && has_regex_syntax(&opt.keyword[0])
+        } else {
+            false
+        };
+
+        if regex_mode {
+            let pattern = &opt.keyword[0];
+            let ignore_case = match config.search.case {
+                ConfigSearchCase::Smart => pattern == &pattern.to_ascii_lowercase(),
+                ConfigSearchCase::Insensitive => true,
+                ConfigSearchCase::Sensitive => false,
+            };
+            return Ok(Search::Regex {
+                cols: view.searchable_columns().collect(),
+                regex: SearchRegex::new(pattern, ignore_case)?,
+            });
+        }
+
+        let mut terms = Vec::with_capacity(opt.keyword.len());
+        for k in &opt.keyword {
+            terms.push(view.compile_term(k, config)?);
+        }
+        Ok(Search::Terms {
+            terms,
+            case: config.search.case.clone(),
+            logic: search_logic(opt, config),
+        })
+    }
+
+    /// Whether the process `pid` satisfies the search.
+    fn matches(&self, pid: i32) -> Result<bool, Error> {
+        match self {
+            Search::All => Ok(true),
+            Search::Regex { cols, regex } => View::search_regex(pid, cols, regex),
+            Search::Terms { terms, case, logic } => {
+                Ok(Self::fold(pid, terms.iter(), case, logic))
+            }
+        }
+    }
+
+    /// Fold the per-term match results with the active search logic.
+    fn fold<'t>(
+        pid: i32,
+        mut terms: impl Iterator<Item = &'t CompiledTerm<'t>>,
+        case: &ConfigSearchCase,
+        logic: &ConfigSearchLogic,
+    ) -> bool {
+        match logic {
+            ConfigSearchLogic::And => terms.all(|t| t.matches(pid, case)),
+            ConfigSearchLogic::Or => terms.any(|t| t.matches(pid, case)),
+            ConfigSearchLogic::Nand => !terms.all(|t| t.matches(pid, case)),
+            ConfigSearchLogic::Nor => !terms.any(|t| t.matches(pid, case)),
+        }
+    }
+}
+
+/// Select the active search logic from the command line, falling back to the
+/// configured default.
+fn search_logic(opt: &Opt, config: &Config) -> ConfigSearchLogic {
+    if opt.and {
+        ConfigSearchLogic::And
+    } else if opt.or {
+        ConfigSearchLogic::Or
+    } else if opt.nand {
+        ConfigSearchLogic::Nand
+    } else if opt.nor {
+        ConfigSearchLogic::Nor
+    } else {
+        config.search.logic.clone()
+    }
+}
+
+/// Resolve a `--insert` column argument, warning on stderr when it is unknown.
+fn resolve_insert_kind(insert: &str) -> Option<ConfigColumnKind> {
+    let kind = find_column_kind(insert);
+    if kind.is_none() {
+        eprintln!("Can't find column kind: {insert}");
+    }
+    kind
 }
 
 pub struct View {
@@ -86,7 +213,7 @@ impl View {
             let kinds = match &c.kind {
                 ConfigColumnKind::Slot => {
                     let kinds = if let Some(insert) = opt.insert.get(slot_idx) {
-                        find_column_kind(insert).into_iter().collect()
+                        resolve_insert_kind(insert).into_iter().collect()
                     } else {
                         vec![]
                     };
@@ -96,7 +223,7 @@ impl View {
                 ConfigColumnKind::MultiSlot => {
                     let mut kinds = vec![];
                     while let Some(insert) = opt.insert.get(slot_idx) {
-                        if let Some(kind) = find_column_kind(insert) {
+                        if let Some(kind) = resolve_insert_kind(insert) {
                             kinds.push(kind);
                         }
                         slot_idx += 1;
@@ -220,52 +347,7 @@ impl View {
     }
 
     pub fn filter(&mut self, opt: &Opt, config: &Config, header_lines: usize) -> Result<(), Error> {
-        let mut cols_nonnumeric = Vec::new();
-        let mut cols_numeric = Vec::new();
-        let mut cols_searchable = Vec::new();
-        for c in &self.columns {
-            if c.nonnumeric_search {
-                cols_nonnumeric.push(c.column.as_ref());
-                cols_searchable.push(c.column.as_ref());
-            }
-            if c.numeric_search {
-                cols_numeric.push(c.column.as_ref());
-                if !c.nonnumeric_search {
-                    cols_searchable.push(c.column.as_ref());
-                }
-            }
-        }
-
-        let mut keyword_nonnumeric = Vec::new();
-        let mut keyword_numeric = Vec::new();
-
-        for k in &opt.keyword {
-            match classify(k) {
-                KeywordClass::Numeric => keyword_numeric.push(k),
-                KeywordClass::NonNumeric => keyword_nonnumeric.push(k),
-            }
-        }
-
-        let regex_mode = if opt.regex {
-            true
-        } else if opt.smart {
-            opt.keyword.len() == 1 && has_regex_syntax(&opt.keyword[0])
-        } else {
-            false
-        };
-
-        let regex = if regex_mode && !opt.keyword.is_empty() {
-            let pattern = &opt.keyword[0];
-            let ignore_case = match config.search.case {
-                ConfigSearchCase::Smart => pattern == &pattern.to_ascii_lowercase(),
-                ConfigSearchCase::Insensitive => true,
-                ConfigSearchCase::Sensitive => false,
-            };
-            let regex = SearchRegex::new(pattern, ignore_case)?;
-            Some(regex)
-        } else {
-            None
-        };
+        let search = Search::new(self, opt, config)?;
 
         let pids = self.columns[self.sort_info.idx]
             .column
@@ -290,42 +372,12 @@ impl View {
             Vec::new()
         };
 
-        let logic = if opt.and {
-            ConfigSearchLogic::And
-        } else if opt.or {
-            ConfigSearchLogic::Or
-        } else if opt.nand {
-            ConfigSearchLogic::Nand
-        } else if opt.nor {
-            ConfigSearchLogic::Nor
-        } else {
-            config.search.logic.clone()
-        };
-
         let mut candidate_pids = Vec::new();
         for pid in &pids {
             let hidden_process = (!config.display.show_self && *pid == self_pid)
                 || (!config.display.show_self_parents && self_parents.contains(pid));
 
-            let candidate = if hidden_process {
-                false
-            } else if opt.keyword.is_empty() {
-                true
-            } else if let Some(regex) = &regex {
-                View::search_regex(*pid, cols_searchable.as_slice(), regex)?
-            } else {
-                View::search(
-                    *pid,
-                    &keyword_numeric,
-                    &keyword_nonnumeric,
-                    cols_numeric.as_slice(),
-                    cols_nonnumeric.as_slice(),
-                    config,
-                    &logic,
-                )
-            };
-
-            if candidate {
+            if !hidden_process && search.matches(*pid)? {
                 candidate_pids.push(*pid);
             }
         }
@@ -661,52 +713,71 @@ impl View {
         }
     }
 
-    fn search<T: AsRef<str>>(
-        pid: i32,
-        keyword_numeric: &[T],
-        keyword_nonnumeric: &[T],
-        cols_numeric: &[&dyn Column],
-        cols_nonnumeric: &[&dyn Column],
+    /// Iterate over the columns eligible for plain-keyword search.
+    fn searchable_columns(&self) -> impl Iterator<Item = &dyn Column> {
+        self.columns
+            .iter()
+            .filter(|c| c.numeric_search || c.nonnumeric_search)
+            .map(|c| c.column.as_ref())
+    }
+
+    /// Borrow the first active column matching `kind`, if any.
+    fn column_for_kind(&self, kind: &ConfigColumnKind) -> Option<&dyn Column> {
+        self.columns
+            .iter()
+            .find(|c| &c.kind == kind)
+            .map(|c| c.column.as_ref())
+    }
+
+    /// Compile one raw keyword into a [`CompiledTerm`].
+    ///
+    /// A plain numeric/nonnumeric keyword fans out to every searchable column
+    /// of its class, while a column predicate targets a single named column
+    /// regardless of that column's search flags.
+    fn compile_term<'a>(
+        &'a self,
+        keyword: &'a str,
         config: &Config,
-        logic: &ConfigSearchLogic,
-    ) -> bool {
-        let ret_nonnumeric = match config.search.nonnumeric_search {
-            ConfigSearchKind::Partial => find_partial(
-                cols_nonnumeric,
-                pid,
-                keyword_nonnumeric,
-                logic,
-                &config.search.case,
-            ),
-            ConfigSearchKind::Exact => find_exact(
-                cols_nonnumeric,
-                pid,
-                keyword_nonnumeric,
-                logic,
-                &config.search.case,
-            ),
-        };
-        let ret_numeric = match config.search.numeric_search {
-            ConfigSearchKind::Partial => find_partial(
-                cols_numeric,
-                pid,
-                keyword_numeric,
-                logic,
-                &config.search.case,
-            ),
-            ConfigSearchKind::Exact => find_exact(
-                cols_numeric,
-                pid,
-                keyword_numeric,
-                logic,
-                &config.search.case,
-            ),
-        };
-        match logic {
-            ConfigSearchLogic::And => ret_nonnumeric & ret_numeric,
-            ConfigSearchLogic::Or => ret_nonnumeric | ret_numeric,
-            ConfigSearchLogic::Nand => !(ret_nonnumeric & ret_numeric),
-            ConfigSearchLogic::Nor => !(ret_nonnumeric | ret_numeric),
+    ) -> Result<CompiledTerm<'a>, Error> {
+        match SearchTerm::parse(keyword)? {
+            SearchTerm::Plain(keyword) => {
+                let numeric = matches!(classify(keyword), KeywordClass::Numeric);
+                let search_kind = if numeric {
+                    &config.search.numeric_search
+                } else {
+                    &config.search.nonnumeric_search
+                };
+                let cols = self
+                    .columns
+                    .iter()
+                    .filter(|c| {
+                        if numeric {
+                            c.numeric_search
+                        } else {
+                            c.nonnumeric_search
+                        }
+                    })
+                    .map(|c| c.column.as_ref())
+                    .collect();
+                Ok(CompiledTerm {
+                    cols,
+                    exact: matches!(search_kind, ConfigSearchKind::Exact),
+                    needle: keyword,
+                })
+            }
+            SearchTerm::Column(ColumnPredicate { kind, op, value }) => {
+                let col = self.column_for_kind(&kind).ok_or_else(|| {
+                    let name = KIND_LIST[&kind].0;
+                    anyhow::anyhow!(
+                        "column \"{name}\" is not in the current layout; add it via config or --insert"
+                    )
+                })?;
+                Ok(CompiledTerm {
+                    cols: vec![col],
+                    exact: matches!(op, MatchOp::Exact),
+                    needle: value,
+                })
+            }
         }
     }
 
