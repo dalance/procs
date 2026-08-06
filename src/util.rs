@@ -223,6 +223,19 @@ pub fn truncate(s: &'_ str, width: usize) -> Cow<'_, str> {
     }
 }
 
+/// Replace control characters, including ANSI/terminal escape sequences,
+/// with the Unicode replacement character. Process-derived content (such
+/// as a command line) is fully controlled by whichever user started the
+/// process, so it must be sanitized before being written to the
+/// terminal, since an unprivileged local user could otherwise plant an
+/// escape sequence that gets interpreted by any other user's terminal
+/// when they view the process listing.
+pub fn sanitize_display(s: &str) -> String {
+    s.chars()
+        .map(|c| if c.is_control() { '\u{FFFD}' } else { c })
+        .collect()
+}
+
 /// Trim trailing whitespace from a string that may contain ANSI escape sequences.
 /// Unlike str::trim_end(), this correctly handles ANSI codes at the end of the string
 /// that would otherwise prevent trimming of trailing whitespace.
@@ -381,5 +394,29 @@ pub fn process_new(
         procfs::process::Process::new_with_root(path)
     } else {
         procfs::process::Process::new(pid)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn sanitize_display_strips_escape_sequences() {
+        // A crafted argv0 embedding a raw OSC 52 (clipboard-write) escape
+        // sequence, the same shape a malicious local process could use to
+        // inject terminal control sequences into another user's `procs`
+        // output. The ESC and BEL bytes must not survive sanitization.
+        let malicious = "\x1b]52;c;cGF5bG9hZA==\x07innocuous_process";
+        let sanitized = sanitize_display(malicious);
+        assert!(!sanitized.contains('\u{1b}'));
+        assert!(!sanitized.contains('\u{7}'));
+        assert!(sanitized.contains("innocuous_process"));
+    }
+
+    #[test]
+    fn sanitize_display_preserves_normal_text() {
+        let normal = "/usr/bin/env python3 script.py --flag value";
+        assert_eq!(sanitize_display(normal), normal);
     }
 }

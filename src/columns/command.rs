@@ -47,6 +47,7 @@ impl Column for Command {
         } else {
             proc.curr_proc.stat().comm.clone()
         };
+        let fmt_content = crate::util::sanitize_display(&fmt_content);
         let raw_content = fmt_content.clone();
 
         self.fmt_contents.insert(proc.pid, fmt_content);
@@ -79,6 +80,7 @@ impl Column for Command {
         } else {
             String::from("")
         };
+        let fmt_content = crate::util::sanitize_display(&fmt_content);
         let raw_content = fmt_content.clone();
 
         self.fmt_contents.insert(proc.pid, fmt_content);
@@ -91,7 +93,7 @@ impl Column for Command {
 #[cfg(target_os = "windows")]
 impl Column for Command {
     fn add(&mut self, proc: &ProcessInfo) {
-        let fmt_content = proc.command.clone();
+        let fmt_content = crate::util::sanitize_display(&proc.command);
         let raw_content = fmt_content.clone();
 
         self.fmt_contents.insert(proc.pid, fmt_content);
@@ -119,7 +121,7 @@ impl Column for Command {
             }
             x
         };
-        let fmt_content = command;
+        let fmt_content = crate::util::sanitize_display(&command);
         let raw_content = fmt_content.clone();
 
         self.fmt_contents.insert(proc.pid, fmt_content);
