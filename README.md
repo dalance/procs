@@ -118,6 +118,8 @@ sudo dnf install procs
 winget install procs
 ```
 
+After Scoop or winget, open a **new** terminal so `PATH` picks up `procs`. If you use `cargo install`, ensure `%USERPROFILE%\.cargo\bin` is on `PATH`.
+
 ### RPM
 
 You can install with rpm.
