@@ -180,11 +180,12 @@ pub fn gen_column(
     _docker_path: &str,
     separator: &str,
     abbr_sid: bool,
+    abbr_nix: bool,
     tree_symbols: &[String; 5],
     procfs: Option<PathBuf>,
 ) -> Box<dyn Column> {
     match kind {
-        ConfigColumnKind::Command => Box::new(Command::new(header)),
+        ConfigColumnKind::Command => Box::new(Command::new(header, abbr_nix)),
         ConfigColumnKind::ContextSw => Box::new(ContextSw::new(header)),
         ConfigColumnKind::CpuTime => Box::new(CpuTime::new(header)),
         ConfigColumnKind::ElapsedTime => Box::new(ElapsedTime::new(header)),

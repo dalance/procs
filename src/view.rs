@@ -136,6 +136,7 @@ impl View {
                     &config.docker.path,
                     &config.display.separator,
                     config.display.abbr_sid,
+                    config.display.abbr_nix,
                     &config.display.tree_symbols,
                     opt.procfs.clone(),
                 );
