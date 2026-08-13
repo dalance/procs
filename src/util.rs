@@ -13,6 +13,8 @@ use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 #[cfg(not(target_os = "windows"))]
 use uzers::UsersCache;
 
+const ANSI_RESET: &str = "\u{1b}[0m";
+
 impl From<ArgThemeMode> for ConfigTheme {
     fn from(item: ArgThemeMode) -> Self {
         match item {
@@ -216,7 +218,12 @@ pub fn truncate(s: &'_ str, width: usize) -> Cow<'_, str> {
         }
         buf.push(c);
     }
-    if let Some(buf) = ret {
+    if let Some(mut buf) = ret {
+        // Truncation discards everything after the cut point, including any trailing
+        // ANSI reset. Without it the terminal keeps the last style after procs exits.
+        if buf.contains('\u{1b}') {
+            buf.push_str(ANSI_RESET);
+        }
         Cow::Owned(buf)
     } else {
         Cow::Borrowed(s)
@@ -381,5 +388,37 @@ pub fn process_new(
         procfs::process::Process::new_with_root(path)
     } else {
         procfs::process::Process::new(pid)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_truncate_keeps_reset_for_styled_text() {
+        let styled = "\u{1b}[1;37mabcdef\u{1b}[0m";
+        assert_eq!(truncate(styled, 3), "\u{1b}[1;37mabc\u{1b}[0m");
+    }
+
+    #[test]
+    fn test_truncate_plain_text_unchanged() {
+        assert_eq!(truncate("abcdef", 3), "abc");
+        assert_eq!(truncate("abcdef", 6), "abcdef");
+    }
+
+    #[test]
+    fn test_ansi_trim_end_keeps_reset() {
+        // Trailing padding inside a styled column: trimming it must not drop the reset.
+        let row = "\u{1b}[1;37mCommand   \u{1b}[0m";
+        let trimmed = ansi_trim_end(row);
+        assert!(trimmed.ends_with(ANSI_RESET), "{trimmed:?}");
+        assert_eq!(console::strip_ansi_codes(&trimmed), "Command");
+    }
+
+    #[test]
+    fn test_ansi_trim_end_without_trailing_space_unchanged() {
+        let row = "\u{1b}[1;37mCommand\u{1b}[0m";
+        assert_eq!(ansi_trim_end(row), row);
     }
 }
