@@ -226,13 +226,41 @@ pub fn truncate(s: &'_ str, width: usize) -> Cow<'_, str> {
 /// Trim trailing whitespace from a string that may contain ANSI escape sequences.
 /// Unlike str::trim_end(), this correctly handles ANSI codes at the end of the string
 /// that would otherwise prevent trimming of trailing whitespace.
+/// Escape sequences that follow the trimmed whitespace are kept, so a style opened
+/// before the padding is still closed by its reset code.
 pub fn ansi_trim_end(s: &str) -> String {
-    let stripped = console::strip_ansi_codes(s);
-    let trimmed_width = UnicodeWidthStr::width(stripped.trim_end());
-    if trimmed_width == UnicodeWidthStr::width(stripped.as_ref()) {
-        return s.to_string();
+    // (char, whether the char belongs to an ANSI escape sequence)
+    let mut chars: Vec<(char, bool)> = Vec::with_capacity(s.len());
+    let mut escape = false;
+    for c in s.chars() {
+        if c == '\u{1b}' {
+            escape = true;
+        }
+        let in_escape = escape;
+        if escape && c == 'm' {
+            escape = false;
+        }
+        chars.push((c, in_escape));
     }
-    truncate(s, trimmed_width).into_owned()
+
+    let last_visible = chars
+        .iter()
+        .rposition(|(c, in_escape)| !in_escape && !c.is_whitespace());
+
+    match last_visible {
+        Some(last) => chars
+            .iter()
+            .enumerate()
+            .filter(|(i, (_, in_escape))| *i <= last || *in_escape)
+            .map(|(_, (c, _))| c)
+            .collect(),
+        // No visible content: keep the escape sequences only.
+        None => chars
+            .iter()
+            .filter(|(_, in_escape)| *in_escape)
+            .map(|(c, _)| c)
+            .collect(),
+    }
 }
 
 pub fn find_column_kind(pat: &str) -> Option<ConfigColumnKind> {
@@ -381,5 +409,62 @@ pub fn process_new(
         procfs::process::Process::new_with_root(path)
     } else {
         procfs::process::Process::new(pid)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::ansi_trim_end;
+
+    #[test]
+    fn test_ansi_trim_end_plain() {
+        assert_eq!(ansi_trim_end("abc   "), "abc");
+        assert_eq!(ansi_trim_end("abc"), "abc");
+        assert_eq!(ansi_trim_end("  a b  "), "  a b");
+        assert_eq!(ansi_trim_end(""), "");
+    }
+
+    #[test]
+    fn test_ansi_trim_end_removes_padding_inside_style() {
+        // Padding is inside the styled span, so trim_end() alone cannot see it.
+        assert_eq!(
+            ansi_trim_end("\u{1b}[31mabc   \u{1b}[0m"),
+            "\u{1b}[31mabc\u{1b}[0m"
+        );
+    }
+
+    #[test]
+    fn test_ansi_trim_end_keeps_reset_code() {
+        // The reset must survive trimming, otherwise the style leaks past the line.
+        let trimmed = ansi_trim_end("\u{1b}[31mabc   \u{1b}[0m   ");
+        assert!(!trimmed.ends_with(' '));
+        assert!(trimmed.ends_with("\u{1b}[0m"));
+        assert_eq!(trimmed, "\u{1b}[31mabc\u{1b}[0m");
+    }
+
+    #[test]
+    fn test_ansi_trim_end_multiple_columns() {
+        let row = "\u{1b}[31m1\u{1b}[0m \u{1b}[32m2\u{1b}[0m \u{1b}[33m   \u{1b}[0m";
+        assert_eq!(
+            ansi_trim_end(row),
+            "\u{1b}[31m1\u{1b}[0m \u{1b}[32m2\u{1b}[0m\u{1b}[33m\u{1b}[0m"
+        );
+    }
+
+    #[test]
+    fn test_ansi_trim_end_only_whitespace() {
+        assert_eq!(ansi_trim_end("   "), "");
+        assert_eq!(
+            ansi_trim_end("\u{1b}[31m   \u{1b}[0m"),
+            "\u{1b}[31m\u{1b}[0m"
+        );
+    }
+
+    #[test]
+    fn test_ansi_trim_end_wide_chars() {
+        assert_eq!(
+            ansi_trim_end("\u{1b}[31m\u{2502}あ  \u{1b}[0m"),
+            "\u{1b}[31m\u{2502}あ\u{1b}[0m"
+        );
     }
 }
