@@ -2,6 +2,8 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.14.12...Unreleased) - ReleaseDate
 
+* [Fixed] Fix invalid JSON output when a column is skipped by --only or --tree
+
 ## [v0.14.12](https://github.com/dalance/procs/compare/v0.14.11...v0.14.12) - 2026-06-25
 
 * [Added] Add fancy regex fallback for advanced filters [#913](https://github.com/dalance/procs/pull/913)
