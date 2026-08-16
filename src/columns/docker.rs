@@ -94,33 +94,51 @@ impl Docker {
     }
 }
 
+/// Extract a Docker container ID from a cgroup path.
+///
+/// The container's cgroup can be nested at an arbitrary depth: rootful Docker
+/// puts it directly under `/system.slice`, while rootless Docker nests it under
+/// the invoking user's slice. Matching a path *component* rather than a prefix
+/// covers both without enumerating every hierarchy shape.
+#[cfg(any(target_os = "linux", target_os = "android"))]
+fn container_id_from_cgroup(cgroup_path: &str) -> Option<&str> {
+    fn is_container_id(s: &str) -> bool {
+        s.len() == 64 && s.bytes().all(|b| b.is_ascii_hexdigit())
+    }
+
+    let mut components = cgroup_path.split('/').filter(|x| !x.is_empty()).peekable();
+    while let Some(component) = components.next() {
+        // cgroup v1: `.../docker/<id>`
+        if component == "docker" {
+            if let Some(id) = components.peek().copied().filter(|x| is_container_id(x)) {
+                return Some(id);
+            }
+            continue;
+        }
+        // cgroup v2 with systemd: `.../docker-<id>.scope`
+        if let Some(id) = component
+            .strip_prefix("docker-")
+            .and_then(|x| x.strip_suffix(".scope"))
+            .filter(|x| is_container_id(x))
+        {
+            return Some(id);
+        }
+    }
+    None
+}
+
 #[cfg(any(target_os = "linux", target_os = "android"))]
 impl Column for Docker {
     fn add(&mut self, proc: &ProcessInfo) {
         let fmt_content = if let Ok(cgroups) = proc.curr_proc.cgroups() {
             let mut ret = String::new();
             for cgroup in cgroups {
-                let cgroup_name = cgroup.pathname.clone();
-                if cgroup_name.starts_with("/docker") {
-                    let container_id = cgroup_name.replace("/docker/", "");
-                    if let Some(name) = self.containers.get(&container_id) {
-                        ret = name.to_string();
-                        break;
-                    } else {
-                        ret = String::from("?");
-                        break;
-                    }
-                } else if cgroup_name.starts_with("/system.slice/docker-") {
-                    let container_id = cgroup_name
-                        .replace("/system.slice/docker-", "")
-                        .replace(".scope", "");
-                    if let Some(name) = self.containers.get(&container_id) {
-                        ret = name.to_string();
-                        break;
-                    } else {
-                        ret = String::from("?");
-                        break;
-                    }
+                if let Some(container_id) = container_id_from_cgroup(&cgroup.pathname) {
+                    ret = match self.containers.get(container_id) {
+                        Some(name) => name.to_string(),
+                        None => String::from("?"),
+                    };
+                    break;
                 }
             }
             ret
@@ -159,4 +177,51 @@ impl Column for Docker {
     }
 
     column_default!(String, false);
+}
+
+#[cfg(all(test, any(target_os = "linux", target_os = "android")))]
+mod tests {
+    use super::container_id_from_cgroup;
+
+    const ID: &str = "b9fc2a3d3e1c4f5a6b7c8d9e0f1a2b3c4d5e6f708192a3b4c5d6e7f809a1b2c3";
+
+    #[test]
+    fn cgroup_v1() {
+        let path = format!("/docker/{ID}");
+        assert_eq!(container_id_from_cgroup(&path), Some(ID));
+    }
+
+    #[test]
+    fn cgroup_v2_rootful() {
+        let path = format!("/system.slice/docker-{ID}.scope");
+        assert_eq!(container_id_from_cgroup(&path), Some(ID));
+    }
+
+    #[test]
+    fn cgroup_v2_rootless() {
+        let path = format!(
+            "/user.slice/user-1000.slice/user@1000.service/user.slice/docker-{ID}.scope"
+        );
+        assert_eq!(container_id_from_cgroup(&path), Some(ID));
+    }
+
+    #[test]
+    fn non_container_cgroups() {
+        for path in [
+            "/",
+            "/init.scope",
+            "/system.slice/docker.service",
+            "/system.slice/containerd.service",
+            "/user.slice/user-1000.slice/user@1000.service/app.slice/docker-desktop.scope",
+            "/docker/not-a-container-id",
+        ] {
+            assert_eq!(container_id_from_cgroup(path), None, "path: {path}");
+        }
+    }
+
+    #[test]
+    fn id_must_be_a_whole_component() {
+        let path = format!("/system.slice/prefix-docker-{ID}.scope");
+        assert_eq!(container_id_from_cgroup(&path), None);
+    }
 }
