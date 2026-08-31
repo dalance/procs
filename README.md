@@ -22,6 +22,7 @@
 - Colored and human-readable output
     - Automatic theme detection based on terminal background
 - Multi-column keyword search
+- Column predicate search (e.g. `user==root`, `command~=dockerd`)
 - Some additional information which are not supported by `ps`
     - TCP/UDP port
     - Read/Write throughput
@@ -205,6 +206,32 @@ If you want to add columns matching to numeric keyword, `numeric_search` option 
 ![procs_port](https://user-images.githubusercontent.com/4331004/55446667-83ecd780-55fb-11e9-8959-53209837c4ee.png)
 
 Note that procfs permissions only allow identifying listening ports for processes owned by the current user, so not all ports will show up unless run as root.
+
+### Search by column predicate
+
+A keyword of the form `<column><operator><value>` matches against a single named column, regardless of that column's `numeric_search` / `nonnumeric_search` settings.
+For example, to show only one user's processes:
+
+```console
+procs user==root
+procs command~=dockerd
+```
+
+There are two operators:
+
+- `==` : the column content equals the value exactly.
+- `~=` : the column content contains the value as a substring.
+
+The column name is resolved case insensitively against the [column kinds](#configuration), and a substring is enough (e.g. `user`, `command`, `pid`).
+Only the value after the operator can contain further `=` characters.
+Predicates are ordinary search keywords, so they combine with plain keywords and with the [logical operators](#logical-operation-of-search-keywords):
+
+```console
+procs --and user==root command~=dockerd
+```
+
+The referenced column must be present in the current layout; otherwise add it through the [configuration file](#configuration) or `--insert`.
+Predicate parsing is disabled in `--regex` mode, where the pattern is taken verbatim.
 
 ### Logical operation of search keywords
 

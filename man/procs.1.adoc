@@ -38,6 +38,10 @@ procs - a replacement for `ps` written in Rust
 
 *Search by numeric keyword*:: procs --or 6000 60000 60001 16723
 
+*Search by column predicate*:: procs user==root
+
+*Search by partial column predicate*:: procs command~=dockerd
+
 *Show Docker container name*:: procs growi
 
 == PAGER
