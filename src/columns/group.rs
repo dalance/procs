@@ -78,7 +78,16 @@ impl Column for Group {
 #[cfg(target_os = "windows")]
 impl Column for Group {
     fn add(&mut self, proc: &ProcessInfo) {
-        let mut sid_name = &proc.groups[0];
+        // A process whose token could not be opened - a protected process, or
+        // any process when procs is not elevated - has no group list. Render
+        // nothing rather than indexing a non-existent primary group.
+        let Some(primary) = proc.groups.first() else {
+            self.fmt_contents.insert(proc.pid, String::new());
+            self.raw_contents.insert(proc.pid, String::new());
+            return;
+        };
+
+        let mut sid_name = primary;
         let mut kind = u64::MAX;
         for g in &proc.groups {
             if g.sid.len() > 3 && g.sid[1] == 5 && g.sid[2] == 32 && kind > g.sid[3] {

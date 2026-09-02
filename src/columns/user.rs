@@ -74,10 +74,14 @@ impl Column for User {
 #[cfg(target_os = "windows")]
 impl Column for User {
     fn add(&mut self, proc: &ProcessInfo) {
-        let fmt_content = if let Some(name) = &proc.user.name {
-            name.clone()
+        let fmt_content = if let Some(user) = &proc.user {
+            if let Some(name) = &user.name {
+                name.clone()
+            } else {
+                format_sid(&user.sid, self.abbr_sid)
+            }
         } else {
-            format_sid(&proc.user.sid, self.abbr_sid)
+            String::new()
         };
         let raw_content = fmt_content.clone();
 

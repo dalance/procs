@@ -64,8 +64,14 @@ impl Column for Uid {
 #[cfg(target_os = "windows")]
 impl Column for Uid {
     fn add(&mut self, proc: &ProcessInfo) {
-        let fmt_content = format_sid(&proc.user.sid, self.abbr_sid);
-        let raw_content = proc.user.sid[proc.user.sid.len() - 1] as u32;
+        let (fmt_content, raw_content) = if let Some(user) = &proc.user {
+            (
+                format_sid(&user.sid, self.abbr_sid),
+                user.sid[user.sid.len() - 1] as u32,
+            )
+        } else {
+            (String::new(), 0)
+        };
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);

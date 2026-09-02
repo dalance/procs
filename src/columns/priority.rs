@@ -54,16 +54,11 @@ impl Column for Priority {
 #[cfg(target_os = "windows")]
 impl Column for Priority {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = i64::from(proc.priority);
-        let fmt_content = match raw_content {
-            0x0020 => String::from("Normal"),
-            0x0040 => String::from("Idle"),
-            0x0080 => String::from("High"),
-            0x0100 => String::from("Realtime"),
-            0x4000 => String::from("BelowNormal"),
-            0x8000 => String::from("AboveNormal"),
-            _ => String::from("Unknown"),
-        };
+        // This is the kernel Base Priority, which is not the same as the user-mode priority class.
+        // To get the user-mode priority class, we would need GetPriorityClass / NtQueryInformationProcess syscall
+        // on the process handle, but that would require additional permissions and is not always available.
+        let raw_content = proc.priority as i64;
+        let fmt_content = format!("{raw_content}");
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);
