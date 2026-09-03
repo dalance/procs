@@ -120,11 +120,11 @@ pub fn collect_proc(
     let mut ret = Vec::with_capacity(procs.len());
 
     for proc in procs {
-        // Idle and System have no parent process; treat them like the kernel
-        // threads other platforms hide behind the same flag.
-        if !show_kthreads
-            && (proc.ppid == 0 /* Idle, System */ || (proc.ppid == 4 /* System */ && !proc.image_name.contains('.')))
-        {
+        // Hide the kernel's own processes (Idle, System, Registry, Memory
+        // Compression, ...) unless `--thread` was given. The decision is made
+        // once in `take_snapshot` from the authoritative kernel classification
+        // (or the parent-pid heuristic on a basic snapshot).
+        if !show_kthreads && proc.is_kthread {
             continue;
         }
 
@@ -148,10 +148,14 @@ pub fn collect_proc(
             .filter(|command| !command.is_empty())
             .unwrap_or_else(|| image_fallback(&proc));
 
-        let (user, groups) = match handles.full {
-            Some(handle) => (get_user(handle), get_groups(handle)),
-            None => (None, None),
-        };
+        // The snapshot SID saves an `OpenProcessToken`; the token is only
+        // opened for processes the snapshot could not name.
+        let user = proc
+            .user_sid
+            .as_deref()
+            .map(sid_name)
+            .or_else(|| handles.full.and_then(get_user));
+        let groups = handles.full.and_then(get_groups);
         let priority = proc.base_priority;
 
         ret.push(ProcessInfo {
@@ -260,6 +264,14 @@ struct ProcSnapshot {
     write: u64,
     memory_info: MemoryInfo,
     base_priority: i32,
+    /// Process user SID straight from the snapshot, when it carried one.
+    /// `None` means the token has to be opened to learn the user.
+    user_sid: Option<Vec<u64>>,
+    /// Whether this process is one of the kernel's own: System, Secure System,
+    /// Registry, Memory Compression. When the full snapshot classified it this
+    /// is authoritative; for a basic snapshot it falls back to the classic
+    /// Idle/System parent-pid heuristic. `procs` hides these unless `--thread`.
+    is_kthread: bool,
 }
 
 struct ThreadSnapshot {
@@ -276,8 +288,11 @@ struct SystemSnapshot {
     threads: Vec<ThreadSnapshot>,
 }
 
-/// One `NtQuerySystemInformation(SystemProcessInformation)` call covers every
-/// process on the machine - no process handle required.
+/// One `NtQuerySystemInformation` call covers every process on the machine -
+/// no process handle required.
+///
+/// `SystemFullProcessInformation` is used when it is available, which also
+/// hands over each process' user SID.
 fn take_snapshot(with_thread: bool) -> SystemSnapshot {
     let mut procs = Vec::new();
     let mut threads = Vec::new();
@@ -286,12 +301,26 @@ fn take_snapshot(with_thread: bool) -> SystemSnapshot {
         return SystemSnapshot { procs, threads };
     };
 
-    for info in ntapi::ProcessIter::new(&buffer) {
+    for entry in buffer.iter() {
+        let info = entry.info();
+        let ppid = info.InheritedFromUniqueProcessId as usize as i32;
+        let image_name = entry.image_name();
+
+        // Hide the kernel's own processes. The full snapshot's classification is
+        // authoritative - a non-zero `SYSTEM_PROCESS_CLASSIFICATION` marks System,
+        // Secure System, Registry and Memory Compression, which carry real parent
+        // PIDs and the classic ppid heuristic would miss. The parent-pid rule is
+        // kept as a safety net for Idle (pid 0): the kernel reports it as `Normal`
+        // (classification 0) yet it is not a user process and must stay hidden.
+        let is_kthread = entry.classification().is_some_and(|c| c != 0)
+            || ppid == 0
+            || (ppid == 4 && !image_name.contains('.'));
+
         procs.push(ProcSnapshot {
             pid: info.UniqueProcessId as usize as i32,
-            ppid: info.InheritedFromUniqueProcessId as usize as i32,
+            ppid,
             thread_count: info.NumberOfThreads as i32,
-            image_name: ntapi::unicode_string_to_owned(&info.ImageName),
+            image_name,
             create_time: info.CreateTime,
             kernel_time: info.KernelTime as u64,
             user_time: info.UserTime as u64,
@@ -315,11 +344,13 @@ fn take_snapshot(with_thread: bool) -> SystemSnapshot {
                 private_usage: info.PrivatePageCount as u64,
             },
             base_priority: info.BasePriority,
+            user_sid: entry.user_sid(),
+            is_kthread,
         });
 
         if with_thread {
             let pid = info.UniqueProcessId as usize as i32;
-            let slice = info.threads();
+            let slice = entry.threads();
             for idx in 0..slice.len() {
                 let Some(thread) = slice.get(idx) else {
                     continue;
@@ -478,16 +509,28 @@ fn get_user(handle: HANDLE) -> Option<SidName> {
     let token_user = buf.as_ptr() as *const TOKEN_USER;
     let psid = unsafe { (*token_user).User.Sid };
 
+    Some(sid_name_from_psid(psid))
+}
+
+/// Builds a `SidName` from a SID owned by the caller.
+///
+/// `sid` holds the raw SID bytes as copied by `ntapi`, kept in a `Vec<u64>` so
+/// the `u32` sub-authorities that `PSID` reads stay aligned.
+fn sid_name(sid: &[u64]) -> SidName {
+    sid_name_from_psid(sid.as_ptr() as PSID)
+}
+
+fn sid_name_from_psid(psid: PSID) -> SidName {
     let (name, domainname) = match get_name_cached(psid) {
         Some((name, domainname)) => (Some(name), Some(domainname)),
         None => (None, None),
     };
 
-    Some(SidName {
+    SidName {
         sid: get_sid(psid),
         name,
         domainname,
-    })
+    }
 }
 
 fn get_groups(handle: HANDLE) -> Option<Vec<SidName>> {
@@ -513,17 +556,7 @@ fn get_groups(handle: HANDLE) -> Option<Vec<SidName>> {
         let sa = (*token_groups).Groups.as_ptr();
         for i in 0..(*token_groups).GroupCount {
             let psid = (*sa.offset(i as isize)).Sid;
-            let (name, domainname) = if let Some((x, y)) = get_name_cached(psid) {
-                (Some(x), Some(y))
-            } else {
-                (None, None)
-            };
-
-            ret.push(SidName {
-                sid: get_sid(psid),
-                name,
-                domainname,
-            });
+            ret.push(sid_name_from_psid(psid));
         }
     }
 
