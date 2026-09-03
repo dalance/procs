@@ -5,9 +5,7 @@ use procfs::{Current, Meminfo, WithCurrentSystemInfo};
 use std::cmp;
 use std::collections::HashMap;
 #[cfg(target_os = "windows")]
-use std::mem::{size_of, zeroed};
-#[cfg(target_os = "windows")]
-use windows_sys::Win32::System::ProcessStatus::{GetPerformanceInfo, PERFORMANCE_INFORMATION};
+use windows_sys::Win32::System::SystemInformation::{GlobalMemoryStatusEx, MEMORYSTATUSEX};
 
 pub struct UsageMem {
     header: String,
@@ -64,11 +62,12 @@ fn get_mem_total() -> u64 {
 
 #[cfg(target_os = "windows")]
 fn get_mem_total() -> u64 {
-    let mut info: PERFORMANCE_INFORMATION = unsafe { zeroed() };
-    let ret = unsafe { GetPerformanceInfo(&mut info, size_of::<PERFORMANCE_INFORMATION>() as u32) };
+    let mut info: MEMORYSTATUSEX = Default::default();
+    info.dwLength = std::mem::size_of::<MEMORYSTATUSEX>() as u32;
+    let ret = unsafe { GlobalMemoryStatusEx(&mut info) };
 
     if ret != 0 {
-        info.PhysicalTotal as u64 * info.PageSize as u64
+        info.ullTotalPhys
     } else {
         0
     }
