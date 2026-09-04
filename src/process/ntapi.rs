@@ -6,12 +6,15 @@
 //! the header, hence the `non_snake_case` allowances.
 
 use std::ffi::c_void;
+use std::fmt::Write;
 use std::marker::PhantomData;
 use std::mem::{offset_of, size_of};
 use std::ptr;
+use std::slice;
 use std::sync::OnceLock;
 
 use windows_sys::Win32::Foundation::{HANDLE, HMODULE};
+use windows_sys::Win32::Security::{PSID, SECURITY_MAX_SID_SIZE, SID};
 use windows_sys::Win32::System::LibraryLoader::{GetModuleHandleW, GetProcAddress};
 use windows_sys::Win32::System::Threading::IO_COUNTERS;
 
@@ -176,6 +179,151 @@ const SID_HEADER_BYTES: usize = 8;
 const SID_REVISION: u8 = 1;
 /// `SID_MAX_SUB_AUTHORITIES`
 const SID_MAX_SUB_AUTHORITIES: usize = 15;
+
+/// An owned, fixed-size `SID` that can be stored by value.
+///
+/// `windows-sys`'s `SID` types its trailing sub-authorities as `[u32; 1]`, so
+/// it cannot hold a full SID by value. `SID_MAX` embeds the official `SID` as
+/// its first field and pads it out to `SECURITY_MAX_SID_SIZE` (68 bytes, the
+/// largest a SID can be: 8-byte header + 15 sub-authorities). The `#[repr(C)]`
+/// layout and the embedded `SID` give it the same alignment (4) as `SID`, so
+/// the first `8 + SubAuthorityCount * 4` bytes are a valid `PSID`.
+///
+/// Equality and hashing compare only the live SID bytes, never the padding.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct SID_MAX {
+    /// The official `SID` header and first sub-authority.
+    pub sid: SID,
+    /// Padding to `SECURITY_MAX_SID_SIZE`; never read or compared.
+    _pad: [u8; SECURITY_MAX_SID_SIZE as usize - size_of::<SID>()],
+}
+
+impl SID_MAX {
+    /// The live bytes of this SID (header + `SubAuthorityCount` sub-authorities),
+    /// as a slice that is a valid `PSID` when cast to a pointer.
+    ///
+    /// The count is clamped to `SID_MAX_SUB_AUTHORITIES` so a corrupted
+    /// `SubAuthorityCount` cannot make the slice outrun the fixed buffer.
+    pub fn as_bytes(&self) -> &[u8] {
+        let count = (self.sid.SubAuthorityCount as usize).min(SID_MAX_SUB_AUTHORITIES);
+        let len = SID_HEADER_BYTES + count * size_of::<u32>();
+        // SAFETY: `self` is exactly `SECURITY_MAX_SID_SIZE` bytes, and `len` is
+        // clamped to at most 68, so the slice stays strictly in bounds.
+        unsafe { slice::from_raw_parts(self as *const Self as *const u8, len) }
+    }
+
+    /// Copies the SID pointed to by `psid` into a new `SID_MAX`, zeroing the
+    /// padding. `psid` must point at a valid SID.
+    ///
+    /// # Safety
+    /// `psid` must be a valid `PSID` whose `SubAuthorityCount` is at most 15.
+    pub unsafe fn from_psid(psid: PSID) -> SID_MAX {
+        let count = unsafe { (psid.cast::<u8>()).add(1).read() } as usize;
+
+        // Guard against a malformed PSID overflowing the fixed buffer.
+        assert!(
+            count <= SID_MAX_SUB_AUTHORITIES,
+            "PSID has {} sub-authorities, exceeding the maximum {}",
+            count,
+            SID_MAX_SUB_AUTHORITIES
+        );
+
+        let len = SID_HEADER_BYTES + count * size_of::<u32>();
+
+        // Zero-initialise the whole struct (header + padding).
+        let mut ret: SID_MAX = unsafe { std::mem::zeroed() };
+
+        // Copy the whole live SID by bytes, like `memcpy`, so the header and
+        // all sub-authorities land in `ret` even though `SID` only declares one.
+        unsafe {
+            ptr::copy_nonoverlapping(
+                psid.cast::<u8>(),
+                (&mut ret.sid as *mut SID).cast::<u8>(),
+                len,
+            );
+        }
+        ret
+    }
+
+    /// The sub-authorities of this SID, as a zero-allocation slice.
+    pub fn sub_authorities(&self) -> &[u32] {
+        let count = (self.sid.SubAuthorityCount as usize).min(SID_MAX_SUB_AUTHORITIES);
+        if count == 0 {
+            return &[];
+        }
+
+        // SAFETY: `SID_MAX` is `#[repr(C)]` and embeds a `[u32; 1]`, so it is
+        // at least 4-aligned. `SubAuthority` sits at offset 8, a multiple of 4,
+        // so the pointer is properly aligned for `u32`. The sub-authorities are
+        // contiguous, immediately following `SubAuthority[0]` in the buffer.
+        let sub_ptr = ptr::addr_of!(self.sid.SubAuthority) as *const u32;
+        unsafe { slice::from_raw_parts(sub_ptr, count) }
+    }
+
+    /// The 6-byte IdentifierAuthority of this SID, as a `u64`.
+    pub fn authority(&self) -> u64 {
+        let v = self.sid.IdentifierAuthority.Value;
+        u64::from_be_bytes([0, 0, v[0], v[1], v[2], v[3], v[4], v[5]])
+    }
+
+    /// Formats this SID as a string, abbreviating the middle sub-authorities
+    /// when `abbr` is set (e.g. `S-1-5-...-18` instead of the full form).
+    pub fn format(&self, abbr: bool) -> String {
+        let revision = self.sid.Revision;
+        let authority = self.authority();
+        let subs = self.sub_authorities();
+        let count = subs.len();
+
+        let mut ret = format!("S-{}-{}", revision, authority);
+        if count == 0 {
+            return ret;
+        }
+
+        // Append with `std::fmt::Write` to avoid O(N^2) string rebuilds.
+        write!(&mut ret, "-{}", subs[0]).unwrap();
+
+        if count > 1 {
+            if abbr {
+                write!(&mut ret, "-...-{}", subs[count - 1]).unwrap();
+            } else {
+                for i in 1..count {
+                    write!(&mut ret, "-{}", subs[i]).unwrap();
+                }
+            }
+        }
+        ret
+    }
+}
+
+impl std::fmt::Display for SID_MAX {
+    /// The full, unabbreviated SID string (e.g. `S-1-5-21-...-1001`).
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.format(false))
+    }
+}
+
+impl PartialEq for SID_MAX {
+    fn eq(&self, other: &Self) -> bool {
+        self.as_bytes() == other.as_bytes()
+    }
+}
+impl Eq for SID_MAX {}
+
+impl std::fmt::Debug for SID_MAX {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // The formatted SID string is more useful than the raw byte array.
+        f.debug_struct("SID_MAX")
+            .field("sid", &self.format(false))
+            .finish()
+    }
+}
+
+impl std::hash::Hash for SID_MAX {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.as_bytes().hash(state);
+    }
+}
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -491,7 +639,7 @@ impl<'a> ProcessEntry<'a> {
         }
     }
 
-    /// The process user SID from the extension, as an 8-byte aligned copy.
+    /// The process user SID from the extension, as the raw `SID` bytes.
     ///
     /// `None` for a basic snapshot, for an entry that reports no SID, or when
     /// the offsets and sizes do not add up - the extension layout is not
@@ -519,7 +667,7 @@ impl<'a> ProcessEntry<'a> {
         Some(base)
     }
 
-    pub fn user_sid(&self) -> Option<Vec<u64>> {
+    pub fn user_sid(&self) -> Option<SID_MAX> {
         let base = self.extension_base()?;
 
         // SAFETY: `extension_base` already verified `base + prefix <= end`.
@@ -566,10 +714,10 @@ impl<'a> ProcessEntry<'a> {
 
 /// Copies the SID at byte `offset` (bounded by `end`) out of `base`.
 ///
-/// Returned as `Vec<u64>` because a SID is read back through `PSID`, whose
-/// sub-authorities are `u32`: they have to stay aligned, and a byte vector
-/// only guarantees 1.
-fn copy_sid(base: *const u8, offset: usize, end: usize) -> Option<Vec<u64>> {
+/// Returned as an owned [`SID_MAX`], which can be handed straight back to
+/// `LookupAccountSidW` as a `PSID`; the sub-authorities are read unaligned, so
+/// no alignment guarantee is needed.
+fn copy_sid(base: *const u8, offset: usize, end: usize) -> Option<SID_MAX> {
     if offset.saturating_add(SID_HEADER_BYTES) > end {
         return None;
     }
@@ -592,15 +740,23 @@ fn copy_sid(base: *const u8, offset: usize, end: usize) -> Option<Vec<u64>> {
         return None;
     }
 
-    let mut words = vec![0u64; bytes.div_ceil(size_of::<u64>())];
-    // SAFETY: `words` is `bytes` rounded up, and `offset + bytes <= end`, so
-    // the copy stays inside both allocations. `base` and `words` do not
-    // overlap.
+    let mut sid = SID_MAX {
+        sid: SID::default(),
+        _pad: [0u8; SECURITY_MAX_SID_SIZE as usize - size_of::<SID>()],
+    };
+    // SAFETY: `sid` is `SECURITY_MAX_SID_SIZE` bytes, and `offset + bytes <=
+    // end`, so the copy stays inside both allocations. `base` and `sid` do not
+    // overlap. Copying the whole live SID by bytes lands the header and all
+    // sub-authorities into `sid` even though `SID` only declares one.
     unsafe {
-        ptr::copy_nonoverlapping(base.add(offset), words.as_mut_ptr().cast::<u8>(), bytes);
+        ptr::copy_nonoverlapping(
+            base.add(offset),
+            (&mut sid.sid as *mut SID).cast::<u8>(),
+            bytes,
+        );
     }
 
-    Some(words)
+    Some(sid)
 }
 
 /// Walks the entries of a [`SystemProcessSnapshot`].
@@ -834,13 +990,13 @@ mod tests {
     #[test]
     fn full_snapshot_resolves_user_sid() {
         let sid = sid_local_system();
-        let expected = sid_as_words(&sid);
         let snap = make_snapshot(&sid, 0);
 
         let mut iter = snap.iter();
         let entry = iter.next().expect("one entry");
         assert_eq!(entry.info().UniqueProcessId as usize, 1234);
-        assert_eq!(entry.user_sid(), Some(expected));
+        let got = entry.user_sid().expect("a user SID");
+        assert_eq!(got.as_bytes(), sid);
         assert!(iter.next().is_none());
     }
 

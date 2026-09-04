@@ -282,22 +282,6 @@ pub unsafe fn get_sys_value(
     ) == 0
 }
 
-#[cfg(target_os = "windows")]
-pub fn format_sid(sid: &[u64], abbr: bool) -> String {
-    let mut ret = format!("S-{}-{}-{}", sid[0], sid[1], sid[2]);
-    if sid.len() > 3 {
-        if abbr {
-            ret = format!("{}-...-{}", ret, sid[sid.len() - 1]);
-        } else {
-            for s in sid.iter().skip(3) {
-                ret = format!("{}-{}", ret, s);
-            }
-        }
-    }
-
-    ret
-}
-
 pub fn bytify(x: u64) -> String {
     let byte = Byte::from_u64(x);
     let byte = byte.get_appropriate_unit(UnitType::Binary);

@@ -21,6 +21,9 @@ use windows_sys::Win32::System::Threading::{
 
 use super::ntapi;
 
+/// Re-export the owned SID type so callers can use `crate::process::SID_MAX`.
+pub use super::ntapi::SID_MAX;
+
 pub struct ProcessInfo {
     pub pid: i32,
     pub command: String,
@@ -29,8 +32,8 @@ pub struct ProcessInfo {
     pub cpu_info: CpuInfo,
     pub memory_info: MemoryInfo,
     pub disk_info: DiskInfo,
-    pub user: Option<SidName>,
-    pub groups: Vec<SidName>,
+    pub user: Option<SID_MAX>,
+    pub groups: Vec<SID_MAX>,
     pub priority: i32,
     pub thread: i32,
     pub interval: Duration,
@@ -82,14 +85,6 @@ pub struct CpuInfo {
     pub prev_user: u64,
     pub curr_sys: u64,
     pub curr_user: u64,
-}
-
-#[derive(Clone)]
-pub struct SidName {
-    pub sid: Vec<u64>,
-    pub name: Option<String>,
-    #[allow(dead_code)]
-    pub domainname: Option<String>,
 }
 
 pub fn collect_proc(
@@ -152,8 +147,7 @@ pub fn collect_proc(
         // opened for processes the snapshot could not name.
         let user = proc
             .user_sid
-            .as_deref()
-            .map(sid_name)
+            .clone()
             .or_else(|| handles.full.and_then(get_user));
         let groups = handles.full.and_then(get_groups);
         let priority = proc.base_priority;
@@ -266,7 +260,7 @@ struct ProcSnapshot {
     base_priority: i32,
     /// Process user SID straight from the snapshot, when it carried one.
     /// `None` means the token has to be opened to learn the user.
-    user_sid: Option<Vec<u64>>,
+    user_sid: Option<SID_MAX>,
     /// Whether this process is one of the kernel's own: System, Secure System,
     /// Registry, Memory Compression. When the full snapshot classified it this
     /// is authoritative; for a basic snapshot it falls back to the classic
@@ -489,7 +483,7 @@ fn set_privilege() -> bool {
     ret != 0
 }
 
-fn get_user(handle: HANDLE) -> Option<SidName> {
+fn get_user(handle: HANDLE) -> Option<SID_MAX> {
     let mut token: HANDLE = unsafe { zeroed() };
     let ret = unsafe { OpenProcessToken(handle, TOKEN_QUERY, &mut token) };
     if ret == 0 {
@@ -509,31 +503,10 @@ fn get_user(handle: HANDLE) -> Option<SidName> {
     let token_user = buf.as_ptr() as *const TOKEN_USER;
     let psid = unsafe { (*token_user).User.Sid };
 
-    Some(sid_name_from_psid(psid))
+    Some(unsafe { SID_MAX::from_psid(psid) })
 }
 
-/// Builds a `SidName` from a SID owned by the caller.
-///
-/// `sid` holds the raw SID bytes as copied by `ntapi`, kept in a `Vec<u64>` so
-/// the `u32` sub-authorities that `PSID` reads stay aligned.
-fn sid_name(sid: &[u64]) -> SidName {
-    sid_name_from_psid(sid.as_ptr() as PSID)
-}
-
-fn sid_name_from_psid(psid: PSID) -> SidName {
-    let (name, domainname) = match get_name_cached(psid) {
-        Some((name, domainname)) => (Some(name), Some(domainname)),
-        None => (None, None),
-    };
-
-    SidName {
-        sid: get_sid(psid),
-        name,
-        domainname,
-    }
-}
-
-fn get_groups(handle: HANDLE) -> Option<Vec<SidName>> {
+fn get_groups(handle: HANDLE) -> Option<Vec<SID_MAX>> {
     let mut token: HANDLE = unsafe { zeroed() };
     let ret = unsafe { OpenProcessToken(handle, TOKEN_QUERY, &mut token) };
     if ret == 0 {
@@ -556,7 +529,7 @@ fn get_groups(handle: HANDLE) -> Option<Vec<SidName>> {
         let sa = (*token_groups).Groups.as_ptr();
         for i in 0..(*token_groups).GroupCount {
             let psid = (*sa.offset(i as isize)).Sid;
-            ret.push(sid_name_from_psid(psid));
+            ret.push(SID_MAX::from_psid(psid));
         }
     }
 
@@ -598,30 +571,6 @@ fn get_token_information(
     if ret == 0 { None } else { Some(buf) }
 }
 
-fn get_sid(psid: PSID) -> Vec<u64> {
-    let mut ret = Vec::new();
-    let psid = psid as *const SID;
-    unsafe {
-        let mut ia = 0;
-        ia |= u64::from((*psid).IdentifierAuthority.Value[0]) << 40;
-        ia |= u64::from((*psid).IdentifierAuthority.Value[1]) << 32;
-        ia |= u64::from((*psid).IdentifierAuthority.Value[2]) << 24;
-        ia |= u64::from((*psid).IdentifierAuthority.Value[3]) << 16;
-        ia |= u64::from((*psid).IdentifierAuthority.Value[4]) << 8;
-        ia |= u64::from((*psid).IdentifierAuthority.Value[5]);
-
-        ret.push(u64::from((*psid).Revision));
-        ret.push(ia);
-        let cnt = (*psid).SubAuthorityCount;
-        let sa = (*psid).SubAuthority.as_ptr();
-        for i in 0..cnt {
-            ret.push(u64::from(*sa.offset(i as isize)));
-        }
-
-        ret
-    }
-}
-
 /// Account name and domain name, cached per SID.
 type AccountName = Option<(String, String)>;
 
@@ -629,63 +578,72 @@ type AccountName = Option<(String, String)>;
 // fresh buffer, and a freed one gets its address recycled by the next query,
 // which would hand back another account's name.
 thread_local!(
-    pub static NAME_CACHE: RefCell<HashMap<Vec<u64>, AccountName>> = RefCell::new(HashMap::new());
+    pub static NAME_CACHE: RefCell<HashMap<SID_MAX, AccountName>> = RefCell::new(HashMap::new());
 );
 
-fn get_name_cached(psid: PSID) -> Option<(String, String)> {
-    let key = get_sid(psid);
-    NAME_CACHE.with(|c| {
-        let mut c = c.borrow_mut();
-        if let Some(x) = c.get(&key) {
-            x.clone()
-        } else {
-            let x = get_name(psid);
-            c.insert(key, x.clone());
-            x
+impl SID_MAX {
+    /// Resolves the account name for this SID at display time, using the
+    /// thread-local cache. Returns `None` when the name cannot be looked up
+    /// (e.g. a protected process or a SID with no resolvable account).
+    pub fn display_name(&self) -> Option<String> {
+        NAME_CACHE
+            .with(|c| {
+                let mut c = c.borrow_mut();
+                if let Some(x) = c.get(self) {
+                    x.clone()
+                } else {
+                    // `SID_MAX` embeds the official `SID` with matching alignment,
+                    // so its address is a valid `PSID`.
+                    let x = self.get_name();
+                    c.insert(*self, x.clone());
+                    x
+                }
+            })
+            .map(|(name, _)| name)
+    }
+
+    fn get_name(&self) -> Option<(String, String)> {
+        let psid = &self.sid as *const SID as PSID;
+        let mut cc_name = 0;
+        let mut cc_domainname = 0;
+        let mut pe_use = 0;
+        unsafe {
+            let _ = LookupAccountSidW(
+                ptr::null::<u16>() as *mut u16,
+                psid,
+                ptr::null::<u16>() as *mut u16,
+                &mut cc_name,
+                ptr::null::<u16>() as *mut u16,
+                &mut cc_domainname,
+                &mut pe_use,
+            );
+
+            if cc_name == 0 || cc_domainname == 0 {
+                return None;
+            }
+
+            let mut name: Vec<u16> = Vec::with_capacity(cc_name as usize);
+            let mut domainname: Vec<u16> = Vec::with_capacity(cc_domainname as usize);
+            name.set_len(cc_name as usize);
+            domainname.set_len(cc_domainname as usize);
+            let ret = LookupAccountSidW(
+                ptr::null::<u16>() as *mut u16,
+                psid,
+                name.as_mut_ptr(),
+                &mut cc_name,
+                domainname.as_mut_ptr(),
+                &mut cc_domainname,
+                &mut pe_use,
+            );
+
+            if ret == 0 {
+                return None;
+            }
+
+            let name = from_wide_ptr(name.as_ptr());
+            let domainname = from_wide_ptr(domainname.as_ptr());
+            Some((name, domainname))
         }
-    })
-}
-
-fn get_name(psid: PSID) -> Option<(String, String)> {
-    let mut cc_name = 0;
-    let mut cc_domainname = 0;
-    let mut pe_use = 0;
-    unsafe {
-        let _ = LookupAccountSidW(
-            ptr::null::<u16>() as *mut u16,
-            psid,
-            ptr::null::<u16>() as *mut u16,
-            &mut cc_name,
-            ptr::null::<u16>() as *mut u16,
-            &mut cc_domainname,
-            &mut pe_use,
-        );
-
-        if cc_name == 0 || cc_domainname == 0 {
-            return None;
-        }
-
-        let mut name: Vec<u16> = Vec::with_capacity(cc_name as usize);
-        let mut domainname: Vec<u16> = Vec::with_capacity(cc_domainname as usize);
-        name.set_len(cc_name as usize);
-        domainname.set_len(cc_domainname as usize);
-        let ret = LookupAccountSidW(
-            ptr::null::<u16>() as *mut u16,
-            psid,
-            name.as_mut_ptr(),
-            &mut cc_name,
-            domainname.as_mut_ptr(),
-            &mut cc_domainname,
-            &mut pe_use,
-        );
-
-        if ret == 0 {
-            return None;
-        }
-
-        let name = from_wide_ptr(name.as_ptr());
-        let domainname = from_wide_ptr(domainname.as_ptr());
-        Some((name, domainname))
     }
 }
 

@@ -1,6 +1,4 @@
 use crate::process::ProcessInfo;
-#[cfg(target_os = "windows")]
-use crate::util::format_sid;
 #[cfg(not(target_os = "windows"))]
 use crate::util::USERS_CACHE;
 use crate::{column_default, Column};
@@ -74,12 +72,9 @@ impl Column for User {
 #[cfg(target_os = "windows")]
 impl Column for User {
     fn add(&mut self, proc: &ProcessInfo) {
-        let fmt_content = if let Some(user) = &proc.user {
-            if let Some(name) = &user.name {
-                name.clone()
-            } else {
-                format_sid(&user.sid, self.abbr_sid)
-            }
+        let fmt_content = if let Some(sid) = &proc.user {
+            sid.display_name()
+                .unwrap_or_else(|| sid.format(self.abbr_sid))
         } else {
             String::new()
         };

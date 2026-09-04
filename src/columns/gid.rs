@@ -1,6 +1,4 @@
 use crate::process::ProcessInfo;
-#[cfg(target_os = "windows")]
-use crate::util::format_sid;
 use crate::{column_default, Column};
 use std::cmp;
 use std::collections::HashMap;
@@ -73,17 +71,21 @@ impl Column for Gid {
             return;
         };
 
-        let mut sid = &primary.sid;
+        let mut sid = primary;
         let mut kind = u64::MAX;
         for g in &proc.groups {
-            if g.sid.len() > 3 && g.sid[1] == 5 && g.sid[2] == 32 && kind > g.sid[3] {
-                sid = &g.sid;
-                kind = g.sid[3];
+            let subs = g.sub_authorities();
+            if g.authority() == 5
+                && subs.first() == Some(&32)
+                && u64::from(subs.get(1).copied().unwrap_or(u32::MAX)) < kind
+            {
+                sid = g;
+                kind = u64::from(subs[1]);
             }
         }
 
-        let fmt_content = format_sid(sid, self.abbr_sid);
-        let raw_content = sid[sid.len() - 1] as u32;
+        let fmt_content = sid.format(self.abbr_sid);
+        let raw_content = sid.sub_authorities().last().copied().unwrap_or(0);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);

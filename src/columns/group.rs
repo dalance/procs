@@ -1,6 +1,4 @@
 use crate::process::ProcessInfo;
-#[cfg(target_os = "windows")]
-use crate::util::format_sid;
 #[cfg(not(target_os = "windows"))]
 use crate::util::USERS_CACHE;
 use crate::{column_default, Column};
@@ -87,20 +85,22 @@ impl Column for Group {
             return;
         };
 
-        let mut sid_name = primary;
+        let mut sid = primary;
         let mut kind = u64::MAX;
         for g in &proc.groups {
-            if g.sid.len() > 3 && g.sid[1] == 5 && g.sid[2] == 32 && kind > g.sid[3] {
-                sid_name = g;
-                kind = g.sid[3];
+            let subs = g.sub_authorities();
+            if g.authority() == 5
+                && subs.first() == Some(&32)
+                && u64::from(subs.get(1).copied().unwrap_or(u32::MAX)) < kind
+            {
+                sid = g;
+                kind = u64::from(subs[1]);
             }
         }
 
-        let fmt_content = if let Some(name) = &sid_name.name {
-            name.clone()
-        } else {
-            format_sid(&sid_name.sid, self.abbr_sid)
-        };
+        let fmt_content = sid
+            .display_name()
+            .unwrap_or_else(|| sid.format(self.abbr_sid));
         let raw_content = fmt_content.clone();
 
         self.fmt_contents.insert(proc.pid, fmt_content);
