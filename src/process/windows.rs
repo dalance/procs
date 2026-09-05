@@ -23,6 +23,9 @@ use super::ntapi;
 
 /// Re-export the owned SID type so callers can use `crate::process::SID_MAX`.
 pub use super::ntapi::SID_MAX;
+/// Re-export the image machine query so callers can use
+/// `crate::process::process_image_machine`.
+pub use super::ntapi::process_image_machine;
 
 pub struct ProcessInfo {
     pub pid: i32,

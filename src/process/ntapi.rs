@@ -172,6 +172,49 @@ const _: () =
     assert!(offset_of!(SYSTEM_PROCESS_INFORMATION_EXTENSION, PackageFullNameOffset) == 56);
 const _: () = assert!(size_of::<SYSTEM_PROCESS_INFORMATION_EXTENSION>() == 64);
 
+/// `SECTION_IMAGE_INFORMATION` - the output of `ProcessImageInformation` (37).
+///
+/// `Machine` is the `IMAGE_FILE_MACHINE_*` of the executable image, so it
+/// reports the architecture of the process itself: a 32-bit process on a
+/// 64-bit host still reports `IMAGE_FILE_MACHINE_I386`.
+///
+/// The header declares `SubSystemVersion` and `OperatingSystemVersion` as
+/// unions of two `USHORT`s and `ImageFlags` as a union of bit fields; they are
+/// spelled out as their members here, which leaves the layout untouched.
+#[repr(C)]
+#[allow(non_snake_case)]
+#[allow(dead_code)]
+pub struct SECTION_IMAGE_INFORMATION {
+    pub TransferAddress: *mut c_void,
+    pub ZeroBits: u32,
+    /// `SIZE_T` in the header, which is why the next field is padded to an
+    /// 8-byte boundary and the structure ends up 64 bytes wide.
+    pub MaximumStackSize: usize,
+    pub CommittedStackSize: usize,
+    pub SubSystemType: u32,
+    pub SubSystemMinorVersion: u16,
+    pub SubSystemMajorVersion: u16,
+    pub MajorOperatingSystemVersion: u16,
+    pub MinorOperatingSystemVersion: u16,
+    pub ImageCharacteristics: u16,
+    pub DllCharacteristics: u16,
+    pub Machine: u16,
+    pub ImageContainsCode: u8,
+    pub ImageFlags: u8,
+    pub LoaderFlags: u32,
+    pub ImageFileSize: u32,
+    pub CheckSum: u32,
+}
+
+#[cfg(target_pointer_width = "64")]
+const _: () = assert!(size_of::<SECTION_IMAGE_INFORMATION>() == 64);
+#[cfg(target_pointer_width = "64")]
+const _: () = assert!(offset_of!(SECTION_IMAGE_INFORMATION, Machine) == 48);
+#[cfg(target_pointer_width = "32")]
+const _: () = assert!(size_of::<SECTION_IMAGE_INFORMATION>() == 48);
+#[cfg(target_pointer_width = "32")]
+const _: () = assert!(offset_of!(SECTION_IMAGE_INFORMATION, Machine) == 32);
+
 /// Fixed part of a `SID`: revision, sub-authority count and the 6-byte
 /// identifier authority. `windows-sys` types the trailing sub-authorities as
 /// `[u32; 1]`, so `size_of::<SID>()` is 4 bytes more than this.
@@ -337,6 +380,8 @@ pub const SYSTEM_PROCESS_INFORMATION_CLASS: u32 = 5;
 pub const SYSTEM_FULL_PROCESS_INFORMATION_CLASS: u32 = 148;
 /// ProcessInformationClass. Windows 8.1 and newer
 pub const PROCESS_COMMAND_LINE_INFORMATION_CLASS: u32 = 60;
+/// ProcessInformationClass. Vista and newer
+pub const PROCESS_IMAGE_INFORMATION_CLASS: u32 = 37;
 /// NTSTATUS
 pub const STATUS_SUCCESS: i32 = 0;
 pub const STATUS_INFO_LENGTH_MISMATCH: i32 = 0xC000_0004u32 as i32;
@@ -896,6 +941,39 @@ pub fn process_command_line(handle: HANDLE) -> Option<String> {
     )
 }
 
+/// Reads the `IMAGE_FILE_MACHINE_*` of the executable image of `handle`.
+///
+/// `ProcessImageInformation` only needs `PROCESS_QUERY_LIMITED_INFORMATION`,
+/// so it also answers for protected processes that refuse the full query
+/// rights. Anything older than Vista yields `None`.
+pub fn process_image_machine(handle: HANDLE) -> Option<u16> {
+    let query = nt_query_information_process()?;
+
+    // SAFETY: a zeroed `SECTION_IMAGE_INFORMATION` is a valid output buffer -
+    // every field is an integer or a pointer, and only `Machine` is read.
+    let mut info: SECTION_IMAGE_INFORMATION = unsafe { std::mem::zeroed() };
+    let mut ret_len: u32 = 0;
+
+    let status = unsafe {
+        query(
+            handle,
+            PROCESS_IMAGE_INFORMATION_CLASS,
+            ptr::addr_of_mut!(info).cast::<c_void>(),
+            size_of::<SECTION_IMAGE_INFORMATION>() as u32,
+            ptr::addr_of_mut!(ret_len),
+        )
+    };
+    if status != STATUS_SUCCESS {
+        return None;
+    }
+    // Short writes leave `Machine` unset.
+    if (ret_len as usize) < offset_of!(SECTION_IMAGE_INFORMATION, Machine) + size_of::<u16>() {
+        return None;
+    }
+
+    Some(info.Machine)
+}
+
 /// Copies the characters of `string` out of `buffer`, which must still be
 /// alive (the `Buffer` pointer of an `ImageName` points inside it).
 pub fn unicode_string_to_owned(string: &UNICODE_STRING) -> String {
@@ -1084,5 +1162,25 @@ mod tests {
             kind: SnapshotKind::Basic,
         };
         assert_eq!(snap.iter().next().unwrap().classification(), None);
+    }
+
+    /// `IMAGE_FILE_MACHINE_*` of the architecture this test was built for.
+    #[cfg(target_arch = "x86_64")]
+    const OWN_MACHINE: u16 = 0x8664;
+    #[cfg(target_arch = "x86")]
+    const OWN_MACHINE: u16 = 0x014c;
+    #[cfg(target_arch = "aarch64")]
+    const OWN_MACHINE: u16 = 0xaa64;
+
+    /// Queries a real process, so it also pins down the buffer size the
+    /// kernel insists on: a wrong `SECTION_IMAGE_INFORMATION` layout answers
+    /// `STATUS_INFO_LENGTH_MISMATCH` and the query returns `None`.
+    #[test]
+    fn image_machine_of_this_process() {
+        use windows_sys::Win32::System::Threading::GetCurrentProcess;
+
+        // SAFETY: the pseudo-handle needs no closing.
+        let handle = unsafe { GetCurrentProcess() };
+        assert_eq!(process_image_machine(handle), Some(OWN_MACHINE));
     }
 }

@@ -1,3 +1,4 @@
+pub mod arch;
 pub mod command;
 pub mod cpu_time;
 pub mod elapsed_time;
@@ -29,6 +30,7 @@ pub mod vm_size;
 pub mod vm_swap;
 pub mod write_bytes;
 
+pub use self::arch::Arch;
 pub use self::command::Command;
 pub use self::cpu_time::CpuTime;
 pub use self::elapsed_time::ElapsedTime;
@@ -72,6 +74,7 @@ use std::path::PathBuf;
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum ConfigColumnKind {
+    Arch,
     Command,
     CpuTime,
     ElapsedTime,
@@ -118,6 +121,7 @@ pub fn gen_column(
     _procfs: Option<PathBuf>,
 ) -> Box<dyn Column> {
     match kind {
+        ConfigColumnKind::Arch => Box::new(Arch::new(header)),
         ConfigColumnKind::Command => Box::new(Command::new(header)),
         ConfigColumnKind::CpuTime => Box::new(CpuTime::new(header)),
         ConfigColumnKind::ElapsedTime => Box::new(ElapsedTime::new(header)),
@@ -158,6 +162,10 @@ pub fn gen_column(
 pub static KIND_LIST: Lazy<BTreeMap<ConfigColumnKind, (&'static str, &'static str)>> =
     Lazy::new(|| {
         [
+            (
+                ConfigColumnKind::Arch,
+                ("Arch", "Architecture of the process image"),
+            ),
             (
                 ConfigColumnKind::Command,
                 ("Command", "Command with all arguments"),
