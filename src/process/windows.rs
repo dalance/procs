@@ -145,10 +145,7 @@ pub fn collect_proc(
 
         // The snapshot SID saves an `OpenProcessToken`; the token is only
         // opened for processes the snapshot could not name.
-        let user = proc
-            .user_sid
-            .clone()
-            .or_else(|| handles.full.and_then(get_user));
+        let user = proc.user_sid.or_else(|| handles.full.and_then(get_user));
         let groups = handles.full.and_then(get_groups);
         let priority = proc.base_priority;
 
@@ -205,11 +202,7 @@ pub fn collect_proc(
 
             let (command, user, groups) = {
                 let parent = &ret[owner];
-                (
-                    parent.command.clone(),
-                    parent.user.clone(),
-                    parent.groups.clone(),
-                )
+                (parent.command.clone(), parent.user, parent.groups.clone())
             };
 
             ret.push(ProcessInfo {

@@ -287,8 +287,8 @@ impl SID_MAX {
             if abbr {
                 write!(&mut ret, "-...-{}", subs[count - 1]).unwrap();
             } else {
-                for i in 1..count {
-                    write!(&mut ret, "-{}", subs[i]).unwrap();
+                for sub in &subs[1..] {
+                    write!(&mut ret, "-{sub}").unwrap();
                 }
             }
         }
@@ -807,9 +807,7 @@ impl<'a> Iterator for ProcessIter<'a> {
         // Alignment is deliberately not required: a full snapshot pads entries
         // to 2 bytes, so demanding 8 would silently truncate the process list.
         let next = info.NextEntryOffset as usize;
-        let end = if next == 0 {
-            limit
-        } else if next < header {
+        let end = if next == 0 || next < header {
             limit
         } else {
             offset.saturating_add(next).min(limit)

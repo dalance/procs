@@ -62,8 +62,10 @@ fn get_mem_total() -> u64 {
 
 #[cfg(target_os = "windows")]
 fn get_mem_total() -> u64 {
-    let mut info: MEMORYSTATUSEX = Default::default();
-    info.dwLength = std::mem::size_of::<MEMORYSTATUSEX>() as u32;
+    let mut info = MEMORYSTATUSEX {
+        dwLength: std::mem::size_of::<MEMORYSTATUSEX>() as u32,
+        ..Default::default()
+    };
     let ret = unsafe { GlobalMemoryStatusEx(&mut info) };
 
     if ret != 0 {
