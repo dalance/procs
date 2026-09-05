@@ -466,7 +466,7 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | Priority             | pri                   | Priority                                      | o     | o     | o       | o       |
 | Processor            | psr                   | Currently assigned processor                  | o     |       |         | o       |
 | ReadBytes            | -not supported-       | Read bytes from storage                       | o     | o     | o       | o       |
-| RtPriority           | rtprio                | Real-time priority                            | o     |       |         |         |
+| RtPriority           | rtprio                | Kernel base priority (Windows) / real-time priority (Linux) | o     |       | o       |         |
 | SecContext           | label                 | Security context                              | o     |       |         |         |
 | Separator            | -not supported-       | Show `\|` for column separation               | o     | o     | o       | o       |
 | Session              | sid                   | Session ID                                    | o     | o     |         | o       |

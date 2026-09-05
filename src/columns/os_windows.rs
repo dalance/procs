@@ -10,6 +10,7 @@ pub mod multi_slot;
 pub mod pid;
 pub mod ppid;
 pub mod priority;
+pub mod rt_priority;
 pub mod read_bytes;
 pub mod separator;
 pub mod slot;
@@ -42,6 +43,7 @@ pub use self::multi_slot::MultiSlot;
 pub use self::pid::Pid;
 pub use self::ppid::Ppid;
 pub use self::priority::Priority;
+pub use self::rt_priority::RtPriority;
 pub use self::read_bytes::ReadBytes;
 pub use self::separator::Separator;
 pub use self::slot::Slot;
@@ -87,6 +89,7 @@ pub enum ConfigColumnKind {
     Ppid,
     Priority,
     ReadBytes,
+    RtPriority,
     Separator,
     Slot,
     StartTime,
@@ -134,6 +137,7 @@ pub fn gen_column(
         ConfigColumnKind::Ppid => Box::new(Ppid::new(header)),
         ConfigColumnKind::Priority => Box::new(Priority::new(header)),
         ConfigColumnKind::ReadBytes => Box::new(ReadBytes::new(header)),
+        ConfigColumnKind::RtPriority => Box::new(RtPriority::new(header)),
         ConfigColumnKind::Separator => Box::new(Separator::new(separator)),
         ConfigColumnKind::Slot => Box::new(Slot::new()),
         ConfigColumnKind::StartTime => Box::new(StartTime::new(header)),
@@ -195,6 +199,10 @@ pub static KIND_LIST: Lazy<BTreeMap<ConfigColumnKind, (&'static str, &'static st
             (
                 ConfigColumnKind::ReadBytes,
                 ("ReadBytes", "Read bytes from storage"),
+            ),
+            (
+                ConfigColumnKind::RtPriority,
+                ("RtPriority", "Kernel base priority (0-31)"),
             ),
             (
                 ConfigColumnKind::Separator,
@@ -490,5 +498,8 @@ kind = "VmSwap"
 style = "ByUnit"
 [[columns]]
 kind = "WriteBytes"
+style = "White"
+[[columns]]
+kind = "RtPriority"
 style = "White"
 "#;
