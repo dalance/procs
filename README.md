@@ -445,7 +445,7 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | ElapsedTime          | -not supported-       | Elapsed time                                  | o     | o     | o       | o       |
 | Env                  | `e` output modifier   | Environment variables                         | o     |       |         | o       |
 | Esp                  | esp                   | Stack pointer                                 | o     |       |         |         |
-| FileName             | comm                  | File name                                     | o     |       |         | o       |
+| FileName             | comm                  | File name                                     | o     |       | o       | o       |
 | Gid                  | egid                  | Group ID                                      | o     | o     | o       | o       |
 | GidFs                | fgid                  | File system group ID                          | o     |       |         |         |
 | GidReal              | rgid                  | Real group ID                                 | o     | o     |         | o       |
@@ -469,7 +469,7 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | RtPriority           | rtprio                | Kernel base priority (Windows) / real-time priority (Linux) | o     |       | o       |         |
 | SecContext           | label                 | Security context                              | o     |       |         |         |
 | Separator            | -not supported-       | Show `\|` for column separation               | o     | o     | o       | o       |
-| Session              | sid                   | Session ID                                    | o     | o     |         | o       |
+| Session              | sid                   | Session ID                                    | o     | o     | o       | o       |
 | ShdPnd               | pending               | Pending signal mask for process               | o     |       |         | o       |
 | SigBlk               | blocked               | Blocked signal mask                           | o     |       |         | o       |
 | SigCgt               | caught                | Caught signal mask                            | o     |       |         | o       |
@@ -479,8 +479,8 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | Ssb                  | -not supported-       | Speculative store bypass status               | o     |       |         |         |
 | StartTime            | start_time            | Starting time                                 | o     | o     | o       | o       |
 | State                | s                     | Process state                                 | o     | o     |         | o       |
-| TcpPort              | -not supported-       | Bound TCP ports                               | o     | o     |         |         |
-| Threads              | nlwp                  | Thread count                                  | o     | o     |         | o       |
+| TcpPort              | -not supported-       | Bound TCP ports                               | o     | o     | o       |         |
+| Threads              | nlwp                  | Thread count                                  | o     | o     | o       | o       |
 | TreeSlot             | -not supported-       | Slot for tree column                          | o     | o     | o       | o       |
 | Tty                  | tty                   | Controlling TTY                               | o     | o     |         | o       |
 | UdpPort              | -not supported-       | Bound UDP ports                               | o     | o     |         |         |

@@ -3,6 +3,7 @@ pub mod command;
 pub mod cpu_time;
 pub mod elapsed_time;
 pub mod empty;
+pub mod file_name;
 pub mod gid;
 pub mod group;
 pub mod maj_flt;
@@ -13,6 +14,7 @@ pub mod priority;
 pub mod rt_priority;
 pub mod read_bytes;
 pub mod separator;
+pub mod session;
 pub mod slot;
 pub mod start_time;
 pub mod tcp_port;
@@ -36,6 +38,7 @@ pub use self::command::Command;
 pub use self::cpu_time::CpuTime;
 pub use self::elapsed_time::ElapsedTime;
 pub use self::empty::Empty;
+pub use self::file_name::FileName;
 pub use self::gid::Gid;
 pub use self::group::Group;
 pub use self::maj_flt::MajFlt;
@@ -46,6 +49,7 @@ pub use self::priority::Priority;
 pub use self::rt_priority::RtPriority;
 pub use self::read_bytes::ReadBytes;
 pub use self::separator::Separator;
+pub use self::session::Session;
 pub use self::slot::Slot;
 pub use self::start_time::StartTime;
 pub use self::tcp_port::TcpPort;
@@ -81,6 +85,7 @@ pub enum ConfigColumnKind {
     CpuTime,
     ElapsedTime,
     Empty,
+    FileName,
     Gid,
     Group,
     MajFlt,
@@ -91,6 +96,7 @@ pub enum ConfigColumnKind {
     ReadBytes,
     RtPriority,
     Separator,
+    Session,
     Slot,
     StartTime,
     TcpPort,
@@ -129,6 +135,7 @@ pub fn gen_column(
         ConfigColumnKind::CpuTime => Box::new(CpuTime::new(header)),
         ConfigColumnKind::ElapsedTime => Box::new(ElapsedTime::new(header)),
         ConfigColumnKind::Empty => Box::new(Empty::new()),
+        ConfigColumnKind::FileName => Box::new(FileName::new(header)),
         ConfigColumnKind::Gid => Box::new(Gid::new(header, abbr_sid)),
         ConfigColumnKind::Group => Box::new(Group::new(header, abbr_sid)),
         ConfigColumnKind::MajFlt => Box::new(MajFlt::new(header)),
@@ -139,6 +146,7 @@ pub fn gen_column(
         ConfigColumnKind::ReadBytes => Box::new(ReadBytes::new(header)),
         ConfigColumnKind::RtPriority => Box::new(RtPriority::new(header)),
         ConfigColumnKind::Separator => Box::new(Separator::new(separator)),
+        ConfigColumnKind::Session => Box::new(Session::new(header)),
         ConfigColumnKind::Slot => Box::new(Slot::new()),
         ConfigColumnKind::StartTime => Box::new(StartTime::new(header)),
         ConfigColumnKind::TcpPort => Box::new(TcpPort::new(header)),
@@ -183,6 +191,10 @@ pub static KIND_LIST: Lazy<BTreeMap<ConfigColumnKind, (&'static str, &'static st
                 ("ElapsedTime", "Elapsed time"),
             ),
             (ConfigColumnKind::Empty, ("Empty", "Empty")),
+            (
+                ConfigColumnKind::FileName,
+                ("FileName", "File name of the process image"),
+            ),
             (ConfigColumnKind::Gid, ("Gid", "Group ID")),
             (ConfigColumnKind::Group, ("Group", "Group name")),
             (
@@ -207,6 +219,10 @@ pub static KIND_LIST: Lazy<BTreeMap<ConfigColumnKind, (&'static str, &'static st
             (
                 ConfigColumnKind::Separator,
                 ("Separator", "Show | for column separation"),
+            ),
+            (
+                ConfigColumnKind::Session,
+                ("Session", "Session ID"),
             ),
             (
                 ConfigColumnKind::Slot,
@@ -428,6 +444,9 @@ style = "BrightYellow"
 kind = "Empty"
 style = "BrightYellow"
 [[columns]]
+kind = "FileName"
+style = "White"
+[[columns]]
 kind = "Gid"
 style = "White"
 [[columns]]
@@ -453,6 +472,9 @@ kind = "ReadBytes"
 style = "Cyan"
 [[columns]]
 kind = "Separator"
+style = "White"
+[[columns]]
+kind = "Session"
 style = "White"
 [[columns]]
 kind = "StartTime"

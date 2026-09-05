@@ -29,7 +29,12 @@ pub use super::ntapi::process_image_machine;
 
 pub struct ProcessInfo {
     pub pid: i32,
-    pub command: String,
+    /// Command line of the process, or `None` when the process exposes none
+    /// (e.g. System, Idle). Falls back to `file_name` at display time.
+    pub command: Option<String>,
+    /// Image (executable) name, used as the Command fallback and by the
+    /// FileName column.
+    pub file_name: String,
     pub ppid: i32,
     pub start_time: chrono::DateTime<chrono::Local>,
     pub cpu_info: CpuInfo,
@@ -39,6 +44,7 @@ pub struct ProcessInfo {
     pub groups: Vec<SID_MAX>,
     pub priority: i32,
     pub thread: i32,
+    pub session: i32,
     pub interval: Duration,
 }
 
@@ -143,8 +149,12 @@ pub fn collect_proc(
         let command = handles
             .any()
             .and_then(ntapi::process_command_line)
-            .filter(|command| !command.is_empty())
-            .unwrap_or_else(|| image_fallback(&proc));
+            .filter(|command| !command.is_empty());
+
+        // `command` holds only the command line (when one is exposed); `file_name`
+        // is the image name and acts as the Command fallback for processes that
+        // have no command line (e.g. System, Idle).
+        let file_name = image_fallback(&proc);
 
         // The snapshot SID saves an `OpenProcessToken`; the token is only
         // opened for processes the snapshot could not name.
@@ -155,6 +165,7 @@ pub fn collect_proc(
         ret.push(ProcessInfo {
             pid: proc.pid,
             command,
+            file_name,
             ppid: proc.ppid,
             start_time: filetime_to_local(proc.create_time),
             cpu_info: CpuInfo {
@@ -174,6 +185,7 @@ pub fn collect_proc(
             groups: groups.unwrap_or_default(),
             priority,
             thread: proc.thread_count,
+            session: proc.session_id as i32,
             interval,
         });
     }
@@ -203,14 +215,21 @@ pub fn collect_proc(
                 None => (thread.kernel_time, thread.user_time),
             };
 
-            let (command, user, groups) = {
+            let (command, file_name, user, groups, session) = {
                 let parent = &ret[owner];
-                (parent.command.clone(), parent.user, parent.groups.clone())
+                (
+                    parent.command.clone(),
+                    parent.file_name.clone(),
+                    parent.user,
+                    parent.groups.clone(),
+                    parent.session,
+                )
             };
 
             ret.push(ProcessInfo {
                 pid: thread.tid,
                 command,
+                file_name,
                 ppid: thread.pid,
                 start_time: filetime_to_local(thread.create_time),
                 cpu_info: CpuInfo {
@@ -230,6 +249,7 @@ pub fn collect_proc(
                 groups,
                 priority: thread.priority,
                 thread: 1,
+                session,
                 interval,
             });
         }
@@ -247,6 +267,7 @@ struct ProcSnapshot {
     ppid: i32,
     thread_count: i32,
     image_name: String,
+    session_id: u32,
     create_time: i64,
     kernel_time: u64,
     user_time: u64,
@@ -311,6 +332,7 @@ fn take_snapshot(with_thread: bool) -> SystemSnapshot {
             ppid,
             thread_count: info.NumberOfThreads as i32,
             image_name,
+            session_id: info.SessionId,
             create_time: info.CreateTime,
             kernel_time: info.KernelTime as u64,
             user_time: info.UserTime as u64,
