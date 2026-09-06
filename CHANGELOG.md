@@ -2,8 +2,19 @@
 
 ## [Unreleased](https://github.com/dalance/procs/compare/v0.14.12...Unreleased) - ReleaseDate
 
-* [Fixed] Fix invalid JSON output when a column is skipped by --only or --tree
+* [Added] Arch column for Windows (process image architecture)
+* [Added] Real Command column for Windows (command line arguments). This column was printing pure file name, which is now moved to FileName column.
+* [Added] Priority column for Windows (user-mode priority class)
+* [Added] RtPriority column for Windows (kernel base priority)
+* [Added] Threads column for Windows (thread count)
+* [Added] Session column for Windows (session ID)
+* [Added] State column for Windows (scheduler state derived from thread states)
+* [Added] Env column for Windows (environment variables)
+* [Added] RecvBytes and SendBytes columns for Windows (network I/O rate; needs Windows 11 or later)
+* [Added] WorkDir column for Windows (current working directory)
+* [Added] `--thread` support for Windows
 * [Fixed] ReadBytes / WriteBytes divided by a mis-scaled interval (seconds added to milliseconds)
+* [Fixed] Fix invalid JSON output when a column is skipped by --only or --tree
 
 ## [v0.14.12](https://github.com/dalance/procs/compare/v0.14.11...v0.14.12) - 2026-06-25
 
