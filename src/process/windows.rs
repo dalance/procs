@@ -26,9 +26,18 @@ pub use super::ntapi::SID_MAX;
 /// Re-export the decoded thread record so callers can use
 /// `crate::process::ThreadSnapshot`.
 pub use super::ntapi::ThreadSnapshot;
+/// Re-export the scheduler state so callers can use
+/// `crate::process::ThreadState`.
+pub use super::ntapi::ThreadState;
 /// Re-export the image machine query so callers can use
 /// `crate::process::process_image_machine`.
 pub use super::ntapi::process_image_machine;
+/// Re-export the `KTHREAD_STATE` constants so the State column can map
+/// them to letters.
+pub use super::ntapi::thread_state;
+/// Re-export the `KWAIT_REASON` constants so the State column can map
+/// them to letters.
+pub use super::ntapi::wait_reason;
 
 pub struct ProcessInfo {
     pub pid: i32,
@@ -48,6 +57,12 @@ pub struct ProcessInfo {
     pub priority: i32,
     pub thread: i32,
     pub session: i32,
+    /// Scheduler state of the most active thread behind this row.
+    ///
+    /// Windows publishes no state for a process as a whole, only for each of
+    /// its threads, so the State column derives the row's state from the most
+    /// active one. For a `--thread` row it is that one thread's state.
+    pub state: Option<ThreadState>,
     pub interval: Duration,
 }
 
@@ -189,6 +204,7 @@ pub fn collect_proc(
             priority,
             thread: proc.thread_count,
             session: proc.session_id as i32,
+            state: proc.state,
             interval,
         });
     }
@@ -253,6 +269,7 @@ pub fn collect_proc(
                 priority: thread.priority,
                 thread: 1,
                 session,
+                state: Some(thread.state),
                 interval,
             });
         }
@@ -278,6 +295,8 @@ struct ProcSnapshot {
     write: u64,
     memory_info: MemoryInfo,
     base_priority: i32,
+    /// Scheduler state of the most active thread.
+    state: Option<ThreadState>,
     /// Process user SID straight from the snapshot, when it carried one.
     /// `None` means the token has to be opened to learn the user.
     user_sid: Option<SID_MAX>,
@@ -350,6 +369,7 @@ fn take_snapshot(with_thread: bool) -> SystemSnapshot {
                 private_usage: info.PrivatePageCount as u64,
             },
             base_priority: info.BasePriority,
+            state: entry.state(),
             user_sid: entry.user_sid(),
             is_kthread,
         });

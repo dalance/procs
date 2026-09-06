@@ -478,7 +478,7 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | Slot                 | -not supported-       | Slot for `--insert` option                    | o     | o     | o       | o       |
 | Ssb                  | -not supported-       | Speculative store bypass status               | o     |       |         |         |
 | StartTime            | start_time            | Starting time                                 | o     | o     | o       | o       |
-| State                | s                     | Process state                                 | o     | o     |         | o       |
+| State                | s                     | Process state                                 | o     | o     | o       | o       |
 | TcpPort              | -not supported-       | Bound TCP ports                               | o     | o     | o       |         |
 | Threads              | nlwp                  | Thread count                                  | o     | o     | o       | o       |
 | TreeSlot             | -not supported-       | Slot for tree column                          | o     | o     | o       | o       |

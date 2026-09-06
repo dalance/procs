@@ -17,6 +17,7 @@ pub mod separator;
 pub mod session;
 pub mod slot;
 pub mod start_time;
+pub mod state;
 pub mod tcp_port;
 pub mod threads;
 pub mod tree;
@@ -52,6 +53,7 @@ pub use self::separator::Separator;
 pub use self::session::Session;
 pub use self::slot::Slot;
 pub use self::start_time::StartTime;
+pub use self::state::State;
 pub use self::tcp_port::TcpPort;
 pub use self::threads::Threads;
 pub use self::tree::Tree;
@@ -99,6 +101,7 @@ pub enum ConfigColumnKind {
     Session,
     Slot,
     StartTime,
+    State,
     TcpPort,
     Threads,
     Tree,
@@ -149,6 +152,7 @@ pub fn gen_column(
         ConfigColumnKind::Session => Box::new(Session::new(header)),
         ConfigColumnKind::Slot => Box::new(Slot::new()),
         ConfigColumnKind::StartTime => Box::new(StartTime::new(header)),
+        ConfigColumnKind::State => Box::new(State::new(header)),
         ConfigColumnKind::TcpPort => Box::new(TcpPort::new(header)),
         ConfigColumnKind::Threads => Box::new(Threads::new(header)),
         ConfigColumnKind::Tree => Box::new(Tree::new(tree_symbols)),
@@ -229,6 +233,7 @@ pub static KIND_LIST: Lazy<BTreeMap<ConfigColumnKind, (&'static str, &'static st
                 ("Slot", "Slot for `--insert` option"),
             ),
             (ConfigColumnKind::StartTime, ("StartTime", "Starting time")),
+            (ConfigColumnKind::State, ("State", "Process state")),
             (ConfigColumnKind::TcpPort, ("TcpPort", "Bound TCP ports")),
             (ConfigColumnKind::Threads, ("Threads", "Thread count")),
             (

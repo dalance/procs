@@ -574,6 +574,78 @@ fn query_system_info_class(class: u32) -> Option<Vec<u64>> {
     None
 }
 
+/// The scheduler state of one thread, as `SYSTEM_THREAD_INFORMATION` reports
+/// it.
+///
+/// Both values are kept raw. `WaitReason` is a leftover from the last wait once
+/// a thread is no longer waiting, so it only means anything while `State` is
+/// `Waiting`; turning the pair into a display letter is the State column's job.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct ThreadState {
+    /// `KTHREAD_STATE`.
+    pub state: u32,
+    /// `KWAIT_REASON`.
+    pub wait_reason: u32,
+}
+
+/// `KTHREAD_STATE`, as reported by `SYSTEM_THREAD_INFORMATION::State`.
+///
+/// <https://ntdoc.m417z.com/kthread_state>
+pub mod thread_state {
+    pub const INITIALIZED: u32 = 0;
+    pub const READY: u32 = 1;
+    pub const RUNNING: u32 = 2;
+    pub const STANDBY: u32 = 3;
+    pub const TERMINATED: u32 = 4;
+    pub const WAITING: u32 = 5;
+    pub const TRANSITION: u32 = 6;
+    pub const DEFERRED_READY: u32 = 7;
+    /// No longer produced by the kernel; kept so the table stays complete.
+    pub const GATE_WAIT: u32 = 8;
+    pub const WAITING_FOR_PROCESS_IN_SWAP: u32 = 9;
+}
+
+/// The `KWAIT_REASON` values that mark a thread stopped rather than waiting
+/// for something.
+///
+/// <https://ntdoc.m417z.com/kwait_reason>
+pub mod wait_reason {
+    /// Set by `NtSuspendThread`.
+    pub const SUSPENDED: u32 = 5;
+    pub const WR_SUSPENDED: u32 = 12;
+}
+
+/// The state pair of one raw thread record.
+fn decode_state(thread: &SYSTEM_THREAD_INFORMATION) -> ThreadState {
+    ThreadState {
+        state: thread.State,
+        wait_reason: thread.WaitReason,
+    }
+}
+
+/// How active a thread is; lower wins.
+///
+/// The order mirrors the State column's letters: runnable beats waiting,
+/// waiting beats suspended, suspended beats terminated, and anything the
+/// kernel has not been seen to produce is least active. `WaitReason` only
+/// matters while the thread is `WAITING` - it is a leftover from the last
+/// wait otherwise.
+fn activity(state: ThreadState) -> u8 {
+    use thread_state::*;
+
+    match state.state {
+        // Runnable, or on its way there: `TRANSITION` only means the kernel
+        // stack is still being brought in.
+        INITIALIZED | READY | RUNNING | STANDBY | TRANSITION | DEFERRED_READY => 0,
+        WAITING | GATE_WAIT | WAITING_FOR_PROCESS_IN_SWAP => match state.wait_reason {
+            wait_reason::SUSPENDED | wait_reason::WR_SUSPENDED => 2,
+            _ => 1,
+        },
+        TERMINATED => 3,
+        _ => 4,
+    }
+}
+
 /// One thread of a process, decoded from a `SYSTEM_THREAD_INFORMATION`.
 ///
 /// The raw handles are narrowed to ids and the times are converted, so this is
@@ -588,6 +660,8 @@ pub struct ThreadSnapshot {
     pub kernel_time: u64,
     pub user_time: u64,
     pub priority: i32,
+    /// Raw scheduler state at the moment of the snapshot.
+    pub state: ThreadState,
 }
 
 /// One entry of a snapshot: the process header plus everything that depends on
@@ -644,21 +718,8 @@ impl<'a> ProcessEntry<'a> {
     /// that would reach past the entry are clipped, so nothing is read outside
     /// the entry it belongs to.
     pub fn threads(&self) -> Vec<ThreadSnapshot> {
-        let stride = self.kind.thread_stride();
-        let first = self
-            .start
-            .saturating_add(size_of::<SYSTEM_PROCESS_INFORMATION>());
-
-        let available = self.end.saturating_sub(first);
-        let wanted = (self.info.NumberOfThreads as usize).saturating_mul(stride);
-        let len = wanted.min(available) / stride;
-
+        let (base, stride, len) = self.threads_span();
         let mut ret = Vec::with_capacity(len);
-        // `info` borrows the entry that starts at `start`, so this is
-        // `start + 256`: inside the buffer, and 8-byte aligned like every
-        // entry. Each stride is a multiple of 8, so every record is aligned
-        // too, and `len` was clamped so the last one stays inside the entry.
-        let base = self.info.Threads.as_ptr().cast::<u8>();
         let pid = self.info.UniqueProcessId as usize as i32;
 
         for index in 0..len {
@@ -677,10 +738,67 @@ impl<'a> ProcessEntry<'a> {
                 kernel_time: thread.KernelTime as u64,
                 user_time: thread.UserTime as u64,
                 priority: thread.Priority,
+                state: decode_state(thread),
             });
         }
 
         ret
+    }
+
+    /// The `Threads[]` flexible array as a raw span: the first record, the
+    /// distance between two records, and how many of them may be read.
+    ///
+    /// `NumberOfThreads` is the count the kernel stored, but only the records
+    /// that fit between the process header and the end of this entry can be
+    /// read, so the two are reconciled here and every caller gets the clamped
+    /// count.
+    fn threads_span(&self) -> (*const u8, usize, usize) {
+        let stride = self.kind.thread_stride();
+        let first = self
+            .start
+            .saturating_add(size_of::<SYSTEM_PROCESS_INFORMATION>());
+
+        let available = self.end.saturating_sub(first);
+        let wanted = (self.info.NumberOfThreads as usize).saturating_mul(stride);
+        let len = wanted.min(available) / stride;
+
+        // `info` borrows the entry that starts at `start`, so this is
+        // `start + 256`: inside the buffer, and 8-byte aligned like every
+        // entry. Each stride is a multiple of 8, so every record is aligned
+        // too, and `len` was clamped so the last one stays inside the entry.
+        (self.info.Threads.as_ptr().cast::<u8>(), stride, len)
+    }
+
+    /// The scheduler state of the most active thread of this entry.
+    ///
+    /// `SYSTEM_PROCESS_INFORMATION` carries no state for the process itself, so
+    /// the per-thread states are the only thing a process state can be derived
+    /// from. The most active thread wins, in the same order the State column
+    /// prints its letters; the letter mapping itself stays in the column.
+    /// `None` when no thread record could be read; the caller separates a
+    /// terminated process from an unreadable one with `NumberOfThreads`.
+    pub fn state(&self) -> Option<ThreadState> {
+        let (base, stride, len) = self.threads_span();
+        let mut best: Option<ThreadState> = None;
+        let mut best_rank = u8::MAX;
+
+        for index in 0..len {
+            // SAFETY: `base + index * stride` is inside the entry (`index <
+            // len`) and 8-byte aligned, so a `&SYSTEM_THREAD_INFORMATION`
+            // over it is valid. Both record types start with that structure
+            // (see the `ThreadInfo` offset assertion), which is why the stride
+            // is the only thing that differs between the two classes.
+            let thread: &SYSTEM_THREAD_INFORMATION =
+                unsafe { &*base.add(index * stride).cast::<SYSTEM_THREAD_INFORMATION>() };
+            let state = decode_state(thread);
+            let rank = activity(state);
+            if rank < best_rank {
+                best_rank = rank;
+                best = Some(state);
+            }
+        }
+
+        best
     }
 
     /// The process user SID from the extension, as the raw `SID` bytes.
@@ -1279,6 +1397,117 @@ mod tests {
         let got = entry.threads();
         assert_eq!(got.len(), 2);
         assert_eq!(got[1].tid, 12);
+    }
+
+    /// A thread record sitting in a given `KTHREAD_STATE` / `KWAIT_REASON`.
+    fn thread_record_in(
+        tid: usize,
+        pid: usize,
+        state: u32,
+        wait_reason: u32,
+    ) -> SYSTEM_THREAD_INFORMATION {
+        let mut thread = thread_record(tid, pid);
+        thread.State = state;
+        thread.WaitReason = wait_reason;
+        thread
+    }
+
+    #[test]
+    fn state_picks_the_most_active_thread() {
+        // `Running` beats `Waiting`, which beats `Terminated`.
+        let records = [
+            thread_record_in(11, 1234, thread_state::WAITING, 13),
+            thread_record_in(12, 1234, thread_state::TERMINATED, 0),
+            thread_record_in(13, 1234, thread_state::RUNNING, 0),
+        ];
+        let snap = make_snapshot_with_threads(&records, 3, SnapshotKind::Basic);
+        let entry = snap.iter().next().expect("one entry");
+
+        assert_eq!(
+            entry.state(),
+            Some(ThreadState {
+                state: thread_state::RUNNING,
+                wait_reason: 0
+            })
+        );
+        // The full record carries the same pair, so a `--thread` row and the
+        // process it belongs to cannot disagree.
+        assert_eq!(
+            entry.threads()[2].state,
+            ThreadState {
+                state: thread_state::RUNNING,
+                wait_reason: 0
+            }
+        );
+    }
+
+    #[test]
+    fn state_prefers_waiting_over_suspended() {
+        // A suspended thread waits, and says why; a plain wait is more active.
+        let records = [
+            thread_record_in(11, 1234, thread_state::WAITING, wait_reason::SUSPENDED),
+            thread_record_in(12, 1234, thread_state::WAITING, 13),
+        ];
+        let snap = make_snapshot_with_threads(&records, 2, SnapshotKind::Basic);
+        let entry = snap.iter().next().expect("one entry");
+
+        assert_eq!(
+            entry.state(),
+            Some(ThreadState {
+                state: thread_state::WAITING,
+                wait_reason: 13
+            })
+        );
+    }
+
+    #[test]
+    fn state_of_a_full_snapshot_uses_the_wider_stride() {
+        // The state words live at the start of `SYSTEM_EXTENDED_THREAD_INFORMATION`,
+        // so reading them means stepping by 136 rather than 80.
+        let records = [
+            extend(thread_record_in(11, 1234, thread_state::TERMINATED, 0)),
+            extend(thread_record_in(12, 1234, thread_state::WAITING, 12)),
+        ];
+        let snap = make_snapshot_with_threads(&records, 2, SnapshotKind::Full);
+        let entry = snap.iter().next().expect("one entry");
+
+        assert_eq!(
+            entry.state(),
+            Some(ThreadState {
+                state: thread_state::WAITING,
+                wait_reason: 12
+            })
+        );
+    }
+
+    #[test]
+    fn state_is_none_without_records() {
+        // A process whose threads have all exited decodes to no state at all,
+        // which is what lets the State column call it terminated.
+        let snap =
+            make_snapshot_with_threads::<SYSTEM_THREAD_INFORMATION>(&[], 0, SnapshotKind::Basic);
+        let entry = snap.iter().next().expect("one entry");
+        assert_eq!(entry.state(), None);
+    }
+
+    #[test]
+    fn state_is_clipped_to_the_entry() {
+        // Same bound as `threads`: a record past the end of the entry is not
+        // read even though the header claims it.
+        let records = [
+            thread_record_in(11, 1234, thread_state::RUNNING, 0),
+            thread_record_in(12, 1234, thread_state::WAITING, 0),
+        ];
+        let snap = make_snapshot_with_threads(&records, 3, SnapshotKind::Basic);
+        let entry = snap.iter().next().expect("one entry");
+
+        assert_eq!(
+            entry.state(),
+            Some(ThreadState {
+                state: thread_state::RUNNING,
+                wait_reason: 0
+            })
+        );
     }
 
     #[test]
