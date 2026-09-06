@@ -62,8 +62,15 @@ impl Column for Priority {
         let (raw_content, fmt_content) = match priority_class_of(proc.pid) {
             Some(class) => (class as i64, priority_class_name(class).to_string()),
             // Protected processes (e.g. PPL) refuse the open, so fall back to
-            // the kernel priority, which is always available.
-            None => (proc.priority as i64, proc.priority.to_string()),
+            // the kernel Base Priority, which is always available. The class
+            // derived from it is only an approximation.
+            None => {
+                let class = priority_class_from_base(proc.priority);
+                (
+                    class as i64,
+                    format!("{} *", priority_class_name(class)),
+                )
+            },
         };
 
         self.fmt_contents.insert(proc.pid, fmt_content);
@@ -113,6 +120,29 @@ fn priority_class_name(class: u32) -> &'static str {
         HIGH_PRIORITY_CLASS => "High",
         REALTIME_PRIORITY_CLASS => "Realtime",
         _ => "Unknown",
+    }
+}
+
+/// Approximate a priority class from the kernel Base Priority when
+/// `OpenProcess` is unavailable (e.g. protected processes). The Base Priority
+/// is the class's base value plus any thread-level delta, so the mapping is
+/// only an approximation and the caller wraps the result in parentheses.
+#[cfg(target_os = "windows")]
+fn priority_class_from_base(base: i32) -> u32 {
+    use windows_sys::Win32::System::Threading::{
+        ABOVE_NORMAL_PRIORITY_CLASS, BELOW_NORMAL_PRIORITY_CLASS, HIGH_PRIORITY_CLASS,
+        IDLE_PRIORITY_CLASS, NORMAL_PRIORITY_CLASS, REALTIME_PRIORITY_CLASS,
+    };
+
+    // Base priorities: Idle=4, BelowNormal=6, Normal=8, AboveNormal=10,
+    // High=13, Realtime=24. Pick the class whose base value is closest.
+    match base {
+        b if b <= ((4 + 6) / 2) as i32 => IDLE_PRIORITY_CLASS,
+        b if b <= ((6 + 8) / 2) as i32 => BELOW_NORMAL_PRIORITY_CLASS,
+        b if b <= ((8 + 10) / 2) as i32 => NORMAL_PRIORITY_CLASS,
+        b if b <= ((10 + 13) / 2) as i32 => ABOVE_NORMAL_PRIORITY_CLASS,
+        b if b <= ((13 + 24) / 2) as i32 => HIGH_PRIORITY_CLASS,
+        _ => REALTIME_PRIORITY_CLASS,
     }
 }
 
