@@ -106,8 +106,9 @@ fn work_dir_of(pid: i32) -> Option<String> {
 /// Reads the working directory out of the PEB of `handle`.
 #[cfg(target_os = "windows")]
 fn read_work_dir(handle: HANDLE) -> Option<String> {
+    use windows_sys::Win32::Foundation::UNICODE_STRING;
     use crate::process::{
-        process_peb_address, PEB_PREFIX, RTL_USER_PROCESS_PARAMETERS_PREFIX, UNICODE_STRING,
+        process_peb_address, PEB_PREFIX, RTL_USER_PROCESS_PARAMETERS_PREFIX,
     };
     use std::mem::{offset_of, size_of};
     use std::ptr;

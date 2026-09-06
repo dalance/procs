@@ -10,49 +10,24 @@ use std::fmt::Write;
 use std::mem::{offset_of, size_of};
 use std::ptr;
 use std::slice;
-use std::sync::OnceLock;
 
-use windows_sys::Win32::Foundation::{HANDLE, HMODULE};
+use windows_sys::Wdk::System::SystemInformation::{
+    NtQuerySystemInformation, SystemProcessInformation,
+};
+use windows_sys::Wdk::System::SystemServices::VM_COUNTERS;
+use windows_sys::Wdk::System::Threading::{
+    NtQueryInformationProcess, ProcessBasicInformation, ProcessCommandLineInformation,
+    ProcessImageInformation,
+};
+use windows_sys::Win32::Foundation::UNICODE_STRING;
+use windows_sys::Win32::Foundation::{HANDLE, STATUS_INFO_LENGTH_MISMATCH, STATUS_SUCCESS};
 use windows_sys::Win32::Security::{PSID, SECURITY_MAX_SID_SIZE, SID};
-use windows_sys::Win32::System::LibraryLoader::{GetModuleHandleW, GetProcAddress};
-use windows_sys::Win32::System::Threading::IO_COUNTERS;
+use windows_sys::Win32::System::Threading::{IO_COUNTERS, PROCESS_BASIC_INFORMATION};
+use windows_sys::Win32::System::WindowsProgramming::CLIENT_ID;
 
 // ---------------------------------------------------------------------------
 // Structures
 // ---------------------------------------------------------------------------
-
-#[repr(C)]
-#[allow(non_snake_case)]
-#[derive(Copy, Clone)]
-pub struct UNICODE_STRING {
-    /// Byte length of `Buffer`, excluding any terminating NUL.
-    pub Length: u16,
-    pub MaximumLength: u16,
-    pub Buffer: *mut u16,
-}
-
-#[repr(C)]
-#[allow(non_snake_case)]
-pub struct VM_COUNTERS {
-    pub PeakVirtualSize: usize,
-    pub VirtualSize: usize,
-    pub PageFaultCount: u32,
-    pub PeakWorkingSetSize: usize,
-    pub WorkingSetSize: usize,
-    pub QuotaPeakPagedPoolUsage: usize,
-    pub QuotaPagedPoolUsage: usize,
-    pub QuotaPeakNonPagedPoolUsage: usize,
-    pub QuotaNonPagedPoolUsage: usize,
-    pub PagefileUsage: usize,
-    pub PeakPagefileUsage: usize,
-}
-
-#[repr(C)]
-#[allow(non_snake_case)]
-pub struct CLIENT_ID {
-    pub UniqueProcess: HANDLE,
-    pub UniqueThread: HANDLE,
-}
 
 /// `SYSTEM_THREAD_INFORMATION` - the thread record of
 /// `SystemProcessInformation` (5).
@@ -226,33 +201,6 @@ const _: () = assert!(size_of::<SECTION_IMAGE_INFORMATION>() == 48);
 #[cfg(target_pointer_width = "32")]
 const _: () = assert!(offset_of!(SECTION_IMAGE_INFORMATION, Machine) == 32);
 
-/// `PROCESS_BASIC_INFORMATION` - the output of `ProcessBasicInformation` (0).
-///
-/// `PebBaseAddress` is the address of the process's PEB in the target's
-/// address space; it is only meaningful to `ReadProcessMemory`.
-///
-/// `windows-sys` gates its own copy behind `Win32_System_Kernel`, so it is
-/// spelled out here like the rest of the NT surface this crate needs.
-#[repr(C)]
-#[allow(non_snake_case)]
-pub struct PROCESS_BASIC_INFORMATION {
-    pub ExitStatus: i32,
-    pub PebBaseAddress: *mut c_void,
-    pub AffinityMask: usize,
-    pub BasePriority: i32,
-    pub UniqueProcessId: HANDLE,
-    pub InheritedFromUniqueProcessId: HANDLE,
-}
-
-#[cfg(target_pointer_width = "64")]
-const _: () = assert!(size_of::<PROCESS_BASIC_INFORMATION>() == 48);
-#[cfg(target_pointer_width = "64")]
-const _: () = assert!(offset_of!(PROCESS_BASIC_INFORMATION, PebBaseAddress) == 8);
-#[cfg(target_pointer_width = "32")]
-const _: () = assert!(size_of::<PROCESS_BASIC_INFORMATION>() == 24);
-#[cfg(target_pointer_width = "32")]
-const _: () = assert!(offset_of!(PROCESS_BASIC_INFORMATION, PebBaseAddress) == 4);
-
 /// The leading, version-stable part of `PEB`, up to and including
 /// `ProcessParameters`.
 ///
@@ -309,11 +257,9 @@ pub struct RTL_USER_PROCESS_PARAMETERS_PREFIX {
 }
 
 #[cfg(target_pointer_width = "64")]
-const _: () =
-    assert!(offset_of!(RTL_USER_PROCESS_PARAMETERS_PREFIX, CurrentDirectory) == 0x38);
+const _: () = assert!(offset_of!(RTL_USER_PROCESS_PARAMETERS_PREFIX, CurrentDirectory) == 0x38);
 #[cfg(target_pointer_width = "32")]
-const _: () =
-    assert!(offset_of!(RTL_USER_PROCESS_PARAMETERS_PREFIX, CurrentDirectory) == 0x24);
+const _: () = assert!(offset_of!(RTL_USER_PROCESS_PARAMETERS_PREFIX, CurrentDirectory) == 0x24);
 
 /// Fixed part of a `SID`: revision, sub-authority count and the 6-byte
 /// identifier authority. `windows-sys` types the trailing sub-authorities as
@@ -472,88 +418,14 @@ impl std::hash::Hash for SID_MAX {
 // Constants
 // ---------------------------------------------------------------------------
 
-/// SystemInformationClass. Always available; its thread records are
-/// `SYSTEM_THREAD_INFORMATION` (80 bytes).
-pub const SYSTEM_PROCESS_INFORMATION_CLASS: u32 = 5;
 /// SystemInformationClass. Windows 8.1 and newer, and the caller has to be
 /// elevated: without it the query returns `STATUS_ACCESS_DENIED`. Carries
 /// the process extension, which includes the user SID.
-pub const SYSTEM_FULL_PROCESS_INFORMATION_CLASS: u32 = 148;
-/// ProcessInformationClass. Windows 8.1 and newer
-pub const PROCESS_COMMAND_LINE_INFORMATION_CLASS: u32 = 60;
-/// ProcessInformationClass. Vista and newer
-pub const PROCESS_IMAGE_INFORMATION_CLASS: u32 = 37;
-/// ProcessInformationClass. Always available
-pub const PROCESS_BASIC_INFORMATION_CLASS: u32 = 0;
-/// NTSTATUS
-pub const STATUS_SUCCESS: i32 = 0;
-pub const STATUS_INFO_LENGTH_MISMATCH: i32 = 0xC000_0004u32 as i32;
+pub const SYSTEM_FULL_PROCESS_INFORMATION_CLASS: i32 = 148;
 
 /// Guard against a nonsensical `UNICODE_STRING::Length` turning into a huge
 /// allocation. Real command lines are capped well below this.
 const MAX_COMMAND_LINE_BYTES: usize = 64 * 1024;
-
-// ---------------------------------------------------------------------------
-// Function resolution
-// ---------------------------------------------------------------------------
-
-#[allow(non_snake_case)]
-type NtQuerySystemInformationFn = unsafe extern "system" fn(
-    SystemInformationClass: u32,
-    SystemInformation: *mut c_void,
-    SystemInformationLength: u32,
-    ReturnLength: *mut u32,
-) -> i32;
-
-#[allow(non_snake_case)]
-type NtQueryInformationProcessFn = unsafe extern "system" fn(
-    ProcessHandle: HANDLE,
-    ProcessInformationClass: u32,
-    ProcessInformation: *mut c_void,
-    ProcessInformationLength: u32,
-    ReturnLength: *mut u32,
-) -> i32;
-
-static NT_QUERY_SYSTEM_INFORMATION: OnceLock<Option<NtQuerySystemInformationFn>> = OnceLock::new();
-static NT_QUERY_INFORMATION_PROCESS: OnceLock<Option<NtQueryInformationProcessFn>> =
-    OnceLock::new();
-
-/// `ntdll.dll` is mapped into every user process, so a handle lookup is enough
-/// and there is nothing to release. Stored as `usize` because a bare
-/// `HMODULE` (a raw pointer) is not `Sync` and cannot live in a `static`.
-fn ntdll() -> HMODULE {
-    static HANDLE: OnceLock<usize> = OnceLock::new();
-    let addr = *HANDLE.get_or_init(|| {
-        let name: Vec<u16> = "ntdll.dll\0".encode_utf16().collect();
-        unsafe { GetModuleHandleW(name.as_ptr()) as usize }
-    });
-    addr as HMODULE
-}
-
-fn ntdll_proc(name: &[u8]) -> Option<unsafe extern "system" fn() -> isize> {
-    let module = ntdll();
-    if module.is_null() {
-        return None;
-    }
-    // SAFETY: `name` is NUL terminated and outlives the call.
-    unsafe { GetProcAddress(module, name.as_ptr()) }
-}
-
-pub fn nt_query_system_information() -> Option<NtQuerySystemInformationFn> {
-    *NT_QUERY_SYSTEM_INFORMATION.get_or_init(|| {
-        ntdll_proc(b"NtQuerySystemInformation\0")
-            // SAFETY: both are `extern "system"` fn pointers; the ABI matches.
-            .map(|f| unsafe { std::mem::transmute::<_, NtQuerySystemInformationFn>(f) })
-    })
-}
-
-pub fn nt_query_information_process() -> Option<NtQueryInformationProcessFn> {
-    *NT_QUERY_INFORMATION_PROCESS.get_or_init(|| {
-        ntdll_proc(b"NtQueryInformationProcess\0")
-            // SAFETY: both are `extern "system"` fn pointers; the ABI matches.
-            .map(|f| unsafe { std::mem::transmute::<_, NtQueryInformationProcessFn>(f) })
-    })
-}
 
 // ---------------------------------------------------------------------------
 // SystemProcessInformation
@@ -623,15 +495,14 @@ pub fn query_system_processes() -> Option<SystemProcessSnapshot> {
         });
     }
 
-    let words = query_system_info_class(SYSTEM_PROCESS_INFORMATION_CLASS)?;
+    let words = query_system_info_class(SystemProcessInformation)?;
     Some(SystemProcessSnapshot {
         words,
         kind: SnapshotKind::Basic,
     })
 }
 
-fn query_system_info_class(class: u32) -> Option<Vec<u64>> {
-    let query = nt_query_system_information()?;
+fn query_system_info_class(class: i32) -> Option<Vec<u64>> {
     let mut words = vec![0u64; 0];
     // A `Vec<u64>` is allocated 8-byte aligned, which is what the
     // `SYSTEM_PROCESS_INFORMATION` structures in the snapshot require.
@@ -641,7 +512,7 @@ fn query_system_info_class(class: u32) -> Option<Vec<u64>> {
         let mut ret_len: u32 = 0;
         let len = words.len() * size_of::<u64>();
         let status = unsafe {
-            query(
+            NtQuerySystemInformation(
                 class,
                 words.as_mut_ptr().cast::<c_void>(),
                 len as u32,
@@ -1094,8 +965,6 @@ impl<'a> Iterator for ProcessIter<'a> {
 /// Needs `PROCESS_QUERY_LIMITED_INFORMATION` and Windows 8.1 or newer.
 /// Anything else yields `None`.
 pub fn process_command_line(handle: HANDLE) -> Option<String> {
-    let query = nt_query_information_process()?;
-
     // Room for the header plus a typical command line.
     let mut buf = vec![0u64; (size_of::<UNICODE_STRING>() + 1024).div_ceil(size_of::<u64>())];
     let mut status = STATUS_INFO_LENGTH_MISMATCH;
@@ -1103,9 +972,9 @@ pub fn process_command_line(handle: HANDLE) -> Option<String> {
     for _ in 0..4 {
         let mut ret_len: u32 = 0;
         status = unsafe {
-            query(
+            NtQueryInformationProcess(
                 handle,
-                PROCESS_COMMAND_LINE_INFORMATION_CLASS,
+                ProcessCommandLineInformation,
                 buf.as_mut_ptr().cast::<c_void>(),
                 (buf.len() * size_of::<u64>()) as u32,
                 ptr::addr_of_mut!(ret_len),
@@ -1158,17 +1027,15 @@ pub fn process_command_line(handle: HANDLE) -> Option<String> {
 /// so it also answers for protected processes that refuse the full query
 /// rights. Anything older than Vista yields `None`.
 pub fn process_image_machine(handle: HANDLE) -> Option<u16> {
-    let query = nt_query_information_process()?;
-
     // SAFETY: a zeroed `SECTION_IMAGE_INFORMATION` is a valid output buffer -
     // every field is an integer or a pointer, and only `Machine` is read.
     let mut info: SECTION_IMAGE_INFORMATION = unsafe { std::mem::zeroed() };
     let mut ret_len: u32 = 0;
 
     let status = unsafe {
-        query(
+        NtQueryInformationProcess(
             handle,
-            PROCESS_IMAGE_INFORMATION_CLASS,
+            ProcessImageInformation,
             ptr::addr_of_mut!(info).cast::<c_void>(),
             size_of::<SECTION_IMAGE_INFORMATION>() as u32,
             ptr::addr_of_mut!(ret_len),
@@ -1191,17 +1058,15 @@ pub fn process_image_machine(handle: HANDLE) -> Option<u16> {
 /// The returned address lives in the target process's address space and is
 /// only meaningful to `ReadProcessMemory`.
 pub fn process_peb_address(handle: HANDLE) -> Option<usize> {
-    let query = nt_query_information_process()?;
-
     // SAFETY: a zeroed `PROCESS_BASIC_INFORMATION` is a valid output buffer -
     // every field is an integer or a pointer, and only `PebBaseAddress` is read.
     let mut info: PROCESS_BASIC_INFORMATION = unsafe { std::mem::zeroed() };
     let mut ret_len: u32 = 0;
 
     let status = unsafe {
-        query(
+        NtQueryInformationProcess(
             handle,
-            PROCESS_BASIC_INFORMATION_CLASS,
+            ProcessBasicInformation,
             ptr::addr_of_mut!(info).cast::<c_void>(),
             size_of::<PROCESS_BASIC_INFORMATION>() as u32,
             ptr::addr_of_mut!(ret_len),
@@ -1211,7 +1076,8 @@ pub fn process_peb_address(handle: HANDLE) -> Option<usize> {
         return None;
     }
     // Short writes leave `PebBaseAddress` unset.
-    if (ret_len as usize) < offset_of!(PROCESS_BASIC_INFORMATION, PebBaseAddress) + size_of::<usize>()
+    if (ret_len as usize)
+        < offset_of!(PROCESS_BASIC_INFORMATION, PebBaseAddress) + size_of::<usize>()
     {
         return None;
     }

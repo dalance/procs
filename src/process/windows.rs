@@ -21,6 +21,12 @@ use windows_sys::Win32::System::Threading::{
 
 use super::ntapi;
 
+/// Re-export the PEB prefix so the WorkDir column can read
+/// `ProcessParameters`.
+pub use super::ntapi::PEB_PREFIX;
+/// Re-export the process-parameters prefix so the WorkDir column can read
+/// `CurrentDirectory`.
+pub use super::ntapi::RTL_USER_PROCESS_PARAMETERS_PREFIX;
 /// Re-export the owned SID type so callers can use `crate::process::SID_MAX`.
 pub use super::ntapi::SID_MAX;
 /// Re-export the decoded thread record so callers can use
@@ -35,15 +41,6 @@ pub use super::ntapi::process_image_machine;
 /// Re-export the PEB address query so callers can use
 /// `crate::process::process_peb_address`.
 pub use super::ntapi::process_peb_address;
-/// Re-export the PEB prefix so the WorkDir column can read
-/// `ProcessParameters`.
-pub use super::ntapi::PEB_PREFIX;
-/// Re-export the process-parameters prefix so the WorkDir column can read
-/// `CurrentDirectory`.
-pub use super::ntapi::RTL_USER_PROCESS_PARAMETERS_PREFIX;
-/// Re-export the `UNICODE_STRING` so the WorkDir column can read the
-/// current-directory string.
-pub use super::ntapi::UNICODE_STRING;
 /// Re-export the `KTHREAD_STATE` constants so the State column can map
 /// them to letters.
 pub use super::ntapi::thread_state;
