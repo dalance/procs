@@ -235,12 +235,24 @@ pub struct CURDIR {
     pub Handle: HANDLE,
 }
 
+/// `RTL_DRIVE_LETTER_CURDIR` - one entry of the per-drive current-directory
+/// array of `RTL_USER_PROCESS_PARAMETERS`.
+#[repr(C)]
+#[allow(non_snake_case)]
+pub struct RTL_DRIVE_LETTER_CURDIR {
+    pub Flags: u16,
+    pub Length: u16,
+    pub TimeStamp: u32,
+    pub DosPath: UNICODE_STRING,
+}
+
 /// The leading, version-stable part of `RTL_USER_PROCESS_PARAMETERS`, up to
-/// and including `CurrentDirectory`.
+/// and including `EnvironmentVersion`.
 ///
-/// The fields after `CurrentDirectory` (`DllPath`, `ImagePathName`,
-/// `CommandLine`, ...) are not needed here; the prefix layout has been stable
-/// since XP.
+/// The fields after `EnvironmentVersion` are not needed here; the prefix
+/// layout has been stable since XP. Note that `EnvironmentSize` is a
+/// `ULONG_PTR` and sits *after* the 32-entry `CurrentDirectories` array, not
+/// right after `Environment`.
 #[repr(C)]
 #[allow(non_snake_case)]
 pub struct RTL_USER_PROCESS_PARAMETERS_PREFIX {
@@ -254,12 +266,40 @@ pub struct RTL_USER_PROCESS_PARAMETERS_PREFIX {
     pub StandardOutput: HANDLE,
     pub StandardError: HANDLE,
     pub CurrentDirectory: CURDIR,
+    pub DllPath: UNICODE_STRING,
+    pub ImagePathName: UNICODE_STRING,
+    pub CommandLine: UNICODE_STRING,
+    pub Environment: *mut c_void,
+    pub StartingX: u32,
+    pub StartingY: u32,
+    pub CountX: u32,
+    pub CountY: u32,
+    pub CountCharsX: u32,
+    pub CountCharsY: u32,
+    pub FillAttribute: u32,
+    pub WindowFlags: u32,
+    pub ShowWindowFlags: u32,
+    pub WindowTitle: UNICODE_STRING,
+    pub DesktopInfo: UNICODE_STRING,
+    pub ShellInfo: UNICODE_STRING,
+    pub RuntimeData: UNICODE_STRING,
+    pub CurrentDirectories: [RTL_DRIVE_LETTER_CURDIR; 32],
+    pub EnvironmentSize: usize,
+    pub EnvironmentVersion: usize,
 }
 
 #[cfg(target_pointer_width = "64")]
 const _: () = assert!(offset_of!(RTL_USER_PROCESS_PARAMETERS_PREFIX, CurrentDirectory) == 0x38);
 #[cfg(target_pointer_width = "32")]
 const _: () = assert!(offset_of!(RTL_USER_PROCESS_PARAMETERS_PREFIX, CurrentDirectory) == 0x24);
+#[cfg(target_pointer_width = "64")]
+const _: () = assert!(offset_of!(RTL_USER_PROCESS_PARAMETERS_PREFIX, Environment) == 0x80);
+#[cfg(target_pointer_width = "32")]
+const _: () = assert!(offset_of!(RTL_USER_PROCESS_PARAMETERS_PREFIX, Environment) == 0x48);
+#[cfg(target_pointer_width = "64")]
+const _: () = assert!(offset_of!(RTL_USER_PROCESS_PARAMETERS_PREFIX, EnvironmentSize) == 0x3F0);
+#[cfg(target_pointer_width = "32")]
+const _: () = assert!(offset_of!(RTL_USER_PROCESS_PARAMETERS_PREFIX, EnvironmentSize) == 0x290);
 
 /// Fixed part of a `SID`: revision, sub-authority count and the 6-byte
 /// identifier authority. `windows-sys` types the trailing sub-authorities as
@@ -1083,6 +1123,31 @@ pub fn process_peb_address(handle: HANDLE) -> Option<usize> {
     }
 
     Some(info.PebBaseAddress as usize)
+}
+
+/// Reads `buf.len()` bytes from the address space of `handle` at `addr`.
+///
+/// `addr` is an address in the target process; it must be readable with the
+/// handle's access rights. Returns `None` when the read fails or reads
+/// nothing.
+pub fn read_process_memory<T>(handle: HANDLE, addr: usize, buf: &mut [T]) -> Option<()> {
+    use std::mem::size_of_val;
+    use windows_sys::Win32::System::Diagnostics::Debug::ReadProcessMemory;
+
+    let mut read: usize = 0;
+    let ok = unsafe {
+        ReadProcessMemory(
+            handle,
+            addr as *const c_void,
+            buf.as_mut_ptr().cast::<c_void>(),
+            size_of_val(buf),
+            &mut read,
+        )
+    };
+    if ok == 0 || read == 0 {
+        return None;
+    }
+    Some(())
 }
 
 /// Copies the characters of `string` out of `buffer`, which must still be

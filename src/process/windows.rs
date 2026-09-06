@@ -41,6 +41,9 @@ pub use super::ntapi::process_image_machine;
 /// Re-export the PEB address query so callers can use
 /// `crate::process::process_peb_address`.
 pub use super::ntapi::process_peb_address;
+/// Re-export the cross-process memory reader so columns can read
+/// PEB-relative data.
+pub use super::ntapi::read_process_memory;
 /// Re-export the `KTHREAD_STATE` constants so the State column can map
 /// them to letters.
 pub use super::ntapi::thread_state;

@@ -3,6 +3,7 @@ pub mod command;
 pub mod cpu_time;
 pub mod elapsed_time;
 pub mod empty;
+pub mod env;
 pub mod file_name;
 pub mod gid;
 pub mod group;
@@ -40,6 +41,7 @@ pub use self::command::Command;
 pub use self::cpu_time::CpuTime;
 pub use self::elapsed_time::ElapsedTime;
 pub use self::empty::Empty;
+pub use self::env::Env;
 pub use self::file_name::FileName;
 pub use self::gid::Gid;
 pub use self::group::Group;
@@ -89,6 +91,7 @@ pub enum ConfigColumnKind {
     CpuTime,
     ElapsedTime,
     Empty,
+    Env,
     FileName,
     Gid,
     Group,
@@ -141,6 +144,7 @@ pub fn gen_column(
         ConfigColumnKind::CpuTime => Box::new(CpuTime::new(header)),
         ConfigColumnKind::ElapsedTime => Box::new(ElapsedTime::new(header)),
         ConfigColumnKind::Empty => Box::new(Empty::new()),
+        ConfigColumnKind::Env => Box::new(Env::new(header, _procfs)),
         ConfigColumnKind::FileName => Box::new(FileName::new(header)),
         ConfigColumnKind::Gid => Box::new(Gid::new(header, abbr_sid)),
         ConfigColumnKind::Group => Box::new(Group::new(header, abbr_sid)),
@@ -199,6 +203,10 @@ pub static KIND_LIST: Lazy<BTreeMap<ConfigColumnKind, (&'static str, &'static st
                 ("ElapsedTime", "Elapsed time"),
             ),
             (ConfigColumnKind::Empty, ("Empty", "Empty")),
+            (
+                ConfigColumnKind::Env,
+                ("Env", "Environment variables"),
+            ),
             (
                 ConfigColumnKind::FileName,
                 ("FileName", "File name of the process image"),
@@ -455,6 +463,9 @@ kind = "ElapsedTime"
 style = "BrightYellow"
 [[columns]]
 kind = "Empty"
+style = "BrightYellow"
+[[columns]]
+kind = "Env"
 style = "BrightYellow"
 [[columns]]
 kind = "FileName"

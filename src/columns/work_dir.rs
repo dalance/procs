@@ -108,7 +108,8 @@ fn work_dir_of(pid: i32) -> Option<String> {
 fn read_work_dir(handle: HANDLE) -> Option<String> {
     use windows_sys::Win32::Foundation::UNICODE_STRING;
     use crate::process::{
-        process_peb_address, PEB_PREFIX, RTL_USER_PROCESS_PARAMETERS_PREFIX,
+        process_peb_address, read_process_memory, PEB_PREFIX,
+        RTL_USER_PROCESS_PARAMETERS_PREFIX,
     };
     use std::mem::{offset_of, size_of};
     use std::ptr;
@@ -177,30 +178,3 @@ fn read_work_dir(handle: HANDLE) -> Option<String> {
 /// allocation. Real working directories are capped well below this.
 #[cfg(target_os = "windows")]
 const MAX_WORK_DIR_BYTES: usize = 64 * 1024;
-
-/// Reads `buf.len()` bytes from the address space of `handle` at `addr`.
-///
-/// `addr` is an address in the target process; it must be readable with the
-/// handle's access rights. Returns `None` when the read fails or reads
-/// nothing.
-#[cfg(target_os = "windows")]
-fn read_process_memory<T>(handle: HANDLE, addr: usize, buf: &mut [T]) -> Option<()> {
-    use std::ffi::c_void;
-    use std::mem::size_of_val;
-    use windows_sys::Win32::System::Diagnostics::Debug::ReadProcessMemory;
-
-    let mut read: usize = 0;
-    let ok = unsafe {
-        ReadProcessMemory(
-            handle,
-            addr as *const c_void,
-            buf.as_mut_ptr().cast::<c_void>(),
-            size_of_val(buf),
-            &mut read,
-        )
-    };
-    if ok == 0 || read == 0 {
-        return None;
-    }
-    Some(())
-}
