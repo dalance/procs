@@ -14,7 +14,9 @@ pub mod ppid;
 pub mod priority;
 pub mod rt_priority;
 pub mod read_bytes;
+pub mod recv_bytes;
 pub mod separator;
+pub mod send_bytes;
 pub mod session;
 pub mod slot;
 pub mod start_time;
@@ -52,7 +54,9 @@ pub use self::ppid::Ppid;
 pub use self::priority::Priority;
 pub use self::rt_priority::RtPriority;
 pub use self::read_bytes::ReadBytes;
+pub use self::recv_bytes::RecvBytes;
 pub use self::separator::Separator;
+pub use self::send_bytes::SendBytes;
 pub use self::session::Session;
 pub use self::slot::Slot;
 pub use self::start_time::StartTime;
@@ -101,7 +105,9 @@ pub enum ConfigColumnKind {
     Ppid,
     Priority,
     ReadBytes,
+    RecvBytes,
     RtPriority,
+    SendBytes,
     Separator,
     Session,
     Slot,
@@ -154,7 +160,9 @@ pub fn gen_column(
         ConfigColumnKind::Ppid => Box::new(Ppid::new(header)),
         ConfigColumnKind::Priority => Box::new(Priority::new(header)),
         ConfigColumnKind::ReadBytes => Box::new(ReadBytes::new(header)),
+        ConfigColumnKind::RecvBytes => Box::new(RecvBytes::new(header)),
         ConfigColumnKind::RtPriority => Box::new(RtPriority::new(header)),
+        ConfigColumnKind::SendBytes => Box::new(SendBytes::new(header)),
         ConfigColumnKind::Separator => Box::new(Separator::new(separator)),
         ConfigColumnKind::Session => Box::new(Session::new(header)),
         ConfigColumnKind::Slot => Box::new(Slot::new()),
@@ -229,8 +237,16 @@ pub static KIND_LIST: Lazy<BTreeMap<ConfigColumnKind, (&'static str, &'static st
                 ("ReadBytes", "Read bytes from storage"),
             ),
             (
+                ConfigColumnKind::RecvBytes,
+                ("RecvBytes", "Received bytes per second (Windows 11)"),
+            ),
+            (
                 ConfigColumnKind::RtPriority,
                 ("RtPriority", "Kernel base priority (0-31)"),
+            ),
+            (
+                ConfigColumnKind::SendBytes,
+                ("SendBytes", "Sent bytes per second (Windows 11)"),
             ),
             (
                 ConfigColumnKind::Separator,
@@ -402,6 +418,18 @@ nonnumeric_search = false
 align = "Right"
 [[columns]]
 kind = "WriteBytes"
+style = "ByUnit"
+numeric_search = false
+nonnumeric_search = false
+align = "Right"
+[[columns]]
+kind = "RecvBytes"
+style = "ByUnit"
+numeric_search = false
+nonnumeric_search = false
+align = "Right"
+[[columns]]
+kind = "SendBytes"
 style = "ByUnit"
 numeric_search = false
 nonnumeric_search = false

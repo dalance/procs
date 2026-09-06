@@ -6,6 +6,7 @@ use std::ffi::c_void;
 use std::mem::{MaybeUninit, zeroed};
 use std::path::PathBuf;
 use std::ptr;
+use std::sync::atomic::{AtomicU8, Ordering};
 use std::thread;
 use std::time::{Duration, Instant};
 use windows_sys::Win32::Foundation::{CloseHandle, FALSE, HANDLE};
@@ -64,6 +65,7 @@ pub struct ProcessInfo {
     pub cpu_info: CpuInfo,
     pub memory_info: MemoryInfo,
     pub disk_info: DiskInfo,
+    pub net_info: NetInfo,
     pub user: Option<SID_MAX>,
     pub groups: Vec<SID_MAX>,
     pub priority: i32,
@@ -119,6 +121,18 @@ pub struct DiskInfo {
     pub curr_write: u64,
 }
 
+/// Cumulative network traffic sampled at both ends of the interval.
+///
+/// `ProcessNetworkIoInformation` is a Windows 11 addition and needs a process
+/// handle, so both the class and the process can be missing: the counters stay
+/// at zero then and the rate comes out as zero.
+pub struct NetInfo {
+    pub prev_recv: u64,
+    pub prev_send: u64,
+    pub curr_recv: u64,
+    pub curr_send: u64,
+}
+
 pub struct CpuInfo {
     pub prev_sys: u64,
     pub prev_user: u64,
@@ -168,11 +182,9 @@ pub fn collect_proc(
             // A recycled pid would otherwise pair up with an unrelated process.
             .filter(|p| p.create_time == proc.create_time || proc.create_time == 0);
 
-        let (prev_sys, prev_user, prev_read, prev_write) = match prev {
-            Some(p) => (p.kernel_time, p.user_time, p.read, p.write),
-            // Started between the two samples: report no delta.
-            None => (proc.kernel_time, proc.user_time, proc.read, proc.write),
-        };
+        // A process that started between the two samples pairs with itself,
+        // which reports no delta.
+        let prev = prev.unwrap_or(&proc);
 
         let handles = ProcHandles::open(proc.pid);
 
@@ -199,18 +211,25 @@ pub fn collect_proc(
             ppid: proc.ppid,
             start_time: filetime_to_local(proc.create_time),
             cpu_info: CpuInfo {
-                prev_sys,
-                prev_user,
+                prev_sys: prev.kernel_time,
+                prev_user: prev.user_time,
                 curr_sys: proc.kernel_time,
                 curr_user: proc.user_time,
             },
-            memory_info: proc.memory_info,
             disk_info: DiskInfo {
-                prev_read,
-                prev_write,
+                prev_read: prev.read,
+                prev_write: prev.write,
                 curr_read: proc.read,
                 curr_write: proc.write,
             },
+            net_info: NetInfo {
+                prev_recv: prev.recv,
+                prev_send: prev.send,
+                curr_recv: proc.recv,
+                curr_send: proc.send,
+            },
+            // Last: this moves out of `proc`, which `prev` may still borrow.
+            memory_info: proc.memory_info,
             user,
             groups: groups.unwrap_or_default(),
             priority,
@@ -276,6 +295,14 @@ pub fn collect_proc(
                     curr_read: 0,
                     curr_write: 0,
                 },
+                // Network traffic is only accounted per process, so a thread
+                // row reports none rather than repeating its process'.
+                net_info: NetInfo {
+                    prev_recv: 0,
+                    prev_send: 0,
+                    curr_recv: 0,
+                    curr_send: 0,
+                },
                 user,
                 groups,
                 priority: thread.priority,
@@ -305,6 +332,10 @@ struct ProcSnapshot {
     user_time: u64,
     read: u64,
     write: u64,
+    /// Cumulative network bytes received / sent, when the class that reports
+    /// them is implemented and the process could be opened.
+    recv: u64,
+    send: u64,
     memory_info: MemoryInfo,
     base_priority: i32,
     /// Scheduler state of the most active thread.
@@ -337,10 +368,23 @@ fn take_snapshot(with_thread: bool) -> SystemSnapshot {
         return SystemSnapshot { procs, threads };
     };
 
+    // `ProcessNetworkIoInformation` is a Windows 11 addition: on an older
+    // build no handle is opened for it at all.
+    let want_net = network_counters_supported();
+
     for entry in buffer.iter() {
         let info = entry.info();
+        let pid = info.UniqueProcessId as usize as i32;
         let ppid = info.InheritedFromUniqueProcessId as usize as i32;
         let image_name = entry.image_name();
+
+        // Unlike the rest of the snapshot, the network counters are read from
+        // the process itself, which costs an `OpenProcess` each.
+        let (recv, send) = if want_net {
+            network_counters(pid)
+        } else {
+            (0, 0)
+        };
 
         // Hide the kernel's own processes. The full snapshot's classification is
         // authoritative - a non-zero `SYSTEM_PROCESS_CLASSIFICATION` marks System,
@@ -353,7 +397,7 @@ fn take_snapshot(with_thread: bool) -> SystemSnapshot {
             || (ppid == 4 && !image_name.contains('.'));
 
         procs.push(ProcSnapshot {
-            pid: info.UniqueProcessId as usize as i32,
+            pid,
             ppid,
             thread_count: info.NumberOfThreads as i32,
             image_name,
@@ -363,6 +407,8 @@ fn take_snapshot(with_thread: bool) -> SystemSnapshot {
             user_time: info.UserTime as u64,
             read: info.IoCounters.ReadTransferCount,
             write: info.IoCounters.WriteTransferCount,
+            recv,
+            send,
             memory_info: MemoryInfo {
                 page_fault_count: u64::from(info.VirtualMemoryCounters.PageFaultCount),
                 peak_working_set_size: info.VirtualMemoryCounters.PeakWorkingSetSize as u64,
@@ -392,6 +438,43 @@ fn take_snapshot(with_thread: bool) -> SystemSnapshot {
     }
 
     SystemSnapshot { procs, threads }
+}
+
+/// Whether `ProcessNetworkIoInformation` answers on this machine.
+///
+/// The class is implemented from Windows 11 on, so the answer depends on the
+/// OS build alone: it is probed once against this process - whose handle
+/// carries every access right, so a failure means the class is missing rather
+/// than the handle being too weak - and remembered. An older build then pays
+/// nothing instead of an `OpenProcess` and a rejected query per process and
+/// per sample.
+fn network_counters_supported() -> bool {
+    const UNKNOWN: u8 = 0;
+    const YES: u8 = 1;
+    const NO: u8 = 2;
+    static SUPPORTED: AtomicU8 = AtomicU8::new(UNKNOWN);
+
+    match SUPPORTED.load(Ordering::Acquire) {
+        YES => true,
+        NO => false,
+        _ => {
+            // SAFETY: the pseudo-handle needs no closing.
+            let handle = unsafe { GetCurrentProcess() };
+            let yes = ntapi::process_network_counters(handle).is_some();
+            SUPPORTED.store(if yes { YES } else { NO }, Ordering::Release);
+            yes
+        }
+    }
+}
+
+/// The cumulative network counters of `pid`, or `(0, 0)` when the handle
+/// cannot be opened or the class is not implemented.
+fn network_counters(pid: i32) -> (u64, u64) {
+    let handles = ProcHandles::open(pid);
+    match handles.any().and_then(ntapi::process_network_counters) {
+        Some(counters) => (counters.BytesIn, counters.BytesOut),
+        None => (0, 0),
+    }
 }
 
 /// Idle and System have no command line and, depending on privileges, no

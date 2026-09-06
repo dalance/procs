@@ -123,6 +123,24 @@ pub struct PROCESS_DISK_COUNTERS {
     pub FlushOperationCount: u64,
 }
 
+/// `PROCESS_NETWORK_COUNTERS` - the output of `ProcessNetworkIoInformation`
+/// (114).
+///
+/// Both counters are cumulative for the lifetime of the process, so a rate
+/// needs two samples taken an interval apart.
+#[repr(C)]
+#[allow(non_snake_case)]
+pub struct PROCESS_NETWORK_COUNTERS {
+    /// Total bytes received by the process.
+    pub BytesIn: u64,
+    /// Total bytes sent by the process.
+    pub BytesOut: u64,
+}
+
+const _: () = assert!(size_of::<PROCESS_NETWORK_COUNTERS>() == 16);
+const _: () = assert!(offset_of!(PROCESS_NETWORK_COUNTERS, BytesIn) == 0);
+const _: () = assert!(offset_of!(PROCESS_NETWORK_COUNTERS, BytesOut) == 8);
+
 /// The leading, version-stable part of `SYSTEM_PROCESS_INFORMATION_EXTENSION`,
 /// as returned by `SystemFullProcessInformation` (148).
 ///
@@ -462,6 +480,9 @@ impl std::hash::Hash for SID_MAX {
 /// elevated: without it the query returns `STATUS_ACCESS_DENIED`. Carries
 /// the process extension, which includes the user SID.
 pub const SYSTEM_FULL_PROCESS_INFORMATION_CLASS: i32 = 148;
+
+// ProcessInformationClass. Windows 11
+pub const PROCESS_NETWORK_IO_COUNTERS_CLASS: i32 = 114;
 
 /// Guard against a nonsensical `UNICODE_STRING::Length` turning into a huge
 /// allocation. Real command lines are capped well below this.
@@ -1092,6 +1113,61 @@ pub fn process_image_machine(handle: HANDLE) -> Option<u16> {
     Some(info.Machine)
 }
 
+// ---------------------------------------------------------------------------
+// ProcessNetworkIoInformation
+// ---------------------------------------------------------------------------
+
+/// What one `ProcessNetworkIoInformation` query produced: the status, how much
+/// the kernel wrote, and the counters themselves.
+///
+/// The status is handed back rather than swallowed so a caller can tell the
+/// two failures apart: "this Windows does not implement the class" leaves the
+/// columns at zero, while `STATUS_INFO_LENGTH_MISMATCH` would mean this
+/// structure is the wrong size.
+struct NetworkCountersQuery {
+    status: i32,
+    written: u32,
+    counters: PROCESS_NETWORK_COUNTERS,
+}
+
+fn query_network_counters(handle: HANDLE) -> NetworkCountersQuery {
+    // SAFETY: a zeroed `PROCESS_NETWORK_COUNTERS` is a valid output buffer -
+    // both fields are integers.
+    let mut info: PROCESS_NETWORK_COUNTERS = unsafe { std::mem::zeroed() };
+    let mut ret_len: u32 = 0;
+
+    let status = unsafe {
+        NtQueryInformationProcess(
+            handle,
+            PROCESS_NETWORK_IO_COUNTERS_CLASS,
+            ptr::addr_of_mut!(info).cast::<c_void>(),
+            size_of::<PROCESS_NETWORK_COUNTERS>() as u32,
+            ptr::addr_of_mut!(ret_len),
+        )
+    };
+
+    NetworkCountersQuery {
+        status,
+        written: ret_len,
+        counters: info,
+    }
+}
+
+/// Reads the cumulative network traffic of `handle`.
+///
+/// `None` when the class is not implemented - it is a Windows 11 addition, so
+/// an older build answers `STATUS_INVALID_INFO_CLASS` - when the handle lacks
+/// the rights, or when the kernel wrote less than the whole structure.
+pub fn process_network_counters(handle: HANDLE) -> Option<PROCESS_NETWORK_COUNTERS> {
+    let query = query_network_counters(handle);
+    if query.status != STATUS_SUCCESS
+        || (query.written as usize) < size_of::<PROCESS_NETWORK_COUNTERS>()
+    {
+        return None;
+    }
+    Some(query.counters)
+}
+
 /// Reads the PEB base address of `handle`.
 ///
 /// `ProcessBasicInformation` only needs `PROCESS_QUERY_LIMITED_INFORMATION`.
@@ -1603,5 +1679,29 @@ mod tests {
         // SAFETY: the pseudo-handle needs no closing.
         let handle = unsafe { GetCurrentProcess() };
         assert_eq!(process_image_machine(handle), Some(OWN_MACHINE));
+    }
+
+    /// `ProcessNetworkIoInformation` is a Windows 11 addition, so whether the
+    /// counters come back at all depends on the build. What has to hold on
+    /// every build is that the 16-byte structure is accepted: a wrong
+    /// `PROCESS_NETWORK_COUNTERS` layout is answered with
+    /// `STATUS_INFO_LENGTH_MISMATCH`, which would leave both network columns
+    /// empty without a word of explanation.
+    #[test]
+    fn network_counters_layout_is_accepted() {
+        use windows_sys::Win32::System::Threading::GetCurrentProcess;
+
+        // SAFETY: the pseudo-handle needs no closing.
+        let handle = unsafe { GetCurrentProcess() };
+        let query = query_network_counters(handle);
+
+        assert_ne!(query.status, STATUS_INFO_LENGTH_MISMATCH);
+        if query.status == STATUS_SUCCESS {
+            assert_eq!(
+                query.written as usize,
+                size_of::<PROCESS_NETWORK_COUNTERS>()
+            );
+            assert!(process_network_counters(handle).is_some());
+        }
     }
 }

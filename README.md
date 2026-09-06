@@ -466,8 +466,10 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | Priority             | pri                   | Priority                                      | o     | o     | o       | o       |
 | Processor            | psr                   | Currently assigned processor                  | o     |       |         | o       |
 | ReadBytes            | -not supported-       | Read bytes from storage                       | o     | o     | o       | o       |
+| RecvBytes            | -not supported-       | Received bytes per second (Windows 11)        |       |       | o       |         |
 | RtPriority           | rtprio                | Kernel base priority (Windows) / real-time priority (Linux) | o     |       | o       |         |
 | SecContext           | label                 | Security context                              | o     |       |         |         |
+| SendBytes            | -not supported-       | Sent bytes per second (Windows 11)            |       |       | o       |         |
 | Separator            | -not supported-       | Show `\|` for column separation               | o     | o     | o       | o       |
 | Session              | sid                   | Session ID                                    | o     | o     | o       | o       |
 | ShdPnd               | pending               | Pending signal mask for process               | o     |       |         | o       |
@@ -511,7 +513,7 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | VmTotal              | -not supported-       | Total virtual memory size                     | *[^*] | o     | *[^*]   | *[^*]   |
 | VoluntaryContextSw   | -not supported-       | Voluntary context switch count                | o     |       |         | o       |
 | Wchan                | wchan                 | Process sleeping kernel function              | o     |       |         | o       |
-| WorkDir              | -not supported-       | Current working directory                     | o     |       |         |         |
+| WorkDir              | -not supported-       | Current working directory                     | o     |       | o       |         |
 | WriteByte            | -not supported-       | Write bytes to storage                        | o     | o     | o       | o       |
 
 [^*]: Alias for VmRss on these platforms
