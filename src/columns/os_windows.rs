@@ -32,6 +32,7 @@ pub mod vm_pin;
 pub mod vm_rss;
 pub mod vm_size;
 pub mod vm_swap;
+pub mod work_dir;
 pub mod write_bytes;
 
 pub use self::arch::Arch;
@@ -68,6 +69,7 @@ pub use self::vm_pin::VmPin;
 pub use self::vm_rss::VmRss;
 pub use self::vm_size::VmSize;
 pub use self::vm_swap::VmSwap;
+pub use self::work_dir::WorkDir;
 pub use self::write_bytes::WriteBytes;
 
 use crate::column::Column;
@@ -116,6 +118,7 @@ pub enum ConfigColumnKind {
     VmRss,
     VmSize,
     VmSwap,
+    WorkDir,
     WriteBytes,
 }
 
@@ -167,6 +170,7 @@ pub fn gen_column(
         ConfigColumnKind::VmRss => Box::new(VmRss::new(header)),
         ConfigColumnKind::VmSize => Box::new(VmSize::new(header)),
         ConfigColumnKind::VmSwap => Box::new(VmSwap::new(header)),
+        ConfigColumnKind::WorkDir => Box::new(WorkDir::new(header, _procfs)),
         ConfigColumnKind::WriteBytes => Box::new(WriteBytes::new(header)),
     }
 }
@@ -258,6 +262,10 @@ pub static KIND_LIST: Lazy<BTreeMap<ConfigColumnKind, (&'static str, &'static st
             (
                 ConfigColumnKind::VmSwap,
                 ("VmSwap", "Swapped-out virtual memory size"),
+            ),
+            (
+                ConfigColumnKind::WorkDir,
+                ("WorkDir", "Current working directory"),
             ),
             (
                 ConfigColumnKind::WriteBytes,

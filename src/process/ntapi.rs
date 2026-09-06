@@ -226,6 +226,95 @@ const _: () = assert!(size_of::<SECTION_IMAGE_INFORMATION>() == 48);
 #[cfg(target_pointer_width = "32")]
 const _: () = assert!(offset_of!(SECTION_IMAGE_INFORMATION, Machine) == 32);
 
+/// `PROCESS_BASIC_INFORMATION` - the output of `ProcessBasicInformation` (0).
+///
+/// `PebBaseAddress` is the address of the process's PEB in the target's
+/// address space; it is only meaningful to `ReadProcessMemory`.
+///
+/// `windows-sys` gates its own copy behind `Win32_System_Kernel`, so it is
+/// spelled out here like the rest of the NT surface this crate needs.
+#[repr(C)]
+#[allow(non_snake_case)]
+pub struct PROCESS_BASIC_INFORMATION {
+    pub ExitStatus: i32,
+    pub PebBaseAddress: *mut c_void,
+    pub AffinityMask: usize,
+    pub BasePriority: i32,
+    pub UniqueProcessId: HANDLE,
+    pub InheritedFromUniqueProcessId: HANDLE,
+}
+
+#[cfg(target_pointer_width = "64")]
+const _: () = assert!(size_of::<PROCESS_BASIC_INFORMATION>() == 48);
+#[cfg(target_pointer_width = "64")]
+const _: () = assert!(offset_of!(PROCESS_BASIC_INFORMATION, PebBaseAddress) == 8);
+#[cfg(target_pointer_width = "32")]
+const _: () = assert!(size_of::<PROCESS_BASIC_INFORMATION>() == 24);
+#[cfg(target_pointer_width = "32")]
+const _: () = assert!(offset_of!(PROCESS_BASIC_INFORMATION, PebBaseAddress) == 4);
+
+/// The leading, version-stable part of `PEB`, up to and including
+/// `ProcessParameters`.
+///
+/// Everything after `ProcessParameters` has grown and been reordered across
+/// Windows versions, but the prefix has stayed put since XP, which is all the
+/// working-directory read needs.
+#[repr(C)]
+#[allow(non_snake_case)]
+pub struct PEB_PREFIX {
+    pub InheritedAddressSpace: u8,
+    pub ReadImageFileExecOptions: u8,
+    pub BeingDebugged: u8,
+    pub BitField: u8,
+    pub Mutant: HANDLE,
+    pub ImageBaseAddress: *mut c_void,
+    pub Ldr: *mut c_void,
+    pub ProcessParameters: *mut c_void,
+}
+
+#[cfg(target_pointer_width = "64")]
+const _: () = assert!(offset_of!(PEB_PREFIX, ProcessParameters) == 0x20);
+#[cfg(target_pointer_width = "32")]
+const _: () = assert!(offset_of!(PEB_PREFIX, ProcessParameters) == 0x10);
+
+/// `CURDIR` - the current-directory record of
+/// `RTL_USER_PROCESS_PARAMETERS`.
+#[repr(C)]
+#[allow(non_snake_case)]
+#[allow(clippy::upper_case_acronyms)]
+pub struct CURDIR {
+    pub DosPath: UNICODE_STRING,
+    pub Handle: HANDLE,
+}
+
+/// The leading, version-stable part of `RTL_USER_PROCESS_PARAMETERS`, up to
+/// and including `CurrentDirectory`.
+///
+/// The fields after `CurrentDirectory` (`DllPath`, `ImagePathName`,
+/// `CommandLine`, ...) are not needed here; the prefix layout has been stable
+/// since XP.
+#[repr(C)]
+#[allow(non_snake_case)]
+pub struct RTL_USER_PROCESS_PARAMETERS_PREFIX {
+    pub MaximumLength: u32,
+    pub Length: u32,
+    pub Flags: u32,
+    pub DebugFlags: u32,
+    pub ConsoleHandle: HANDLE,
+    pub ConsoleFlags: u32,
+    pub StandardInput: HANDLE,
+    pub StandardOutput: HANDLE,
+    pub StandardError: HANDLE,
+    pub CurrentDirectory: CURDIR,
+}
+
+#[cfg(target_pointer_width = "64")]
+const _: () =
+    assert!(offset_of!(RTL_USER_PROCESS_PARAMETERS_PREFIX, CurrentDirectory) == 0x38);
+#[cfg(target_pointer_width = "32")]
+const _: () =
+    assert!(offset_of!(RTL_USER_PROCESS_PARAMETERS_PREFIX, CurrentDirectory) == 0x24);
+
 /// Fixed part of a `SID`: revision, sub-authority count and the 6-byte
 /// identifier authority. `windows-sys` types the trailing sub-authorities as
 /// `[u32; 1]`, so `size_of::<SID>()` is 4 bytes more than this.
@@ -394,6 +483,8 @@ pub const SYSTEM_FULL_PROCESS_INFORMATION_CLASS: u32 = 148;
 pub const PROCESS_COMMAND_LINE_INFORMATION_CLASS: u32 = 60;
 /// ProcessInformationClass. Vista and newer
 pub const PROCESS_IMAGE_INFORMATION_CLASS: u32 = 37;
+/// ProcessInformationClass. Always available
+pub const PROCESS_BASIC_INFORMATION_CLASS: u32 = 0;
 /// NTSTATUS
 pub const STATUS_SUCCESS: i32 = 0;
 pub const STATUS_INFO_LENGTH_MISMATCH: i32 = 0xC000_0004u32 as i32;
@@ -1092,6 +1183,40 @@ pub fn process_image_machine(handle: HANDLE) -> Option<u16> {
     }
 
     Some(info.Machine)
+}
+
+/// Reads the PEB base address of `handle`.
+///
+/// `ProcessBasicInformation` only needs `PROCESS_QUERY_LIMITED_INFORMATION`.
+/// The returned address lives in the target process's address space and is
+/// only meaningful to `ReadProcessMemory`.
+pub fn process_peb_address(handle: HANDLE) -> Option<usize> {
+    let query = nt_query_information_process()?;
+
+    // SAFETY: a zeroed `PROCESS_BASIC_INFORMATION` is a valid output buffer -
+    // every field is an integer or a pointer, and only `PebBaseAddress` is read.
+    let mut info: PROCESS_BASIC_INFORMATION = unsafe { std::mem::zeroed() };
+    let mut ret_len: u32 = 0;
+
+    let status = unsafe {
+        query(
+            handle,
+            PROCESS_BASIC_INFORMATION_CLASS,
+            ptr::addr_of_mut!(info).cast::<c_void>(),
+            size_of::<PROCESS_BASIC_INFORMATION>() as u32,
+            ptr::addr_of_mut!(ret_len),
+        )
+    };
+    if status != STATUS_SUCCESS {
+        return None;
+    }
+    // Short writes leave `PebBaseAddress` unset.
+    if (ret_len as usize) < offset_of!(PROCESS_BASIC_INFORMATION, PebBaseAddress) + size_of::<usize>()
+    {
+        return None;
+    }
+
+    Some(info.PebBaseAddress as usize)
 }
 
 /// Copies the characters of `string` out of `buffer`, which must still be
