@@ -546,8 +546,9 @@ impl SystemProcessSnapshot {
 /// requires - is reported as a negative status, so we quietly fall back to the
 /// basic class.
 ///
-/// The buffer is a `Vec<u64>` rather than a `Vec<u8>` because the structures
-/// require 8-byte alignment and a byte vector only guarantees 1.
+/// The buffer is a `Vec<u64>` rather than a `Vec<u8>` so the kernel's
+/// 8-byte-aligned entries stay aligned; the entries themselves are read
+/// unaligned, so a byte vector would work too.
 pub fn query_system_processes() -> Option<SystemProcessSnapshot> {
     if let Some(words) = query_system_info_class(SYSTEM_FULL_PROCESS_INFORMATION_CLASS) {
         return Some(SystemProcessSnapshot {
@@ -690,15 +691,14 @@ pub struct ThreadSnapshot {
 /// One entry of a snapshot: the process header plus everything that depends on
 /// knowing where the entry begins and ends.
 ///
-/// The header is borrowed straight from the `Vec<u64>` snapshot rather than
-/// copied. The buffer is 8-byte aligned (it is a `Vec<u64>`), and the kernel
-/// places each entry on an 8-byte boundary (`NextEntryOffset` is a multiple of
-/// 8), so a `&SYSTEM_PROCESS_INFORMATION` over the buffer is always aligned.
+/// The header is a copy rather than a borrow. Entries of a full snapshot are
+/// only guaranteed to be even-aligned - variable-length data such as a package
+/// name makes `NextEntryOffset` arbitrary - so a `&SYSTEM_PROCESS_INFORMATION`
+/// over the buffer would be misaligned often enough to matter.
 pub struct ProcessEntry<'a> {
     buf: &'a [u64],
-    /// The entry's leading `SYSTEM_PROCESS_INFORMATION`, borrowed from the
-    /// snapshot buffer. Aligned, so it is read directly rather than copied.
-    info: &'a SYSTEM_PROCESS_INFORMATION,
+    /// Unaligned copy of the entry's leading `SYSTEM_PROCESS_INFORMATION`.
+    header: SYSTEM_PROCESS_INFORMATION,
     /// Byte offset of this entry within `buf`.
     start: usize,
     /// Byte offset one past this entry: the bound for its variable-length data.
@@ -708,7 +708,7 @@ pub struct ProcessEntry<'a> {
 
 impl<'a> ProcessEntry<'a> {
     pub fn info(&self) -> &SYSTEM_PROCESS_INFORMATION {
-        self.info
+        &self.header
     }
 
     /// The `ImageName`, reduced to the file name when the snapshot supplied a
@@ -721,7 +721,7 @@ impl<'a> ProcessEntry<'a> {
     /// looks for a '.', so both classes are normalised to the short form -
     /// output must not change just because the caller happened to be elevated.
     pub fn image_name(&self) -> String {
-        let name = unicode_string_to_owned(&self.info.ImageName);
+        let name = unicode_string_to_owned(&self.header.ImageName);
         match self.kind {
             SnapshotKind::Basic => name,
             SnapshotKind::Full => match name.rsplit('\\').next() {
@@ -743,16 +743,19 @@ impl<'a> ProcessEntry<'a> {
     pub fn threads(&self) -> Vec<ThreadSnapshot> {
         let (base, stride, len) = self.threads_span();
         let mut ret = Vec::with_capacity(len);
-        let pid = self.info.UniqueProcessId as usize as i32;
+        let pid = self.header.UniqueProcessId as usize as i32;
 
         for index in 0..len {
             // SAFETY: `base + index * stride` is inside the entry (`index <
-            // len`) and 8-byte aligned, so a `&SYSTEM_THREAD_INFORMATION`
-            // over it is valid. Both record types start with that structure
-            // (see the `ThreadInfo` offset assertion), which is why the stride
-            // is the only thing that differs between the two classes.
-            let thread: &SYSTEM_THREAD_INFORMATION =
-                unsafe { &*base.add(index * stride).cast::<SYSTEM_THREAD_INFORMATION>() };
+            // len`). The record is copied because it can be misaligned. Both
+            // record types start with `SYSTEM_THREAD_INFORMATION` (see the
+            // `ThreadInfo` offset assertion), which is why the stride is the
+            // only thing that differs between the two classes.
+            let thread: SYSTEM_THREAD_INFORMATION = unsafe {
+                base.add(index * stride)
+                    .cast::<SYSTEM_THREAD_INFORMATION>()
+                    .read_unaligned()
+            };
 
             ret.push(ThreadSnapshot {
                 tid: thread.ClientId.UniqueThread as usize as i32,
@@ -761,7 +764,7 @@ impl<'a> ProcessEntry<'a> {
                 kernel_time: thread.KernelTime as u64,
                 user_time: thread.UserTime as u64,
                 priority: thread.Priority,
-                state: decode_state(thread),
+                state: decode_state(&thread),
             });
         }
 
@@ -782,14 +785,15 @@ impl<'a> ProcessEntry<'a> {
             .saturating_add(size_of::<SYSTEM_PROCESS_INFORMATION>());
 
         let available = self.end.saturating_sub(first);
-        let wanted = (self.info.NumberOfThreads as usize).saturating_mul(stride);
+        let wanted = (self.header.NumberOfThreads as usize).saturating_mul(stride);
         let len = wanted.min(available) / stride;
 
-        // `info` borrows the entry that starts at `start`, so this is
-        // `start + 256`: inside the buffer, and 8-byte aligned like every
-        // entry. Each stride is a multiple of 8, so every record is aligned
-        // too, and `len` was clamped so the last one stays inside the entry.
-        (self.info.Threads.as_ptr().cast::<u8>(), stride, len)
+        // SAFETY: `first` is `start + 256`, and `start + header <= limit` was
+        // checked by the iterator, so it is inside the buffer. `len` was
+        // clamped so the last record stays inside the entry too. The records
+        // are read unaligned, so no alignment guarantee is needed.
+        let base = unsafe { self.buf.as_ptr().cast::<u8>().add(first) };
+        (base, stride, len)
     }
 
     /// The scheduler state of the most active thread of this entry.
@@ -807,13 +811,13 @@ impl<'a> ProcessEntry<'a> {
 
         for index in 0..len {
             // SAFETY: `base + index * stride` is inside the entry (`index <
-            // len`) and 8-byte aligned, so a `&SYSTEM_THREAD_INFORMATION`
-            // over it is valid. Both record types start with that structure
-            // (see the `ThreadInfo` offset assertion), which is why the stride
-            // is the only thing that differs between the two classes.
-            let thread: &SYSTEM_THREAD_INFORMATION =
-                unsafe { &*base.add(index * stride).cast::<SYSTEM_THREAD_INFORMATION>() };
-            let state = decode_state(thread);
+            // len`). The record is copied because it can be misaligned.
+            let thread: SYSTEM_THREAD_INFORMATION = unsafe {
+                base.add(index * stride)
+                    .cast::<SYSTEM_THREAD_INFORMATION>()
+                    .read_unaligned()
+            };
+            let state = decode_state(&thread);
             let rank = activity(state);
             if rank < best_rank {
                 best_rank = rank;
@@ -841,7 +845,7 @@ impl<'a> ProcessEntry<'a> {
         let base = self
             .start
             .checked_add(header)?
-            .checked_add((self.info.NumberOfThreads as usize).checked_mul(stride)?)?;
+            .checked_add((self.header.NumberOfThreads as usize).checked_mul(stride)?)?;
 
         // The fixed prefix we read must fit inside the entry; the variable
         // length data trailing it is reached only through the offsets.
@@ -855,16 +859,15 @@ impl<'a> ProcessEntry<'a> {
     pub fn user_sid(&self) -> Option<SID_MAX> {
         let base = self.extension_base()?;
 
-        // SAFETY: `extension_base` already verified `base + prefix <= end`, and
-        // `base` is a multiple of 8 (`start` + header + N*stride), so the
-        // extension is aligned; borrow it instead of copying it out.
-        let fields: &SYSTEM_PROCESS_INFORMATION_EXTENSION = unsafe {
-            &*self
-                .buf
+        // SAFETY: `extension_base` already verified `base + prefix <= end`.
+        // The extension is copied because it can be misaligned.
+        let fields: SYSTEM_PROCESS_INFORMATION_EXTENSION = unsafe {
+            self.buf
                 .as_ptr()
                 .cast::<u8>()
                 .add(base)
                 .cast::<SYSTEM_PROCESS_INFORMATION_EXTENSION>()
+                .read_unaligned()
         };
 
         if fields.UserSidOffset == 0 {
@@ -886,15 +889,14 @@ impl<'a> ProcessEntry<'a> {
     pub fn classification(&self) -> Option<u32> {
         let base = self.extension_base()?;
         // `Flags` sits at offset 48 within the extension; `Classification` is
-        // its bits 1..=4. `base` is 8-aligned, so a `u32` read at `base + 48`
-        // is aligned.
+        // its bits 1..=4. Read unaligned: the extension can be misaligned.
         let flags: u32 = unsafe {
             self.buf
                 .as_ptr()
                 .cast::<u8>()
                 .add(base + offset_of!(SYSTEM_PROCESS_INFORMATION_EXTENSION, Flags))
                 .cast::<u32>()
-                .read()
+                .read_unaligned()
         };
         Some((flags >> 1) & 0xF)
     }
@@ -977,23 +979,23 @@ impl<'a> Iterator for ProcessIter<'a> {
             return None;
         }
 
-        // SAFETY: the buffer is a `Vec<u64>`, so it is 8-byte aligned, and the
-        // kernel lays each entry on an 8-byte boundary (`NextEntryOffset` is a
-        // multiple of 8). `offset + size_of <= limit`, so the header is fully
-        // inside the buffer and aligned; borrow it directly instead of copying.
-        debug_assert_eq!(offset % 8, 0);
-        let info: &SYSTEM_PROCESS_INFORMATION = unsafe {
-            &*self
-                .snapshot
+        // SAFETY: `offset + size_of <= limit`, so the header lies wholly inside
+        // the buffer. Copied rather than borrowed: entries of a full snapshot
+        // are not guaranteed to be 8-byte aligned.
+        let info: SYSTEM_PROCESS_INFORMATION = unsafe {
+            self.snapshot
                 .words
                 .as_ptr()
                 .cast::<u8>()
                 .add(offset)
                 .cast::<SYSTEM_PROCESS_INFORMATION>()
+                .read_unaligned()
         };
 
         // `NextEntryOffset == 0` marks the last entry. An offset that would not
         // move past this header is malformed - stop rather than loop forever.
+        // Alignment is deliberately not required: a full snapshot pads entries
+        // to 2 bytes, so demanding 8 would silently truncate the process list.
         let next = info.NextEntryOffset as usize;
         let end = if next == 0 || next < header {
             limit
@@ -1004,7 +1006,7 @@ impl<'a> Iterator for ProcessIter<'a> {
 
         Some(ProcessEntry {
             buf: &self.snapshot.words,
-            info,
+            header: info,
             start: offset,
             end,
             kind: self.snapshot.kind,
