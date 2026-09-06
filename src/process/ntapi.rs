@@ -7,7 +7,6 @@
 
 use std::ffi::c_void;
 use std::fmt::Write;
-use std::marker::PhantomData;
 use std::mem::{offset_of, size_of};
 use std::ptr;
 use std::slice;
@@ -55,9 +54,15 @@ pub struct CLIENT_ID {
     pub UniqueThread: HANDLE,
 }
 
+/// `SYSTEM_THREAD_INFORMATION` - the thread record of
+/// `SystemProcessInformation` (5).
+///
+/// `SystemFullProcessInformation` (148) returns
+/// `SYSTEM_EXTENDED_THREAD_INFORMATION` instead, which begins with this
+/// structure and appends the extended pointers.
 #[repr(C)]
 #[allow(non_snake_case)]
-pub struct SYSTEM_THREADS {
+pub struct SYSTEM_THREAD_INFORMATION {
     pub KernelTime: i64,
     pub UserTime: i64,
     pub CreateTime: i64,
@@ -93,22 +98,27 @@ pub struct SYSTEM_PROCESS_INFORMATION {
     pub VirtualMemoryCounters: VM_COUNTERS,
     pub PrivatePageCount: usize,
     pub IoCounters: IO_COUNTERS,
-    /// C99-style flexible array member. The count is `NumberOfThreads`
-    pub Threads: [SYSTEM_THREADS; 0],
+    /// C99-style flexible array member. The count is `NumberOfThreads`. The
+    /// records are `SYSTEM_THREAD_INFORMATION` (80 bytes) for
+    /// `SystemProcessInformation` (5) and `SYSTEM_EXTENDED_THREAD_INFORMATION`
+    /// (136 bytes) for `SystemFullProcessInformation` (148).
+    pub Threads: [u64; 0],
     // String buffer for `ImageName`
 }
 
-/// `SYSTEM_EXTENDED_THREAD_INFORMATION` - the thread record used by
-/// `SystemExtendedProcessInformation` (57) and `SystemFullProcessInformation`
-/// (148) in place of `SYSTEM_THREADS`.
+/// `SYSTEM_EXTENDED_THREAD_INFORMATION` - the wider thread record returned by
+/// `SystemFullProcessInformation` (148) in place of
+/// `SYSTEM_THREAD_INFORMATION`.
 ///
-/// The leading union member is a plain `SYSTEM_THREADS`, which is the only
-/// part this crate reads; the trailing pointers are here so the array stride
-/// (used to locate the process extension) is the real one.
+/// Only the leading `SYSTEM_THREAD_INFORMATION` is read; the trailing pointers
+/// are declared so the array stride - which is what locates the process
+/// extension - keeps its real width.
 #[repr(C)]
 #[allow(non_snake_case)]
 pub struct SYSTEM_EXTENDED_THREAD_INFORMATION {
-    pub ThreadInfo: SYSTEM_THREADS,
+    pub ThreadInfo: SYSTEM_THREAD_INFORMATION,
+
+    // Extended
     pub StackBase: *mut c_void,
     pub StackLimit: *mut c_void,
     pub Win32StartAddress: *mut c_void,
@@ -122,9 +132,10 @@ pub struct SYSTEM_EXTENDED_THREAD_INFORMATION {
 #[cfg(target_pointer_width = "64")]
 const _: () = assert!(size_of::<SYSTEM_PROCESS_INFORMATION>() == 256);
 #[cfg(target_pointer_width = "64")]
-const _: () = assert!(size_of::<SYSTEM_THREADS>() == 80);
+const _: () = assert!(size_of::<SYSTEM_THREAD_INFORMATION>() == 80);
 #[cfg(target_pointer_width = "64")]
 const _: () = assert!(size_of::<SYSTEM_EXTENDED_THREAD_INFORMATION>() == 136);
+const _: () = assert!(offset_of!(SYSTEM_EXTENDED_THREAD_INFORMATION, ThreadInfo) == 0);
 
 /// `PROCESS_DISK_COUNTERS`
 #[repr(C)]
@@ -372,7 +383,8 @@ impl std::hash::Hash for SID_MAX {
 // Constants
 // ---------------------------------------------------------------------------
 
-/// SystemInformationClass
+/// SystemInformationClass. Always available; its thread records are
+/// `SYSTEM_THREAD_INFORMATION` (80 bytes).
 pub const SYSTEM_PROCESS_INFORMATION_CLASS: u32 = 5;
 /// SystemInformationClass. Windows 8.1 and newer, and the caller has to be
 /// elevated: without it the query returns `STATUS_ACCESS_DENIED`. Carries
@@ -470,9 +482,13 @@ pub enum SnapshotKind {
 
 impl SnapshotKind {
     /// Distance between two thread records of this snapshot.
+    ///
+    /// Class 5 lays them out as `SYSTEM_THREAD_INFORMATION` (80 bytes) and
+    /// class 148 as `SYSTEM_EXTENDED_THREAD_INFORMATION` (136 bytes). Both are
+    /// multiples of 8, so every record in the array stays 8-byte aligned.
     fn thread_stride(self) -> usize {
         match self {
-            Self::Basic => size_of::<SYSTEM_THREADS>(),
+            Self::Basic => size_of::<SYSTEM_THREAD_INFORMATION>(),
             Self::Full => size_of::<SYSTEM_EXTENDED_THREAD_INFORMATION>(),
         }
     }
@@ -526,6 +542,9 @@ pub fn query_system_processes() -> Option<SystemProcessSnapshot> {
 fn query_system_info_class(class: u32) -> Option<Vec<u64>> {
     let query = nt_query_system_information()?;
     let mut words = vec![0u64; 0];
+    // A `Vec<u64>` is allocated 8-byte aligned, which is what the
+    // `SYSTEM_PROCESS_INFORMATION` structures in the snapshot require.
+    debug_assert_eq!(words.as_ptr() as usize % 8, 0);
 
     for _ in 0..8 {
         let mut ret_len: u32 = 0;
@@ -555,78 +574,34 @@ fn query_system_info_class(class: u32) -> Option<Vec<u64>> {
     None
 }
 
-/// Decoded `SYSTEM_THREADS`, with the raw handles already narrowed to ids.
-pub struct ThreadInfo {
+/// One thread of a process, decoded from a `SYSTEM_THREAD_INFORMATION`.
+///
+/// The raw handles are narrowed to ids and the times are converted, so this is
+/// what the rest of the crate works with; the kernel buffer is not kept alive
+/// for it.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ThreadSnapshot {
     pub tid: i32,
+    /// Owning process id.
+    pub pid: i32,
     pub create_time: i64,
     pub kernel_time: u64,
     pub user_time: u64,
     pub priority: i32,
 }
 
-/// The thread records trailing a `SYSTEM_PROCESS_INFORMATION`.
-///
-/// Held as a base pointer plus a stride rather than a `&[SYSTEM_THREADS]`:
-/// the records are `SYSTEM_EXTENDED_THREAD_INFORMATION` (136 bytes) in a full
-/// snapshot, of which only the leading `SYSTEM_THREADS` part is read, and
-/// neither variant is guaranteed to sit on an 8-byte boundary.
-pub struct ThreadSlice<'a> {
-    base: *const u8,
-    stride: usize,
-    len: usize,
-    /// Owning process id, used to confirm the layout is what we expect.
-    pid: usize,
-    _lifetime: PhantomData<&'a [u64]>,
-}
-
-impl ThreadSlice<'_> {
-    pub fn len(&self) -> usize {
-        self.len
-    }
-
-    pub fn get(&self, index: usize) -> Option<ThreadInfo> {
-        if index >= self.len {
-            return None;
-        }
-
-        // SAFETY: `index < len` and `len` was clamped so that
-        // `base + (len - 1) * stride + size_of` stays inside the entry. The
-        // record is copied because it can be misaligned.
-        let thread: SYSTEM_THREADS = unsafe {
-            self.base
-                .add(index * self.stride)
-                .cast::<SYSTEM_THREADS>()
-                .read_unaligned()
-        };
-
-        // Every thread carries its owning process id. If a future Windows
-        // release moves the fields around this will not match, and the entry is
-        // dropped instead of being read as garbage.
-        if thread.ClientId.UniqueProcess as usize != self.pid {
-            return None;
-        }
-
-        Some(ThreadInfo {
-            tid: thread.ClientId.UniqueThread as usize as i32,
-            create_time: thread.CreateTime,
-            kernel_time: thread.KernelTime as u64,
-            user_time: thread.UserTime as u64,
-            priority: thread.Priority,
-        })
-    }
-}
-
 /// One entry of a snapshot: the process header plus everything that depends on
 /// knowing where the entry begins and ends.
 ///
-/// The header is a copy rather than a borrow. Entries of a full snapshot are
-/// only guaranteed to be even-aligned - variable-length data such as a package
-/// name makes `NextEntryOffset` arbitrary - so a `&SYSTEM_PROCESS_INFORMATION`
-/// over the buffer would be misaligned often enough to matter.
+/// The header is borrowed straight from the `Vec<u64>` snapshot rather than
+/// copied. The buffer is 8-byte aligned (it is a `Vec<u64>`), and the kernel
+/// places each entry on an 8-byte boundary (`NextEntryOffset` is a multiple of
+/// 8), so a `&SYSTEM_PROCESS_INFORMATION` over the buffer is always aligned.
 pub struct ProcessEntry<'a> {
     buf: &'a [u64],
-    /// Unaligned copy of the entry's leading `SYSTEM_PROCESS_INFORMATION`.
-    header: SYSTEM_PROCESS_INFORMATION,
+    /// The entry's leading `SYSTEM_PROCESS_INFORMATION`, borrowed from the
+    /// snapshot buffer. Aligned, so it is read directly rather than copied.
+    info: &'a SYSTEM_PROCESS_INFORMATION,
     /// Byte offset of this entry within `buf`.
     start: usize,
     /// Byte offset one past this entry: the bound for its variable-length data.
@@ -636,7 +611,7 @@ pub struct ProcessEntry<'a> {
 
 impl<'a> ProcessEntry<'a> {
     pub fn info(&self) -> &SYSTEM_PROCESS_INFORMATION {
-        &self.header
+        self.info
     }
 
     /// The `ImageName`, reduced to the file name when the snapshot supplied a
@@ -649,7 +624,7 @@ impl<'a> ProcessEntry<'a> {
     /// looks for a '.', so both classes are normalised to the short form -
     /// output must not change just because the caller happened to be elevated.
     pub fn image_name(&self) -> String {
-        let name = unicode_string_to_owned(&self.header.ImageName);
+        let name = unicode_string_to_owned(&self.info.ImageName);
         match self.kind {
             SnapshotKind::Basic => name,
             SnapshotKind::Full => match name.rsplit('\\').next() {
@@ -659,29 +634,53 @@ impl<'a> ProcessEntry<'a> {
         }
     }
 
-    /// The `Threads[]` flexible array trailing the process header.
+    /// The `Threads[]` flexible array trailing the process header, decoded into
+    /// owned [`ThreadSnapshot`]s.
     ///
     /// `NumberOfThreads` is the count the kernel stored. For every entry except
     /// the last, the following entry (at `NextEntryOffset`) bounds the array;
     /// the last entry has `NextEntryOffset == 0` and is bounded by the buffer,
-    /// which the kernel sized for exactly `NumberOfThreads` records.
-    pub fn threads(&self) -> ThreadSlice<'a> {
-        let header = size_of::<SYSTEM_PROCESS_INFORMATION>();
+    /// which the kernel sized for exactly `NumberOfThreads` records. Records
+    /// that would reach past the entry are clipped, so nothing is read outside
+    /// the entry it belongs to.
+    pub fn threads(&self) -> Vec<ThreadSnapshot> {
         let stride = self.kind.thread_stride();
-        let first = self.start.saturating_add(header);
+        let first = self
+            .start
+            .saturating_add(size_of::<SYSTEM_PROCESS_INFORMATION>());
 
         let available = self.end.saturating_sub(first);
-        let wanted = (self.header.NumberOfThreads as usize).saturating_mul(stride);
+        let wanted = (self.info.NumberOfThreads as usize).saturating_mul(stride);
         let len = wanted.min(available) / stride;
 
-        ThreadSlice {
-            // SAFETY: `first` is inside `buf`, which outlives `'a`.
-            base: unsafe { self.buf.as_ptr().cast::<u8>().add(first) },
-            stride,
-            len,
-            pid: self.header.UniqueProcessId as usize,
-            _lifetime: PhantomData,
+        let mut ret = Vec::with_capacity(len);
+        // `info` borrows the entry that starts at `start`, so this is
+        // `start + 256`: inside the buffer, and 8-byte aligned like every
+        // entry. Each stride is a multiple of 8, so every record is aligned
+        // too, and `len` was clamped so the last one stays inside the entry.
+        let base = self.info.Threads.as_ptr().cast::<u8>();
+        let pid = self.info.UniqueProcessId as usize as i32;
+
+        for index in 0..len {
+            // SAFETY: `base + index * stride` is inside the entry (`index <
+            // len`) and 8-byte aligned, so a `&SYSTEM_THREAD_INFORMATION`
+            // over it is valid. Both record types start with that structure
+            // (see the `ThreadInfo` offset assertion), which is why the stride
+            // is the only thing that differs between the two classes.
+            let thread: &SYSTEM_THREAD_INFORMATION =
+                unsafe { &*base.add(index * stride).cast::<SYSTEM_THREAD_INFORMATION>() };
+
+            ret.push(ThreadSnapshot {
+                tid: thread.ClientId.UniqueThread as usize as i32,
+                pid,
+                create_time: thread.CreateTime,
+                kernel_time: thread.KernelTime as u64,
+                user_time: thread.UserTime as u64,
+                priority: thread.Priority,
+            });
         }
+
+        ret
     }
 
     /// The process user SID from the extension, as the raw `SID` bytes.
@@ -701,7 +700,7 @@ impl<'a> ProcessEntry<'a> {
         let base = self
             .start
             .checked_add(header)?
-            .checked_add((self.header.NumberOfThreads as usize).checked_mul(stride)?)?;
+            .checked_add((self.info.NumberOfThreads as usize).checked_mul(stride)?)?;
 
         // The fixed prefix we read must fit inside the entry; the variable
         // length data trailing it is reached only through the offsets.
@@ -715,14 +714,16 @@ impl<'a> ProcessEntry<'a> {
     pub fn user_sid(&self) -> Option<SID_MAX> {
         let base = self.extension_base()?;
 
-        // SAFETY: `extension_base` already verified `base + prefix <= end`.
-        let fields: SYSTEM_PROCESS_INFORMATION_EXTENSION = unsafe {
-            self.buf
+        // SAFETY: `extension_base` already verified `base + prefix <= end`, and
+        // `base` is a multiple of 8 (`start` + header + N*stride), so the
+        // extension is aligned; borrow it instead of copying it out.
+        let fields: &SYSTEM_PROCESS_INFORMATION_EXTENSION = unsafe {
+            &*self
+                .buf
                 .as_ptr()
                 .cast::<u8>()
                 .add(base)
                 .cast::<SYSTEM_PROCESS_INFORMATION_EXTENSION>()
-                .read_unaligned()
         };
 
         if fields.UserSidOffset == 0 {
@@ -744,14 +745,15 @@ impl<'a> ProcessEntry<'a> {
     pub fn classification(&self) -> Option<u32> {
         let base = self.extension_base()?;
         // `Flags` sits at offset 48 within the extension; `Classification` is
-        // its bits 1..=4.
+        // its bits 1..=4. `base` is 8-aligned, so a `u32` read at `base + 48`
+        // is aligned.
         let flags: u32 = unsafe {
             self.buf
                 .as_ptr()
                 .cast::<u8>()
                 .add(base + offset_of!(SYSTEM_PROCESS_INFORMATION_EXTENSION, Flags))
                 .cast::<u32>()
-                .read_unaligned()
+                .read()
         };
         Some((flags >> 1) & 0xF)
     }
@@ -834,23 +836,23 @@ impl<'a> Iterator for ProcessIter<'a> {
             return None;
         }
 
-        // SAFETY: `offset + size_of <= limit`, so the header lies wholly inside
-        // the buffer. Copied rather than borrowed: entries of a full snapshot
-        // are not guaranteed to be 8-byte aligned.
-        let info: SYSTEM_PROCESS_INFORMATION = unsafe {
-            self.snapshot
+        // SAFETY: the buffer is a `Vec<u64>`, so it is 8-byte aligned, and the
+        // kernel lays each entry on an 8-byte boundary (`NextEntryOffset` is a
+        // multiple of 8). `offset + size_of <= limit`, so the header is fully
+        // inside the buffer and aligned; borrow it directly instead of copying.
+        debug_assert_eq!(offset % 8, 0);
+        let info: &SYSTEM_PROCESS_INFORMATION = unsafe {
+            &*self
+                .snapshot
                 .words
                 .as_ptr()
                 .cast::<u8>()
                 .add(offset)
                 .cast::<SYSTEM_PROCESS_INFORMATION>()
-                .read_unaligned()
         };
 
         // `NextEntryOffset == 0` marks the last entry. An offset that would not
         // move past this header is malformed - stop rather than loop forever.
-        // Alignment is deliberately not required: a full snapshot pads entries
-        // to 2 bytes, so demanding 8 would silently truncate the process list.
         let next = info.NextEntryOffset as usize;
         let end = if next == 0 || next < header {
             limit
@@ -861,7 +863,7 @@ impl<'a> Iterator for ProcessIter<'a> {
 
         Some(ProcessEntry {
             buf: &self.snapshot.words,
-            header: info,
+            info,
             start: offset,
             end,
             kind: self.snapshot.kind,
@@ -1162,6 +1164,140 @@ mod tests {
             kind: SnapshotKind::Basic,
         };
         assert_eq!(snap.iter().next().unwrap().classification(), None);
+    }
+
+    /// One thread record, zeroed apart from the fields the crate reads.
+    fn thread_record(tid: usize, pid: usize) -> SYSTEM_THREAD_INFORMATION {
+        let mut thread: SYSTEM_THREAD_INFORMATION = unsafe { std::mem::zeroed() };
+        thread.KernelTime = 100;
+        thread.UserTime = 200;
+        thread.CreateTime = 1_234_567;
+        thread.ClientId = CLIENT_ID {
+            UniqueProcess: pid as HANDLE,
+            UniqueThread: tid as HANDLE,
+        };
+        thread.Priority = 8;
+        thread
+    }
+
+    /// Widens a record into the layout a full snapshot uses: the leading
+    /// `SYSTEM_THREAD_INFORMATION` followed by the extended pointers.
+    fn extend(thread: SYSTEM_THREAD_INFORMATION) -> SYSTEM_EXTENDED_THREAD_INFORMATION {
+        SYSTEM_EXTENDED_THREAD_INFORMATION {
+            ThreadInfo: thread,
+            StackBase: ptr::null_mut(),
+            StackLimit: ptr::null_mut(),
+            Win32StartAddress: ptr::null_mut(),
+            TebBaseAddress: ptr::null_mut(),
+            Reserved2: 0,
+            Reserved3: 0,
+            Reserved4: 0,
+        }
+    }
+
+    /// Builds a single-entry snapshot holding `threads` verbatim after the
+    /// process header, while the header claims `number_of_threads` - passing a
+    /// count larger than the records present exercises the bounds clamp.
+    ///
+    /// `T` is whichever thread record the snapshot class uses.
+    fn make_snapshot_with_threads<T>(
+        threads: &[T],
+        number_of_threads: u32,
+        kind: SnapshotKind,
+    ) -> SystemProcessSnapshot {
+        let mut header: SYSTEM_PROCESS_INFORMATION = unsafe { std::mem::zeroed() };
+        // `NextEntryOffset == 0` marks the last entry, which is bounded by the
+        // buffer itself.
+        header.NextEntryOffset = 0;
+        header.NumberOfThreads = number_of_threads;
+        header.UniqueProcessId = 1234 as HANDLE;
+
+        let header_bytes = unsafe {
+            std::slice::from_raw_parts(
+                (&header as *const SYSTEM_PROCESS_INFORMATION).cast::<u8>(),
+                size_of::<SYSTEM_PROCESS_INFORMATION>(),
+            )
+        };
+        let mut bytes: Vec<u8> = header_bytes.to_vec();
+
+        for thread in threads {
+            let record = unsafe {
+                std::slice::from_raw_parts((thread as *const T).cast::<u8>(), size_of::<T>())
+            };
+            bytes.extend_from_slice(record);
+        }
+        // The snapshot is a `Vec<u64>`, so round the buffer up to a whole word.
+        bytes.resize(bytes.len().div_ceil(size_of::<u64>()) * size_of::<u64>(), 0);
+
+        let mut words = vec![0u64; bytes.len() / size_of::<u64>()];
+        // SAFETY: `words` holds exactly `bytes.len()` bytes.
+        unsafe {
+            ptr::copy_nonoverlapping(bytes.as_ptr(), words.as_mut_ptr().cast::<u8>(), bytes.len());
+        }
+
+        SystemProcessSnapshot { words, kind }
+    }
+
+    #[test]
+    fn threads_returns_every_record() {
+        let records = [
+            thread_record(11, 1234),
+            thread_record(12, 1234),
+            thread_record(13, 1234),
+        ];
+        let snap = make_snapshot_with_threads(&records, 3, SnapshotKind::Basic);
+        let entry = snap.iter().next().expect("one entry");
+
+        let got = entry.threads();
+        assert_eq!(got.len(), 3);
+        assert_eq!(got[0].tid, 11);
+        assert_eq!(got[1].tid, 12);
+        assert_eq!(got[2].tid, 13);
+        assert_eq!(got[0].pid, 1234);
+        assert_eq!(got[0].create_time, 1_234_567);
+        assert_eq!(got[0].kernel_time, 100);
+        assert_eq!(got[0].user_time, 200);
+        assert_eq!(got[2].priority, 8);
+    }
+
+    #[test]
+    fn threads_is_empty_without_records() {
+        let snap =
+            make_snapshot_with_threads::<SYSTEM_THREAD_INFORMATION>(&[], 0, SnapshotKind::Basic);
+        let entry = snap.iter().next().expect("one entry");
+        assert!(entry.threads().is_empty());
+    }
+
+    #[test]
+    fn threads_are_clipped_to_the_entry() {
+        // The header claims three records but only two fit before the buffer
+        // ends; the third must not be handed out.
+        let records = [thread_record(11, 1234), thread_record(12, 1234)];
+        let snap = make_snapshot_with_threads(&records, 3, SnapshotKind::Basic);
+        let entry = snap.iter().next().expect("one entry");
+
+        let got = entry.threads();
+        assert_eq!(got.len(), 2);
+        assert_eq!(got[1].tid, 12);
+    }
+
+    #[test]
+    fn threads_of_a_full_snapshot_use_the_wider_stride() {
+        // Class 148 lays the threads out as `SYSTEM_EXTENDED_THREAD_INFORMATION`
+        // (136 bytes) and puts the extension after them, so the records are
+        // found at that stride rather than the 80 of a class-5 snapshot.
+        let records = [
+            extend(thread_record(11, 1234)),
+            extend(thread_record(12, 1234)),
+        ];
+        let snap = make_snapshot_with_threads(&records, 2, SnapshotKind::Full);
+        let entry = snap.iter().next().expect("one entry");
+
+        let got = entry.threads();
+        assert_eq!(got.len(), 2);
+        assert_eq!(got[0].tid, 11);
+        assert_eq!(got[1].tid, 12);
+        assert_eq!(got[0].pid, 1234);
     }
 
     /// `IMAGE_FILE_MACHINE_*` of the architecture this test was built for.

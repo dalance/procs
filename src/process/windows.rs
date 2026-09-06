@@ -23,6 +23,9 @@ use super::ntapi;
 
 /// Re-export the owned SID type so callers can use `crate::process::SID_MAX`.
 pub use super::ntapi::SID_MAX;
+/// Re-export the decoded thread record so callers can use
+/// `crate::process::ThreadSnapshot`.
+pub use super::ntapi::ThreadSnapshot;
 /// Re-export the image machine query so callers can use
 /// `crate::process::process_image_machine`.
 pub use super::ntapi::process_image_machine;
@@ -285,15 +288,6 @@ struct ProcSnapshot {
     is_kthread: bool,
 }
 
-struct ThreadSnapshot {
-    tid: i32,
-    pid: i32,
-    create_time: i64,
-    kernel_time: u64,
-    user_time: u64,
-    priority: i32,
-}
-
 struct SystemSnapshot {
     procs: Vec<ProcSnapshot>,
     threads: Vec<ThreadSnapshot>,
@@ -361,21 +355,7 @@ fn take_snapshot(with_thread: bool) -> SystemSnapshot {
         });
 
         if with_thread {
-            let pid = info.UniqueProcessId as usize as i32;
-            let slice = entry.threads();
-            for idx in 0..slice.len() {
-                let Some(thread) = slice.get(idx) else {
-                    continue;
-                };
-                threads.push(ThreadSnapshot {
-                    tid: thread.tid,
-                    pid,
-                    create_time: thread.create_time,
-                    kernel_time: thread.kernel_time,
-                    user_time: thread.user_time,
-                    priority: thread.priority,
-                });
-            }
+            threads.extend(entry.threads());
         }
     }
 
