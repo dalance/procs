@@ -555,6 +555,8 @@ pub struct ConfigDisplay {
     pub tree_symbols: [String; 5],
     #[serde(default = "default_true")]
     pub abbr_sid: bool,
+    #[serde(default = "default_false")]
+    pub abbr_nix: bool,
     #[serde(default = "default_theme_auto")]
     pub theme: ConfigTheme,
     #[serde(default = "default_true")]
@@ -587,6 +589,7 @@ impl Default for ConfigDisplay {
                 String::from("└"),
             ],
             abbr_sid: true,
+            abbr_nix: false,
             theme: ConfigTheme::Auto,
             show_kthreads: true,
         }

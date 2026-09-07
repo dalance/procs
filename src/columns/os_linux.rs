@@ -264,13 +264,14 @@ pub fn gen_column(
     _docker_path: &str,
     separator: &str,
     abbr_sid: bool,
+    abbr_nix: bool,
     tree_symbols: &[String; 5],
     procfs: Option<PathBuf>,
 ) -> Box<dyn Column> {
     match kind {
         ConfigColumnKind::Ccgroup => Box::new(Ccgroup::new(header)),
         ConfigColumnKind::Cgroup => Box::new(Cgroup::new(header)),
-        ConfigColumnKind::Command => Box::new(Command::new(header)),
+        ConfigColumnKind::Command => Box::new(Command::new(header, abbr_nix)),
         ConfigColumnKind::ContextSw => Box::new(ContextSw::new(header)),
         ConfigColumnKind::VoluntaryContextSw => Box::new(VoluntaryContextSw::new(header)),
         ConfigColumnKind::InvoluntaryContextSw => Box::new(InvoluntaryContextSw::new(header)),

@@ -9,10 +9,11 @@ pub struct Command {
     fmt_contents: HashMap<i32, String>,
     raw_contents: HashMap<i32, String>,
     width: usize,
+    abbr_nix: bool,
 }
 
 impl Command {
-    pub fn new(header: Option<String>) -> Self {
+    pub fn new(header: Option<String>, abbr_nix: bool) -> Self {
         let header = header.unwrap_or_else(|| String::from("Command"));
         let unit = String::new();
         Self {
@@ -21,7 +22,35 @@ impl Command {
             width: 0,
             header,
             unit,
+            abbr_nix,
         }
+    }
+}
+
+// Abbreviate a Nix store path so only the first 12 chars of the hash are kept,
+// followed by an ellipsis. Example: /nix/store/abc12345…-hello-2.12.1/bin/hello
+fn abbr_nix_store_path(s: &str) -> String {
+    let Some(rest) = s.strip_prefix("/nix/store/") else {
+        return s.to_string();
+    };
+    let Some(hash_end) = rest.find('-') else {
+        return s.to_string();
+    };
+    if hash_end >= 32 && rest.as_bytes()[..hash_end].iter().all(|b| b.is_ascii_hexdigit()) {
+        let (hash, name_and_more) = rest.split_at(hash_end);
+        // safe truncation: 12 chars of hash + ellipsis
+        let head = &hash[..12];
+        format!("/nix/store/{head}…{name_and_more}")
+    } else {
+        s.to_string()
+    }
+}
+
+fn abbr_nix_store(s: &str, abbr: bool) -> String {
+    if abbr {
+        abbr_nix_store_path(s)
+    } else {
+        s.to_string()
     }
 }
 
@@ -47,7 +76,7 @@ impl Column for Command {
         } else {
             proc.curr_proc.stat().comm.clone()
         };
-        let raw_content = fmt_content.clone();
+        let raw_content = abbr_nix_store(&fmt_content, self.abbr_nix);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);
@@ -79,7 +108,7 @@ impl Column for Command {
         } else {
             String::from("")
         };
-        let raw_content = fmt_content.clone();
+        let raw_content = abbr_nix_store(&fmt_content, self.abbr_nix);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);
@@ -92,7 +121,7 @@ impl Column for Command {
 impl Column for Command {
     fn add(&mut self, proc: &ProcessInfo) {
         let fmt_content = proc.command.clone();
-        let raw_content = fmt_content.clone();
+        let raw_content = abbr_nix_store(&fmt_content, self.abbr_nix);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);
@@ -120,7 +149,7 @@ impl Column for Command {
             x
         };
         let fmt_content = command;
-        let raw_content = fmt_content.clone();
+        let raw_content = abbr_nix_store(&fmt_content, self.abbr_nix);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);
