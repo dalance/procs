@@ -13,7 +13,6 @@ pub struct WorkDir {
     fmt_contents: HashMap<i32, String>,
     raw_contents: HashMap<i32, String>,
     width: usize,
-    #[allow(dead_code)]
     procfs: Option<PathBuf>,
 }
 
@@ -32,18 +31,9 @@ impl WorkDir {
     }
 }
 
-#[cfg(any(target_os = "linux", target_os = "android"))]
 impl Column for WorkDir {
     fn add(&mut self, proc: &ProcessInfo) {
-        let fmt_content = if let Ok(proc) = crate::util::process_new(proc.pid, &self.procfs) {
-            if let Ok(path) = proc.cwd() {
-                path.to_string_lossy().to_string()
-            } else {
-                String::from("")
-            }
-        } else {
-            String::from("")
-        };
+        let fmt_content = work_dir_of(proc.pid, &self.procfs).unwrap_or_default();
         let raw_content = fmt_content.clone();
 
         self.fmt_contents.insert(proc.pid, fmt_content);
@@ -53,17 +43,10 @@ impl Column for WorkDir {
     column_default!(String, false);
 }
 
-#[cfg(target_os = "windows")]
-impl Column for WorkDir {
-    fn add(&mut self, proc: &ProcessInfo) {
-        let fmt_content = work_dir_of(proc.pid).unwrap_or_default();
-        let raw_content = fmt_content.clone();
-
-        self.fmt_contents.insert(proc.pid, fmt_content);
-        self.raw_contents.insert(proc.pid, raw_content);
-    }
-
-    column_default!(String, false);
+#[cfg(any(target_os = "linux", target_os = "android"))]
+fn work_dir_of(pid: i32, procfs: &Option<PathBuf>) -> Option<String> {
+    let proc = crate::util::process_new(pid, procfs).ok()?;
+    Some(proc.cwd().ok()?.to_string_lossy().into_owned())
 }
 
 /// Reads the current working directory of `pid` from its PEB.
@@ -74,7 +57,7 @@ impl Column for WorkDir {
 /// `PROCESS_QUERY_LIMITED_INFORMATION | PROCESS_VM_READ`, so protected
 /// processes (e.g. PPL) yield `None`.
 #[cfg(target_os = "windows")]
-fn work_dir_of(pid: i32) -> Option<String> {
+fn work_dir_of(pid: i32, _procfs: &Option<PathBuf>) -> Option<String> {
     use windows_sys::Win32::Foundation::{CloseHandle, FALSE, HANDLE};
     use windows_sys::Win32::System::Threading::{
         OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_VM_READ,
