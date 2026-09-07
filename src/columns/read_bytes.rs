@@ -32,7 +32,7 @@ impl Column for ReadBytes {
         let (fmt_content, raw_content) = if let Some(curr_io) = proc.curr_io
             && let Some(prev_io) = proc.prev_io
         {
-            let interval_ms = proc.interval.as_secs() + u64::from(proc.interval.subsec_millis());
+            let interval_ms = proc.interval.as_secs() * 1000 + u64::from(proc.interval.subsec_millis());
             let io = (curr_io.read_bytes - prev_io.read_bytes) * 1000 / interval_ms;
             (bytify(io), io)
         } else {
@@ -50,7 +50,7 @@ impl Column for ReadBytes {
 impl Column for ReadBytes {
     fn add(&mut self, proc: &ProcessInfo) {
         let (fmt_content, raw_content) = if proc.curr_res.is_some() && proc.prev_res.is_some() {
-            let interval_ms = proc.interval.as_secs() + u64::from(proc.interval.subsec_millis());
+            let interval_ms = proc.interval.as_secs() * 1000 + u64::from(proc.interval.subsec_millis());
             let io = (proc.curr_res.as_ref().unwrap().ri_diskio_bytesread
                 - proc.prev_res.as_ref().unwrap().ri_diskio_bytesread)
                 * 1000
@@ -70,7 +70,7 @@ impl Column for ReadBytes {
 #[cfg(target_os = "windows")]
 impl Column for ReadBytes {
     fn add(&mut self, proc: &ProcessInfo) {
-        let interval_ms = proc.interval.as_secs() + u64::from(proc.interval.subsec_millis());
+        let interval_ms = proc.interval.as_secs() * 1000 + u64::from(proc.interval.subsec_millis());
         let io = (proc.disk_info.curr_read - proc.disk_info.prev_read) * 1000 / interval_ms;
 
         let raw_content = io;
@@ -88,7 +88,7 @@ impl Column for ReadBytes {
     fn add(&mut self, proc: &ProcessInfo) {
         // io block size: 128KB
         let block_size = 128 * 1024;
-        let interval_ms = proc.interval.as_secs() + u64::from(proc.interval.subsec_millis());
+        let interval_ms = proc.interval.as_secs() * 1000 + u64::from(proc.interval.subsec_millis());
         let io = (proc.curr_proc.info.rusage.inblock as u64
             - proc.prev_proc.info.rusage.inblock as u64)
             * block_size
