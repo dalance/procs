@@ -434,7 +434,7 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 
 | procs `kind`         | `ps` STANDARD FORMAT  | Description                                   | Linux | macOS | Windows | FreeBSD |
 | -------------------- | --------------------- | --------------------------------------------- | ----- | ----- | ------- | ------- |
-| Arch                 | -not supported-       | Architecture of binary (macOS specific)       |       | o     |         |         |
+| Arch                 | -not supported-       | Architecture of binary                        |       | o     | o       |         |
 | Ccgroup              | -not supported-       | Control group by compressed format            | o     |       |         |         |
 | Cgroup               | cgroup                | Control group                                 | o     |       |         |         |
 | Command              | args                  | Command with all arguments                    | o     | o     | o       | o       |
@@ -445,7 +445,7 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | ElapsedTime          | -not supported-       | Elapsed time                                  | o     | o     | o       | o       |
 | Env                  | `e` output modifier   | Environment variables                         | o     |       |         | o       |
 | Esp                  | esp                   | Stack pointer                                 | o     |       |         |         |
-| FileName             | comm                  | File name                                     | o     |       |         | o       |
+| FileName             | comm                  | File name                                     | o     |       | o       | o       |
 | Gid                  | egid                  | Group ID                                      | o     | o     | o       | o       |
 | GidFs                | fgid                  | File system group ID                          | o     |       |         |         |
 | GidReal              | rgid                  | Real group ID                                 | o     | o     |         | o       |
@@ -466,10 +466,12 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | Priority             | pri                   | Priority                                      | o     | o     | o       | o       |
 | Processor            | psr                   | Currently assigned processor                  | o     |       |         | o       |
 | ReadBytes            | -not supported-       | Read bytes from storage                       | o     | o     | o       | o       |
-| RtPriority           | rtprio                | Real-time priority                            | o     |       |         |         |
+| RecvBytes            | -not supported-       | Received bytes per second (Windows 11)        |       |       | o       |         |
+| RtPriority           | rtprio                | Kernel base priority (Windows) / real-time priority (Linux) | o     |       | o       |         |
 | SecContext           | label                 | Security context                              | o     |       |         |         |
+| SendBytes            | -not supported-       | Sent bytes per second (Windows 11)            |       |       | o       |         |
 | Separator            | -not supported-       | Show `\|` for column separation               | o     | o     | o       | o       |
-| Session              | sid                   | Session ID                                    | o     | o     |         | o       |
+| Session              | sid                   | Session ID                                    | o     | o     | o       | o       |
 | ShdPnd               | pending               | Pending signal mask for process               | o     |       |         | o       |
 | SigBlk               | blocked               | Blocked signal mask                           | o     |       |         | o       |
 | SigCgt               | caught                | Caught signal mask                            | o     |       |         | o       |
@@ -478,9 +480,9 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | Slot                 | -not supported-       | Slot for `--insert` option                    | o     | o     | o       | o       |
 | Ssb                  | -not supported-       | Speculative store bypass status               | o     |       |         |         |
 | StartTime            | start_time            | Starting time                                 | o     | o     | o       | o       |
-| State                | s                     | Process state                                 | o     | o     |         | o       |
-| TcpPort              | -not supported-       | Bound TCP ports                               | o     | o     |         |         |
-| Threads              | nlwp                  | Thread count                                  | o     | o     |         | o       |
+| State                | s                     | Process state                                 | o     | o     | o       | o       |
+| TcpPort              | -not supported-       | Bound TCP ports                               | o     | o     | o       |         |
+| Threads              | nlwp                  | Thread count                                  | o     | o     | o       | o       |
 | TreeSlot             | -not supported-       | Slot for tree column                          | o     | o     | o       | o       |
 | Tty                  | tty                   | Controlling TTY                               | o     | o     |         | o       |
 | UdpPort              | -not supported-       | Bound UDP ports                               | o     | o     |         |         |
@@ -511,7 +513,7 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | VmTotal              | -not supported-       | Total virtual memory size                     | *[^*] | o     | *[^*]   | *[^*]   |
 | VoluntaryContextSw   | -not supported-       | Voluntary context switch count                | o     |       |         | o       |
 | Wchan                | wchan                 | Process sleeping kernel function              | o     |       |         | o       |
-| WorkDir              | -not supported-       | Current working directory                     | o     |       |         |         |
+| WorkDir              | -not supported-       | Current working directory                     | o     |       | o       |         |
 | WriteByte            | -not supported-       | Write bytes to storage                        | o     | o     | o       | o       |
 
 [^*]: Alias for VmRss on these platforms

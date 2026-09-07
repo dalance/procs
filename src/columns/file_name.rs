@@ -38,6 +38,19 @@ impl Column for FileName {
     column_default!(String, false);
 }
 
+#[cfg(target_os = "windows")]
+impl Column for FileName {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let raw_content = proc.file_name.clone();
+        let fmt_content = raw_content.clone();
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(String, false);
+}
+
 #[cfg(target_os = "freebsd")]
 impl Column for FileName {
     fn add(&mut self, proc: &ProcessInfo) {

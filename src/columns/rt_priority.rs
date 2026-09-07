@@ -25,6 +25,7 @@ impl RtPriority {
     }
 }
 
+#[cfg(any(target_os = "linux", target_os = "android"))]
 impl Column for RtPriority {
     fn add(&mut self, proc: &ProcessInfo) {
         let raw_content = proc.curr_proc.stat().rt_priority.unwrap_or_default();
@@ -33,6 +34,22 @@ impl Column for RtPriority {
         } else {
             String::new()
         };
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(u32, true);
+}
+
+#[cfg(target_os = "windows")]
+impl Column for RtPriority {
+    fn add(&mut self, proc: &ProcessInfo) {
+        // Windows has nothing like the POSIX real-time priority. This column
+        // shows the kernel Base Priority (0-31), the scheduling priority the
+        // kernel actually uses - the "real" priority of the process.
+        let raw_content = proc.priority as u32;
+        let fmt_content = format!("{}", raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);

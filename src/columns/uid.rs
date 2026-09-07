@@ -1,6 +1,4 @@
 use crate::process::ProcessInfo;
-#[cfg(target_os = "windows")]
-use crate::util::format_sid;
 use crate::{column_default, Column};
 use std::cmp;
 use std::collections::HashMap;
@@ -64,8 +62,15 @@ impl Column for Uid {
 #[cfg(target_os = "windows")]
 impl Column for Uid {
     fn add(&mut self, proc: &ProcessInfo) {
-        let fmt_content = format_sid(&proc.user.sid, self.abbr_sid);
-        let raw_content = proc.user.sid[proc.user.sid.len() - 1] as u32;
+        let (fmt_content, raw_content) = if let Some(sid) = &proc.user {
+            let subs = sid.sub_authorities();
+            (
+                sid.format(self.abbr_sid),
+                subs.last().copied().unwrap_or(0),
+            )
+        } else {
+            (String::new(), 0)
+        };
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);
