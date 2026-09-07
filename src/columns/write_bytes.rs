@@ -32,7 +32,7 @@ impl Column for WriteBytes {
         let (fmt_content, raw_content) = if let Some(curr_io) = proc.curr_io
             && let Some(prev_io) = proc.prev_io
         {
-            let interval_ms = proc.interval.as_secs() + u64::from(proc.interval.subsec_millis());
+            let interval_ms = proc.interval.as_secs() * 1000 + u64::from(proc.interval.subsec_millis());
             let io = (curr_io.write_bytes - prev_io.write_bytes) * 1000 / interval_ms;
             (bytify(io), io)
         } else {
@@ -50,7 +50,7 @@ impl Column for WriteBytes {
 impl Column for WriteBytes {
     fn add(&mut self, proc: &ProcessInfo) {
         let (fmt_content, raw_content) = if proc.curr_res.is_some() && proc.prev_res.is_some() {
-            let interval_ms = proc.interval.as_secs() + u64::from(proc.interval.subsec_millis());
+            let interval_ms = proc.interval.as_secs() * 1000 + u64::from(proc.interval.subsec_millis());
             let io = (proc.curr_res.as_ref().unwrap().ri_diskio_byteswritten
                 - proc.prev_res.as_ref().unwrap().ri_diskio_byteswritten)
                 * 1000
@@ -70,7 +70,7 @@ impl Column for WriteBytes {
 #[cfg(target_os = "windows")]
 impl Column for WriteBytes {
     fn add(&mut self, proc: &ProcessInfo) {
-        let interval_ms = proc.interval.as_secs() + u64::from(proc.interval.subsec_millis());
+        let interval_ms = proc.interval.as_secs() * 1000 + u64::from(proc.interval.subsec_millis());
         let io = (proc.disk_info.curr_write - proc.disk_info.prev_write) * 1000 / interval_ms;
 
         let raw_content = io;
@@ -88,7 +88,7 @@ impl Column for WriteBytes {
     fn add(&mut self, proc: &ProcessInfo) {
         // io block size: 128KB
         let block_size = 128 * 1024;
-        let interval_ms = proc.interval.as_secs() + u64::from(proc.interval.subsec_millis());
+        let interval_ms = proc.interval.as_secs() * 1000 + u64::from(proc.interval.subsec_millis());
         let io = (proc.curr_proc.info.rusage.oublock as u64
             - proc.prev_proc.info.rusage.oublock as u64)
             * block_size
