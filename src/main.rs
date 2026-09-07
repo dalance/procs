@@ -188,7 +188,7 @@ fn run_list() {
     let mut width = 0;
     let mut list = Vec::new();
     let mut desc = HashMap::new();
-    for (_, (v, d)) in KIND_LIST.iter() {
+    for (v, d) in KIND_LIST.values() {
         list.push(v);
         desc.insert(v, d);
         width = cmp::max(width, UnicodeWidthStr::width(*v));
