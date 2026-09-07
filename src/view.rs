@@ -604,18 +604,13 @@ impl View {
 
         let len_pid = self.visible_pids.len();
         for (i, pid) in self.visible_pids.iter().enumerate() {
-            let mut line = "{".to_string();
-            let len_column = self.columns.len();
-            for (j, c) in self.columns.iter().enumerate() {
-                if c.visible && c.kind != ConfigColumnKind::Separator {
-                    let text = c.column.display_json(*pid);
-                    line.push_str(&text);
-                    if j != len_column - 1 {
-                        line.push_str(", ");
-                    }
-                }
-            }
-            line.push('}');
+            let fields: Vec<String> = self
+                .columns
+                .iter()
+                .filter(|c| c.visible && c.kind != ConfigColumnKind::Separator)
+                .map(|c| c.column.display_json(*pid))
+                .collect();
+            let mut line = json_object(&fields);
             if i != len_pid - 1 {
                 line.push(',');
             }
@@ -773,5 +768,36 @@ impl View {
             }
         }
         current
+    }
+}
+
+/// Builds one JSON object row. Columns without a JSON representation
+/// (e.g. Tree) yield an empty string and must not produce a separator.
+fn json_object(fields: &[String]) -> String {
+    let fields: Vec<&str> = fields
+        .iter()
+        .map(String::as_str)
+        .filter(|x| !x.is_empty())
+        .collect();
+    format!("{{{}}}", fields.join(", "))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::json_object;
+
+    #[test]
+    fn json_object_skips_columns_without_json() {
+        assert_eq!(json_object(&[]), "{}");
+        assert_eq!(json_object(&[r#""PID": 1"#.into()]), r#"{"PID": 1}"#);
+        // a hidden (--only) or Tree column contributes nothing, not a comma
+        assert_eq!(
+            json_object(&["".into(), r#""PID": 1"#.into(), "".into()]),
+            r#"{"PID": 1}"#
+        );
+        assert_eq!(
+            json_object(&[r#""PID": 1"#.into(), r#""CPU": 0"#.into()]),
+            r#"{"PID": 1, "CPU": 0}"#
+        );
     }
 }

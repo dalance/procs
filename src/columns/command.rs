@@ -1,4 +1,5 @@
 use crate::process::ProcessInfo;
+use crate::util::sanitize_control_chars;
 use crate::{column_default, Column};
 use std::cmp;
 use std::collections::HashMap;
@@ -39,7 +40,6 @@ impl Column for Command {
                     })
                     .collect::<String>();
                 cmd.pop();
-                cmd = cmd.replace(['\n', '\t'], " ");
                 cmd
             } else {
                 format!("[{}]", proc.curr_proc.stat().comm)
@@ -47,6 +47,7 @@ impl Column for Command {
         } else {
             proc.curr_proc.stat().comm.clone()
         };
+        let fmt_content = sanitize_control_chars(&fmt_content);
         let raw_content = fmt_content.clone();
 
         self.fmt_contents.insert(proc.pid, fmt_content);
@@ -71,7 +72,6 @@ impl Column for Command {
                     })
                     .collect::<String>();
                 cmd.pop();
-                cmd = cmd.replace(['\n', '\t'], " ");
                 cmd
             } else {
                 String::from("")
@@ -79,6 +79,7 @@ impl Column for Command {
         } else {
             String::from("")
         };
+        let fmt_content = sanitize_control_chars(&fmt_content);
         let raw_content = fmt_content.clone();
 
         self.fmt_contents.insert(proc.pid, fmt_content);
@@ -91,7 +92,15 @@ impl Column for Command {
 #[cfg(target_os = "windows")]
 impl Column for Command {
     fn add(&mut self, proc: &ProcessInfo) {
-        let fmt_content = proc.command.clone();
+        // Show the command line when present, otherwise fall back to the image
+        // name (e.g. System, Idle, or protected processes with no command line).
+        let fmt_content = proc
+            .command
+            .as_ref()
+            .filter(|c| !c.is_empty())
+            .cloned()
+            .unwrap_or_else(|| proc.file_name.clone());
+        let fmt_content = sanitize_control_chars(&fmt_content);
         let raw_content = fmt_content.clone();
 
         self.fmt_contents.insert(proc.pid, fmt_content);
@@ -120,6 +129,7 @@ impl Column for Command {
             x
         };
         let fmt_content = command;
+        let fmt_content = sanitize_control_chars(&fmt_content);
         let raw_content = fmt_content.clone();
 
         self.fmt_contents.insert(proc.pid, fmt_content);
