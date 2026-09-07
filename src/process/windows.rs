@@ -3,41 +3,79 @@ use chrono::{Local, NaiveDate};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::ffi::c_void;
-use std::mem::{MaybeUninit, size_of, zeroed};
+use std::mem::{MaybeUninit, zeroed};
 use std::path::PathBuf;
 use std::ptr;
+use std::sync::atomic::{AtomicU8, Ordering};
 use std::thread;
 use std::time::{Duration, Instant};
-use windows_sys::Win32::Foundation::{CloseHandle, FALSE, FILETIME, HANDLE, HMODULE, MAX_PATH};
+use windows_sys::Win32::Foundation::{CloseHandle, FALSE, HANDLE};
 use windows_sys::Win32::Security::{
     AdjustTokenPrivileges, GetTokenInformation, LookupAccountSidW, LookupPrivilegeValueW, PSID,
-    SE_DEBUG_NAME, SE_PRIVILEGE_ENABLED, SID, TOKEN_ADJUST_PRIVILEGES, TOKEN_GROUPS,
-    TOKEN_PRIVILEGES, TOKEN_QUERY, TOKEN_USER, TokenGroups, TokenUser,
-};
-use windows_sys::Win32::System::Diagnostics::ToolHelp::{
-    CreateToolhelp32Snapshot, PROCESSENTRY32, Process32First, Process32Next, TH32CS_SNAPPROCESS,
-};
-use windows_sys::Win32::System::ProcessStatus::{
-    EnumProcessModulesEx, GetModuleBaseNameW, GetProcessMemoryInfo, K32EnumProcesses,
-    LIST_MODULES_ALL, PROCESS_MEMORY_COUNTERS, PROCESS_MEMORY_COUNTERS_EX,
+    SE_DEBUG_NAME, SE_PRIVILEGE_ENABLED, SID, TOKEN_ADJUST_PRIVILEGES, TOKEN_INFORMATION_CLASS,
+    TOKEN_PRIVILEGES, TOKEN_QUERY, TOKEN_USER, TokenUser,
 };
 use windows_sys::Win32::System::Threading::{
-    GetCurrentProcess, GetPriorityClass, GetProcessIoCounters, GetProcessTimes, IO_COUNTERS,
-    OpenProcess, OpenProcessToken, PROCESS_QUERY_INFORMATION, PROCESS_VM_READ,
+    GetCurrentProcess, OpenProcess, OpenProcessToken, PROCESS_QUERY_INFORMATION,
+    PROCESS_QUERY_LIMITED_INFORMATION,
 };
+
+use super::ntapi;
+
+/// Re-export the PEB prefix so the WorkDir column can read
+/// `ProcessParameters`.
+pub use super::ntapi::PEB_PREFIX;
+/// Re-export the process-parameters prefix so the WorkDir column can read
+/// `CurrentDirectory`.
+pub use super::ntapi::RTL_USER_PROCESS_PARAMETERS_PREFIX;
+/// Re-export the owned SID type so callers can use `crate::process::SID_MAX`.
+pub use super::ntapi::SID_MAX;
+/// Re-export the decoded thread record so callers can use
+/// `crate::process::ThreadSnapshot`.
+pub use super::ntapi::ThreadSnapshot;
+/// Re-export the scheduler state so callers can use
+/// `crate::process::ThreadState`.
+pub use super::ntapi::ThreadState;
+/// Re-export the image machine query so callers can use
+/// `crate::process::process_image_machine`.
+pub use super::ntapi::process_image_machine;
+/// Re-export the PEB address query so callers can use
+/// `crate::process::process_peb_address`.
+pub use super::ntapi::process_peb_address;
+/// Re-export the cross-process memory reader so columns can read
+/// PEB-relative data.
+pub use super::ntapi::read_process_memory;
+/// Re-export the `KTHREAD_STATE` constants so the State column can map
+/// them to letters.
+pub use super::ntapi::thread_state;
+/// Re-export the `KWAIT_REASON` constants so the State column can map
+/// them to letters.
+pub use super::ntapi::wait_reason;
 
 pub struct ProcessInfo {
     pub pid: i32,
-    pub command: String,
+    /// Command line of the process, or `None` when the process exposes none
+    /// (e.g. System, Idle). Falls back to `file_name` at display time.
+    pub command: Option<String>,
+    /// Image (executable) name, used as the Command fallback and by the
+    /// FileName column.
+    pub file_name: String,
     pub ppid: i32,
     pub start_time: chrono::DateTime<chrono::Local>,
     pub cpu_info: CpuInfo,
     pub memory_info: MemoryInfo,
     pub disk_info: DiskInfo,
-    pub user: SidName,
-    pub groups: Vec<SidName>,
-    pub priority: u32,
+    pub net_info: NetInfo,
+    pub user: Option<SID_MAX>,
+    pub priority: i32,
     pub thread: i32,
+    pub session: i32,
+    /// Scheduler state of the most active thread behind this row.
+    ///
+    /// Windows publishes no state for a process as a whole, only for each of
+    /// its threads, so the State column derives the row's state from the most
+    /// active one. For a `--thread` row it is that one thread's state.
+    pub state: Option<ThreadState>,
     pub interval: Duration,
 }
 
@@ -57,11 +95,41 @@ pub struct MemoryInfo {
     pub private_usage: u64,
 }
 
+impl MemoryInfo {
+    /// Used for threads, which do not own memory of their own.
+    fn empty() -> Self {
+        Self {
+            page_fault_count: 0,
+            peak_working_set_size: 0,
+            working_set_size: 0,
+            quota_peak_paged_pool_usage: 0,
+            quota_paged_pool_usage: 0,
+            quota_peak_non_paged_pool_usage: 0,
+            quota_non_paged_pool_usage: 0,
+            page_file_usage: 0,
+            peak_page_file_usage: 0,
+            private_usage: 0,
+        }
+    }
+}
+
 pub struct DiskInfo {
     pub prev_read: u64,
     pub prev_write: u64,
     pub curr_read: u64,
     pub curr_write: u64,
+}
+
+/// Cumulative network traffic sampled at both ends of the interval.
+///
+/// `ProcessNetworkIoInformation` is a Windows 11 addition and needs a process
+/// handle, so both the class and the process can be missing: the counters stay
+/// at zero then and the rate comes out as zero.
+pub struct NetInfo {
+    pub prev_recv: u64,
+    pub prev_send: u64,
+    pub curr_recv: u64,
+    pub curr_send: u64,
 }
 
 pub struct CpuInfo {
@@ -73,134 +141,418 @@ pub struct CpuInfo {
 
 pub fn collect_proc(
     interval: Duration,
-    _with_thread: bool,
-    _show_kthreads: bool,
+    with_thread: bool,
+    show_kthreads: bool,
     _procfs_path: &Option<PathBuf>,
 ) -> Vec<ProcessInfo> {
-    let mut base_procs = Vec::new();
-    let mut ret = Vec::new();
-
     let _ = set_privilege();
 
-    for pid in get_pids() {
-        let handle = get_handle(pid);
+    let started = Instant::now();
+    let prev = take_snapshot(with_thread);
+    thread::sleep(interval);
+    let finished = Instant::now();
+    let curr = take_snapshot(with_thread);
 
-        if let Some(handle) = handle {
-            let times = get_times(handle);
-            let io = get_io(handle);
+    // Several columns divide by this, so never hand out a zero interval.
+    let interval = finished
+        .saturating_duration_since(started)
+        .max(Duration::from_millis(1));
 
-            let time = Instant::now();
+    let prev_procs: HashMap<i32, &ProcSnapshot> = prev.procs.iter().map(|p| (p.pid, p)).collect();
+    let prev_threads: HashMap<i32, &ThreadSnapshot> =
+        prev.threads.iter().map(|t| (t.tid, t)).collect();
 
-            if let (Some((_, _, sys, user)), Some((read, write))) = (times, io) {
-                base_procs.push((pid, sys, user, read, write, time));
-            }
+    let SystemSnapshot { procs, threads } = curr;
+
+    let mut ret = Vec::with_capacity(procs.len());
+
+    for proc in procs {
+        // Hide the kernel's own processes (Idle, System, Registry, Memory
+        // Compression, ...) unless `--thread` was given. The decision is made
+        // once in `take_snapshot` from the authoritative kernel classification
+        // (or the parent-pid heuristic on a basic snapshot).
+        if !show_kthreads && proc.is_kthread {
+            continue;
         }
+
+        let prev = prev_procs
+            .get(&proc.pid)
+            .copied()
+            // A recycled pid would otherwise pair up with an unrelated process.
+            .filter(|p| p.create_time == proc.create_time || proc.create_time == 0);
+
+        // A process that started between the two samples pairs with itself,
+        // which reports no delta.
+        let prev = prev.unwrap_or(&proc);
+
+        let handles = ProcHandles::open(proc.pid);
+
+        let command = handles
+            .any()
+            .and_then(ntapi::process_command_line)
+            .filter(|command| !command.is_empty());
+
+        // `command` holds only the command line (when one is exposed); `file_name`
+        // is the image name and acts as the Command fallback for processes that
+        // have no command line (e.g. System, Idle).
+        let file_name = image_fallback(&proc);
+
+        // The snapshot SID saves an `OpenProcessToken`; the token is only
+        // opened for processes the snapshot could not name. The group list is
+        // deliberately not collected here - `Group` and `Gid` query it
+        // themselves, so that only enabling one of them pays for it.
+        let user = proc.user_sid.or_else(|| handles.full.and_then(get_user));
+        let priority = proc.base_priority;
+
+        ret.push(ProcessInfo {
+            pid: proc.pid,
+            command,
+            file_name,
+            ppid: proc.ppid,
+            start_time: filetime_to_local(proc.create_time),
+            cpu_info: CpuInfo {
+                prev_sys: prev.kernel_time,
+                prev_user: prev.user_time,
+                curr_sys: proc.kernel_time,
+                curr_user: proc.user_time,
+            },
+            disk_info: DiskInfo {
+                prev_read: prev.read,
+                prev_write: prev.write,
+                curr_read: proc.read,
+                curr_write: proc.write,
+            },
+            net_info: NetInfo {
+                prev_recv: prev.recv,
+                prev_send: prev.send,
+                curr_recv: proc.recv,
+                curr_send: proc.send,
+            },
+            // Last: this moves out of `proc`, which `prev` may still borrow.
+            memory_info: proc.memory_info,
+            user,
+            priority,
+            thread: proc.thread_count,
+            session: proc.session_id as i32,
+            state: proc.state,
+            interval,
+        });
     }
 
-    thread::sleep(interval);
+    if with_thread {
+        let owners: HashMap<i32, usize> = ret
+            .iter()
+            .enumerate()
+            .map(|(idx, p)| (p.pid, idx))
+            .collect();
 
-    let (mut ppids, mut threads) = get_ppid_threads();
-
-    for (pid, prev_sys, prev_user, prev_read, prev_write, prev_time) in base_procs {
-        let ppid = ppids.remove(&pid);
-        let thread = threads.remove(&pid);
-        let handle = get_handle(pid);
-
-        if let Some(handle) = handle {
-            let command = get_command(handle);
-            let memory_info = get_memory_info(handle);
-            let times = get_times(handle);
-            let io = get_io(handle);
-
-            let start_time = if let Some((start, _, _, _)) = times {
-                let time = chrono::Duration::seconds(start as i64 / 10_000_000);
-                let base = NaiveDate::from_ymd_opt(1601, 1, 1)
-                    .and_then(|ndate| ndate.and_hms_opt(0, 0, 0))
-                    .unwrap();
-                let time = base + time;
-                let local = Local.from_utc_datetime(&time);
-                Some(local)
-            } else {
-                None
+        for thread in threads {
+            // Skip threads whose owning process was filtered out above.
+            let Some(&owner) = owners.get(&thread.pid) else {
+                continue;
             };
 
-            let cpu_info = if let Some((_, _, curr_sys, curr_user)) = times {
-                Some(CpuInfo {
+            let prev = prev_threads
+                .get(&thread.tid)
+                .copied()
+                .filter(|p| p.create_time == thread.create_time || thread.create_time == 0);
+            let (prev_sys, prev_user) = match prev {
+                Some(p) => (
+                    thread.kernel_time.saturating_sub(p.kernel_time),
+                    thread.user_time.saturating_sub(p.user_time),
+                ),
+                None => (thread.kernel_time, thread.user_time),
+            };
+
+            let (command, file_name, user, session) = {
+                let parent = &ret[owner];
+                (
+                    parent.command.clone(),
+                    parent.file_name.clone(),
+                    parent.user,
+                    parent.session,
+                )
+            };
+
+            ret.push(ProcessInfo {
+                pid: thread.tid,
+                command,
+                file_name,
+                ppid: thread.pid,
+                start_time: filetime_to_local(thread.create_time),
+                cpu_info: CpuInfo {
                     prev_sys,
                     prev_user,
-                    curr_sys,
-                    curr_user,
-                })
-            } else {
-                None
-            };
-
-            let disk_info = if let Some((curr_read, curr_write)) = io {
-                Some(DiskInfo {
-                    prev_read,
-                    prev_write,
-                    curr_read,
-                    curr_write,
-                })
-            } else {
-                None
-            };
-
-            let user = get_user(handle);
-            let groups = get_groups(handle);
-
-            let priority = get_priority(handle);
-
-            let curr_time = Instant::now();
-            let interval = curr_time - prev_time;
-
-            let mut all_ok = true;
-            all_ok &= command.is_some();
-            all_ok &= start_time.is_some();
-            all_ok &= cpu_info.is_some();
-            all_ok &= memory_info.is_some();
-            all_ok &= disk_info.is_some();
-            all_ok &= user.is_some();
-            all_ok &= groups.is_some();
-            all_ok &= thread.is_some();
-
-            if all_ok {
-                let command = command.unwrap();
-                let ppid = ppid.unwrap_or(0);
-                let start_time = start_time.unwrap();
-                let cpu_info = cpu_info.unwrap();
-                let memory_info = memory_info.unwrap();
-                let disk_info = disk_info.unwrap();
-                let user = user.unwrap();
-                let groups = groups.unwrap();
-                let thread = thread.unwrap();
-
-                let proc = ProcessInfo {
-                    pid,
-                    command,
-                    ppid,
-                    start_time,
-                    cpu_info,
-                    memory_info,
-                    disk_info,
-                    user,
-                    groups,
-                    priority,
-                    thread,
-                    interval,
-                };
-
-                ret.push(proc);
-            }
-
-            unsafe {
-                CloseHandle(handle);
-            }
+                    curr_sys: thread.kernel_time,
+                    curr_user: thread.user_time,
+                },
+                memory_info: MemoryInfo::empty(),
+                disk_info: DiskInfo {
+                    prev_read: 0,
+                    prev_write: 0,
+                    curr_read: 0,
+                    curr_write: 0,
+                },
+                // Network traffic is only accounted per process, so a thread
+                // row reports none rather than repeating its process'.
+                net_info: NetInfo {
+                    prev_recv: 0,
+                    prev_send: 0,
+                    curr_recv: 0,
+                    curr_send: 0,
+                },
+                user,
+                priority: thread.priority,
+                thread: 1,
+                session,
+                state: Some(thread.state),
+                interval,
+            });
         }
     }
 
     ret
 }
+
+// ---------------------------------------------------------------------------
+// Snapshot
+// ---------------------------------------------------------------------------
+
+struct ProcSnapshot {
+    pid: i32,
+    ppid: i32,
+    thread_count: i32,
+    image_name: String,
+    session_id: u32,
+    create_time: i64,
+    kernel_time: u64,
+    user_time: u64,
+    read: u64,
+    write: u64,
+    /// Cumulative network bytes received / sent, when the class that reports
+    /// them is implemented and the process could be opened.
+    recv: u64,
+    send: u64,
+    memory_info: MemoryInfo,
+    base_priority: i32,
+    /// Scheduler state of the most active thread.
+    state: Option<ThreadState>,
+    /// Process user SID straight from the snapshot, when it carried one.
+    /// `None` means the token has to be opened to learn the user.
+    user_sid: Option<SID_MAX>,
+    /// Whether this process is one of the kernel's own: System, Secure System,
+    /// Registry, Memory Compression. When the full snapshot classified it this
+    /// is authoritative; for a basic snapshot it falls back to the classic
+    /// Idle/System parent-pid heuristic. `procs` hides these unless `--thread`.
+    is_kthread: bool,
+}
+
+struct SystemSnapshot {
+    procs: Vec<ProcSnapshot>,
+    threads: Vec<ThreadSnapshot>,
+}
+
+/// One `NtQuerySystemInformation` call covers every process on the machine -
+/// no process handle required.
+///
+/// `SystemFullProcessInformation` is used when it is available, which also
+/// hands over each process' user SID.
+fn take_snapshot(with_thread: bool) -> SystemSnapshot {
+    let mut procs = Vec::new();
+    let mut threads = Vec::new();
+
+    let Some(buffer) = ntapi::query_system_processes() else {
+        return SystemSnapshot { procs, threads };
+    };
+
+    // `ProcessNetworkIoInformation` is a Windows 11 addition: on an older
+    // build no handle is opened for it at all.
+    let want_net = network_counters_supported();
+
+    for entry in buffer.iter() {
+        let info = entry.info();
+        let pid = info.UniqueProcessId as usize as i32;
+        let ppid = info.InheritedFromUniqueProcessId as usize as i32;
+        let image_name = entry.image_name();
+
+        // Unlike the rest of the snapshot, the network counters are read from
+        // the process itself, which costs an `OpenProcess` each.
+        let (recv, send) = if want_net {
+            network_counters(pid)
+        } else {
+            (0, 0)
+        };
+
+        // Hide the kernel's own processes. The full snapshot's classification is
+        // authoritative - a non-zero `SYSTEM_PROCESS_CLASSIFICATION` marks System,
+        // Secure System, Registry and Memory Compression, which carry real parent
+        // PIDs and the classic ppid heuristic would miss. The parent-pid rule is
+        // kept as a safety net for Idle (pid 0): the kernel reports it as `Normal`
+        // (classification 0) yet it is not a user process and must stay hidden.
+        let is_kthread = entry.classification().is_some_and(|c| c != 0)
+            || ppid == 0
+            || (ppid == 4 && !image_name.contains('.'));
+
+        procs.push(ProcSnapshot {
+            pid,
+            ppid,
+            thread_count: info.NumberOfThreads as i32,
+            image_name,
+            session_id: info.SessionId,
+            create_time: info.CreateTime,
+            kernel_time: info.KernelTime as u64,
+            user_time: info.UserTime as u64,
+            read: info.IoCounters.ReadTransferCount,
+            write: info.IoCounters.WriteTransferCount,
+            recv,
+            send,
+            memory_info: MemoryInfo {
+                page_fault_count: u64::from(info.VirtualMemoryCounters.PageFaultCount),
+                peak_working_set_size: info.VirtualMemoryCounters.PeakWorkingSetSize as u64,
+                working_set_size: info.VirtualMemoryCounters.WorkingSetSize as u64,
+                quota_peak_paged_pool_usage: info.VirtualMemoryCounters.QuotaPeakPagedPoolUsage
+                    as u64,
+                quota_paged_pool_usage: info.VirtualMemoryCounters.QuotaPagedPoolUsage as u64,
+                quota_peak_non_paged_pool_usage: info
+                    .VirtualMemoryCounters
+                    .QuotaPeakNonPagedPoolUsage
+                    as u64,
+                quota_non_paged_pool_usage: info.VirtualMemoryCounters.QuotaNonPagedPoolUsage
+                    as u64,
+                page_file_usage: info.VirtualMemoryCounters.PagefileUsage as u64,
+                peak_page_file_usage: info.VirtualMemoryCounters.PeakPagefileUsage as u64,
+                private_usage: info.PrivatePageCount as u64,
+            },
+            base_priority: info.BasePriority,
+            state: entry.state(),
+            user_sid: entry.user_sid(),
+            is_kthread,
+        });
+
+        if with_thread {
+            threads.extend(entry.threads());
+        }
+    }
+
+    SystemSnapshot { procs, threads }
+}
+
+/// Whether `ProcessNetworkIoInformation` answers on this machine.
+///
+/// The class is implemented from Windows 11 on, so the answer depends on the
+/// OS build alone: it is probed once against this process - whose handle
+/// carries every access right, so a failure means the class is missing rather
+/// than the handle being too weak - and remembered. An older build then pays
+/// nothing instead of an `OpenProcess` and a rejected query per process and
+/// per sample.
+fn network_counters_supported() -> bool {
+    const UNKNOWN: u8 = 0;
+    const YES: u8 = 1;
+    const NO: u8 = 2;
+    static SUPPORTED: AtomicU8 = AtomicU8::new(UNKNOWN);
+
+    match SUPPORTED.load(Ordering::Acquire) {
+        YES => true,
+        NO => false,
+        _ => {
+            // SAFETY: the pseudo-handle needs no closing.
+            let handle = unsafe { GetCurrentProcess() };
+            let yes = ntapi::process_network_counters(handle).is_some();
+            SUPPORTED.store(if yes { YES } else { NO }, Ordering::Release);
+            yes
+        }
+    }
+}
+
+/// The cumulative network counters of `pid`, or `(0, 0)` when the handle
+/// cannot be opened or the class is not implemented.
+fn network_counters(pid: i32) -> (u64, u64) {
+    let handles = ProcHandles::open(pid);
+    match handles.any().and_then(ntapi::process_network_counters) {
+        Some(counters) => (counters.BytesIn, counters.BytesOut),
+        None => (0, 0),
+    }
+}
+
+/// Idle and System have no command line and, depending on privileges, no
+/// readable image name either.
+fn image_fallback(proc: &ProcSnapshot) -> String {
+    if !proc.image_name.is_empty() {
+        return proc.image_name.clone();
+    }
+    match proc.pid {
+        0 => String::from("[System Idle Process]"),
+        _ => String::new(),
+    }
+}
+
+fn filetime_to_local(time: i64) -> chrono::DateTime<Local> {
+    let base = NaiveDate::from_ymd_opt(1601, 1, 1)
+        .and_then(|date| date.and_hms_opt(0, 0, 0))
+        .unwrap();
+    let elapsed = chrono::Duration::seconds(time.max(0) / 10_000_000);
+    Local.from_utc_datetime(&(base + elapsed))
+}
+
+// ---------------------------------------------------------------------------
+// Process handles
+// ---------------------------------------------------------------------------
+
+/// `PROCESS_QUERY_INFORMATION` is needed for the token and
+/// `PROCESS_QUERY_LIMITED_INFORMATION` is sufficient for command lines.
+const FULL_ACCESS: u32 = PROCESS_QUERY_INFORMATION;
+/// Protected processes refuse the above but often allow the limited variant,
+/// which is all `ProcessCommandLineInformation` needs.
+const LIMITED_ACCESS: u32 = PROCESS_QUERY_LIMITED_INFORMATION;
+
+struct ProcHandles {
+    full: Option<HANDLE>,
+    limited: Option<HANDLE>,
+}
+
+impl ProcHandles {
+    fn open(pid: i32) -> Self {
+        if pid <= 0 {
+            return Self {
+                full: None,
+                limited: None,
+            };
+        }
+
+        let full = open_process(pid, FULL_ACCESS);
+        let limited = if full.is_some() {
+            None
+        } else {
+            open_process(pid, LIMITED_ACCESS)
+        };
+
+        Self { full, limited }
+    }
+
+    /// Any handle usable for `NtQueryInformationProcess`.
+    fn any(&self) -> Option<HANDLE> {
+        self.full.or(self.limited)
+    }
+}
+
+impl Drop for ProcHandles {
+    fn drop(&mut self) {
+        for handle in [self.full, self.limited].into_iter().flatten() {
+            unsafe {
+                CloseHandle(handle);
+            }
+        }
+    }
+}
+
+fn open_process(pid: i32, access: u32) -> Option<HANDLE> {
+    let handle = unsafe { OpenProcess(access, FALSE, pid as u32) };
+    if handle.is_null() { None } else { Some(handle) }
+}
+
+// ---------------------------------------------------------------------------
+// Privilege / token
+// ---------------------------------------------------------------------------
 
 fn set_privilege() -> bool {
     let handle = unsafe { GetCurrentProcess() };
@@ -211,18 +563,14 @@ fn set_privilege() -> bool {
     }
 
     let mut tps: TOKEN_PRIVILEGES = unsafe { zeroed() };
-    let se_debug_name: Vec<u16> = format!("{}\0", unsafe { *SE_DEBUG_NAME })
-        .encode_utf16()
-        .collect();
     tps.PrivilegeCount = 1;
-    let ret = unsafe {
-        LookupPrivilegeValueW(
-            ptr::null(),
-            se_debug_name.as_ptr(),
-            &mut tps.Privileges[0].Luid,
-        )
-    };
+    // `SE_DEBUG_NAME` is already a NUL terminated wide string.
+    let ret =
+        unsafe { LookupPrivilegeValueW(ptr::null(), SE_DEBUG_NAME, &mut tps.Privileges[0].Luid) };
     if ret == 0 {
+        unsafe {
+            CloseHandle(token);
+        }
         return false;
     }
 
@@ -237,199 +585,51 @@ fn set_privilege() -> bool {
             ptr::null::<u32>() as *mut u32,
         )
     };
-    if ret == 0 {
-        return false;
+
+    unsafe {
+        CloseHandle(token);
     }
 
-    true
+    ret != 0
 }
 
-fn get_pids() -> Vec<i32> {
-    let dword_size = size_of::<u32>();
-    let mut pids = Vec::with_capacity(10192);
-    let mut cb_needed = 0;
-
-    unsafe { pids.set_len(10192) };
-    let result = unsafe {
-        K32EnumProcesses(
-            pids.as_mut_ptr(),
-            (dword_size * pids.len()) as u32,
-            &mut cb_needed,
-        )
-    };
-    if result == 0 {
-        return Vec::new();
-    }
-    let pids_len = cb_needed / dword_size as u32;
-    unsafe { pids.set_len(pids_len as usize) };
-
-    pids.iter().map(|x| *x as i32).collect()
-}
-
-fn get_ppid_threads() -> (HashMap<i32, i32>, HashMap<i32, i32>) {
-    let mut ppids = HashMap::new();
-    let mut threads = HashMap::new();
-
-    let snapshot = unsafe { CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0) };
-    let mut entry: PROCESSENTRY32 = unsafe { zeroed() };
-    entry.dwSize = size_of::<PROCESSENTRY32>() as u32;
-    let mut not_the_end = unsafe { Process32First(snapshot, &mut entry) };
-
-    while not_the_end != 0 {
-        ppids.insert(entry.th32ProcessID as i32, entry.th32ParentProcessID as i32);
-        threads.insert(entry.th32ProcessID as i32, entry.cntThreads as i32);
-        not_the_end = unsafe { Process32Next(snapshot, &mut entry) };
-    }
-
-    unsafe { CloseHandle(snapshot) };
-
-    (ppids, threads)
-}
-
-fn get_handle(pid: i32) -> Option<HANDLE> {
-    if pid == 0 {
-        return None;
-    }
-
-    let handle = unsafe {
-        OpenProcess(
-            PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,
-            FALSE,
-            pid as u32,
-        )
-    };
-
-    if handle == std::ptr::null_mut() {
-        None
-    } else {
-        Some(handle)
-    }
-}
-
-fn get_times(handle: HANDLE) -> Option<(u64, u64, u64, u64)> {
-    let mut start: FILETIME = unsafe { zeroed() };
-    let mut exit: FILETIME = unsafe { zeroed() };
-    let mut sys: FILETIME = unsafe { zeroed() };
-    let mut user: FILETIME = unsafe { zeroed() };
-
-    let ret = unsafe {
-        GetProcessTimes(
-            handle,
-            &mut start as *mut FILETIME,
-            &mut exit as *mut FILETIME,
-            &mut sys as *mut FILETIME,
-            &mut user as *mut FILETIME,
-        )
-    };
-
-    let start = u64::from(start.dwHighDateTime) << 32 | u64::from(start.dwLowDateTime);
-    let exit = u64::from(exit.dwHighDateTime) << 32 | u64::from(exit.dwLowDateTime);
-    let sys = u64::from(sys.dwHighDateTime) << 32 | u64::from(sys.dwLowDateTime);
-    let user = u64::from(user.dwHighDateTime) << 32 | u64::from(user.dwLowDateTime);
-
-    if ret != 0 {
-        Some((start, exit, sys, user))
-    } else {
-        None
-    }
-}
-
-fn get_memory_info(handle: HANDLE) -> Option<MemoryInfo> {
-    let mut pmc: PROCESS_MEMORY_COUNTERS_EX = unsafe { zeroed() };
-    let ret = unsafe {
-        GetProcessMemoryInfo(
-            handle,
-            &mut pmc as *mut PROCESS_MEMORY_COUNTERS_EX as *mut c_void
-                as *mut PROCESS_MEMORY_COUNTERS,
-            size_of::<PROCESS_MEMORY_COUNTERS_EX>() as u32,
-        )
-    };
-
-    if ret != 0 {
-        let info = MemoryInfo {
-            page_fault_count: u64::from(pmc.PageFaultCount),
-            peak_working_set_size: pmc.PeakWorkingSetSize as u64,
-            working_set_size: pmc.WorkingSetSize as u64,
-            quota_peak_paged_pool_usage: pmc.QuotaPeakPagedPoolUsage as u64,
-            quota_paged_pool_usage: pmc.QuotaPagedPoolUsage as u64,
-            quota_peak_non_paged_pool_usage: pmc.QuotaPeakNonPagedPoolUsage as u64,
-            quota_non_paged_pool_usage: pmc.QuotaNonPagedPoolUsage as u64,
-            page_file_usage: pmc.PagefileUsage as u64,
-            peak_page_file_usage: pmc.PeakPagefileUsage as u64,
-            private_usage: pmc.PrivateUsage as u64,
-        };
-        Some(info)
-    } else {
-        None
-    }
-}
-
-fn get_command(handle: HANDLE) -> Option<String> {
-    let mut exe_buf = [0u16; MAX_PATH as usize + 1];
-    let h_mod: HMODULE = std::ptr::null_mut();
-    let mut cb_needed = 0;
-
-    let ret = unsafe {
-        EnumProcessModulesEx(
-            handle,
-            h_mod as *mut HMODULE,
-            size_of::<u32>() as u32,
-            &mut cb_needed,
-            LIST_MODULES_ALL,
-        )
-    };
-    if ret == 0 {
-        return None;
-    }
-
-    let ret = unsafe { GetModuleBaseNameW(handle, h_mod, exe_buf.as_mut_ptr(), MAX_PATH + 1) };
-
-    let mut pos = 0;
-    for x in exe_buf.iter() {
-        if *x == 0 {
-            break;
-        }
-        pos += 1;
-    }
-
-    if ret != 0 {
-        Some(String::from_utf16_lossy(&exe_buf[..pos]))
-    } else {
-        None
-    }
-}
-
-fn get_io(handle: HANDLE) -> Option<(u64, u64)> {
-    let mut io: IO_COUNTERS = unsafe { zeroed() };
-    let ret = unsafe { GetProcessIoCounters(handle, &mut io) };
-
-    if ret != 0 {
-        Some((io.ReadTransferCount, io.WriteTransferCount))
-    } else {
-        None
-    }
-}
-
-pub struct SidName {
-    pub sid: Vec<u64>,
-    pub name: Option<String>,
-    #[allow(dead_code)]
-    pub domainname: Option<String>,
-}
-
-fn get_user(handle: HANDLE) -> Option<SidName> {
+fn get_user(handle: HANDLE) -> Option<SID_MAX> {
     let mut token: HANDLE = unsafe { zeroed() };
     let ret = unsafe { OpenProcessToken(handle, TOKEN_QUERY, &mut token) };
-
     if ret == 0 {
         return None;
     }
 
+    let sid = token_information(token, TokenUser);
+    unsafe {
+        CloseHandle(token);
+    }
+
+    // The SID pointer lives inside this buffer, so it has to stay alive for
+    // as long as `psid` is used.
+    let buf = sid?;
+
+    #[allow(clippy::cast_ptr_alignment)]
+    let token_user = buf.as_ptr() as *const TOKEN_USER;
+    let psid = unsafe { (*token_user).User.Sid };
+
+    Some(unsafe { SID_MAX::from_psid(psid) })
+}
+
+/// Queries a token, returning the buffer that owns the result. Callers must
+/// keep it alive: the returned information contains pointers into it.
+///
+/// Public so that columns can read a token class the collection does not
+/// gather itself - `Group` reads `TokenGroups` this way, on demand.
+pub fn token_information(
+    token: HANDLE,
+    class: TOKEN_INFORMATION_CLASS,
+) -> Option<Vec<MaybeUninit<u8>>> {
     let mut cb_needed = 0;
     let _ = unsafe {
         GetTokenInformation(
             token,
-            TokenUser,
+            class,
             ptr::null::<c_void>() as *mut c_void,
             0,
             &mut cb_needed,
@@ -444,176 +644,89 @@ fn get_user(handle: HANDLE) -> Option<SidName> {
     let ret = unsafe {
         GetTokenInformation(
             token,
-            TokenUser,
+            class,
             buf.as_mut_ptr() as *mut c_void,
             cb_needed,
             &mut cb_needed,
         )
     };
 
-    if ret == 0 {
-        return None;
-    }
-
-    #[allow(clippy::cast_ptr_alignment)]
-    let token_user = buf.as_ptr() as *const TOKEN_USER;
-    let psid = unsafe { (*token_user).User.Sid };
-
-    let sid = get_sid(psid);
-    let (name, domainname) = if let Some((x, y)) = get_name_cached(psid) {
-        (Some(x), Some(y))
-    } else {
-        (None, None)
-    };
-
-    Some(SidName {
-        sid,
-        name,
-        domainname,
-    })
+    if ret == 0 { None } else { Some(buf) }
 }
 
-fn get_groups(handle: HANDLE) -> Option<Vec<SidName>> {
-    unsafe {
-        let mut token: HANDLE = zeroed();
-        let ret = OpenProcessToken(handle, TOKEN_QUERY, &mut token);
+/// Account name and domain name, cached per SID.
+type AccountName = Option<(String, String)>;
 
-        if ret == 0 {
-            return None;
-        }
-
-        let mut cb_needed = 0;
-        let _ = GetTokenInformation(
-            token,
-            TokenGroups,
-            ptr::null::<c_void>() as *mut c_void,
-            0,
-            &mut cb_needed,
-        );
-
-        let mut buf: Vec<MaybeUninit<u8>> = Vec::with_capacity(cb_needed as usize);
-        buf.set_len(cb_needed as usize);
-
-        let ret = GetTokenInformation(
-            token,
-            TokenGroups,
-            buf.as_mut_ptr() as *mut c_void,
-            cb_needed,
-            &mut cb_needed,
-        );
-
-        if ret == 0 {
-            return None;
-        }
-
-        #[allow(clippy::cast_ptr_alignment)]
-        let token_groups = buf.as_ptr() as *const TOKEN_GROUPS;
-
-        let mut ret = Vec::new();
-        let sa = (*token_groups).Groups.as_ptr();
-        for i in 0..(*token_groups).GroupCount {
-            let psid = (*sa.offset(i as isize)).Sid;
-            let sid = get_sid(psid);
-            let (name, domainname) = if let Some((x, y)) = get_name_cached(psid) {
-                (Some(x), Some(y))
-            } else {
-                (None, None)
-            };
-
-            let sid_name = SidName {
-                sid,
-                name,
-                domainname,
-            };
-            ret.push(sid_name);
-        }
-
-        Some(ret)
-    }
-}
-
-fn get_sid(psid: PSID) -> Vec<u64> {
-    let mut ret = Vec::new();
-    let psid = psid as *const SID;
-    unsafe {
-        let mut ia = 0;
-        ia |= u64::from((*psid).IdentifierAuthority.Value[0]) << 40;
-        ia |= u64::from((*psid).IdentifierAuthority.Value[1]) << 32;
-        ia |= u64::from((*psid).IdentifierAuthority.Value[2]) << 24;
-        ia |= u64::from((*psid).IdentifierAuthority.Value[3]) << 16;
-        ia |= u64::from((*psid).IdentifierAuthority.Value[4]) << 8;
-        ia |= u64::from((*psid).IdentifierAuthority.Value[5]);
-
-        ret.push(u64::from((*psid).Revision));
-        ret.push(ia);
-        let cnt = (*psid).SubAuthorityCount;
-        let sa = (*psid).SubAuthority.as_ptr();
-        for i in 0..cnt {
-            ret.push(u64::from(*sa.offset(i as isize)));
-        }
-
-        ret
-    }
-}
-
+// Keyed by the SID itself rather than by its address: every query allocates a
+// fresh buffer, and a freed one gets its address recycled by the next query,
+// which would hand back another account's name.
 thread_local!(
-    pub static NAME_CACHE: RefCell<HashMap<PSID, Option<(String, String)>>> =
-        RefCell::new(HashMap::new());
+    pub static NAME_CACHE: RefCell<HashMap<SID_MAX, AccountName>> = RefCell::new(HashMap::new());
 );
 
-fn get_name_cached(psid: PSID) -> Option<(String, String)> {
-    NAME_CACHE.with(|c| {
-        let mut c = c.borrow_mut();
-        if let Some(x) = c.get(&psid) {
-            x.clone()
-        } else {
-            let x = get_name(psid);
-            c.insert(psid, x.clone());
-            x
+impl SID_MAX {
+    /// Resolves the account name for this SID at display time, using the
+    /// thread-local cache. Returns `None` when the name cannot be looked up
+    /// (e.g. a protected process or a SID with no resolvable account).
+    pub fn display_name(&self) -> Option<String> {
+        NAME_CACHE
+            .with(|c| {
+                let mut c = c.borrow_mut();
+                if let Some(x) = c.get(self) {
+                    x.clone()
+                } else {
+                    // `SID_MAX` embeds the official `SID` with matching alignment,
+                    // so its address is a valid `PSID`.
+                    let x = self.get_name();
+                    c.insert(*self, x.clone());
+                    x
+                }
+            })
+            .map(|(name, _)| name)
+    }
+
+    fn get_name(&self) -> Option<(String, String)> {
+        let psid = &self.sid as *const SID as PSID;
+        let mut cc_name = 0;
+        let mut cc_domainname = 0;
+        let mut pe_use = 0;
+        unsafe {
+            let _ = LookupAccountSidW(
+                ptr::null::<u16>() as *mut u16,
+                psid,
+                ptr::null::<u16>() as *mut u16,
+                &mut cc_name,
+                ptr::null::<u16>() as *mut u16,
+                &mut cc_domainname,
+                &mut pe_use,
+            );
+
+            if cc_name == 0 || cc_domainname == 0 {
+                return None;
+            }
+
+            let mut name: Vec<u16> = Vec::with_capacity(cc_name as usize);
+            let mut domainname: Vec<u16> = Vec::with_capacity(cc_domainname as usize);
+            name.set_len(cc_name as usize);
+            domainname.set_len(cc_domainname as usize);
+            let ret = LookupAccountSidW(
+                ptr::null::<u16>() as *mut u16,
+                psid,
+                name.as_mut_ptr(),
+                &mut cc_name,
+                domainname.as_mut_ptr(),
+                &mut cc_domainname,
+                &mut pe_use,
+            );
+
+            if ret == 0 {
+                return None;
+            }
+
+            let name = from_wide_ptr(name.as_ptr());
+            let domainname = from_wide_ptr(domainname.as_ptr());
+            Some((name, domainname))
         }
-    })
-}
-
-fn get_name(psid: PSID) -> Option<(String, String)> {
-    let mut cc_name = 0;
-    let mut cc_domainname = 0;
-    let mut pe_use = 0;
-    unsafe {
-        let _ = LookupAccountSidW(
-            ptr::null::<u16>() as *mut u16,
-            psid,
-            ptr::null::<u16>() as *mut u16,
-            &mut cc_name,
-            ptr::null::<u16>() as *mut u16,
-            &mut cc_domainname,
-            &mut pe_use,
-        );
-
-        if cc_name == 0 || cc_domainname == 0 {
-            return None;
-        }
-
-        let mut name: Vec<u16> = Vec::with_capacity(cc_name as usize);
-        let mut domainname: Vec<u16> = Vec::with_capacity(cc_domainname as usize);
-        name.set_len(cc_name as usize);
-        domainname.set_len(cc_domainname as usize);
-        let ret = LookupAccountSidW(
-            ptr::null::<u16>() as *mut u16,
-            psid,
-            name.as_mut_ptr(),
-            &mut cc_name,
-            domainname.as_mut_ptr(),
-            &mut cc_domainname,
-            &mut pe_use,
-        );
-
-        if ret == 0 {
-            return None;
-        }
-
-        let name = from_wide_ptr(name.as_ptr());
-        let domainname = from_wide_ptr(domainname.as_ptr());
-        Some((name, domainname))
     }
 }
 
@@ -627,8 +740,4 @@ fn from_wide_ptr(ptr: *const u16) -> String {
         .unwrap();
     let slice = unsafe { std::slice::from_raw_parts(ptr, len) };
     OsString::from_wide(slice).to_string_lossy().into_owned()
-}
-
-fn get_priority(handle: HANDLE) -> u32 {
-    unsafe { GetPriorityClass(handle) }
 }
