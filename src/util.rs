@@ -414,7 +414,7 @@ mod tests {
         let row = "\u{1b}[1;37mCommand\u{1b}[0m";
         assert_eq!(ansi_trim_end(row), row);
     }
-  
+
     #[test]
     fn test_sanitize_control_chars() {
         // OSC 52 clipboard-write sequence embedded in a crafted argv0
