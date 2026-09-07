@@ -1,5 +1,7 @@
 use crate::process::ProcessInfo;
 use crate::{column_default, Column};
+#[cfg(target_os = "windows")]
+use crate::columns::group::{groups_of, primary_group};
 use std::cmp;
 use std::collections::HashMap;
 
@@ -62,30 +64,17 @@ impl Column for Gid {
 #[cfg(target_os = "windows")]
 impl Column for Gid {
     fn add(&mut self, proc: &ProcessInfo) {
-        // A process whose token could not be opened - a protected process, or
-        // any process when procs is not elevated - has no group list. Render
-        // nothing rather than indexing a non-existent primary group.
-        let Some(primary) = proc.groups.first() else {
-            self.fmt_contents.insert(proc.pid, String::new());
-            self.raw_contents.insert(proc.pid, 0);
-            return;
+        // Same on-demand lookup as `Group`: a process whose token could not be
+        // opened - a protected process, or any process when procs is not
+        // elevated - has no group list and renders as nothing.
+        let (fmt_content, raw_content) = match groups_of(proc.pid).as_deref().and_then(primary_group)
+        {
+            Some(sid) => (
+                sid.format(self.abbr_sid),
+                sid.sub_authorities().last().copied().unwrap_or(0),
+            ),
+            None => (String::new(), 0),
         };
-
-        let mut sid = primary;
-        let mut kind = u64::MAX;
-        for g in &proc.groups {
-            let subs = g.sub_authorities();
-            if g.authority() == 5
-                && subs.first() == Some(&32)
-                && u64::from(subs.get(1).copied().unwrap_or(u32::MAX)) < kind
-            {
-                sid = g;
-                kind = u64::from(subs[1]);
-            }
-        }
-
-        let fmt_content = sid.format(self.abbr_sid);
-        let raw_content = sid.sub_authorities().last().copied().unwrap_or(0);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);

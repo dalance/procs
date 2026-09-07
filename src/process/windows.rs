@@ -12,8 +12,8 @@ use std::time::{Duration, Instant};
 use windows_sys::Win32::Foundation::{CloseHandle, FALSE, HANDLE};
 use windows_sys::Win32::Security::{
     AdjustTokenPrivileges, GetTokenInformation, LookupAccountSidW, LookupPrivilegeValueW, PSID,
-    SE_DEBUG_NAME, SE_PRIVILEGE_ENABLED, SID, TOKEN_ADJUST_PRIVILEGES, TOKEN_GROUPS,
-    TOKEN_INFORMATION_CLASS, TOKEN_PRIVILEGES, TOKEN_QUERY, TOKEN_USER, TokenGroups, TokenUser,
+    SE_DEBUG_NAME, SE_PRIVILEGE_ENABLED, SID, TOKEN_ADJUST_PRIVILEGES, TOKEN_INFORMATION_CLASS,
+    TOKEN_PRIVILEGES, TOKEN_QUERY, TOKEN_USER, TokenUser,
 };
 use windows_sys::Win32::System::Threading::{
     GetCurrentProcess, OpenProcess, OpenProcessToken, PROCESS_QUERY_INFORMATION,
@@ -67,7 +67,6 @@ pub struct ProcessInfo {
     pub disk_info: DiskInfo,
     pub net_info: NetInfo,
     pub user: Option<SID_MAX>,
-    pub groups: Vec<SID_MAX>,
     pub priority: i32,
     pub thread: i32,
     pub session: i32,
@@ -199,9 +198,10 @@ pub fn collect_proc(
         let file_name = image_fallback(&proc);
 
         // The snapshot SID saves an `OpenProcessToken`; the token is only
-        // opened for processes the snapshot could not name.
+        // opened for processes the snapshot could not name. The group list is
+        // deliberately not collected here - `Group` and `Gid` query it
+        // themselves, so that only enabling one of them pays for it.
         let user = proc.user_sid.or_else(|| handles.full.and_then(get_user));
-        let groups = handles.full.and_then(get_groups);
         let priority = proc.base_priority;
 
         ret.push(ProcessInfo {
@@ -231,7 +231,6 @@ pub fn collect_proc(
             // Last: this moves out of `proc`, which `prev` may still borrow.
             memory_info: proc.memory_info,
             user,
-            groups: groups.unwrap_or_default(),
             priority,
             thread: proc.thread_count,
             session: proc.session_id as i32,
@@ -265,13 +264,12 @@ pub fn collect_proc(
                 None => (thread.kernel_time, thread.user_time),
             };
 
-            let (command, file_name, user, groups, session) = {
+            let (command, file_name, user, session) = {
                 let parent = &ret[owner];
                 (
                     parent.command.clone(),
                     parent.file_name.clone(),
                     parent.user,
-                    parent.groups.clone(),
                     parent.session,
                 )
             };
@@ -304,7 +302,6 @@ pub fn collect_proc(
                     curr_send: 0,
                 },
                 user,
-                groups,
                 priority: thread.priority,
                 thread: 1,
                 session,
@@ -603,7 +600,7 @@ fn get_user(handle: HANDLE) -> Option<SID_MAX> {
         return None;
     }
 
-    let sid = get_token_information(token, TokenUser);
+    let sid = token_information(token, TokenUser);
     unsafe {
         CloseHandle(token);
     }
@@ -619,39 +616,12 @@ fn get_user(handle: HANDLE) -> Option<SID_MAX> {
     Some(unsafe { SID_MAX::from_psid(psid) })
 }
 
-fn get_groups(handle: HANDLE) -> Option<Vec<SID_MAX>> {
-    let mut token: HANDLE = unsafe { zeroed() };
-    let ret = unsafe { OpenProcessToken(handle, TOKEN_QUERY, &mut token) };
-    if ret == 0 {
-        return None;
-    }
-
-    let groups = get_token_information(token, TokenGroups);
-    unsafe {
-        CloseHandle(token);
-    }
-
-    // The SID pointers live inside this buffer, so it has to outlive them.
-    let buf = groups?;
-
-    let mut ret = Vec::new();
-    #[allow(clippy::cast_ptr_alignment)]
-    let token_groups = buf.as_ptr() as *const TOKEN_GROUPS;
-
-    unsafe {
-        let sa = (*token_groups).Groups.as_ptr();
-        for i in 0..(*token_groups).GroupCount {
-            let psid = (*sa.offset(i as isize)).Sid;
-            ret.push(SID_MAX::from_psid(psid));
-        }
-    }
-
-    Some(ret)
-}
-
 /// Queries a token, returning the buffer that owns the result. Callers must
 /// keep it alive: the returned information contains pointers into it.
-fn get_token_information(
+///
+/// Public so that columns can read a token class the collection does not
+/// gather itself - `Group` reads `TokenGroups` this way, on demand.
+pub fn token_information(
     token: HANDLE,
     class: TOKEN_INFORMATION_CLASS,
 ) -> Option<Vec<MaybeUninit<u8>>> {
