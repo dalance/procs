@@ -1,6 +1,6 @@
 use procfs::ProcError;
 use procfs::ProcessCGroup;
-use procfs::process::{FDInfo, Io, Process, Stat, Status, TasksIter};
+use procfs::process::{FDInfo, Io, Process, Stat, StatFlags, Status, TasksIter};
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::thread;
@@ -136,7 +136,12 @@ pub fn collect_proc(
         let interval = curr_time - prev_time;
         let ppid = curr_stat.ppid;
 
-        if !show_kthreads && (ppid == 2 || pid == 2) {
+        if !show_kthreads
+            && curr_stat
+                .flags()
+                .unwrap_or(StatFlags::empty())
+                .contains(StatFlags::PF_KTHREAD)
+        {
             continue;
         }
 
