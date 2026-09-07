@@ -15,7 +15,7 @@ pub struct ProcessInfo {
 pub fn collect_proc(
     interval: Duration,
     _with_thread: bool,
-    _show_kthreads: bool,
+    show_kthreads: bool,
     _procfs_path: &Option<PathBuf>,
 ) -> Vec<ProcessInfo> {
     let mut base_procs = HashMap::new();
@@ -24,6 +24,10 @@ pub fn collect_proc(
     let kvm = Kvm::open(None, Some("/dev/null"), Access::ReadOnly);
     if let Ok(mut kvm) = kvm {
         for proc in kvm.get_process(KernProc::Proc, 0) {
+            if !show_kthreads && proc.info.flag & 0x00000004 /* P_KPROC */ != 0 {
+                continue;
+            }
+
             let time = Instant::now();
             base_procs.insert(proc.info.pid, (proc.clone(), time));
         }
