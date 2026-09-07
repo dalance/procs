@@ -3,9 +3,13 @@ use crate::{column_default, Column};
 use std::cmp;
 use std::collections::HashMap;
 
+#[cfg(target_os = "macos")]
 const CTL_MAXNAME: i32 = 12;
+#[cfg(target_os = "macos")]
 const P_TRANSLATED: i32 = 131072;
+#[cfg(target_os = "macos")]
 const CPU_TYPE_X86_64: i32 = 16777223;
+#[cfg(target_os = "macos")]
 const CPU_TYPE_ARM64: i32 = 16777228;
 
 pub struct Arch {
@@ -16,7 +20,6 @@ pub struct Arch {
     width: usize,
 }
 
-#[cfg(target_os = "macos")]
 impl Arch {
     pub fn new(header: Option<String>) -> Self {
         let header = header.unwrap_or_else(|| String::from("Arch"));
@@ -31,13 +34,12 @@ impl Arch {
     }
 }
 
-#[cfg(target_os = "macos")]
 impl Column for Arch {
     fn add(&mut self, proc: &ProcessInfo) {
         let pid = proc.pid;
         let arch = arch_from_pid(pid);
 
-        let fmt_content = format!("{}", arch);
+        let fmt_content = arch.to_string();
         let raw_content = fmt_content.clone();
 
         self.fmt_contents.insert(proc.pid, fmt_content);
@@ -46,6 +48,116 @@ impl Column for Arch {
 
     column_default!(String, false);
 }
+
+// ---------------------------------------------------------------------------
+// Windows
+// ---------------------------------------------------------------------------
+
+/// `IMAGE_FILE_MACHINE_*` constants.
+///
+/// <https://learn.microsoft.com/zh-cn/windows/win32/sysinfo/image-file-machine-constants>
+#[cfg(target_os = "windows")]
+mod machine {
+    pub const UNKNOWN: u16 = 0x0000;
+    pub const ALPHA: u16 = 0x0184;
+    /// Same value as `IMAGE_FILE_MACHINE_AXP64`.
+    pub const ALPHA64: u16 = 0x0284;
+    pub const AM33: u16 = 0x01d3;
+    pub const AMD64: u16 = 0x8664;
+    pub const ARM: u16 = 0x01c0;
+    pub const ARM64: u16 = 0xaa64;
+    /// x86_64 code that runs on ARM64 through emulation.
+    pub const ARM64EC: u16 = 0xa641;
+    /// Image loadable both as ARM64 and as ARM64EC.
+    pub const ARM64X: u16 = 0xa64e;
+    /// ARMv7 / Thumb-2; `IMAGE_FILE_MACHINE_ARMV7` shares this value.
+    pub const ARMNT: u16 = 0x01c4;
+    pub const CEE: u16 = 0xc0ee;
+    pub const CEF: u16 = 0x0cef;
+    pub const EBC: u16 = 0x0ebc;
+    pub const I386: u16 = 0x014c;
+    pub const IA64: u16 = 0x0200;
+    pub const M32R: u16 = 0x9041;
+    pub const MIPS16: u16 = 0x0266;
+    pub const MIPSFPU: u16 = 0x0366;
+    pub const MIPSFPU16: u16 = 0x0466;
+    pub const POWERPC: u16 = 0x01f0;
+    pub const POWERPCFP: u16 = 0x01f1;
+    pub const R3000: u16 = 0x0162;
+    pub const R4000: u16 = 0x0166;
+    pub const R10000: u16 = 0x0168;
+    pub const SH3: u16 = 0x01a2;
+    pub const SH3DSP: u16 = 0x01a3;
+    pub const SH3E: u16 = 0x01a4;
+    pub const SH4: u16 = 0x01a6;
+    pub const SH5: u16 = 0x01a8;
+    pub const THUMB: u16 = 0x01c2;
+    pub const TRICORE: u16 = 0x0520;
+    pub const WCEMIPSV2: u16 = 0x0169;
+}
+
+/// Reports the architecture of the image `pid` was started from.
+///
+/// WOW64 processes report their own architecture, not the host's: a 32-bit
+/// process on an x86_64 machine yields `x86`.
+#[cfg(target_os = "windows")]
+pub fn arch_from_pid(pid: i32) -> &'static str {
+    use windows_sys::Win32::Foundation::{CloseHandle, FALSE, HANDLE};
+    use windows_sys::Win32::System::Threading::{OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION};
+
+    // 0 is the idle process and has no image; negative pids are not real.
+    if pid <= 0 {
+        return "unknown";
+    }
+
+    // SAFETY: `pid` is only handed to `OpenProcess`, and the handle it hands
+    // back is closed before this function returns.
+    let handle: HANDLE = unsafe { OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid as u32) };
+    if handle.is_null() {
+        return "unknown";
+    }
+
+    let arch = crate::process::process_image_machine(handle)
+        .map(arch_from_machine)
+        .unwrap_or("unknown");
+    unsafe { CloseHandle(handle) };
+
+    arch
+}
+
+/// Names an `IMAGE_FILE_MACHINE_*` value the way the rest of the crate spells
+/// architectures (`x86_64`, `arm64`, ...).
+#[cfg(target_os = "windows")]
+fn arch_from_machine(machine: u16) -> &'static str {
+    use machine::*;
+
+    match machine {
+        UNKNOWN => "unknown",
+        I386 => "x86",
+        AMD64 => "x86_64",
+        ARM | ARMNT | THUMB => "arm",
+        ARM64 => "arm64",
+        ARM64EC => "arm64ec",
+        ARM64X => "arm64x",
+        IA64 => "ia64",
+        EBC => "ebc",
+        ALPHA | ALPHA64 => "alpha",
+        MIPS16 | MIPSFPU | MIPSFPU16 | R3000 | R4000 | R10000 | WCEMIPSV2 => "mips",
+        POWERPC | POWERPCFP => "ppc",
+        SH3 | SH3DSP | SH3E | SH4 | SH5 => "sh",
+        M32R => "m32r",
+        AM33 => "am33",
+        TRICORE => "tricore",
+        CEF => "cef",
+        // Pure IL assembly: no architecture of its own.
+        CEE => "msil",
+        _ => "unknown",
+    }
+}
+
+// ---------------------------------------------------------------------------
+// macOS
+// ---------------------------------------------------------------------------
 
 #[cfg(target_os = "macos")]
 pub fn arch_from_pid(pid: i32) -> &'static str {
@@ -97,4 +209,23 @@ pub fn arch_from_pid(pid: i32) -> &'static str {
     }
 
     "unknown"
+}
+
+#[cfg(all(test, target_os = "windows"))]
+mod tests {
+    use super::{arch_from_machine, machine};
+
+    #[test]
+    fn machine_names() {
+        assert_eq!(arch_from_machine(machine::AMD64), "x86_64");
+        assert_eq!(arch_from_machine(machine::I386), "x86");
+        assert_eq!(arch_from_machine(machine::ARM64), "arm64");
+        assert_eq!(arch_from_machine(machine::ARM64EC), "arm64ec");
+        // ARMv7 and Thumb-2 are both 32-bit ARM.
+        assert_eq!(arch_from_machine(machine::ARMNT), "arm");
+        assert_eq!(arch_from_machine(machine::THUMB), "arm");
+        // No image, and a value outside the table.
+        assert_eq!(arch_from_machine(machine::UNKNOWN), "unknown");
+        assert_eq!(arch_from_machine(0x1234), "unknown");
+    }
 }

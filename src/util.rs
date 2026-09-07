@@ -230,6 +230,15 @@ pub fn truncate(s: &'_ str, width: usize) -> Cow<'_, str> {
     }
 }
 
+/// Replace control characters with spaces.
+///
+/// Process command lines are fully attacker-controlled, so any ESC/CSI/OSC
+/// sequence they contain would otherwise be interpreted by the terminal of
+/// whoever runs procs.
+pub fn sanitize_control_chars(s: &str) -> String {
+    s.replace(|c: char| char::is_control(c), " ")
+}
+
 /// Trim trailing whitespace from a string that may contain ANSI escape sequences.
 /// Unlike str::trim_end(), this correctly handles ANSI codes at the end of the string
 /// that would otherwise prevent trimming of trailing whitespace.
@@ -287,22 +296,6 @@ pub unsafe fn get_sys_value(
         ::std::ptr::null_mut(),
         0,
     ) == 0
-}
-
-#[cfg(target_os = "windows")]
-pub fn format_sid(sid: &[u64], abbr: bool) -> String {
-    let mut ret = format!("S-{}-{}-{}", sid[0], sid[1], sid[2]);
-    if sid.len() > 3 {
-        if abbr {
-            ret = format!("{}-...-{}", ret, sid[sid.len() - 1]);
-        } else {
-            for s in sid.iter().skip(3) {
-                ret = format!("{}-{}", ret, s);
-            }
-        }
-    }
-
-    ret
 }
 
 pub fn bytify(x: u64) -> String {
@@ -420,5 +413,20 @@ mod tests {
     fn test_ansi_trim_end_without_trailing_space_unchanged() {
         let row = "\u{1b}[1;37mCommand\u{1b}[0m";
         assert_eq!(ansi_trim_end(row), row);
+    }
+  
+    #[test]
+    fn test_sanitize_control_chars() {
+        // OSC 52 clipboard-write sequence embedded in a crafted argv0
+        let injected = "\u{1b}]52;c;bWFya2Vy\u{7}sleep\t60\nrm -rf /";
+        let sanitized = sanitize_control_chars(injected);
+        assert_eq!(sanitized, " ]52;c;bWFya2Vy sleep 60 rm -rf /");
+        assert!(!sanitized.chars().any(char::is_control));
+
+        // CSI sequences are neutralized too
+        assert_eq!(sanitize_control_chars("\u{1b}[2J\u{1b}[H"), " [2J [H");
+
+        // Normal command lines are untouched
+        assert_eq!(sanitize_control_chars("/bin/sleep 60"), "/bin/sleep 60");
     }
 }

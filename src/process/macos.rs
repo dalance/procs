@@ -30,7 +30,7 @@ pub struct ProcessInfo {
 pub fn collect_proc(
     interval: Duration,
     _with_thread: bool,
-    _show_kthreads: bool,
+    show_kthreads: bool,
     _procfs_path: &Option<PathBuf>,
 ) -> Vec<ProcessInfo> {
     let mut base_procs = Vec::new();
@@ -40,6 +40,10 @@ pub fn collect_proc(
     if let Ok(procs) = pids_by_type(ProcFilter::All) {
         for p in procs {
             if let Ok(task) = pidinfo::<TaskAllInfo>(p as i32, 0) {
+                if !show_kthreads && task.pbsd.pbi_flags & 1 /* PROC_FLAG_SYSTEM */ != 0 {
+                    continue;
+                }
+
                 let res = pidrusage::<RUsageInfoV2>(p as i32).ok();
                 let time = Instant::now();
                 base_procs.push((p as i32, task, res, time));

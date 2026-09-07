@@ -3,6 +3,9 @@ use crate::{column_default, Column};
 use std::cmp;
 use std::collections::HashMap;
 
+#[cfg(target_os = "windows")]
+use crate::process::{thread_state, wait_reason, ThreadState};
+
 pub struct State {
     header: String,
     unit: String,
@@ -142,6 +145,67 @@ impl Column for State {
             state.push_str("J");
         }
         let fmt_content = state;
+        let raw_content = fmt_content.clone();
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(String, false);
+}
+
+// ---------------------------------------------------------------------------
+// Windows
+//
+// There is no per-process state to read: `SYSTEM_PROCESS_INFORMATION` only
+// counts the threads, while `SYSTEM_THREAD_INFORMATION` is what carries the
+// scheduler state. A row is therefore described by the threads behind it.
+// ---------------------------------------------------------------------------
+
+/// The letter `ps` prints for one thread's state.
+///
+/// `WaitReason` is only read while the thread is in `WAITING`: it is a leftover
+/// from the last wait otherwise, and a thread that is runnable again still
+/// carries the reason it sleeps on.
+#[cfg(target_os = "windows")]
+fn thread_state_char(state: ThreadState) -> char {
+    use thread_state::*;
+
+    match state.state {
+        // Runnable, or on its way there: `TRANSITION` only means the kernel
+        // stack is still being brought in.
+        INITIALIZED | READY | RUNNING | STANDBY | TRANSITION | DEFERRED_READY => 'R',
+        WAITING | GATE_WAIT | WAITING_FOR_PROCESS_IN_SWAP => match state.wait_reason {
+            wait_reason::SUSPENDED | wait_reason::WR_SUSPENDED => 'T',
+            _ => 'S',
+        },
+        TERMINATED => 'Z',
+        _ => '?',
+    }
+}
+
+/// The state letter of one row.
+///
+/// `state` is the most active thread's raw state, reduced by the snapshot
+/// layer; `thread_count` is the `NumberOfThreads` the snapshot reported. It
+/// is what separates a process that has no threads left from one whose
+/// records simply could not be read.
+#[cfg(target_os = "windows")]
+fn state_char(state: Option<ThreadState>, thread_count: i32) -> char {
+    match state {
+        // No thread left at all: the process has terminated and is only still
+        // listed because handles to it remain open.
+        None if thread_count <= 0 => 'Z',
+        // Threads were claimed but none could be read: not enough to call it.
+        None => '?',
+        Some(state) => thread_state_char(state),
+    }
+}
+
+#[cfg(target_os = "windows")]
+impl Column for State {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let fmt_content = String::from(state_char(proc.state, proc.thread));
         let raw_content = fmt_content.clone();
 
         self.fmt_contents.insert(proc.pid, fmt_content);

@@ -1,7 +1,10 @@
+pub mod arch;
 pub mod command;
 pub mod cpu_time;
 pub mod elapsed_time;
 pub mod empty;
+pub mod env;
+pub mod file_name;
 pub mod gid;
 pub mod group;
 pub mod maj_flt;
@@ -9,10 +12,15 @@ pub mod multi_slot;
 pub mod pid;
 pub mod ppid;
 pub mod priority;
+pub mod rt_priority;
 pub mod read_bytes;
+pub mod recv_bytes;
 pub mod separator;
+pub mod send_bytes;
+pub mod session;
 pub mod slot;
 pub mod start_time;
+pub mod state;
 pub mod tcp_port;
 pub mod threads;
 pub mod tree;
@@ -27,12 +35,16 @@ pub mod vm_pin;
 pub mod vm_rss;
 pub mod vm_size;
 pub mod vm_swap;
+pub mod work_dir;
 pub mod write_bytes;
 
+pub use self::arch::Arch;
 pub use self::command::Command;
 pub use self::cpu_time::CpuTime;
 pub use self::elapsed_time::ElapsedTime;
 pub use self::empty::Empty;
+pub use self::env::Env;
+pub use self::file_name::FileName;
 pub use self::gid::Gid;
 pub use self::group::Group;
 pub use self::maj_flt::MajFlt;
@@ -40,10 +52,15 @@ pub use self::multi_slot::MultiSlot;
 pub use self::pid::Pid;
 pub use self::ppid::Ppid;
 pub use self::priority::Priority;
+pub use self::rt_priority::RtPriority;
 pub use self::read_bytes::ReadBytes;
+pub use self::recv_bytes::RecvBytes;
 pub use self::separator::Separator;
+pub use self::send_bytes::SendBytes;
+pub use self::session::Session;
 pub use self::slot::Slot;
 pub use self::start_time::StartTime;
+pub use self::state::State;
 pub use self::tcp_port::TcpPort;
 pub use self::threads::Threads;
 pub use self::tree::Tree;
@@ -58,6 +75,7 @@ pub use self::vm_pin::VmPin;
 pub use self::vm_rss::VmRss;
 pub use self::vm_size::VmSize;
 pub use self::vm_swap::VmSwap;
+pub use self::work_dir::WorkDir;
 pub use self::write_bytes::WriteBytes;
 
 use crate::column::Column;
@@ -72,10 +90,13 @@ use std::path::PathBuf;
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum ConfigColumnKind {
+    Arch,
     Command,
     CpuTime,
     ElapsedTime,
     Empty,
+    Env,
+    FileName,
     Gid,
     Group,
     MajFlt,
@@ -84,9 +105,14 @@ pub enum ConfigColumnKind {
     Ppid,
     Priority,
     ReadBytes,
+    RecvBytes,
+    RtPriority,
+    SendBytes,
     Separator,
+    Session,
     Slot,
     StartTime,
+    State,
     TcpPort,
     Threads,
     Tree,
@@ -101,6 +127,7 @@ pub enum ConfigColumnKind {
     VmRss,
     VmSize,
     VmSwap,
+    WorkDir,
     WriteBytes,
 }
 
@@ -118,10 +145,13 @@ pub fn gen_column(
     _procfs: Option<PathBuf>,
 ) -> Box<dyn Column> {
     match kind {
+        ConfigColumnKind::Arch => Box::new(Arch::new(header)),
         ConfigColumnKind::Command => Box::new(Command::new(header)),
         ConfigColumnKind::CpuTime => Box::new(CpuTime::new(header)),
         ConfigColumnKind::ElapsedTime => Box::new(ElapsedTime::new(header)),
         ConfigColumnKind::Empty => Box::new(Empty::new()),
+        ConfigColumnKind::Env => Box::new(Env::new(header, _procfs)),
+        ConfigColumnKind::FileName => Box::new(FileName::new(header)),
         ConfigColumnKind::Gid => Box::new(Gid::new(header, abbr_sid)),
         ConfigColumnKind::Group => Box::new(Group::new(header, abbr_sid)),
         ConfigColumnKind::MajFlt => Box::new(MajFlt::new(header)),
@@ -130,9 +160,14 @@ pub fn gen_column(
         ConfigColumnKind::Ppid => Box::new(Ppid::new(header)),
         ConfigColumnKind::Priority => Box::new(Priority::new(header)),
         ConfigColumnKind::ReadBytes => Box::new(ReadBytes::new(header)),
+        ConfigColumnKind::RecvBytes => Box::new(RecvBytes::new(header)),
+        ConfigColumnKind::RtPriority => Box::new(RtPriority::new(header)),
+        ConfigColumnKind::SendBytes => Box::new(SendBytes::new(header)),
         ConfigColumnKind::Separator => Box::new(Separator::new(separator)),
+        ConfigColumnKind::Session => Box::new(Session::new(header)),
         ConfigColumnKind::Slot => Box::new(Slot::new()),
         ConfigColumnKind::StartTime => Box::new(StartTime::new(header)),
+        ConfigColumnKind::State => Box::new(State::new(header)),
         ConfigColumnKind::TcpPort => Box::new(TcpPort::new(header)),
         ConfigColumnKind::Threads => Box::new(Threads::new(header)),
         ConfigColumnKind::Tree => Box::new(Tree::new(tree_symbols)),
@@ -147,6 +182,7 @@ pub fn gen_column(
         ConfigColumnKind::VmRss => Box::new(VmRss::new(header)),
         ConfigColumnKind::VmSize => Box::new(VmSize::new(header)),
         ConfigColumnKind::VmSwap => Box::new(VmSwap::new(header)),
+        ConfigColumnKind::WorkDir => Box::new(WorkDir::new(header, _procfs)),
         ConfigColumnKind::WriteBytes => Box::new(WriteBytes::new(header)),
     }
 }
@@ -158,6 +194,10 @@ pub fn gen_column(
 pub static KIND_LIST: Lazy<BTreeMap<ConfigColumnKind, (&'static str, &'static str)>> =
     Lazy::new(|| {
         [
+            (
+                ConfigColumnKind::Arch,
+                ("Arch", "Architecture of the process image"),
+            ),
             (
                 ConfigColumnKind::Command,
                 ("Command", "Command with all arguments"),
@@ -171,6 +211,14 @@ pub static KIND_LIST: Lazy<BTreeMap<ConfigColumnKind, (&'static str, &'static st
                 ("ElapsedTime", "Elapsed time"),
             ),
             (ConfigColumnKind::Empty, ("Empty", "Empty")),
+            (
+                ConfigColumnKind::Env,
+                ("Env", "Environment variables"),
+            ),
+            (
+                ConfigColumnKind::FileName,
+                ("FileName", "File name of the process image"),
+            ),
             (ConfigColumnKind::Gid, ("Gid", "Group ID")),
             (ConfigColumnKind::Group, ("Group", "Group name")),
             (
@@ -189,14 +237,31 @@ pub static KIND_LIST: Lazy<BTreeMap<ConfigColumnKind, (&'static str, &'static st
                 ("ReadBytes", "Read bytes from storage"),
             ),
             (
+                ConfigColumnKind::RecvBytes,
+                ("RecvBytes", "Received bytes per second (Windows 11)"),
+            ),
+            (
+                ConfigColumnKind::RtPriority,
+                ("RtPriority", "Kernel base priority (0-31)"),
+            ),
+            (
+                ConfigColumnKind::SendBytes,
+                ("SendBytes", "Sent bytes per second (Windows 11)"),
+            ),
+            (
                 ConfigColumnKind::Separator,
                 ("Separator", "Show | for column separation"),
+            ),
+            (
+                ConfigColumnKind::Session,
+                ("Session", "Session ID"),
             ),
             (
                 ConfigColumnKind::Slot,
                 ("Slot", "Slot for `--insert` option"),
             ),
             (ConfigColumnKind::StartTime, ("StartTime", "Starting time")),
+            (ConfigColumnKind::State, ("State", "Process state")),
             (ConfigColumnKind::TcpPort, ("TcpPort", "Bound TCP ports")),
             (ConfigColumnKind::Threads, ("Threads", "Thread count")),
             (
@@ -221,6 +286,10 @@ pub static KIND_LIST: Lazy<BTreeMap<ConfigColumnKind, (&'static str, &'static st
             (
                 ConfigColumnKind::VmSwap,
                 ("VmSwap", "Swapped-out virtual memory size"),
+            ),
+            (
+                ConfigColumnKind::WorkDir,
+                ("WorkDir", "Current working directory"),
             ),
             (
                 ConfigColumnKind::WriteBytes,
@@ -354,6 +423,18 @@ numeric_search = false
 nonnumeric_search = false
 align = "Right"
 [[columns]]
+kind = "RecvBytes"
+style = "ByUnit"
+numeric_search = false
+nonnumeric_search = false
+align = "Right"
+[[columns]]
+kind = "SendBytes"
+style = "ByUnit"
+numeric_search = false
+nonnumeric_search = false
+align = "Right"
+[[columns]]
 kind = "Slot"
 style = "ByUnit"
 numeric_search = false
@@ -412,6 +493,12 @@ style = "BrightYellow"
 kind = "Empty"
 style = "BrightYellow"
 [[columns]]
+kind = "Env"
+style = "BrightYellow"
+[[columns]]
+kind = "FileName"
+style = "White"
+[[columns]]
 kind = "Gid"
 style = "White"
 [[columns]]
@@ -437,6 +524,9 @@ kind = "ReadBytes"
 style = "Cyan"
 [[columns]]
 kind = "Separator"
+style = "White"
+[[columns]]
+kind = "Session"
 style = "White"
 [[columns]]
 kind = "StartTime"
@@ -482,5 +572,8 @@ kind = "VmSwap"
 style = "ByUnit"
 [[columns]]
 kind = "WriteBytes"
+style = "White"
+[[columns]]
+kind = "RtPriority"
 style = "White"
 "#;

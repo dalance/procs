@@ -54,7 +54,7 @@ tokio         = { version = "1.52", optional = true, features = ["rt"] }
 toml          = "1.1"
 unicode-width = "0.2"
 regex         = "1.12"
-fancy-regex   = "0.18"
+fancy-regex   = "0.19"
 
 [build-dependencies]
 anyhow        = "1.0"
@@ -75,10 +75,10 @@ errno         = "0.3"
 pager         = "0.16"
 uzers         = "0.12"
 which         = "8"
-mach2         = "0.6.0"
+mach2         = "0.7.0"
 
 [target.'cfg(target_os = "windows")'.dependencies]
-windows-sys   = { version = "0.61", features = ["Win32_Foundation", "Win32_Networking_WinSock", "Win32_NetworkManagement_IpHelper", "Win32_Security", "Win32_System_Diagnostics_ToolHelp", "Win32_System_ProcessStatus", "Win32_System_Threading"] }
+windows-sys   = { version = "0.61", features = ["Wdk_System_SystemInformation", "Wdk_System_SystemServices", "Wdk_System_Threading", "Win32_Foundation", "Win32_Networking_WinSock", "Win32_NetworkManagement_IpHelper", "Win32_Security", "Win32_System_Diagnostics_Debug", "Win32_System_Kernel", "Win32_System_Threading", "Win32_System_WindowsProgramming"] }
 
 [target.'cfg(target_os = "freebsd")'.dependencies]
 bsd-kvm       = "0.1.5"
