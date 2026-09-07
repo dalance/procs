@@ -4,6 +4,8 @@ use std::cmp;
 use std::collections::HashMap;
 use std::path::PathBuf;
 
+#[cfg(target_os = "macos")]
+use libproc::libproc::proc_pid::{PIDInfo, PidInfoFlavor, pidinfo};
 #[cfg(target_os = "windows")]
 use windows_sys::Win32::Foundation::HANDLE;
 
@@ -47,6 +49,29 @@ impl Column for WorkDir {
 fn work_dir_of(pid: i32, procfs: &Option<PathBuf>) -> Option<String> {
     let proc = crate::util::process_new(pid, procfs).ok()?;
     Some(proc.cwd().ok()?.to_string_lossy().into_owned())
+}
+
+/// libproc's `pidinfo` passes `&mut T` to `proc_pidinfo` sized by
+/// `size_of::<T>()`, so this must keep the exact layout of
+/// `proc_vnodepathinfo`.
+#[cfg(target_os = "macos")]
+#[repr(transparent)]
+struct VnodePathInfo(libc::proc_vnodepathinfo);
+
+#[cfg(target_os = "macos")]
+impl PIDInfo for VnodePathInfo {
+    fn flavor() -> PidInfoFlavor {
+        PidInfoFlavor::VNodePathInfo
+    }
+}
+
+/// Processes owned by other users yield `None` unless running as root.
+#[cfg(target_os = "macos")]
+fn work_dir_of(pid: i32, _procfs: &Option<PathBuf>) -> Option<String> {
+    let info = pidinfo::<VnodePathInfo>(pid, 0).ok()?;
+    // libc declares `vip_path` as `[[c_char; 32]; 32]`, not `[c_char; MAXPATHLEN]`.
+    let path = crate::util::ptr_to_cstr(info.0.pvi_cdir.vip_path.as_flattened()).ok()?;
+    Some(path.to_string_lossy().into_owned())
 }
 
 /// Reads the current working directory of `pid` from its PEB.
