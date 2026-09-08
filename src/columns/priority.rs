@@ -137,11 +137,11 @@ fn priority_class_from_base(base: i32) -> u32 {
     // Base priorities: Idle=4, BelowNormal=6, Normal=8, AboveNormal=10,
     // High=13, Realtime=24. Pick the class whose base value is closest.
     match base {
-        b if b <= ((4 + 6) / 2) as i32 => IDLE_PRIORITY_CLASS,
-        b if b <= ((6 + 8) / 2) as i32 => BELOW_NORMAL_PRIORITY_CLASS,
-        b if b <= ((8 + 10) / 2) as i32 => NORMAL_PRIORITY_CLASS,
-        b if b <= ((10 + 13) / 2) as i32 => ABOVE_NORMAL_PRIORITY_CLASS,
-        b if b <= ((13 + 24) / 2) as i32 => HIGH_PRIORITY_CLASS,
+        b if b <= ((4 + 6) / 2) => IDLE_PRIORITY_CLASS,
+        b if b <= ((6 + 8) / 2) => BELOW_NORMAL_PRIORITY_CLASS,
+        b if b <= ((8 + 10) / 2) => NORMAL_PRIORITY_CLASS,
+        b if b <= ((10 + 13) / 2) => ABOVE_NORMAL_PRIORITY_CLASS,
+        b if b <= ((13 + 24) / 2) => HIGH_PRIORITY_CLASS,
         _ => REALTIME_PRIORITY_CLASS,
     }
 }

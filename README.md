@@ -651,7 +651,7 @@ style = "223"     # 223 for both theme
 | show_footer           | true, false           | false            | Whether footer row is shown                                                  |
 | show_kthreads         | true, false           | true             | Whether processes which belong to kthread are shown ( Linux only )           |
 | cut_to_terminal       | true, false           | true             | Whether output lines are truncated for output into terminal                  |
-| cut_to_pager          | true, false           | false            | Whether output lines are truncated for output into pager                     |
+| cut_to_pager          | true, false           | false            | Whether output lines are truncated for output into pager (true for built-in pager) |
 | cut_to_pipe           | true, false           | false            | Whether output lines are truncated for output into pipe                      |
 | color_mode            | Auto, Always, Disable | Auto             | The default behavior of output coloring without `--color` commandline option |
 | separator             | [String]              | │                | String used as Separator                                                     |
