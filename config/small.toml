@@ -108,6 +108,8 @@ ascending = "▲"
 descending = "▼"
 tree_symbols = ["│", "─", "┬", "├", "└"]
 abbr_sid = true
+only_current_user = false
+only_current_session = false
 
 [sort]
 column = 0

@@ -6,6 +6,7 @@ use std::ffi::c_void;
 use std::mem::{MaybeUninit, zeroed};
 use std::path::PathBuf;
 use std::ptr;
+use std::sync::OnceLock;
 use std::sync::atomic::{AtomicU8, Ordering};
 use std::thread;
 use std::time::{Duration, Instant};
@@ -20,6 +21,7 @@ use windows_sys::Win32::System::Threading::{
     PROCESS_QUERY_LIMITED_INFORMATION,
 };
 
+use super::OnlyFilter;
 use super::ntapi;
 
 /// Re-export the PEB prefix so the WorkDir column can read
@@ -144,14 +146,15 @@ pub fn collect_proc(
     with_thread: bool,
     show_kthreads: bool,
     _procfs_path: &Option<PathBuf>,
+    only: OnlyFilter,
 ) -> Vec<ProcessInfo> {
     let _ = set_privilege();
 
     let started = Instant::now();
-    let prev = take_snapshot(with_thread);
+    let prev = take_snapshot(with_thread, only);
     thread::sleep(interval);
     let finished = Instant::now();
-    let curr = take_snapshot(with_thread);
+    let curr = take_snapshot(with_thread, only);
 
     // Several columns divide by this, so never hand out a zero interval.
     let interval = finished
@@ -187,6 +190,18 @@ pub fn collect_proc(
 
         let handles = ProcHandles::open(proc.pid);
 
+        // The owner comes first. With a full snapshot it is already in hand and
+        // `take_snapshot` has filtered on it, so anything that gets this far
+        // matches; with the basic snapshot the token has to be opened anyway,
+        // which is what this call does, and dropping the process here at least
+        // saves reading its command line. The group list is deliberately not
+        // collected here - `Group` and `Gid` query it themselves, so that only
+        // enabling one of them pays for it.
+        let user = proc.user_sid.or_else(|| handles.full.and_then(get_user));
+        if only.current_user && user.as_ref() != current_user_sid().as_ref() {
+            continue;
+        }
+
         let command = handles
             .any()
             .and_then(ntapi::process_command_line)
@@ -197,11 +212,6 @@ pub fn collect_proc(
         // have no command line (e.g. System, Idle).
         let file_name = image_fallback(&proc);
 
-        // The snapshot SID saves an `OpenProcessToken`; the token is only
-        // opened for processes the snapshot could not name. The group list is
-        // deliberately not collected here - `Group` and `Gid` query it
-        // themselves, so that only enabling one of them pays for it.
-        let user = proc.user_sid.or_else(|| handles.full.and_then(get_user));
         let priority = proc.base_priority;
 
         ret.push(ProcessInfo {
@@ -315,6 +325,67 @@ pub fn collect_proc(
 }
 
 // ---------------------------------------------------------------------------
+// Current user / session
+// ---------------------------------------------------------------------------
+
+impl OnlyFilter {
+    /// Whether a process of `session` owned by `user` is kept.
+    ///
+    /// `user` is `None` when the owner is not known at the point of the call,
+    /// which happens with the basic snapshot class: there the SID only comes
+    /// from the process token, so such a process is kept here and judged again
+    /// by `collect_proc` once the token has been read.
+    fn matches(self, session: i32, user: Option<&SID_MAX>) -> bool {
+        if self.current_session {
+            match CURRENT_SESSION.get() {
+                // `procs` itself was not in the snapshot, so there is nothing
+                // to compare against - better to keep than to hide everything.
+                None => {}
+                Some(current) if *current == session => {}
+                _ => return false,
+            }
+        }
+        if self.current_user {
+            match (current_user_sid(), user) {
+                (Some(current), Some(user)) => {
+                    if current != *user {
+                        return false;
+                    }
+                }
+                // Our own SID could not be read, so there is nothing to
+                // compare against.
+                (None, _) => {}
+                // The owner is not published yet; `collect_proc` judges the
+                // process again once its token has been read.
+                (_, None) => {}
+            }
+        }
+        true
+    }
+}
+
+/// The logon session id of `procs` itself.
+///
+/// One entry of every snapshot is `procs` itself, and it carries the session
+/// id, so no extra API call is needed - and no `ProcessIdToSessionId`, which
+/// would cost another `windows-sys` feature.
+static CURRENT_SESSION: OnceLock<i32> = OnceLock::new();
+
+/// The SID of the user `procs` runs as.
+///
+/// Filled from the snapshot when the class carries SIDs, and from this
+/// process' own token otherwise.
+static CURRENT_USER: OnceLock<Option<SID_MAX>> = OnceLock::new();
+
+/// The SID of the user `procs` runs as, or `None` when it cannot be resolved.
+///
+/// Reading our own token needs no privilege, so a failure is not expected; a
+/// failure yields `None`, which then matches nothing.
+fn current_user_sid() -> Option<SID_MAX> {
+    *CURRENT_USER.get_or_init(|| token_user(CURRENT_PROCESS_TOKEN))
+}
+
+// ---------------------------------------------------------------------------
 // Snapshot
 // ---------------------------------------------------------------------------
 
@@ -357,13 +428,34 @@ struct SystemSnapshot {
 ///
 /// `SystemFullProcessInformation` is used when it is available, which also
 /// hands over each process' user SID.
-fn take_snapshot(with_thread: bool) -> SystemSnapshot {
+fn take_snapshot(with_thread: bool, only: OnlyFilter) -> SystemSnapshot {
     let mut procs = Vec::new();
     let mut threads = Vec::new();
 
     let Some(buffer) = ntapi::query_system_processes() else {
         return SystemSnapshot { procs, threads };
     };
+
+    // One entry of the buffer is `procs` itself, and it carries both values the
+    // filter compares against. Reading them here - while the buffer is still
+    // the only thing in hand - is what lets the filter drop a process before a
+    // single handle is opened for it. The values never change, so the second
+    // snapshot of a run reuses them.
+    let carries_sid = buffer.carries_user_sid();
+    if CURRENT_SESSION.get().is_none() && (only.current_user || only.current_session) {
+        let self_pid = std::process::id() as usize;
+        for entry in buffer.iter() {
+            if entry.info().UniqueProcessId as usize == self_pid {
+                let _ = CURRENT_SESSION.set(entry.info().SessionId as i32);
+                // Only a SID actually present in the entry is worth keeping:
+                // a `None` here would leave the fallback to the token unused.
+                if let Some(sid) = entry.user_sid() {
+                    let _ = CURRENT_USER.set(Some(sid));
+                }
+                break;
+            }
+        }
+    }
 
     // `ProcessNetworkIoInformation` is a Windows 11 addition: on an older
     // build no handle is opened for it at all.
@@ -373,6 +465,16 @@ fn take_snapshot(with_thread: bool) -> SystemSnapshot {
         let info = entry.info();
         let pid = info.UniqueProcessId as usize as i32;
         let ppid = info.InheritedFromUniqueProcessId as usize as i32;
+
+        // Dropping a process here is free and saves everything the rest of the
+        // snapshot does for it: the handle for the network counters, a place in
+        // the process list, and later on the handle and the command line read
+        // in `collect_proc`.
+        let user = if carries_sid { entry.user_sid() } else { None };
+        if !only.matches(info.SessionId as i32, user.as_ref()) {
+            continue;
+        }
+
         let image_name = entry.image_name();
 
         // Unlike the rest of the snapshot, the network counters are read from
@@ -425,7 +527,7 @@ fn take_snapshot(with_thread: bool) -> SystemSnapshot {
             },
             base_priority: info.BasePriority,
             state: entry.state(),
-            user_sid: entry.user_sid(),
+            user_sid: user,
             is_kthread,
         });
 
@@ -554,7 +656,20 @@ fn open_process(pid: i32, access: u32) -> Option<HANDLE> {
 // Privilege / token
 // ---------------------------------------------------------------------------
 
+/// The primary token of the calling process.
+///
+/// `NtCurrentProcessToken()` of `winnt.h`: a pseudo-handle the kernel
+/// resolves to the caller's own token. It needs no `OpenProcessToken` and must
+/// never be closed, so nothing here calls `CloseHandle` on it.
+///
+/// It is only good for **querying** the token (`GetTokenInformation`).
+/// Adjusting privileges through it does not take effect - `set_privilege` has
+/// to open a real handle for that.
+const CURRENT_PROCESS_TOKEN: HANDLE = -4isize as *mut c_void;
+
 fn set_privilege() -> bool {
+    // The pseudo-handle cannot be used here: adjusting privileges needs a real
+    // handle opened with `TOKEN_ADJUST_PRIVILEGES`.
     let handle = unsafe { GetCurrentProcess() };
     let mut token: HANDLE = unsafe { zeroed() };
     let ret = unsafe { OpenProcessToken(handle, TOKEN_ADJUST_PRIVILEGES, &mut token) };
@@ -593,6 +708,7 @@ fn set_privilege() -> bool {
     ret != 0
 }
 
+/// The SID of the user the process `handle` runs as.
 fn get_user(handle: HANDLE) -> Option<SID_MAX> {
     let mut token: HANDLE = unsafe { zeroed() };
     let ret = unsafe { OpenProcessToken(handle, TOKEN_QUERY, &mut token) };
@@ -600,14 +716,21 @@ fn get_user(handle: HANDLE) -> Option<SID_MAX> {
         return None;
     }
 
-    let sid = token_information(token, TokenUser);
+    let sid = token_user(token);
     unsafe {
         CloseHandle(token);
     }
+    sid
+}
 
+/// The SID of the user `token` belongs to.
+///
+/// `token` may be a real handle or the `CURRENT_PROCESS_TOKEN` pseudo-handle;
+/// neither is closed here, so the caller keeps owning it.
+fn token_user(token: HANDLE) -> Option<SID_MAX> {
     // The SID pointer lives inside this buffer, so it has to stay alive for
     // as long as `psid` is used.
-    let buf = sid?;
+    let buf = token_information(token, TokenUser)?;
 
     #[allow(clippy::cast_ptr_alignment)]
     let token_user = buf.as_ptr() as *const TOKEN_USER;
@@ -740,4 +863,22 @@ fn from_wide_ptr(ptr: *const u16) -> String {
         .unwrap();
     let slice = unsafe { std::slice::from_raw_parts(ptr, len) };
     OsString::from_wide(slice).to_string_lossy().into_owned()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// The pseudo-handle has to stand for the same token that
+    /// `OpenProcessToken` hands out for the current process.
+    #[test]
+    fn current_process_token_matches_open_process_token() {
+        let via_pseudo = token_user(CURRENT_PROCESS_TOKEN);
+        // SAFETY: `GetCurrentProcess` returns a pseudo-handle that must not be
+        // closed, and `get_user` closes only the token it opens itself.
+        let via_open = unsafe { get_user(GetCurrentProcess()) };
+
+        assert!(via_pseudo.is_some());
+        assert!(via_pseudo == via_open);
+    }
 }

@@ -30,6 +30,7 @@
 - Pager support
 - Watch mode (like `top`)
 - Tree view
+- Narrowing to the processes of the current user / session
 
 ## Platform
 
@@ -285,6 +286,20 @@ procs --tree
 ![procs_tree](https://user-images.githubusercontent.com/4331004/55446692-9ff07900-55fb-11e9-8b66-a8432df0a8e1.png)
 
 If `TreeSlot` column exists in config, dependency tree is shown at the slot.
+
+### Only current user / session
+
+`--only-current-user` narrows the listing down to the processes of the user `procs`
+runs as, and `--only-current-session` to the processes of its session.
+
+```console
+procs --only-current-user
+procs --only-current-user --only-current-session
+```
+
+Both can be turned on permanently by `only_current_user` and `only_current_session`
+of the `[display]` section. See [the section](#only_current_user--only_current_session)
+for what `session` means on each platform.
 
 ### Sort column
 
@@ -676,6 +691,8 @@ style = "223"     # 223 for both theme
 | tree_symbols          | [String; 5]           |  [│, ─, ┬, ├, └] | Symbols used by tree view                                                    |
 | abbr_sid              | true, false           | true             | Whether machine SID is abbreviated ( Windows only )                          |
 | theme                 | Auto, Dark, Light     | Auto             | Default theme                                                                |
+| only_current_user     | true, false           | false            | Whether only processes of the current user are shown                         |
+| only_current_session  | true, false           | false            | Whether only processes of the current session are shown                      |
 
 If `color_mode` is `Auto`, color is enabled for terminal and pager, disabled for pipe.
 
@@ -696,6 +713,36 @@ If `abbr_sid` is `true`, SID is shown like below:
 ```text
 S-1-5-21-...-1001
 ```
+
+#### `only_current_user` / `only_current_session`
+
+These narrow the listing down to the processes belonging to the user, resp. the
+session, `procs` itself runs in. Both can be combined, in which case a process
+must match both. The commandline options `--only-current-user` and
+`--only-current-session` turn them on for a single run, overriding the config.
+
+A process whose owner cannot be determined - a Windows protected process, or
+some of the kernel's own - counts as *not* the current user and is dropped.
+Running with more privileges (`sudo`, or an elevated prompt on Windows) makes
+more owners readable and therefore keeps more processes.
+
+The filter is applied while the processes are collected, not afterwards, so
+everything a platform would otherwise do per process - opening a handle and
+reading a command line on Windows, the `/proc/<pid>` reads on Linux - is skipped
+for the processes that are dropped.
+
+With `--tree`, the parents of a process that was dropped are not added back: the
+process simply starts a tree of its own.
+
+`session` does **not** mean the same thing on every platform:
+
+- Windows: the logon session id, i.e. what the `Session` column shows. Processes
+  of other users, of services in session 0, and of other RDP/console sessions are
+  dropped.
+- Linux, macOS, FreeBSD: the POSIX session id (`getsid(2)`), the process group set
+  led by a session leader - a login shell, an SSH session, a service manager.
+  Daemons that called `setsid` have their own session and are dropped, so this is
+  narrower than "everything of this login".
 
 
 ### `[sort]` section
