@@ -4,7 +4,6 @@
 
 * [Added] Arch column for Windows (process image architecture)
 * [Added] Real Command column for Windows (command line arguments). This column was printing pure file name, which is now moved to FileName column.
-* [Added] Priority column for Windows (user-mode priority class)
 * [Added] RtPriority column for Windows (kernel base priority)
 * [Added] Threads column for Windows (thread count)
 * [Added] Session column for Windows (session ID)
