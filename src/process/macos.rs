@@ -1,3 +1,4 @@
+use crate::process::OnlyFilter;
 use libc::{c_int, c_void, size_t};
 use libproc::libproc::bsd_info::BSDInfo;
 use libproc::libproc::file_info::{ListFDs, ProcFDType, pidfdinfo};
@@ -8,8 +9,10 @@ use libproc::libproc::task_info::{TaskAllInfo, TaskInfo};
 use libproc::libproc::thread_info::ThreadInfo;
 use libproc::processes::{ProcFilter, pids_by_type};
 use mach2::{boolean, vm_types};
+use nix::unistd::{self, Pid};
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
+use std::sync::OnceLock;
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -32,6 +35,7 @@ pub fn collect_proc(
     _with_thread: bool,
     show_kthreads: bool,
     _procfs_path: &Option<PathBuf>,
+    only: OnlyFilter,
 ) -> Vec<ProcessInfo> {
     let mut base_procs = Vec::new();
     let mut ret = Vec::new();
@@ -41,6 +45,13 @@ pub fn collect_proc(
         for p in procs {
             if let Ok(task) = pidinfo::<TaskAllInfo>(p as i32, 0) {
                 if !show_kthreads && task.pbsd.pbi_flags & 1 /* PROC_FLAG_SYSTEM */ != 0 {
+                    continue;
+                }
+
+                // The uid comes with the task info, so dropping a process here
+                // saves the resource usage query and everything the second pass
+                // does for it.
+                if !only.matches_user(task.pbsd.pbi_uid) {
                     continue;
                 }
 
@@ -59,6 +70,15 @@ pub fn collect_proc(
         } else {
             clone_task_all_info(&prev_task)
         };
+
+        if !only.matches_user(curr_task.pbsd.pbi_uid) {
+            continue;
+        }
+        // The session id is the one thing that costs a syscall to learn, so it
+        // is asked last, and only when the filter actually needs it.
+        if only.current_session && !only.matches_session(session_of(pid)) {
+            continue;
+        }
 
         let curr_path = get_path_info(pid, arg_max);
 
@@ -122,6 +142,55 @@ pub fn collect_proc(
     }
 
     ret
+}
+
+// ---------------------------------------------------------------------------
+// Current user / session
+// ---------------------------------------------------------------------------
+
+impl OnlyFilter {
+    /// Whether a process owned by `uid` is kept.
+    ///
+    /// The session half is separate: macOS keeps no session id in the task
+    /// info, so `getsid` costs a syscall per process and is asked once only,
+    /// in the second pass, for the processes that survived this one.
+    fn matches_user(self, uid: u32) -> bool {
+        !self.current_user || uid == current_uid()
+    }
+
+    /// Whether a process in `session` is kept.
+    fn matches_session(self, session: Option<i32>) -> bool {
+        if !self.current_session {
+            return true;
+        }
+        match (session, current_session()) {
+            (Some(session), Some(current)) => session == current,
+            // Our own session could not be read, so there is nothing to
+            // compare against - better to keep than to hide everything.
+            (_, None) => true,
+            // A process whose session `getsid` will not tell us never counts
+            // as ours.
+            _ => false,
+        }
+    }
+}
+
+/// The uid `procs` runs as.
+fn current_uid() -> u32 {
+    uzers::get_current_uid()
+}
+
+/// The session id of `pid`.
+fn session_of(pid: i32) -> Option<i32> {
+    unistd::getsid(Some(Pid::from_raw(pid)))
+        .map(|x| x.as_raw())
+        .ok()
+}
+
+/// The session id of `procs` itself, queried once.
+fn current_session() -> Option<i32> {
+    static CURRENT: OnceLock<Option<i32>> = OnceLock::new();
+    *CURRENT.get_or_init(|| unistd::getsid(None).map(|x| x.as_raw()).ok())
 }
 
 fn get_arg_max() -> size_t {

@@ -25,6 +25,8 @@ procs - a replacement for `ps` written in Rust
 *--watch*:: Enable watch mode for real-time updates.
 *--watch-interval <second>*:: Set the update interval for watch mode.
 *--tree*:: Display processes in a tree view.
+*--only-current-user*:: Show only the processes of the current user.
+*--only-current-session*:: Show only the processes of the current session.
 *--sorta <column>*:: Sort processes in ascending order by the specified column.
 *--sortd <column>*:: Sort processes in descending order by the specified column.
 *--insert <column>*:: Insert a new column at the position of `Slot` or `MultiSlot`.
@@ -39,6 +41,20 @@ procs - a replacement for `ps` written in Rust
 *Search by numeric keyword*:: procs --or 6000 60000 60001 16723
 
 *Show Docker container name*:: procs growi
+
+*Show only the processes of the current user*:: procs --only-current-user
+
+*Show only the processes of the current user and session*:: procs --only-current-user --only-current-session
+
+== CURRENT USER / SESSION
+
+`--only-current-user` narrows the listing down to the processes of the user *procs* runs as, and `--only-current-session` to the processes of its session. Both can be combined, in which case a process must match both.
+
+They can also be turned on permanently by `only_current_user` and `only_current_session` of the `[display]` section of the configuration file.
+
+A process whose owner cannot be determined, such as a Windows protected process, counts as not the current user and is hidden. Running with more privileges makes more owners readable.
+
+*session* does not mean the same thing on every platform. On Windows it is the logon session id shown by the *Session* column, so processes of services in session 0 and of other RDP or console sessions are hidden. On Linux, macOS and FreeBSD it is the POSIX session id of *getsid*(2), the process group set led by a session leader, so daemons that called *setsid*(2) are hidden as well.
 
 == PAGER
 

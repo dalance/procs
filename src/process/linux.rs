@@ -1,8 +1,10 @@
+use crate::process::OnlyFilter;
 use procfs::ProcError;
 use procfs::ProcessCGroup;
 use procfs::process::{FDInfo, Io, Process, Stat, StatFlags, Status, TasksIter};
 use std::collections::HashMap;
 use std::path::PathBuf;
+use std::sync::OnceLock;
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -85,6 +87,7 @@ pub fn collect_proc(
     with_thread: bool,
     show_kthreads: bool,
     procfs_path: &Option<PathBuf>,
+    only: OnlyFilter,
 ) -> Vec<ProcessInfo> {
     let mut base_procs = Vec::new();
     let mut base_tasks = HashMap::new();
@@ -99,6 +102,21 @@ pub fn collect_proc(
     if let Ok(all_proc) = all_proc {
         for proc in all_proc.flatten() {
             if let Ok(stat) = proc.stat() {
+                // `stat` is needed to place the process in a session at all, so
+                // it is read before the filter can say anything. Everything
+                // after it - `io`, and in the second pass a handful of further
+                // `/proc/<pid>` reads - is skipped for a process that is
+                // dropped. The owner costs a read of its own, so it is only
+                // asked for when the filter needs it.
+                let owner = if only.current_user {
+                    proc.uid().ok()
+                } else {
+                    None
+                };
+                if !only.matches(stat.session, owner) {
+                    continue;
+                }
+
                 let io = proc.io().ok();
                 let time = Instant::now();
                 if with_thread && let Ok(iter) = proc.tasks() {
@@ -129,6 +147,10 @@ pub fn collect_proc(
         } else {
             continue;
         };
+
+        if !only.matches(curr_stat.session, Some(curr_owner)) {
+            continue;
+        }
 
         let curr_io = curr_proc.io().ok();
         let curr_status = curr_proc.status().ok();
@@ -190,6 +212,51 @@ pub fn collect_proc(
     }
 
     ret
+}
+
+// ---------------------------------------------------------------------------
+// Current user / session
+// ---------------------------------------------------------------------------
+
+impl OnlyFilter {
+    /// Whether a process of `session` owned by `owner` is kept.
+    ///
+    /// `owner` is `None` when the caller did not need it - i.e. when the user
+    /// filter is off - and when `/proc/<pid>` would not tell us. A process of
+    /// unknown ownership never counts as ours.
+    ///
+    /// A session is the process group set led by a session leader - typically a
+    /// login shell or a service manager - which is a different notion from the
+    /// Windows logon session.
+    fn matches(self, session: i32, owner: Option<u32>) -> bool {
+        if self.current_session {
+            match current_session() {
+                // `getsid` failed, so there is nothing to compare against -
+                // better to keep than to hide everything.
+                None => {}
+                Some(current) if current != session => return false,
+                _ => {}
+            }
+        }
+        if self.current_user && owner != Some(current_uid()) {
+            return false;
+        }
+        true
+    }
+}
+
+/// The uid `procs` runs as.
+fn current_uid() -> u32 {
+    uzers::get_current_uid()
+}
+
+/// The session id of `procs` itself, queried once.
+fn current_session() -> Option<i32> {
+    static CURRENT: OnceLock<Option<i32>> = OnceLock::new();
+    *CURRENT.get_or_init(|| {
+        let sid = unsafe { libc::getsid(0) };
+        (sid >= 0).then_some(sid)
+    })
 }
 
 #[allow(clippy::type_complexity)]

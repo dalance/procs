@@ -536,6 +536,15 @@ impl SystemProcessSnapshot {
     pub fn iter(&self) -> ProcessIter<'_> {
         ProcessIter::new(self)
     }
+
+    /// Whether the entries of this snapshot carry a user SID.
+    ///
+    /// Only class 148 does. When it does, the user filter can drop a process
+    /// without opening a handle for it; with the basic class the SID is only
+    /// available from the process token, so the filter has to wait for that.
+    pub fn carries_user_sid(&self) -> bool {
+        self.kind.has_extension()
+    }
 }
 
 /// Takes one process snapshot.

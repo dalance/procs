@@ -311,6 +311,47 @@ mod tests {
     }
 
     #[test]
+    fn test_only_config_keys() {
+        let config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
+        assert!(!config.display.only_current_user);
+        assert!(!config.display.only_current_session);
+
+        let s = format!(
+            "{CONFIG_DEFAULT}\n[display]\nonly_current_user = true\nonly_current_session = true\n"
+        );
+        let config: Config = toml::from_str(&s).unwrap();
+        assert!(config.display.only_current_user);
+        assert!(config.display.only_current_session);
+    }
+
+    #[test]
+    fn test_run_only_current_user() {
+        let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
+        config.pager.mode = ConfigPagerMode::Disable;
+        config.display.theme = ConfigTheme::Dark;
+        config.display.only_current_user = true;
+
+        let args = ["procs"];
+        let mut opt = Opt::parse_from(args.iter());
+        let ret = run_default(&mut opt, &config);
+        assert!(ret.is_ok());
+    }
+
+    #[test]
+    fn test_run_only_current_session() {
+        let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
+        config.pager.mode = ConfigPagerMode::Disable;
+        config.display.theme = ConfigTheme::Dark;
+
+        let args = ["procs", "--only-current-user", "--only-current-session"];
+        let mut opt = Opt::parse_from(args.iter());
+        assert!(opt.only_current_user);
+        assert!(opt.only_current_session);
+        let ret = run_default(&mut opt, &config);
+        assert!(ret.is_ok());
+    }
+
+    #[test]
     fn test_run_gen_config() {
         let ret = run_gen_config();
         assert!(ret.is_ok());
