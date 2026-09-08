@@ -12,6 +12,7 @@
 * [Added] RecvBytes and SendBytes columns for Windows (network I/O rate; needs Windows 11 or later)
 * [Added] WorkDir column for Windows (current working directory)
 * [Added] `--thread` support for Windows
+* [Added] External pager support for Windows by `[pager] command` (built-in pager is used if it is not set)
 * [Changed] Group and Gid columns for Windows read the process token only when the column is displayed
 * [Fixed] ReadBytes / WriteBytes divided by a mis-scaled interval (seconds added to milliseconds)
 * [Fixed] Fix invalid JSON output when a column is skipped by --only or --tree
