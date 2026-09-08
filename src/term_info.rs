@@ -4,10 +4,15 @@ use minus::Pager;
 use minus::input::{self, HashedEventRegister, InputEvent};
 use std::cell::RefCell;
 use std::fmt::Write;
+use std::io::Write as _;
+use std::process::Child;
 
 pub struct TermInfo {
     term: Term,
     pub pager: RefCell<Option<Pager>>,
+    /// External pager process (Windows only, driven by `command` of `[pager]` section).
+    /// While it is alive, `write_line` feeds the process's stdin instead of the terminal.
+    pub external_pager: RefCell<Option<Child>>,
     pub height: usize,
     pub width: usize,
     pub clear_by_line: bool,
@@ -18,6 +23,7 @@ impl TermInfo {
     pub fn new(clear_by_line: bool, use_pager: bool) -> Result<Self, Error> {
         let term = Term::stdout();
         let pager = RefCell::new(Some(gen_pager()?));
+        let external_pager = RefCell::new(None);
         let (term_h, term_w) = term.size();
         let height = term_h as usize;
         let width = term_w as usize;
@@ -25,6 +31,7 @@ impl TermInfo {
         Ok(TermInfo {
             term,
             pager,
+            external_pager,
             height,
             width,
             clear_by_line,
@@ -39,8 +46,26 @@ impl TermInfo {
         if self.use_pager {
             writeln!(self.pager.borrow_mut().as_mut().unwrap(), "{s}")?;
         } else {
-            self.term.write_line(s)?;
+            let mut external_pager = self.external_pager.borrow_mut();
+            match external_pager.as_mut().and_then(|x| x.stdin.as_mut()) {
+                Some(stdin) => {
+                    stdin.write_all(s.as_bytes())?;
+                    stdin.write_all(b"\n")?;
+                }
+                None => self.term.write_line(s)?,
+            }
         }
+        Ok(())
+    }
+
+    /// Closes the pipe to the external pager and waits until it exits.
+    /// Does nothing if no external pager was started.
+    pub fn finish_external_pager(&self) -> Result<(), Error> {
+        let Some(mut child) = self.external_pager.replace(None) else {
+            return Ok(());
+        };
+        drop(child.stdin.take());
+        child.wait()?;
         Ok(())
     }
 

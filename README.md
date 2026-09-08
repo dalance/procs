@@ -243,7 +243,23 @@ Instead of them, built-in pager can be used by configuration `use_builtin`.
 
 #### Windows
 
-On Windows, built-in pager is always used.
+On Windows, the built-in pager is used by default.
+If `command` of `[pager]` section is set, it is launched as an external pager.
+
+```toml
+[pager]
+command = "less -SR"
+```
+
+The command is split by whitespaces, and a part surrounded by `"` or `'` is kept as a single
+argument, so a path containing spaces should be quoted like
+`"C:\Program Files\Git\usr\bin\less.exe" -SR`.
+Quotes must be balanced.
+
+The command is launched directly without a shell, so shell metacharacters like a pipe or a
+redirection are not available. Use `cmd /c "..."` if they are required.
+
+If the command cannot be parsed or launched, procs falls back to the built-in pager.
 
 ### Watch mode
 
@@ -713,4 +729,7 @@ If `column` is 0, value is sorted by the left column.
 | command      | [Command]             | less -SR | Pager command                                                            |
 
 If `mode` is `Auto`, pager is used only when output lines exceed terminal height.
-Default pager is `less -SR` ( if `less` is not found, `more -f` ).
+Default pager is `less -SR` on POSIX systems ( if `less` is not found, `more -f` ).
+
+On Windows, `command` is used if it is set, and the built-in pager is used otherwise.
+Note that the `PAGER` environment variable is not referenced on any platform.
