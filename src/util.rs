@@ -288,14 +288,16 @@ pub unsafe fn get_sys_value(
 ) -> bool {
     mib[0] = high as i32;
     mib[1] = low as i32;
-    libc::sysctl(
-        mib.as_mut_ptr(),
-        2,
-        value,
-        &mut len as *mut usize,
-        ::std::ptr::null_mut(),
-        0,
-    ) == 0
+    unsafe {
+        libc::sysctl(
+            mib.as_mut_ptr(),
+            2,
+            value,
+            &mut len as *mut usize,
+            ::std::ptr::null_mut(),
+            0,
+        ) == 0
+    }
 }
 
 pub fn bytify(x: u64) -> String {

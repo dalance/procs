@@ -45,7 +45,7 @@ impl Column for GidReal {
 #[cfg(target_os = "macos")]
 impl Column for GidReal {
     fn add(&mut self, proc: &ProcessInfo) {
-        let gid = proc.curr_task.pbsd.pbi_rgid;
+        let gid = proc.curr_proc.kp_eproc.e_pcred.p_rgid;
         let fmt_content = format!("{}", gid);
         let raw_content = gid;
 

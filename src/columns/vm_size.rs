@@ -42,7 +42,7 @@ impl Column for VmSize {
 #[cfg(target_os = "macos")]
 impl Column for VmSize {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = proc.curr_task.ptinfo.pti_virtual_size;
+        let raw_content = proc.curr_task.pti_virtual_size;
         let fmt_content = bytify(raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);

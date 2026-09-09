@@ -50,7 +50,7 @@ impl Column for Gid {
 #[cfg(target_os = "macos")]
 impl Column for Gid {
     fn add(&mut self, proc: &ProcessInfo) {
-        let gid = proc.curr_task.pbsd.pbi_gid;
+        let gid = proc.curr_proc.kp_eproc.e_pcred.p_rgid;
         let fmt_content = format!("{}", gid);
         let raw_content = gid;
 

@@ -45,7 +45,7 @@ impl Column for VmTotal {
     fn add(&mut self, proc: &ProcessInfo) {
         let raw_content = match &proc.curr_res {
             Some(mem) => mem.ri_phys_footprint,
-            None => proc.curr_task.ptinfo.pti_resident_size,
+            None => proc.curr_task.pti_resident_size,
         };
         let fmt_content = bytify(raw_content);
 

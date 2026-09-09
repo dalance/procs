@@ -52,7 +52,7 @@ impl Column for GroupSaved {
 #[cfg(target_os = "macos")]
 impl Column for GroupSaved {
     fn add(&mut self, proc: &ProcessInfo) {
-        let gid = proc.curr_task.pbsd.pbi_svgid;
+        let gid = proc.curr_proc.kp_eproc.e_pcred.p_svgid;
         let fmt_content =
             if let Some(group) = USERS_CACHE.with(|x| x.borrow_mut().get_group_by_gid(gid)) {
                 format!("{}", group.name().to_string_lossy())

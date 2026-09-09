@@ -15,6 +15,7 @@
 * [Added] External pager support for Windows by `[pager] command` (built-in pager is used if it is not set)
 * [Added] `only_current_user` and `only_current_session` of `[display]` section, and `--only-current-user` / `--only-current-session` options, to show the processes of the current user / session only
 * [Changed] Group and Gid columns for Windows read the process token only when the column is displayed
+* [Fixed] System processes no longer being dropped silently on macOS
 * [Fixed] ReadBytes / WriteBytes divided by a mis-scaled interval (seconds added to milliseconds)
 * [Fixed] Fix invalid JSON output when a column is skipped by --only or --tree
 

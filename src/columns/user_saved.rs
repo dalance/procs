@@ -52,7 +52,7 @@ impl Column for UserSaved {
 #[cfg(target_os = "macos")]
 impl Column for UserSaved {
     fn add(&mut self, proc: &ProcessInfo) {
-        let uid = proc.curr_task.pbsd.pbi_svuid;
+        let uid = proc.curr_proc.kp_eproc.e_pcred.p_svuid;
         let fmt_content =
             if let Some(user) = USERS_CACHE.with(|x| x.borrow_mut().get_user_by_uid(uid)) {
                 format!("{}", user.name().to_string_lossy())

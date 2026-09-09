@@ -41,8 +41,7 @@ impl Column for MinFlt {
 #[cfg(target_os = "macos")]
 impl Column for MinFlt {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content =
-            (proc.curr_task.ptinfo.pti_faults - proc.curr_task.ptinfo.pti_pageins) as u64;
+        let raw_content = (proc.curr_task.pti_faults - proc.curr_task.pti_pageins) as u64;
         let fmt_content = format!("{}", raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);

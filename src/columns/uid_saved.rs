@@ -45,7 +45,7 @@ impl Column for UidSaved {
 #[cfg(target_os = "macos")]
 impl Column for UidSaved {
     fn add(&mut self, proc: &ProcessInfo) {
-        let uid = proc.curr_task.pbsd.pbi_svuid;
+        let uid = proc.curr_proc.kp_eproc.e_pcred.p_svuid;
         let fmt_content = format!("{}", uid);
         let raw_content = uid;
 
