@@ -9,6 +9,10 @@
 [![procs](https://snapcraft.io/procs/badge.svg)](https://snapcraft.io/procs)
 [![homebrew](https://img.shields.io/homebrew/v/procs.svg)](https://formulae.brew.sh/formula/procs)
 
+## Demo
+
+https://github.com/user-attachments/assets/71d1dd6f-1f64-4eff-b3c9-4828efdfbe9e
+
 ## Documentation quick links
 
 * [Features](#features)
