@@ -69,3 +69,20 @@ impl Column for FileName {
 
     column_default!(String, false);
 }
+
+#[cfg(target_os = "macos")]
+impl Column for FileName {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let fmt_content = if let Some(path) = &proc.curr_path {
+            path.name.clone()
+        } else {
+            String::from("")
+        };
+        let raw_content = fmt_content.clone();
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(String, false);
+}
