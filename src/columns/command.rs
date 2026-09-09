@@ -1,8 +1,53 @@
 use crate::process::ProcessInfo;
 use crate::util::sanitize_control_chars;
 use crate::{column_default, Column};
+#[cfg(target_os = "freebsd")]
+use libc::{CTL_KERN, KERN_PROC, KERN_PROC_ARGS, c_void};
 use std::cmp;
 use std::collections::HashMap;
+#[cfg(target_os = "freebsd")]
+use std::ptr;
+
+#[cfg(target_os = "freebsd")]
+pub(crate) fn get_process_args(pid: i32) -> Vec<String> {
+    let mut mib = [CTL_KERN, KERN_PROC, KERN_PROC_ARGS, pid];
+    let mut size = 0usize;
+    if unsafe {
+        libc::sysctl(
+            mib.as_mut_ptr(),
+            mib.len() as u32,
+            ptr::null_mut(),
+            &mut size,
+            ptr::null_mut(),
+            0,
+        )
+    } != 0
+        || size == 0
+    {
+        return Vec::new();
+    }
+
+    let mut bytes = vec![0u8; size];
+    if unsafe {
+        libc::sysctl(
+            mib.as_mut_ptr(),
+            mib.len() as u32,
+            bytes.as_mut_ptr() as *mut c_void,
+            &mut size,
+            ptr::null_mut(),
+            0,
+        )
+    } != 0
+    {
+        return Vec::new();
+    }
+    bytes.truncate(size);
+    bytes
+        .split(|byte| *byte == 0)
+        .filter(|arg| !arg.is_empty())
+        .map(|arg| String::from_utf8_lossy(arg).into_owned())
+        .collect()
+}
 
 pub struct Command {
     header: String,
@@ -113,8 +158,9 @@ impl Column for Command {
 #[cfg(target_os = "freebsd")]
 impl Column for Command {
     fn add(&mut self, proc: &ProcessInfo) {
-        let command = if proc.curr_proc.arg.is_empty() {
-            let comm = crate::util::ptr_to_cstr(proc.curr_proc.info.comm.as_ref());
+        let args = get_process_args(proc.pid);
+        let command = if args.is_empty() {
+            let comm = crate::util::ptr_to_cstr(proc.curr_proc.ki_comm.as_ref());
             if let Ok(comm) = comm {
                 format!("[{}]", comm.to_string_lossy())
             } else {
@@ -122,7 +168,7 @@ impl Column for Command {
             }
         } else {
             let mut x = String::from("");
-            for arg in &proc.curr_proc.arg {
+            for arg in &args {
                 x.push_str(&arg);
                 x.push_str(" ");
             }

@@ -45,7 +45,7 @@ impl Column for ShdPnd {
 #[cfg(target_os = "freebsd")]
 impl Column for ShdPnd {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = proc.curr_proc.info.siglist.0[0] as u64;
+        let raw_content = proc.curr_proc.ki_siglist.__bits[0] as u64;
         let fmt_content = format!("{raw_content:016x}");
 
         self.fmt_contents.insert(proc.pid, fmt_content);

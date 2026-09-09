@@ -59,7 +59,7 @@ impl Column for GidSaved {
 #[cfg(target_os = "freebsd")]
 impl Column for GidSaved {
     fn add(&mut self, proc: &ProcessInfo) {
-        let gid = proc.curr_proc.info.svgid;
+        let gid = proc.curr_proc.ki_svgid;
         let fmt_content = format!("{}", gid);
         let raw_content = gid;
 

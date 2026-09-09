@@ -59,7 +59,7 @@ impl Column for UidReal {
 #[cfg(target_os = "freebsd")]
 impl Column for UidReal {
     fn add(&mut self, proc: &ProcessInfo) {
-        let uid = proc.curr_proc.info.ruid;
+        let uid = proc.curr_proc.ki_ruid;
         let fmt_content = format!("{}", uid);
         let raw_content = uid;
 

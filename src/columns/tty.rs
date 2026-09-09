@@ -66,7 +66,7 @@ impl Column for Tty {
 #[cfg(target_os = "freebsd")]
 impl Column for Tty {
     fn add(&mut self, proc: &ProcessInfo) {
-        let dev = proc.curr_proc.info.tdev;
+        let dev = proc.curr_proc.ki_tdev;
 
         let mut buf = [0u8; 256];
 

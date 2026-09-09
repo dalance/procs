@@ -54,7 +54,7 @@ impl Column for Nice {
 #[cfg(target_os = "freebsd")]
 impl Column for Nice {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = proc.curr_proc.info.nice as i64;
+        let raw_content = proc.curr_proc.ki_nice as i64;
         let fmt_content = format!("{raw_content}");
 
         self.fmt_contents.insert(proc.pid, fmt_content);

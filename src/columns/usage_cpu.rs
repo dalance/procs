@@ -89,10 +89,14 @@ impl Column for UsageCpu {
 #[cfg(target_os = "freebsd")]
 impl Column for UsageCpu {
     fn add(&mut self, proc: &ProcessInfo) {
-        let curr_time = (proc.curr_proc.info.rusage.utime.to_us()
-            + proc.curr_proc.info.rusage.stime.to_us()) as u64;
-        let prev_time = (proc.prev_proc.info.rusage.utime.to_us()
-            + proc.prev_proc.info.rusage.stime.to_us()) as u64;
+        let curr_time = (proc.curr_proc.ki_rusage.ru_utime.tv_sec * 1_000_000
+            + proc.curr_proc.ki_rusage.ru_utime.tv_usec
+            + proc.curr_proc.ki_rusage.ru_stime.tv_sec * 1_000_000
+            + proc.curr_proc.ki_rusage.ru_stime.tv_usec) as u64;
+        let prev_time = (proc.prev_proc.ki_rusage.ru_utime.tv_sec * 1_000_000
+            + proc.prev_proc.ki_rusage.ru_utime.tv_usec
+            + proc.prev_proc.ki_rusage.ru_stime.tv_sec * 1_000_000
+            + proc.prev_proc.ki_rusage.ru_stime.tv_usec) as u64;
         let usage_ms = (curr_time - prev_time) / 1_000u64;
         let interval_ms = proc.interval.as_secs() * 1000 + u64::from(proc.interval.subsec_millis());
         let usage = usage_ms as f64 * 100.0 / interval_ms as f64;

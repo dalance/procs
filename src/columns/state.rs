@@ -85,17 +85,17 @@ impl Column for State {
 #[cfg(target_os = "freebsd")]
 impl Column for State {
     fn add(&mut self, proc: &ProcessInfo) {
-        let info = &proc.curr_proc.info;
-        let flag = info.flag;
-        let tdflags = info.tdflags;
-        let cr_flags = info.cr_flags;
-        let kiflag = info.kiflag;
+        let info = &proc.curr_proc;
+        let flag = info.ki_flag;
+        let tdflags = info.ki_tdflags;
+        let cr_flags = info.ki_cr_flags;
+        let kiflag = info.ki_kiflag;
 
-        let mut state = match info.stat {
+        let mut state = match info.ki_stat {
             libc::SSTOP => "T",
             libc::SSLEEP => {
                 if (tdflags & libc::TDF_SINTR as i64) != 0 {
-                    if info.slptime >= 20 {
+                    if info.ki_slptime >= 20 {
                         "I"
                     } else {
                         "S"
@@ -114,22 +114,28 @@ impl Column for State {
         if (flag & libc::P_INMEM as i64) == 0 {
             state.push_str("W");
         }
-        if info.nice < libc::NZERO as i8 || info.pri.class == bsd_kvm_sys::PRI_REALTIME as u8 {
+        if info.ki_nice < libc::NZERO as i8
+            || info.ki_pri.pri_class == bsd_kvm_sys::PRI_REALTIME as u8
+        {
             state.push_str("<");
         }
-        if info.nice > libc::NZERO as i8 || info.pri.class == bsd_kvm_sys::PRI_IDLE as u8 {
+        if info.ki_nice > libc::NZERO as i8
+            || info.ki_pri.pri_class == bsd_kvm_sys::PRI_IDLE as u8
+        {
             state.push_str("N");
         }
         if (flag & libc::P_TRACED as i64) != 0 {
             state.push_str("X");
         }
-        if (flag & libc::P_WEXIT as i64) != 0 && info.stat != libc::SZOMB as std::os::raw::c_char {
+        if (flag & libc::P_WEXIT as i64) != 0
+            && info.ki_stat != libc::SZOMB as std::os::raw::c_char
+        {
             state.push_str("E");
         }
         if (flag & libc::P_PPWAIT as i64) != 0 {
             state.push_str("V");
         }
-        if (flag & libc::P_SYSTEM as i64) != 0 || info.lock > 0 {
+        if (flag & libc::P_SYSTEM as i64) != 0 || info.ki_lock > 0 {
             state.push_str("L");
         }
         if (cr_flags & libc::KI_CRF_CAPABILITY_MODE as u32) != 0 {
@@ -138,7 +144,7 @@ impl Column for State {
         if (kiflag & libc::KI_SLEADER as i64) != 0 {
             state.push_str("s");
         }
-        if (flag & libc::P_CONTROLT as i64) != 0 && info.pgid == info.tpgid {
+        if (flag & libc::P_CONTROLT as i64) != 0 && info.ki_pgid == info.ki_tpgid {
             state.push_str("+");
         }
         if (flag & libc::P_JAILED as i64) != 0 {

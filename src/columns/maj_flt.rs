@@ -67,7 +67,7 @@ impl Column for MajFlt {
 #[cfg(target_os = "freebsd")]
 impl Column for MajFlt {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = proc.curr_proc.info.rusage.majflt as u64;
+        let raw_content = proc.curr_proc.ki_rusage.ru_majflt as u64;
         let fmt_content = format!("{raw_content}");
 
         self.fmt_contents.insert(proc.pid, fmt_content);

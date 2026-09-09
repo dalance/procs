@@ -75,7 +75,7 @@ impl Column for Session {
 #[cfg(target_os = "freebsd")]
 impl Column for Session {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = proc.curr_proc.info.sid;
+        let raw_content = proc.curr_proc.ki_sid;
         let fmt_content = format!("{}", raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
