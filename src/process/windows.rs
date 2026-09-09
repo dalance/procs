@@ -21,7 +21,7 @@ use windows_sys::Win32::System::Threading::{
     PROCESS_QUERY_LIMITED_INFORMATION,
 };
 
-use super::OnlyFilter;
+use super::ShowFilter;
 use super::ntapi;
 
 /// Re-export the PEB prefix so the WorkDir column can read
@@ -144,17 +144,16 @@ pub struct CpuInfo {
 pub fn collect_proc(
     interval: Duration,
     with_thread: bool,
-    show_kthreads: bool,
     _procfs_path: &Option<PathBuf>,
-    only: OnlyFilter,
+    filter: ShowFilter,
 ) -> Vec<ProcessInfo> {
     let _ = set_privilege();
 
     let started = Instant::now();
-    let prev = take_snapshot(with_thread, only);
+    let prev = take_snapshot(with_thread, filter);
     thread::sleep(interval);
     let finished = Instant::now();
-    let curr = take_snapshot(with_thread, only);
+    let curr = take_snapshot(with_thread, filter);
 
     // Several columns divide by this, so never hand out a zero interval.
     let interval = finished
@@ -174,7 +173,7 @@ pub fn collect_proc(
         // Compression, ...) unless `--thread` was given. The decision is made
         // once in `take_snapshot` from the authoritative kernel classification
         // (or the parent-pid heuristic on a basic snapshot).
-        if !show_kthreads && proc.is_kthread {
+        if !filter.kthread && proc.is_kthread {
             continue;
         }
 
@@ -198,7 +197,7 @@ pub fn collect_proc(
         // collected here - `Group` and `Gid` query it themselves, so that only
         // enabling one of them pays for it.
         let user = proc.user_sid.or_else(|| handles.full.and_then(get_user));
-        if only.current_user && user.as_ref() != current_user_sid().as_ref() {
+        if !filter.other_users && user.as_ref() != current_user_sid().as_ref() {
             continue;
         }
 
@@ -325,51 +324,8 @@ pub fn collect_proc(
 }
 
 // ---------------------------------------------------------------------------
-// Current user / session
+// Current user
 // ---------------------------------------------------------------------------
-
-impl OnlyFilter {
-    /// Whether a process of `session` owned by `user` is kept.
-    ///
-    /// `user` is `None` when the owner is not known at the point of the call,
-    /// which happens with the basic snapshot class: there the SID only comes
-    /// from the process token, so such a process is kept here and judged again
-    /// by `collect_proc` once the token has been read.
-    fn matches(self, session: i32, user: Option<&SID_MAX>) -> bool {
-        if self.current_session {
-            match CURRENT_SESSION.get() {
-                // `procs` itself was not in the snapshot, so there is nothing
-                // to compare against - better to keep than to hide everything.
-                None => {}
-                Some(current) if *current == session => {}
-                _ => return false,
-            }
-        }
-        if self.current_user {
-            match (current_user_sid(), user) {
-                (Some(current), Some(user)) => {
-                    if current != *user {
-                        return false;
-                    }
-                }
-                // Our own SID could not be read, so there is nothing to
-                // compare against.
-                (None, _) => {}
-                // The owner is not published yet; `collect_proc` judges the
-                // process again once its token has been read.
-                (_, None) => {}
-            }
-        }
-        true
-    }
-}
-
-/// The logon session id of `procs` itself.
-///
-/// One entry of every snapshot is `procs` itself, and it carries the session
-/// id, so no extra API call is needed - and no `ProcessIdToSessionId`, which
-/// would cost another `windows-sys` feature.
-static CURRENT_SESSION: OnceLock<i32> = OnceLock::new();
 
 /// The SID of the user `procs` runs as.
 ///
@@ -428,7 +384,7 @@ struct SystemSnapshot {
 ///
 /// `SystemFullProcessInformation` is used when it is available, which also
 /// hands over each process' user SID.
-fn take_snapshot(with_thread: bool, only: OnlyFilter) -> SystemSnapshot {
+fn take_snapshot(with_thread: bool, filter: ShowFilter) -> SystemSnapshot {
     let mut procs = Vec::new();
     let mut threads = Vec::new();
 
@@ -436,17 +392,16 @@ fn take_snapshot(with_thread: bool, only: OnlyFilter) -> SystemSnapshot {
         return SystemSnapshot { procs, threads };
     };
 
-    // One entry of the buffer is `procs` itself, and it carries both values the
-    // filter compares against. Reading them here - while the buffer is still
+    // One entry of the buffer is `procs` itself, and it carries the SID the
+    // filter compares against. Reading it here - while the buffer is still
     // the only thing in hand - is what lets the filter drop a process before a
-    // single handle is opened for it. The values never change, so the second
-    // snapshot of a run reuses them.
+    // single handle is opened for it. The value never changes, so the second
+    // snapshot of a run reuses it.
     let carries_sid = buffer.carries_user_sid();
-    if CURRENT_SESSION.get().is_none() && (only.current_user || only.current_session) {
+    if CURRENT_USER.get().is_none() && !filter.other_users {
         let self_pid = std::process::id() as usize;
         for entry in buffer.iter() {
             if entry.info().UniqueProcessId as usize == self_pid {
-                let _ = CURRENT_SESSION.set(entry.info().SessionId as i32);
                 // Only a SID actually present in the entry is worth keeping:
                 // a `None` here would leave the fallback to the token unused.
                 if let Some(sid) = entry.user_sid() {
@@ -471,8 +426,20 @@ fn take_snapshot(with_thread: bool, only: OnlyFilter) -> SystemSnapshot {
         // the process list, and later on the handle and the command line read
         // in `collect_proc`.
         let user = if carries_sid { entry.user_sid() } else { None };
-        if !only.matches(info.SessionId as i32, user.as_ref()) {
-            continue;
+        if !filter.other_users {
+            match (current_user_sid(), user.as_ref()) {
+                (Some(current), Some(user)) => {
+                    if current != *user {
+                        continue;
+                    }
+                }
+                // Our own SID could not be read, so there is nothing to
+                // compare against.
+                (None, _) => {}
+                // The owner is not published yet; `collect_proc` judges the
+                // process again once its token has been read.
+                (_, None) => {}
+            }
         }
 
         let image_name = entry.image_name();

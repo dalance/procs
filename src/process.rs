@@ -1,5 +1,4 @@
-/// Narrowing of the listing to the processes of the current user and/or the
-/// current session.
+/// What the listing shows, decided while the processes are collected.
 ///
 /// This is handed to `collect_proc` instead of being applied to its result:
 /// enumerating every process cannot be avoided - that is what tells us which
@@ -8,9 +7,12 @@
 /// and a command line read per process, on Linux a handful of `/proc/<pid>`
 /// reads, on macOS the descriptor and thread walks.
 #[derive(Clone, Copy, Default)]
-pub struct OnlyFilter {
-    pub current_user: bool,
-    pub current_session: bool,
+pub struct ShowFilter {
+    /// Whether processes of other users are shown. When `false`, only the
+    /// processes of the user `procs` runs as are kept.
+    pub other_users: bool,
+    /// Whether kernel threads are shown.
+    pub kthread: bool,
 }
 
 #[cfg(target_os = "freebsd")]
