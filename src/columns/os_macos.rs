@@ -6,6 +6,7 @@ pub mod cpu_time;
 pub mod docker;
 pub mod elapsed_time;
 pub mod empty;
+pub mod file_name;
 pub mod gid;
 pub mod gid_real;
 pub mod gid_saved;
@@ -54,6 +55,7 @@ pub use self::cpu_time::CpuTime;
 pub use self::docker::Docker;
 pub use self::elapsed_time::ElapsedTime;
 pub use self::empty::Empty;
+pub use self::file_name::FileName;
 pub use self::gid::Gid;
 pub use self::gid_real::GidReal;
 pub use self::gid_saved::GidSaved;
@@ -113,6 +115,7 @@ pub enum ConfigColumnKind {
     Docker,
     ElapsedTime,
     Empty,
+    FileName,
     Gid,
     GidReal,
     GidSaved,
@@ -179,6 +182,7 @@ pub fn gen_column(
         ConfigColumnKind::Docker => Box::new(Empty::new()),
         ConfigColumnKind::ElapsedTime => Box::new(ElapsedTime::new(header)),
         ConfigColumnKind::Empty => Box::new(Empty::new()),
+        ConfigColumnKind::FileName => Box::new(FileName::new(header)),
         ConfigColumnKind::Gid => Box::new(Gid::new(header, abbr_sid)),
         ConfigColumnKind::GidReal => Box::new(GidReal::new(header)),
         ConfigColumnKind::GidSaved => Box::new(GidSaved::new(header)),
@@ -250,6 +254,7 @@ pub static KIND_LIST: Lazy<BTreeMap<ConfigColumnKind, (&'static str, &'static st
                 ("ElapsedTime", "Elapsed time"),
             ),
             (ConfigColumnKind::Empty, ("Empty", "Empty")),
+            (ConfigColumnKind::FileName, ("FileName", "File name")),
             (ConfigColumnKind::Gid, ("Gid", "Group ID")),
             (ConfigColumnKind::GidReal, ("GidReal", "Real group ID")),
             (ConfigColumnKind::GidSaved, ("GidSaved", "Saved group ID")),
@@ -555,6 +560,9 @@ style = "BrightYellow"
 [[columns]]
 kind = "Empty"
 style = "BrightYellow"
+[[columns]]
+kind = "FileName"
+style = "BrightBlue"
 [[columns]]
 kind = "Gid"
 style = "White"

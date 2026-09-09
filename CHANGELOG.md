@@ -11,6 +11,7 @@
 * [Added] Env column for Windows (environment variables)
 * [Added] RecvBytes and SendBytes columns for Windows (network I/O rate; needs Windows 11 or later)
 * [Added] WorkDir column for Windows (current working directory)
+* [Added] FileName column for macOS (Process file name)
 * [Added] `--thread` support for Windows
 * [Added] External pager support for Windows by `[pager] command` (built-in pager is used if it is not set)
 * [Added] `only_current_user` and `only_current_session` of `[display]` section, and `--only-current-user` / `--only-current-session` options, to show the processes of the current user / session only
