@@ -1,4 +1,4 @@
-use crate::process::OnlyFilter;
+use crate::process::ShowFilter;
 use libc::{c_char, c_int, c_void, size_t};
 use libproc::libproc::file_info::{ListFDs, ProcFDType, pidfdinfo};
 use libproc::libproc::net_info::{InSockInfo, SocketFDInfo, SocketInfoKind, TcpSockInfo};
@@ -7,11 +7,9 @@ use libproc::libproc::proc_pid::{ListThreads, listpidinfo, pidinfo, pidpath};
 use libproc::libproc::task_info::TaskInfo;
 use libproc::libproc::thread_info::ThreadInfo;
 use mach2::{boolean, vm_types};
-use nix::unistd::{self, Pid};
 use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
-use std::sync::OnceLock;
 use std::time::{Duration, Instant};
 use std::{io, mem, ptr, thread};
 
@@ -37,24 +35,24 @@ pub struct ProcessInfo {
 pub fn collect_proc(
     interval: Duration,
     _with_thread: bool,
-    show_kthreads: bool,
     _procfs_path: &Option<PathBuf>,
-    only: OnlyFilter,
+    filter: ShowFilter,
 ) -> Vec<ProcessInfo> {
     let mut base_procs = HashMap::new();
     let mut ret = Vec::new();
     let arg_max = get_arg_max();
+    let current_uid = uzers::get_current_uid();
 
     if let Some(procs) = sysctl_procs() {
         for kp in procs {
-            if !show_kthreads && kp.kp_proc.p_flag & P_SYSTEM != 0 {
+            if !filter.kthread && kp.kp_proc.p_flag & P_SYSTEM != 0 {
                 continue;
             }
 
             // The uid comes with the process table, so dropping a process here
             // saves the resource usage query and everything the second pass
             // does for it.
-            if !only.matches_user(kp.kp_eproc.e_ucred.cr_uid) {
+            if !filter.other_users && kp.kp_eproc.e_ucred.cr_uid != current_uid {
                 continue;
             }
 
@@ -80,12 +78,7 @@ pub fn collect_proc(
 
         let curr_task = pidinfo::<TaskInfo>(pid, 0).unwrap_or(prev_task);
 
-        if !only.matches_user(curr_proc.kp_eproc.e_ucred.cr_uid) {
-            continue;
-        }
-        // The session id is the one thing that costs a syscall to learn, so it
-        // is asked last, and only when the filter actually needs it.
-        if only.current_session && !only.matches_session(session_of(pid)) {
+        if !filter.other_users && curr_proc.kp_eproc.e_ucred.cr_uid != current_uid {
             continue;
         }
 
@@ -172,7 +165,7 @@ pub fn collect_proc(
 const KERN_PROC_ALL: c_int = 0;
 
 /// `P_SYSTEM` from `<sys/proc.h>`: a process the kernel owns, the ones
-/// `show_kthreads` hides. It lives in the `P_*` namespace of
+/// `ShowFilter::kthread` hides. It lives in the `P_*` namespace of
 /// `kinfo_proc::kp_proc::p_flag`.
 const P_SYSTEM: c_int = 0x00000200;
 
@@ -182,7 +175,7 @@ const P_SYSTEM: c_int = 0x00000200;
 /// `libproc` answers for the processes `procs` owns only: `pidinfo`,
 /// `pidrusage` and the rest of it fail with `EPERM` for anything else, which
 /// is why a listing built on them alone is a listing of the current user's
-/// processes, whatever the `OnlyFilter` says. `sysctl` has no such rule and
+/// processes, whatever the `ShowFilter` says. `sysctl` has no such rule and
 /// hands out one `kinfo_proc` per process, whoever owns it, with the BSD half
 /// of what the columns ask for - uid, ppid, pgid, tty, niceness, start time,
 /// name - already in it.
@@ -236,55 +229,6 @@ fn sysctl_procs() -> Option<Vec<kinfo_proc>> {
     }
 
     None
-}
-
-// ---------------------------------------------------------------------------
-// Current user / session
-// ---------------------------------------------------------------------------
-
-impl OnlyFilter {
-    /// Whether a process owned by `uid` is kept.
-    ///
-    /// The session half is separate: macOS keeps no session id in the task
-    /// info, so `getsid` costs a syscall per process and is asked once only,
-    /// in the second pass, for the processes that survived this one.
-    fn matches_user(self, uid: u32) -> bool {
-        !self.current_user || uid == current_uid()
-    }
-
-    /// Whether a process in `session` is kept.
-    fn matches_session(self, session: Option<i32>) -> bool {
-        if !self.current_session {
-            return true;
-        }
-        match (session, current_session()) {
-            (Some(session), Some(current)) => session == current,
-            // Our own session could not be read, so there is nothing to
-            // compare against - better to keep than to hide everything.
-            (_, None) => true,
-            // A process whose session `getsid` will not tell us never counts
-            // as ours.
-            _ => false,
-        }
-    }
-}
-
-/// The uid `procs` runs as.
-fn current_uid() -> u32 {
-    uzers::get_current_uid()
-}
-
-/// The session id of `pid`.
-fn session_of(pid: i32) -> Option<i32> {
-    unistd::getsid(Some(Pid::from_raw(pid)))
-        .map(|x| x.as_raw())
-        .ok()
-}
-
-/// The session id of `procs` itself, queried once.
-fn current_session() -> Option<i32> {
-    static CURRENT: OnceLock<Option<i32>> = OnceLock::new();
-    *CURRENT.get_or_init(|| unistd::getsid(None).map(|x| x.as_raw()).ok())
 }
 
 fn get_arg_max() -> size_t {

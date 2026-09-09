@@ -109,14 +109,6 @@ pub struct Opt {
     #[clap(short = 't', long = "tree")]
     pub tree: bool,
 
-    /// Show processes of the current user only
-    #[clap(long = "only-current-user")]
-    pub only_current_user: bool,
-
-    /// Show processes of the current session only
-    #[clap(long = "only-current-session")]
-    pub only_current_session: bool,
-
     /// Watch mode with default interval (1s)
     #[clap(short = 'w', long = "watch")]
     pub watch: bool,

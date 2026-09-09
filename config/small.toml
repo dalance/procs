@@ -108,8 +108,7 @@ ascending = "▲"
 descending = "▼"
 tree_symbols = ["│", "─", "┬", "├", "└"]
 abbr_sid = true
-only_current_user = false
-only_current_session = false
+show_other_users = true
 
 [sort]
 column = 0
@@ -120,4 +119,3 @@ path = "unix:///var/run/docker.sock"
 
 [pager]
 mode = "Auto"
-

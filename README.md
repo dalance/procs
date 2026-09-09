@@ -287,19 +287,17 @@ procs --tree
 
 If `TreeSlot` column exists in config, dependency tree is shown at the slot.
 
-### Only current user / session
+### Show other users
 
-`--only-current-user` narrows the listing down to the processes of the user `procs`
-runs as, and `--only-current-session` to the processes of its session.
+By default `procs` shows the processes of every user. Setting
+`show_other_users` to `false` in the `[display]` section narrows the listing
+down to the processes of the user `procs` runs as.
 
 ```console
-procs --only-current-user
-procs --only-current-user --only-current-session
+procs
 ```
 
-Both can be turned on permanently by `only_current_user` and `only_current_session`
-of the `[display]` section. See [the section](#only_current_user--only_current_session)
-for what `session` means on each platform.
+See [the section](#show_other_users) for the details.
 
 ### Sort column
 
@@ -691,8 +689,7 @@ style = "223"     # 223 for both theme
 | tree_symbols          | [String; 5]           |  [│, ─, ┬, ├, └] | Symbols used by tree view                                                    |
 | abbr_sid              | true, false           | true             | Whether machine SID is abbreviated ( Windows only )                          |
 | theme                 | Auto, Dark, Light     | Auto             | Default theme                                                                |
-| only_current_user     | true, false           | false            | Whether only processes of the current user are shown                         |
-| only_current_session  | true, false           | false            | Whether only processes of the current session are shown                      |
+| show_other_users     | true, false           | true             | Whether processes of other users are shown (false: only the current user)   |
 
 If `color_mode` is `Auto`, color is enabled for terminal and pager, disabled for pipe.
 
@@ -714,12 +711,11 @@ If `abbr_sid` is `true`, SID is shown like below:
 S-1-5-21-...-1001
 ```
 
-#### `only_current_user` / `only_current_session`
+#### `show_other_users`
 
-These narrow the listing down to the processes belonging to the user, resp. the
-session, `procs` itself runs in. Both can be combined, in which case a process
-must match both. The commandline options `--only-current-user` and
-`--only-current-session` turn them on for a single run, overriding the config.
+By default `procs` shows the processes of every user. Setting `show_other_users`
+to `false` narrows the listing down to the processes of the user `procs` itself
+runs as.
 
 A process whose owner cannot be determined - a Windows protected process, or
 some of the kernel's own - counts as *not* the current user and is dropped.
@@ -733,16 +729,6 @@ for the processes that are dropped.
 
 With `--tree`, the parents of a process that was dropped are not added back: the
 process simply starts a tree of its own.
-
-`session` does **not** mean the same thing on every platform:
-
-- Windows: the logon session id, i.e. what the `Session` column shows. Processes
-  of other users, of services in session 0, and of other RDP/console sessions are
-  dropped.
-- Linux, macOS, FreeBSD: the POSIX session id (`getsid(2)`), the process group set
-  led by a session leader - a login shell, an SSH session, a service manager.
-  Daemons that called `setsid` have their own session and are dropped, so this is
-  narrower than "everything of this login".
 
 
 ### `[sort]` section

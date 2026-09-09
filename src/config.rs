@@ -559,10 +559,8 @@ pub struct ConfigDisplay {
     pub theme: ConfigTheme,
     #[serde(default = "default_true")]
     pub show_kthreads: bool,
-    #[serde(default = "default_false")]
-    pub only_current_user: bool,
-    #[serde(default = "default_false")]
-    pub only_current_session: bool,
+    #[serde(default = "default_true")]
+    pub show_other_users: bool,
 }
 
 impl Default for ConfigDisplay {
@@ -593,8 +591,7 @@ impl Default for ConfigDisplay {
             abbr_sid: true,
             theme: ConfigTheme::Auto,
             show_kthreads: true,
-            only_current_user: false,
-            only_current_session: false,
+            show_other_users: true,
         }
     }
 }

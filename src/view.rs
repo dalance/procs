@@ -3,7 +3,7 @@ use crate::column::Column;
 use crate::columns::*;
 use crate::config::*;
 use crate::opt::{ArgColorMode, ArgPagerMode};
-use crate::process::{OnlyFilter, collect_proc};
+use crate::process::{ShowFilter, collect_proc};
 use crate::search_regex::SearchRegex;
 use crate::style::{apply_color, apply_style, color_to_column_style};
 use crate::term_info::TermInfo;
@@ -176,17 +176,16 @@ impl View {
             config.display.show_thread
         };
 
-        let only = OnlyFilter {
-            current_user: opt.only_current_user || config.display.only_current_user,
-            current_session: opt.only_current_session || config.display.only_current_session,
+        let filter = ShowFilter {
+            other_users: config.display.show_other_users,
+            kthread: config.display.show_kthreads,
         };
 
         let proc = collect_proc(
             Duration::from_millis(opt.interval),
             show_thread,
-            config.display.show_kthreads,
             &opt.procfs,
-            only,
+            filter,
         );
 
         for c in columns.iter_mut() {
