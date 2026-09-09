@@ -44,9 +44,8 @@ impl Column for CpuTime {
 #[cfg(target_os = "macos")]
 impl Column for CpuTime {
     fn add(&mut self, proc: &ProcessInfo) {
-        let time_sec = (proc.curr_task.ptinfo.pti_total_user
-            + proc.curr_task.ptinfo.pti_total_system)
-            / 1_000_000_000u64;
+        let time_sec =
+            (proc.curr_task.pti_total_user + proc.curr_task.pti_total_system) / 1_000_000_000u64;
 
         let fmt_content = util::parse_time(time_sec);
         let raw_content = time_sec;

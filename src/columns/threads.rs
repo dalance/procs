@@ -41,7 +41,7 @@ impl Column for Threads {
 #[cfg(target_os = "macos")]
 impl Column for Threads {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = proc.curr_task.ptinfo.pti_threadnum as i64;
+        let raw_content = proc.curr_task.pti_threadnum as i64;
         let fmt_content = format!("{}", raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);

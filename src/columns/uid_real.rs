@@ -45,7 +45,7 @@ impl Column for UidReal {
 #[cfg(target_os = "macos")]
 impl Column for UidReal {
     fn add(&mut self, proc: &ProcessInfo) {
-        let uid = proc.curr_task.pbsd.pbi_ruid;
+        let uid = proc.curr_proc.kp_eproc.e_pcred.p_ruid;
         let fmt_content = format!("{}", uid);
         let raw_content = uid;
 

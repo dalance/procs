@@ -53,7 +53,7 @@ impl Column for ContextSw {
 #[cfg(target_os = "macos")]
 impl Column for ContextSw {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = proc.curr_task.ptinfo.pti_csw as u64;
+        let raw_content = proc.curr_task.pti_csw as u64;
         let fmt_content = bytify(raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);

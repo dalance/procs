@@ -44,7 +44,7 @@ impl Column for Pgid {
 #[cfg(target_os = "macos")]
 impl Column for Pgid {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = proc.curr_task.pbsd.pbi_pgid as i32;
+        let raw_content = proc.curr_proc.kp_eproc.e_pgid;
         let fmt_content = format!("{}", raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);

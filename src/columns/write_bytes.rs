@@ -49,16 +49,16 @@ impl Column for WriteBytes {
 #[cfg(target_os = "macos")]
 impl Column for WriteBytes {
     fn add(&mut self, proc: &ProcessInfo) {
-        let (fmt_content, raw_content) = if proc.curr_res.is_some() && proc.prev_res.is_some() {
-            let interval_ms = proc.interval.as_secs() * 1000 + u64::from(proc.interval.subsec_millis());
-            let io = (proc.curr_res.as_ref().unwrap().ri_diskio_byteswritten
-                - proc.prev_res.as_ref().unwrap().ri_diskio_byteswritten)
-                * 1000
-                / interval_ms;
-            (bytify(io), io)
-        } else {
-            (String::from(""), 0)
-        };
+        let (fmt_content, raw_content) =
+            if let (Some(curr), Some(prev)) = (proc.curr_res.as_ref(), proc.prev_res.as_ref()) {
+                let interval_ms =
+                    proc.interval.as_secs() * 1000 + u64::from(proc.interval.subsec_millis());
+                let io =
+                    (curr.ri_diskio_byteswritten - prev.ri_diskio_byteswritten) * 1000 / interval_ms;
+                (bytify(io), io)
+            } else {
+                (String::from(""), 0)
+            };
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);

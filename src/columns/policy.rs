@@ -69,7 +69,7 @@ impl Column for Policy {
 #[cfg(target_os = "macos")]
 impl Column for Policy {
     fn add(&mut self, proc: &ProcessInfo) {
-        let fmt_content = match proc.curr_task.ptinfo.pti_policy {
+        let fmt_content = match proc.curr_task.pti_policy {
             1 => String::from("TS"),
             2 => String::from("RR"),
             4 => String::from("FF"),

@@ -112,7 +112,7 @@ impl Column for UsageMem {
 #[cfg(target_os = "macos")]
 impl Column for UsageMem {
     fn add(&mut self, proc: &ProcessInfo) {
-        let usage = proc.curr_task.ptinfo.pti_resident_size as f64 * 100.0 / self.mem_total as f64;
+        let usage = proc.curr_task.pti_resident_size as f64 * 100.0 / self.mem_total as f64;
         let fmt_content = format!("{:.1}", usage);
         let raw_content = (usage * 1000.0) as u32;
 

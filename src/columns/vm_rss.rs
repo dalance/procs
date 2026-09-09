@@ -43,7 +43,7 @@ impl Column for VmRss {
 #[cfg(target_os = "macos")]
 impl Column for VmRss {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = proc.curr_task.ptinfo.pti_resident_size;
+        let raw_content = proc.curr_task.pti_resident_size;
         let fmt_content = bytify(raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
