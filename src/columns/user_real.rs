@@ -71,7 +71,7 @@ impl Column for UserReal {
 #[cfg(target_os = "freebsd")]
 impl Column for UserReal {
     fn add(&mut self, proc: &ProcessInfo) {
-        let uid = proc.curr_proc.info.ruid;
+        let uid = proc.curr_proc.ki_ruid;
         let fmt_content =
             if let Some(user) = USERS_CACHE.with(|x| x.borrow_mut().get_user_by_uid(uid)) {
                 format!("{}", user.name().to_string_lossy())

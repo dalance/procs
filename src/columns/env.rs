@@ -1,8 +1,12 @@
 use crate::process::ProcessInfo;
 use crate::{Column, column_default};
+#[cfg(target_os = "freebsd")]
+use libc::{CTL_KERN, KERN_PROC, KERN_PROC_ENV, c_void};
 use std::cmp;
 use std::collections::HashMap;
 use std::path::PathBuf;
+#[cfg(target_os = "freebsd")]
+use std::ptr;
 
 #[cfg(target_os = "windows")]
 use windows_sys::Win32::Foundation::HANDLE;
@@ -30,6 +34,47 @@ impl Env {
             procfs,
         }
     }
+}
+
+#[cfg(target_os = "freebsd")]
+pub(crate) fn get_process_env(pid: i32) -> Vec<String> {
+    let mut mib = [CTL_KERN, KERN_PROC, KERN_PROC_ENV, pid];
+    let mut size = 0usize;
+    if unsafe {
+        libc::sysctl(
+            mib.as_mut_ptr(),
+            mib.len() as u32,
+            ptr::null_mut(),
+            &mut size,
+            ptr::null_mut(),
+            0,
+        )
+    } != 0
+        || size == 0
+    {
+        return Vec::new();
+    }
+
+    let mut bytes = vec![0u8; size];
+    if unsafe {
+        libc::sysctl(
+            mib.as_mut_ptr(),
+            mib.len() as u32,
+            bytes.as_mut_ptr() as *mut c_void,
+            &mut size,
+            ptr::null_mut(),
+            0,
+        )
+    } != 0
+    {
+        return Vec::new();
+    }
+    bytes.truncate(size);
+    bytes
+        .split(|byte| *byte == 0)
+        .filter(|env| !env.is_empty())
+        .map(|env| String::from_utf8_lossy(env).into_owned())
+        .collect()
 }
 
 #[cfg(any(target_os = "linux", target_os = "android"))]
@@ -60,8 +105,8 @@ impl Column for Env {
 impl Column for Env {
     fn add(&mut self, proc: &ProcessInfo) {
         let mut fmt_content = String::new();
-        for env in &proc.curr_proc.env {
-            fmt_content.push_str(&format!("{} ", env.replace('\"', "\\\"")));
+        for env in get_process_env(proc.pid) {
+            fmt_content.push_str(&format!("{} ", env.replace('"', "\\\"")));
         }
         let raw_content = fmt_content.clone();
 

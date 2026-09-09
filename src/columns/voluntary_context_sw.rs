@@ -50,7 +50,7 @@ impl Column for VoluntaryContextSw {
 #[cfg(target_os = "freebsd")]
 impl Column for VoluntaryContextSw {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = proc.curr_proc.info.rusage.nvcsw as u64;
+        let raw_content = proc.curr_proc.ki_rusage.ru_nvcsw as u64;
         let fmt_content = bytify(raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);

@@ -90,7 +90,7 @@ impl Column for User {
 #[cfg(target_os = "freebsd")]
 impl Column for User {
     fn add(&mut self, proc: &ProcessInfo) {
-        let uid = proc.curr_proc.info.uid;
+        let uid = proc.curr_proc.ki_uid;
         let fmt_content =
             if let Some(user) = USERS_CACHE.with(|x| x.borrow_mut().get_user_by_uid(uid)) {
                 format!("{}", user.name().to_string_lossy())

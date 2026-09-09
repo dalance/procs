@@ -149,7 +149,7 @@ fn priority_class_from_base(base: i32) -> u32 {
 #[cfg(target_os = "freebsd")]
 impl Column for Priority {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = proc.curr_proc.info.pri.level as i64 - 100;
+        let raw_content = proc.curr_proc.ki_pri.pri_level as i64 - 100;
         let fmt_content = format!("{raw_content}");
 
         self.fmt_contents.insert(proc.pid, fmt_content);

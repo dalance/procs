@@ -81,7 +81,6 @@ mach2         = "0.7.0"
 windows-sys   = { version = "0.61", features = ["Wdk_System_SystemInformation", "Wdk_System_SystemServices", "Wdk_System_Threading", "Win32_Foundation", "Win32_Networking_WinSock", "Win32_NetworkManagement_IpHelper", "Win32_Security", "Win32_System_Diagnostics_Debug", "Win32_System_Kernel", "Win32_System_Threading", "Win32_System_WindowsProgramming"] }
 
 [target.'cfg(target_os = "freebsd")'.dependencies]
-bsd-kvm       = "0.1.5"
 bsd-kvm-sys   = "0.2.0"
 pager         = "0.16.1"
 uzers         = "0.12"

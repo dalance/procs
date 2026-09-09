@@ -112,7 +112,7 @@ impl Column for ElapsedTime {
 impl Column for ElapsedTime {
     fn add(&mut self, proc: &ProcessInfo) {
         let start_time = Local
-            .timestamp_opt(proc.curr_proc.info.start.sec as i64, 0)
+            .timestamp_opt(proc.curr_proc.ki_start.tv_sec as i64, 0)
             .unwrap();
         let raw_content = Local::now().signed_duration_since(start_time);
         let fmt_content = format_duration(raw_content);

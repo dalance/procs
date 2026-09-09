@@ -67,7 +67,7 @@ impl Column for ContextSw {
 impl Column for ContextSw {
     fn add(&mut self, proc: &ProcessInfo) {
         let raw_content =
-            (proc.curr_proc.info.rusage.nvcsw + proc.curr_proc.info.rusage.nivcsw) as u64;
+            (proc.curr_proc.ki_rusage.ru_nvcsw + proc.curr_proc.ki_rusage.ru_nivcsw) as u64;
         let fmt_content = bytify(raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);

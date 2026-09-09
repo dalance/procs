@@ -88,8 +88,8 @@ impl Column for ReadBytes {
         // io block size: 128KB
         let block_size = 128 * 1024;
         let interval_ms = proc.interval.as_secs() * 1000 + u64::from(proc.interval.subsec_millis());
-        let io = (proc.curr_proc.info.rusage.inblock as u64
-            - proc.prev_proc.info.rusage.inblock as u64)
+        let io = (proc.curr_proc.ki_rusage.ru_inblock as u64
+            - proc.prev_proc.ki_rusage.ru_inblock as u64)
             * block_size
             * 1000
             / interval_ms;

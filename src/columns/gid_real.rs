@@ -59,7 +59,7 @@ impl Column for GidReal {
 #[cfg(target_os = "freebsd")]
 impl Column for GidReal {
     fn add(&mut self, proc: &ProcessInfo) {
-        let gid = proc.curr_proc.info.rgid;
+        let gid = proc.curr_proc.ki_rgid;
         let fmt_content = format!("{}", gid);
         let raw_content = gid;
 

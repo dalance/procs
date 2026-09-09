@@ -67,7 +67,7 @@ impl Column for Threads {
 #[cfg(target_os = "freebsd")]
 impl Column for Threads {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = proc.curr_proc.info.numthreads as i64;
+        let raw_content = proc.curr_proc.ki_numthreads as i64;
         let fmt_content = format!("{}", raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);

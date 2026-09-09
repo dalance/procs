@@ -45,7 +45,7 @@ impl Column for SigBlk {
 #[cfg(target_os = "freebsd")]
 impl Column for SigBlk {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = proc.curr_proc.info.sigmask.0[0] as u64;
+        let raw_content = proc.curr_proc.ki_sigmask.__bits[0] as u64;
         let fmt_content = format!("{raw_content:016x}");
 
         self.fmt_contents.insert(proc.pid, fmt_content);
