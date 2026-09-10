@@ -6,6 +6,7 @@ pub mod cpu_time;
 pub mod docker;
 pub mod elapsed_time;
 pub mod empty;
+pub mod env;
 pub mod file_name;
 pub mod gid;
 pub mod gid_real;
@@ -45,6 +46,7 @@ pub mod user_saved;
 pub mod vm_rss;
 pub mod vm_size;
 pub mod vm_total;
+pub mod work_dir;
 pub mod write_bytes;
 
 pub use self::arch::Arch;
@@ -55,6 +57,7 @@ pub use self::cpu_time::CpuTime;
 pub use self::docker::Docker;
 pub use self::elapsed_time::ElapsedTime;
 pub use self::empty::Empty;
+pub use self::env::Env;
 pub use self::file_name::FileName;
 pub use self::gid::Gid;
 pub use self::gid_real::GidReal;
@@ -94,6 +97,7 @@ pub use self::user_saved::UserSaved;
 pub use self::vm_rss::VmRss;
 pub use self::vm_size::VmSize;
 pub use self::vm_total::VmTotal;
+pub use self::work_dir::WorkDir;
 pub use self::write_bytes::WriteBytes;
 
 use crate::column::Column;
@@ -115,6 +119,7 @@ pub enum ConfigColumnKind {
     Docker,
     ElapsedTime,
     Empty,
+    Env,
     FileName,
     Gid,
     GidReal,
@@ -155,6 +160,7 @@ pub enum ConfigColumnKind {
     VmRss,
     VmSize,
     VmTotal,
+    WorkDir,
     WriteBytes,
 }
 
@@ -182,6 +188,7 @@ pub fn gen_column(
         ConfigColumnKind::Docker => Box::new(Empty::new()),
         ConfigColumnKind::ElapsedTime => Box::new(ElapsedTime::new(header)),
         ConfigColumnKind::Empty => Box::new(Empty::new()),
+        ConfigColumnKind::Env => Box::new(Env::new(header, _procfs)),
         ConfigColumnKind::FileName => Box::new(FileName::new(header)),
         ConfigColumnKind::Gid => Box::new(Gid::new(header, abbr_sid)),
         ConfigColumnKind::GidReal => Box::new(GidReal::new(header)),
@@ -222,6 +229,7 @@ pub fn gen_column(
         ConfigColumnKind::VmRss => Box::new(VmRss::new(header)),
         ConfigColumnKind::VmSize => Box::new(VmSize::new(header)),
         ConfigColumnKind::VmTotal => Box::new(VmTotal::new(header)),
+        ConfigColumnKind::WorkDir => Box::new(WorkDir::new(header, _procfs)),
         ConfigColumnKind::WriteBytes => Box::new(WriteBytes::new(header)),
     }
 }
@@ -254,6 +262,7 @@ pub static KIND_LIST: Lazy<BTreeMap<ConfigColumnKind, (&'static str, &'static st
                 ("ElapsedTime", "Elapsed time"),
             ),
             (ConfigColumnKind::Empty, ("Empty", "Empty")),
+            (ConfigColumnKind::Env, ("Env", "Environment variables")),
             (ConfigColumnKind::FileName, ("FileName", "File name")),
             (ConfigColumnKind::Gid, ("Gid", "Group ID")),
             (ConfigColumnKind::GidReal, ("GidReal", "Real group ID")),
@@ -327,6 +336,10 @@ pub static KIND_LIST: Lazy<BTreeMap<ConfigColumnKind, (&'static str, &'static st
             (
                 ConfigColumnKind::VmTotal,
                 ("VmTotal", "Total footprint size"),
+            ),
+            (
+                ConfigColumnKind::WorkDir,
+                ("WorkDir", "Current working directory"),
             ),
             (
                 ConfigColumnKind::WriteBytes,
@@ -561,6 +574,9 @@ style = "BrightYellow"
 kind = "Empty"
 style = "BrightYellow"
 [[columns]]
+kind = "Env"
+style = "BrightYellow"
+[[columns]]
 kind = "FileName"
 style = "BrightBlue"
 [[columns]]
@@ -668,6 +684,9 @@ style = "ByUnit"
 [[columns]]
 kind = "VmSize"
 style = "ByUnit"
+[[columns]]
+kind = "WorkDir"
+style = "White"
 [[columns]]
 kind = "WriteBytes"
 style = "White"

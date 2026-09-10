@@ -8,9 +8,9 @@
 * [Added] Threads column for Windows (thread count)
 * [Added] Session column for Windows (session ID)
 * [Added] State column for Windows (scheduler state derived from thread states)
-* [Added] Env column for Windows (environment variables)
+* [Added] Env column for Windows and macOS (environment variables)
 * [Added] RecvBytes and SendBytes columns for Windows (network I/O rate; needs Windows 11 or later)
-* [Added] WorkDir column for Windows (current working directory)
+* [Added] WorkDir column for Windows and macOS (current working directory)
 * [Added] FileName column for macOS (Process file name)
 * [Added] `--thread` support for Windows and macOS
 * [Added] External pager support for Windows by `[pager] command` (built-in pager is used if it is not set)

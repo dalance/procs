@@ -385,19 +385,24 @@ pub struct PathInfo {
     pub name: String,
     #[allow(dead_code)]
     pub exe: PathBuf,
+    /// The directory the executable was loaded from
     #[allow(dead_code)]
     pub root: PathBuf,
     pub cmd: Vec<String>,
-    #[allow(dead_code)]
+    /// The environment, as `KERN_PROCARGS2` reported it: raw `KEY=VALUE`
+    /// strings, the ones that follow the arguments in the same buffer.
     pub env: Vec<String>,
 }
 
-unsafe fn get_unchecked_str(cp: *mut u8, start: *mut u8) -> String {
+/// The bytes between `start` and `cp` as a string.
+///
+/// `KERN_PROCARGS2` promises nothing about encoding, and an argument or an
+/// environment variable can hold any bytes at all, so invalid UTF-8 is
+/// replaced instead of being assumed away.
+unsafe fn get_str(cp: *mut u8, start: *mut u8) -> String {
     let len = cp as usize - start as usize;
-    let part = unsafe { Vec::from_raw_parts(start, len, len) };
-    let tmp = unsafe { String::from_utf8_unchecked(part.clone()) };
-    ::std::mem::forget(part);
-    tmp
+    let part = unsafe { std::slice::from_raw_parts(start, len) };
+    String::from_utf8_lossy(part).into_owned()
 }
 
 fn get_path_info(pid: i32, mut size: size_t) -> Option<PathInfo> {
@@ -428,7 +433,7 @@ fn get_path_info(pid: i32, mut size: size_t) -> Option<PathInfo> {
                 while cp < ptr.add(size) && *cp != 0 {
                     cp = cp.offset(1);
                 }
-                let exe = Path::new(get_unchecked_str(cp, start).as_str()).to_path_buf();
+                let exe = Path::new(get_str(cp, start).as_str()).to_path_buf();
                 let name = exe
                     .file_name()
                     .unwrap_or_else(|| OsStr::new(""))
@@ -452,7 +457,7 @@ fn get_path_info(pid: i32, mut size: size_t) -> Option<PathInfo> {
                 while c < n_args && cp < ptr.add(size) {
                     if *cp == 0 {
                         c += 1;
-                        cmd.push(get_unchecked_str(cp, start));
+                        cmd.push(get_str(cp, start));
                         start = cp.offset(1);
                     }
                     cp = cp.offset(1);
@@ -464,7 +469,7 @@ fn get_path_info(pid: i32, mut size: size_t) -> Option<PathInfo> {
                         if cp == start {
                             break;
                         }
-                        env.push(get_unchecked_str(cp, start));
+                        env.push(get_str(cp, start));
                         start = cp.offset(1);
                     }
                     cp = cp.offset(1);
@@ -657,4 +662,19 @@ pub struct kinfo_proc_eproc {
     pub e_flag: i32,
     pub e_login: [libc::c_char; 12],
     pub e_spare: [i32; 4],
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// `KERN_PROCARGS2` hands the environment back along with the arguments,
+    /// which is what the Env column reads.
+    #[test]
+    fn path_info_carries_the_environment() {
+        let info = get_path_info(std::process::id() as i32, get_arg_max()).unwrap();
+        assert!(!info.cmd.is_empty());
+        assert!(!info.env.is_empty());
+        assert!(info.env.iter().all(|entry| !entry.is_empty()));
+    }
 }
