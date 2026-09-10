@@ -52,7 +52,7 @@ impl Column for Tty {
         let fmt_content = if major == 16 {
             format!("s{:03}", minor)
         } else {
-            String::from("")
+            String::new()
         };
         let raw_content = fmt_content.clone();
 
@@ -89,7 +89,7 @@ impl Column for Tty {
         let fmt_content = if let Ok(devname) = std::ffi::CStr::from_bytes_until_nul(&buf) {
             devname.to_string_lossy().into_owned()
         } else {
-            String::from("")
+            String::new()
         };
         let raw_content = fmt_content.clone();
 

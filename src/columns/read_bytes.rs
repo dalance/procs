@@ -56,7 +56,7 @@ impl Column for ReadBytes {
                 let io = (curr.ri_diskio_bytesread - prev.ri_diskio_bytesread) * 1000 / interval_ms;
                 (bytify(io), io)
             } else {
-                (String::from(""), 0)
+                (String::new(), 0)
             };
 
         self.fmt_contents.insert(proc.pid, fmt_content);

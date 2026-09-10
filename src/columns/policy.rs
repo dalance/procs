@@ -55,7 +55,7 @@ impl Column for Policy {
             Some(libc::SCHED_BATCH) => String::from("B"),
             Some(libc::SCHED_IDLE) => String::from("IDL"),
             Some(libc::SCHED_DEADLINE) => String::from("D"),
-            _ => String::from(""),
+            _ => String::new(),
         };
         let raw_content = fmt_content.clone();
 
@@ -73,7 +73,7 @@ impl Column for Policy {
             1 => String::from("TS"),
             2 => String::from("RR"),
             4 => String::from("FF"),
-            _ => String::from(""),
+            _ => String::new(),
         };
         let raw_content = fmt_content.clone();
 
