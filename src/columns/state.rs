@@ -94,43 +94,43 @@ impl Column for State {
         }
         .to_string();
         if (flag & libc::P_INMEM as i64) == 0 {
-            state.push_str("W");
+            state.push('W');
         }
         if info.ki_nice < libc::NZERO as i8
             || info.ki_pri.pri_class == bsd_kvm_sys::PRI_REALTIME as u8
         {
-            state.push_str("<");
+            state.push('<');
         }
         if info.ki_nice > libc::NZERO as i8
             || info.ki_pri.pri_class == bsd_kvm_sys::PRI_IDLE as u8
         {
-            state.push_str("N");
+            state.push('N');
         }
         if (flag & libc::P_TRACED as i64) != 0 {
-            state.push_str("X");
+            state.push('X');
         }
         if (flag & libc::P_WEXIT as i64) != 0
             && info.ki_stat != libc::SZOMB as std::os::raw::c_char
         {
-            state.push_str("E");
+            state.push('E');
         }
         if (flag & libc::P_PPWAIT as i64) != 0 {
-            state.push_str("V");
+            state.push('V');
         }
         if (flag & libc::P_SYSTEM as i64) != 0 || info.ki_lock > 0 {
-            state.push_str("L");
+            state.push('L');
         }
         if (cr_flags & libc::KI_CRF_CAPABILITY_MODE as u32) != 0 {
-            state.push_str("C");
+            state.push('C');
         }
         if (kiflag & libc::KI_SLEADER as i64) != 0 {
-            state.push_str("s");
+            state.push('s');
         }
         if (flag & libc::P_CONTROLT as i64) != 0 && info.ki_pgid == info.ki_tpgid {
-            state.push_str("+");
+            state.push('+');
         }
         if (flag & libc::P_JAILED as i64) != 0 {
-            state.push_str("J");
+            state.push('J');
         }
         let fmt_content = state;
         let raw_content = fmt_content.clone();
