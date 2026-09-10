@@ -12,8 +12,8 @@ use windows_sys::Win32::Foundation::HANDLE;
 pub struct WorkDir {
     header: String,
     unit: String,
-    fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, String>,
+    fmt_contents: HashMap<i64, String>,
+    raw_contents: HashMap<i64, String>,
     width: usize,
     #[allow(dead_code)]
     procfs: Option<PathBuf>,
@@ -81,7 +81,7 @@ impl Column for WorkDir {
 #[cfg(target_os = "macos")]
 impl Column for WorkDir {
     fn add(&mut self, proc: &ProcessInfo) {
-        let fmt_content = if proc.tid.is_some() {
+        let fmt_content = if crate::process::thread_id(proc.pid).is_some() {
             String::new()
         } else {
             work_dir_of(proc.pid)
@@ -109,14 +109,14 @@ impl Column for WorkDir {
 /// directory the executable was loaded from, `proc_pidpath` territory, and a
 /// process that has changed directory since keeps pointing at the old one.
 #[cfg(target_os = "macos")]
-fn work_dir_of(pid: i32) -> Option<PathBuf> {
+fn work_dir_of(pid: i64) -> Option<PathBuf> {
     // 0 is the kernel task and has no vnode paths; the negative pids are the
     // synthetic keys the thread rows carry.
     if pid <= 0 {
         return None;
     }
 
-    let info = pidinfo::<VNodePathInfo>(pid, 0).ok()?;
+    let info = pidinfo::<VNodePathInfo>(pid as i32, 0).ok()?;
     // libc declares `vip_path` as `[[c_char; 32]; 32]`, not `[c_char; MAXPATHLEN]`.
     let path = crate::util::ptr_to_cstr(info.0.pvi_cdir.vip_path.as_flattened()).ok()?;
     Some(PathBuf::from(path.to_string_lossy().into_owned()))
@@ -144,7 +144,7 @@ impl PIDInfo for VNodePathInfo {
 /// `PROCESS_QUERY_LIMITED_INFORMATION | PROCESS_VM_READ`, so protected
 /// processes (e.g. PPL) yield `None`.
 #[cfg(target_os = "windows")]
-fn work_dir_of(pid: i32) -> Option<String> {
+fn work_dir_of(pid: i64) -> Option<String> {
     use windows_sys::Win32::Foundation::{CloseHandle, FALSE, HANDLE};
     use windows_sys::Win32::System::Threading::{
         OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_VM_READ,
@@ -261,7 +261,7 @@ mod tests {
     #[test]
     fn work_dir_of_self() {
         let cwd = std::env::current_dir().unwrap().canonicalize().unwrap();
-        let dir = work_dir_of(std::process::id() as i32)
+        let dir = work_dir_of(std::process::id() as i64)
             .unwrap()
             .canonicalize()
             .unwrap();

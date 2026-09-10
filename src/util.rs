@@ -32,7 +32,7 @@ pub enum KeywordClass {
 
 pub fn find_partial<T: AsRef<str>>(
     columns: &[&dyn Column],
-    pid: i32,
+    pid: i64,
     keyword: &[T],
     logic: &ConfigSearchLogic,
     case: &ConfigSearchCase,
@@ -78,7 +78,7 @@ pub fn find_partial<T: AsRef<str>>(
 
 pub fn find_exact<T: AsRef<str>>(
     columns: &[&dyn Column],
-    pid: i32,
+    pid: i64,
     keyword: &[T],
     logic: &ConfigSearchLogic,
     case: &ConfigSearchCase,
@@ -373,14 +373,14 @@ pub fn ptr_to_cstr(
 
 #[cfg(any(target_os = "linux", target_os = "android"))]
 pub fn process_new(
-    pid: i32,
+    pid: i64,
     procfs: &Option<std::path::PathBuf>,
 ) -> procfs::ProcResult<procfs::process::Process> {
     if let Some(x) = procfs {
         let path = x.join(pid.to_string());
         procfs::process::Process::new_with_root(path)
     } else {
-        procfs::process::Process::new(pid)
+        procfs::process::Process::new(pid as i32)
     }
 }
 

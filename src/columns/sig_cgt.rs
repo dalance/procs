@@ -6,8 +6,8 @@ use std::collections::HashMap;
 pub struct SigCgt {
     header: String,
     unit: String,
-    fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, u64>,
+    fmt_contents: HashMap<i64, String>,
+    raw_contents: HashMap<i64, u64>,
     width: usize,
 }
 

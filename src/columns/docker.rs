@@ -8,13 +8,13 @@ use tokio::runtime::Runtime;
 pub struct Docker {
     header: String,
     unit: String,
-    fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, String>,
+    fmt_contents: HashMap<i64, String>,
+    raw_contents: HashMap<i64, String>,
     width: usize,
     #[cfg(any(target_os = "linux", target_os = "android"))]
     containers: HashMap<String, String>,
     #[cfg(target_os = "macos")]
-    containers: HashMap<i32, String>,
+    containers: HashMap<i64, String>,
     available: bool,
 }
 
@@ -70,7 +70,7 @@ impl Docker {
                     let name = String::from(&c.Names[0][1..]);
                     if let Ok(processes) = rt.block_on(docker.processes(c.Id.as_str())) {
                         for p in processes {
-                            if let Ok(pid) = p.pid.parse::<i32>() {
+                            if let Ok(pid) = p.pid.parse::<i64>() {
                                 containers.insert(pid, name.clone());
                             }
                         }

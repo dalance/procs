@@ -6,8 +6,8 @@ use std::collections::HashMap;
 pub struct Priority {
     header: String,
     unit: String,
-    fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, i64>,
+    fmt_contents: HashMap<i64, String>,
+    raw_contents: HashMap<i64, i64>,
     width: usize,
 }
 
@@ -81,7 +81,7 @@ impl Column for Priority {
 }
 
 #[cfg(target_os = "windows")]
-fn priority_class_of(pid: i32) -> Option<u32> {
+fn priority_class_of(pid: i64) -> Option<u32> {
     use windows_sys::Win32::Foundation::{CloseHandle, FALSE, HANDLE};
     use windows_sys::Win32::System::Threading::{
         GetPriorityClass, OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION,

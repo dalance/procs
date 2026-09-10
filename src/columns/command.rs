@@ -9,8 +9,8 @@ use std::collections::HashMap;
 use std::ptr;
 
 #[cfg(target_os = "freebsd")]
-pub(crate) fn get_process_args(pid: i32) -> Vec<String> {
-    let mut mib = [CTL_KERN, KERN_PROC, KERN_PROC_ARGS, pid];
+pub(crate) fn get_process_args(pid: i64) -> Vec<String> {
+    let mut mib = [CTL_KERN, KERN_PROC, KERN_PROC_ARGS, pid as i32];
     let mut size = 0usize;
     if unsafe {
         libc::sysctl(
@@ -52,8 +52,8 @@ pub(crate) fn get_process_args(pid: i32) -> Vec<String> {
 pub struct Command {
     header: String,
     unit: String,
-    fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, String>,
+    fmt_contents: HashMap<i64, String>,
+    raw_contents: HashMap<i64, String>,
     width: usize,
 }
 
@@ -118,7 +118,7 @@ impl Column for Command {
                     .collect::<String>();
                 cmd.pop();
                 cmd
-            } else if proc.tid.is_some() {
+            } else if crate::process::thread_id(proc.pid).is_some() {
                 // A thread has no command line of its own, so show the name
                 // the collector settled on - the thread's own when it has one,
                 // the owning process's otherwise - bracketed like its pid.
