@@ -359,9 +359,7 @@ thread_local! {
     pub static USERS_CACHE: std::cell::RefCell<UsersCache> = UsersCache::new().into();
 }
 
-#[cfg(target_os = "freebsd")]
-// std::ffi::FromBytesUntilNulError is missing until Rust 1.73.0
-// https://github.com/rust-lang/rust/pull/113701
+#[cfg(any(target_os = "freebsd", target_os = "macos"))]
 pub fn ptr_to_cstr(
     x: &[std::os::raw::c_char],
 ) -> Result<&std::ffi::CStr, core::ffi::FromBytesUntilNulError> {
