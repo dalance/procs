@@ -41,10 +41,10 @@ impl Column for WorkDir {
             if let Ok(path) = proc.cwd() {
                 path.to_string_lossy().to_string()
             } else {
-                String::from("")
+                String::new()
             }
         } else {
-            String::from("")
+            String::new()
         };
         let raw_content = fmt_content.clone();
 

@@ -74,7 +74,7 @@ impl Column for Pid {
                 .raw_contents
                 .get(&pid)
                 .map(|x| x.to_string())
-                .unwrap_or_else(|| String::from("")),
+                .unwrap_or_default(),
         };
         format!("\"{}\": {}", self.header, value)
     }

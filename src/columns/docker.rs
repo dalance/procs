@@ -57,7 +57,7 @@ impl Docker {
 impl Docker {
     pub fn new(header: Option<String>, path: &str) -> Self {
         let header = header.unwrap_or_else(|| String::from("Docker"));
-        let unit = String::from("");
+        let unit = String::new();
         let mut containers = HashMap::new();
         let mut available = true;
         if let Ok(docker) = dockworker::Docker::connect_with_unix(path) {
@@ -164,7 +164,7 @@ impl Column for Docker {
         let fmt_content = if let Some(name) = self.containers.get(&proc.pid) {
             name.to_string()
         } else {
-            String::from("")
+            String::new()
         };
         let raw_content = fmt_content.clone();
 

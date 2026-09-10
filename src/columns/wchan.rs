@@ -48,7 +48,7 @@ impl Column for Wchan {
         let raw_content = if let Ok(wmesg) = crate::util::ptr_to_cstr(&proc.curr_proc.ki_wmesg) {
             wmesg.to_string_lossy().into_owned()
         } else {
-            String::from("")
+            String::new()
         };
         let fmt_content = raw_content.clone();
 

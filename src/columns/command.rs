@@ -124,10 +124,10 @@ impl Column for Command {
                 // the owning process's otherwise - bracketed like its pid.
                 format!("[{}]", path.name)
             } else {
-                String::from("")
+                String::new()
             }
         } else {
-            String::from("")
+            String::new()
         };
         let fmt_content = sanitize_control_chars(&fmt_content);
         let raw_content = fmt_content.clone();
@@ -169,10 +169,10 @@ impl Column for Command {
             if let Ok(comm) = comm {
                 format!("[{}]", comm.to_string_lossy())
             } else {
-                String::from("")
+                String::new()
             }
         } else {
-            let mut x = String::from("");
+            let mut x = String::new();
             for arg in &args {
                 x.push_str(&arg);
                 x.push_str(" ");

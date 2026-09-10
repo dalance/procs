@@ -57,7 +57,7 @@ impl Column for WriteBytes {
                     (curr.ri_diskio_byteswritten - prev.ri_diskio_byteswritten) * 1000 / interval_ms;
                 (bytify(io), io)
             } else {
-                (String::from(""), 0)
+                (String::new(), 0)
             };
 
         self.fmt_contents.insert(proc.pid, fmt_content);

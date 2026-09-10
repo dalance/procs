@@ -39,10 +39,10 @@ impl Column for SecContext {
                 let _ = file.read_to_string(&mut ret);
                 ret.trim_end_matches('\x00').to_string()
             } else {
-                String::from("")
+                String::new()
             }
         } else {
-            String::from("")
+            String::new()
         };
         let raw_content = fmt_content.clone();
 

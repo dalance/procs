@@ -118,7 +118,7 @@ impl Column for FileName {
         let fmt_content = if let Some(path) = &proc.curr_path {
             path.name.clone()
         } else {
-            String::from("")
+            String::new()
         };
         let raw_content = fmt_content.clone();
 
