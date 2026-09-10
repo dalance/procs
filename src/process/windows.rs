@@ -17,12 +17,14 @@ use windows_sys::Win32::Security::{
     TOKEN_PRIVILEGES, TOKEN_QUERY, TOKEN_USER, TokenUser,
 };
 use windows_sys::Win32::System::Threading::{
-    GetCurrentProcess, OpenProcess, OpenProcessToken, PROCESS_QUERY_INFORMATION,
-    PROCESS_QUERY_LIMITED_INFORMATION,
+    GetCurrentProcess, OpenProcess, OpenProcessToken, OpenThread, PROCESS_QUERY_INFORMATION,
+    PROCESS_QUERY_LIMITED_INFORMATION, THREAD_QUERY_LIMITED_INFORMATION,
 };
 
+use super::ProcessInfoBase;
 use super::ShowFilter;
 use super::ntapi;
+use crate::process::thread_key;
 
 /// Re-export the PEB prefix so the WorkDir column can read
 /// `ProcessParameters`.
@@ -55,14 +57,17 @@ pub use super::ntapi::thread_state;
 pub use super::ntapi::wait_reason;
 
 pub struct ProcessInfo {
-    pub pid: i32,
+    /// The part of a row every platform has - the row key, the parent and the
+    /// sampling window. The `Deref` below hands it out, so a column goes on
+    /// writing `proc.pid` without reaching for `base`.
+    pub base: ProcessInfoBase,
     /// Command line of the process, or `None` when the process exposes none
     /// (e.g. System, Idle). Falls back to `file_name` at display time.
     pub command: Option<String>,
     /// Image (executable) name, used as the Command fallback and by the
-    /// FileName column.
+    /// FileName column. For a `--thread` row it is the thread's own name when
+    /// it has one, and the image name of the process it belongs to otherwise.
     pub file_name: String,
-    pub ppid: i32,
     pub start_time: chrono::DateTime<chrono::Local>,
     pub cpu_info: CpuInfo,
     pub memory_info: MemoryInfo,
@@ -78,8 +83,9 @@ pub struct ProcessInfo {
     /// its threads, so the State column derives the row's state from the most
     /// active one. For a `--thread` row it is that one thread's state.
     pub state: Option<ThreadState>,
-    pub interval: Duration,
 }
+
+process_info_deref!();
 
 pub struct MemoryInfo {
     pub page_fault_count: u64,
@@ -161,7 +167,7 @@ pub fn collect_proc(
         .max(Duration::from_millis(1));
 
     let prev_procs: HashMap<i32, &ProcSnapshot> = prev.procs.iter().map(|p| (p.pid, p)).collect();
-    let prev_threads: HashMap<i32, &ThreadSnapshot> =
+    let prev_threads: HashMap<u64, &ThreadSnapshot> =
         prev.threads.iter().map(|t| (t.tid, t)).collect();
 
     let SystemSnapshot { procs, threads } = curr;
@@ -214,10 +220,9 @@ pub fn collect_proc(
         let priority = proc.base_priority;
 
         ret.push(ProcessInfo {
-            pid: proc.pid,
+            base: ProcessInfoBase::new(proc.pid as i64, proc.ppid as i64, interval),
             command,
             file_name,
-            ppid: proc.ppid,
             start_time: filetime_to_local(proc.create_time),
             cpu_info: CpuInfo {
                 prev_sys: prev.kernel_time,
@@ -244,12 +249,11 @@ pub fn collect_proc(
             thread: proc.thread_count,
             session: proc.session_id as i32,
             state: proc.state,
-            interval,
         });
     }
 
     if with_thread {
-        let owners: HashMap<i32, usize> = ret
+        let owners: HashMap<i64, usize> = ret
             .iter()
             .enumerate()
             .map(|(idx, p)| (p.pid, idx))
@@ -257,7 +261,7 @@ pub fn collect_proc(
 
         for thread in threads {
             // Skip threads whose owning process was filtered out above.
-            let Some(&owner) = owners.get(&thread.pid) else {
+            let Some(&owner) = owners.get(&(thread.pid as i64)) else {
                 continue;
             };
 
@@ -277,17 +281,20 @@ pub fn collect_proc(
                 let parent = &ret[owner];
                 (
                     parent.command.clone(),
-                    parent.file_name.clone(),
+                    // A thread has no image of its own, so the name it is
+                    // listed under is its own when it carries one - which is
+                    // how the Command and FileName columns tell the threads
+                    // of one process apart - and its process' otherwise.
+                    thread_name(thread.tid).unwrap_or_else(|| parent.file_name.clone()),
                     parent.user,
                     parent.session,
                 )
             };
 
             ret.push(ProcessInfo {
-                pid: thread.tid,
+                base: ProcessInfoBase::new(thread_key(thread.tid), thread.pid as i64, interval),
                 command,
                 file_name,
-                ppid: thread.pid,
                 start_time: filetime_to_local(thread.create_time),
                 cpu_info: CpuInfo {
                     prev_sys,
@@ -315,7 +322,6 @@ pub fn collect_proc(
                 thread: 1,
                 session,
                 state: Some(thread.state),
-                interval,
             });
         }
     }
@@ -498,7 +504,13 @@ fn take_snapshot(with_thread: bool, filter: ShowFilter) -> SystemSnapshot {
             is_kthread,
         });
 
-        if with_thread {
+        // Idle (pid 0) is a stand-in the kernel keeps for the idle loop, not a
+        // process with threads of its own: the records it carries have no
+        // usable thread id - most of them report none at all, and one that
+        // reports `0` would collapse onto Idle's own row, since a thread row
+        // is keyed by its negated id and `-0` is `0` again. So it is listed as
+        // one childless process.
+        if with_thread && pid != 0 {
             threads.extend(entry.threads());
         }
     }
@@ -617,6 +629,32 @@ impl Drop for ProcHandles {
 fn open_process(pid: i32, access: u32) -> Option<HANDLE> {
     let handle = unsafe { OpenProcess(access, FALSE, pid as u32) };
     if handle.is_null() { None } else { Some(handle) }
+}
+
+// ---------------------------------------------------------------------------
+// Thread handles
+// ---------------------------------------------------------------------------
+
+/// The name the thread `tid` carries, if any.
+///
+/// Unlike everything else a row shows, the name is not part of the snapshot:
+/// it costs an `OpenThread` and a query of its own, so it is paid for only
+/// by the threads `--thread` actually lists. `None` when the thread cannot be
+/// opened - it may have exited since the snapshot was taken - or when it was
+/// never given a name.
+fn thread_name(tid: u64) -> Option<String> {
+    // Thread ids are 32 bit; a wider one is not one the kernel handed out.
+    let tid = u32::try_from(tid).ok()?;
+    let handle = unsafe { OpenThread(THREAD_QUERY_LIMITED_INFORMATION, FALSE, tid) };
+    if handle.is_null() {
+        return None;
+    }
+
+    let name = ntapi::thread_name(handle);
+    unsafe {
+        CloseHandle(handle);
+    }
+    name
 }
 
 // ---------------------------------------------------------------------------

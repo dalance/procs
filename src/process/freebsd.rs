@@ -1,4 +1,4 @@
-use crate::process::ShowFilter;
+use crate::process::{ProcessInfoBase, ShowFilter};
 use bsd_kvm_sys::kinfo_proc;
 use libc::{CTL_KERN, KERN_PROC, KERN_PROC_PROC, P_KPROC, c_void};
 use std::collections::HashMap;
@@ -8,12 +8,15 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 pub struct ProcessInfo {
-    pub pid: i32,
-    pub ppid: i32,
+    /// The part of a row every platform has - the row key, the parent and the
+    /// sampling window. The `Deref` below hands it out, so a column goes on
+    /// writing `proc.pid` without reaching for `base`.
+    pub base: ProcessInfoBase,
     pub curr_proc: kinfo_proc,
     pub prev_proc: kinfo_proc,
-    pub interval: Duration,
 }
+
+process_info_deref!();
 
 fn get_processes() -> Vec<kinfo_proc> {
     let mut mib = [CTL_KERN, KERN_PROC, KERN_PROC_PROC];
@@ -92,11 +95,9 @@ pub fn collect_proc(
             let interval = curr_time - prev_time;
 
             let proc = ProcessInfo {
-                pid,
-                ppid: proc.ki_ppid,
+                base: ProcessInfoBase::new(pid as i64, proc.ki_ppid as i64, interval),
                 curr_proc: proc,
                 prev_proc,
-                interval,
             };
             ret.push(proc);
         }

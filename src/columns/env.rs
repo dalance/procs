@@ -14,8 +14,8 @@ use windows_sys::Win32::Foundation::HANDLE;
 pub struct Env {
     header: String,
     unit: String,
-    fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, String>,
+    fmt_contents: HashMap<i64, String>,
+    raw_contents: HashMap<i64, String>,
     width: usize,
     #[allow(dead_code)]
     procfs: Option<PathBuf>,
@@ -37,8 +37,8 @@ impl Env {
 }
 
 #[cfg(target_os = "freebsd")]
-pub(crate) fn get_process_env(pid: i32) -> Vec<String> {
-    let mut mib = [CTL_KERN, KERN_PROC, KERN_PROC_ENV, pid];
+pub(crate) fn get_process_env(pid: i64) -> Vec<String> {
+    let mut mib = [CTL_KERN, KERN_PROC, KERN_PROC_ENV, pid as i32];
     let mut size = 0usize;
     if unsafe {
         libc::sysctl(
@@ -173,7 +173,7 @@ impl Column for Env {
 /// `PROCESS_QUERY_LIMITED_INFORMATION | PROCESS_VM_READ`, so protected
 /// processes (e.g. PPL) yield `None`.
 #[cfg(target_os = "windows")]
-fn env_of(pid: i32) -> Option<String> {
+fn env_of(pid: i64) -> Option<String> {
     use windows_sys::Win32::Foundation::{CloseHandle, FALSE, HANDLE};
     use windows_sys::Win32::System::Threading::{
         OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_VM_READ,

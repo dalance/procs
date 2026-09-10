@@ -1,5 +1,5 @@
 use crate::Column;
-use crate::process::ProcessInfo;
+use crate::process::{ProcessInfo, row_sort_key};
 use std::cmp;
 use std::collections::HashMap;
 
@@ -7,8 +7,8 @@ pub struct Tree {
     header: String,
     unit: String,
     width: usize,
-    tree: HashMap<i32, Vec<i32>>,
-    rev_tree: HashMap<i32, i32>,
+    tree: HashMap<i64, Vec<i64>>,
+    rev_tree: HashMap<i64, i64>,
     symbols: [String; 5],
 }
 
@@ -31,7 +31,10 @@ impl Column for Tree {
     fn add(&mut self, proc: &ProcessInfo) {
         if let Some(node) = self.tree.get_mut(&proc.ppid) {
             node.push(proc.pid);
-            node.sort_unstable();
+            // Siblings are ordered the way the Pid column orders rows, so a
+            // thread sits next to the process whose id it was handed instead
+            // of before every process.
+            node.sort_unstable_by_key(|pid| row_sort_key(*pid));
         } else {
             self.tree.insert(proc.ppid, vec![proc.pid]);
         }
@@ -49,14 +52,14 @@ impl Column for Tree {
 
     fn display_content(
         &self,
-        pid: i32,
+        pid: i64,
         align: &crate::config::ConfigColumnAlign,
     ) -> Option<String> {
         fn gen_root(
-            tree: &HashMap<i32, Vec<i32>>,
-            rev_tree: &HashMap<i32, i32>,
+            tree: &HashMap<i64, Vec<i64>>,
+            rev_tree: &HashMap<i64, i64>,
             symbols: &[String; 5],
-            pid: i32,
+            pid: i64,
             mut string: String,
         ) -> String {
             if let Some(ppid) = rev_tree.get(&pid) {
@@ -64,7 +67,10 @@ impl Column for Tree {
                     string
                 } else if let Some(pppid) = rev_tree.get(ppid) {
                     let brother = tree.get(pppid).unwrap();
-                    let is_last = brother.binary_search(ppid).unwrap() == brother.len() - 1;
+                    let is_last = brother
+                        .binary_search_by_key(&row_sort_key(*ppid), |pid| row_sort_key(*pid))
+                        .unwrap()
+                        == brother.len() - 1;
 
                     if is_last {
                         string.push(' ');
@@ -91,7 +97,10 @@ impl Column for Tree {
             let root: String = root.chars().rev().collect();
 
             let brother = &self.tree[ppid];
-            let is_last = brother.binary_search(&pid).unwrap() == brother.len() - 1;
+            let is_last = brother
+                .binary_search_by_key(&row_sort_key(pid), |pid| row_sort_key(*pid))
+                .unwrap()
+                == brother.len() - 1;
             let has_child = self.tree.contains_key(&pid);
 
             let parent_connector = if is_last {
@@ -119,19 +128,19 @@ impl Column for Tree {
     }
 
     // Tree doesn't support JSON
-    fn display_json(&self, _pid: i32) -> String {
+    fn display_json(&self, _pid: i64) -> String {
         "".to_string()
     }
 
-    fn find_partial(&self, _pid: i32, _keyword: &str, _content_to_lowercase: bool) -> bool {
+    fn find_partial(&self, _pid: i64, _keyword: &str, _content_to_lowercase: bool) -> bool {
         false
     }
 
-    fn find_exact(&self, _pid: i32, _keyword: &str, _content_to_lowercase: bool) -> bool {
+    fn find_exact(&self, _pid: i64, _keyword: &str, _content_to_lowercase: bool) -> bool {
         false
     }
 
-    fn sorted_pid(&self, _order: &crate::config::ConfigSortOrder) -> Vec<i32> {
+    fn sorted_pid(&self, _order: &crate::config::ConfigSortOrder) -> Vec<i64> {
         let mut root_pids = Vec::new();
         for p in self.rev_tree.values() {
             if !self.rev_tree.contains_key(p) {
@@ -145,7 +154,7 @@ impl Column for Tree {
         root_pids.sort_unstable();
         root_pids.dedup();
 
-        fn push_pid(tree: &HashMap<i32, Vec<i32>>, mut pids: Vec<i32>, pid: i32) -> Vec<i32> {
+        fn push_pid(tree: &HashMap<i64, Vec<i64>>, mut pids: Vec<i64>, pid: i64) -> Vec<i64> {
             if let Some(leafs) = tree.get(&pid) {
                 for p in leafs {
                     pids.push(*p);
@@ -165,7 +174,7 @@ impl Column for Tree {
         pids
     }
 
-    fn apply_visible(&mut self, visible_pids: &[i32]) {
+    fn apply_visible(&mut self, visible_pids: &[i64]) {
         let mut remove_pids = Vec::new();
         for k in self.rev_tree.keys() {
             if !visible_pids.contains(k) {
@@ -175,7 +184,11 @@ impl Column for Tree {
         for pid in remove_pids {
             self.rev_tree.remove(&pid);
             for x in self.tree.values_mut() {
-                if let Ok(i) = x.binary_search(&pid) {
+                // The siblings are ordered by `row_sort_key`, so a thread row
+                // has to be looked up the same way: a plain `binary_search`
+                // on its negated key misses it and leaves a row the filter
+                // dropped behind in the tree.
+                if let Ok(i) = x.binary_search_by_key(&row_sort_key(pid), |p| row_sort_key(*p)) {
                     x.remove(i);
                 }
             }
@@ -192,8 +205,8 @@ impl Column for Tree {
         self.width = 0;
     }
 
-    fn update_width(&mut self, pid: i32, _max_width: Option<usize>) {
-        fn get_depth(rev_tree: &HashMap<i32, i32>, pid: i32, depth: i32) -> i32 {
+    fn update_width(&mut self, pid: i64, _max_width: Option<usize>) {
+        fn get_depth(rev_tree: &HashMap<i64, i64>, pid: i64, depth: i64) -> i64 {
             if let Some(ppid) = rev_tree.get(&pid) {
                 if *ppid == pid {
                     depth
@@ -214,10 +227,47 @@ impl Column for Tree {
     crate::column_default_is_numeric!(false);
 }
 
+/// Siblings are held in `row_sort_key` order, so every lookup in one of those
+/// lists has to use the same key - see `add`.
+#[cfg(test)]
+mod tests_sorted {
+    use super::*;
+
+    #[test]
+    fn apply_visible_drops_a_thread_row() {
+        let mut tree = Tree::new(&[
+            String::from("│"),
+            String::from("─"),
+            String::from("┬"),
+            String::from("├"),
+            String::from("└"),
+        ]);
+
+        // One parent with four children: two processes with the threads whose
+        // keys are the negated ids 8 and 16 in between. Ordering by key puts
+        // the last thread after a larger process id, which is exactly where a
+        // plain `binary_search` on the key stops looking.
+        let mut siblings = vec![4i64, -8, 12, -16];
+        siblings.sort_unstable_by_key(|pid| row_sort_key(*pid));
+        tree.tree.insert(0, siblings);
+        tree.rev_tree.insert(4, 0);
+        tree.rev_tree.insert(-8, 0);
+        tree.rev_tree.insert(12, 0);
+        tree.rev_tree.insert(-16, 0);
+
+        tree.apply_visible(&[0, 4, 12]);
+
+        assert_eq!(tree.tree[&0], vec![4, 12]);
+        assert!(!tree.rev_tree.contains_key(&-8));
+        assert!(!tree.rev_tree.contains_key(&-16));
+    }
+}
+
 #[cfg(test)]
 #[cfg(any(target_os = "linux", target_os = "android"))]
 mod tests {
     use super::*;
+    use crate::process::ProcessInfoBase;
     use crate::process::ProcessTask;
     use procfs::process::Process;
     use std::time::Duration;
@@ -240,14 +290,12 @@ mod tests {
         let prev_stat = Process::myself().unwrap().stat().unwrap();
 
         let p0 = ProcessInfo {
-            pid: 0,
-            ppid: 0,
+            base: ProcessInfoBase::new(0, 0, Duration::new(0, 0)),
             curr_proc,
             prev_stat,
             curr_io: None,
             prev_io: None,
             curr_status: None,
-            interval: Duration::new(0, 0),
         };
 
         let curr_proc = ProcessTask::Process {
@@ -258,14 +306,12 @@ mod tests {
         let prev_stat = Process::myself().unwrap().stat().unwrap();
 
         let p1 = ProcessInfo {
-            pid: 1,
-            ppid: 0,
+            base: ProcessInfoBase::new(1, 0, Duration::new(0, 0)),
             curr_proc,
             prev_stat,
             curr_io: None,
             prev_io: None,
             curr_status: None,
-            interval: Duration::new(0, 0),
         };
 
         let curr_proc = ProcessTask::Process {
@@ -276,14 +322,12 @@ mod tests {
         let prev_stat = Process::myself().unwrap().stat().unwrap();
 
         let p2 = ProcessInfo {
-            pid: 2,
-            ppid: 1,
+            base: ProcessInfoBase::new(2, 1, Duration::new(0, 0)),
             curr_proc,
             prev_stat,
             curr_io: None,
             prev_io: None,
             curr_status: None,
-            interval: Duration::new(0, 0),
         };
 
         tree.add(&p0);

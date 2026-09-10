@@ -14,8 +14,8 @@ use std::path::Path;
 pub struct FileName {
     header: String,
     unit: String,
-    fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, String>,
+    fmt_contents: HashMap<i64, String>,
+    raw_contents: HashMap<i64, String>,
     width: usize,
 }
 
@@ -100,7 +100,7 @@ impl Column for FileName {
 #[cfg(target_os = "freebsd")]
 impl Column for FileName {
     fn add(&mut self, proc: &ProcessInfo) {
-        let fmt_content = get_process_path(proc.pid)
+        let fmt_content = get_process_path(proc.pid as i32)
             .and_then(|path| Path::new(&path).file_name().map(|name| name.to_string_lossy().into_owned()))
             .unwrap_or_default();
         let raw_content = fmt_content.clone();

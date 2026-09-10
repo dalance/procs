@@ -1,4 +1,4 @@
-use crate::process::ShowFilter;
+use crate::process::{ProcessInfoBase, ShowFilter, thread_key};
 use libc::{c_char, c_int, c_void, size_t};
 use libproc::libproc::file_info::{ListFDs, ProcFDType, pidfdinfo};
 use libproc::libproc::net_info::{InSockInfo, SocketFDInfo, SocketInfoKind, TcpSockInfo};
@@ -14,8 +14,17 @@ use std::time::{Duration, Instant};
 use std::{cmp, io, mem, ptr, thread};
 
 pub struct ProcessInfo {
-    pub pid: i32,
-    pub ppid: i32,
+    /// The part of a row every platform has - the row key, the parent and the
+    /// sampling window. The `Deref` below hands it out, so a column goes on
+    /// writing `proc.pid` without reaching for `base`.
+    ///
+    /// Threads and processes share the key because every column keys its
+    /// contents by it. `PROC_PIDLISTTHREADS` hands out 64 bit ids that mean
+    /// nothing on their own and would land on real pids (or on each other) if
+    /// they were used as keys directly, so a thread row negates its id: real
+    /// pids are never negative, and the negation of a thread id is unique to
+    /// that thread. The Pid column turns it back into the id.
+    pub base: ProcessInfoBase,
     pub curr_proc: kinfo_proc,
     // Kept for the same reason freebsd keeps one: the two-sample shape of
     // `collect_proc` is shared, even if no column reads the previous one.
@@ -28,16 +37,10 @@ pub struct ProcessInfo {
     pub curr_tcps: Vec<TcpSockInfo>,
     pub curr_res: Option<RUsageInfoV2>,
     pub prev_res: Option<RUsageInfoV2>,
-    pub interval: Duration,
     pub state: i32,
-    /// The thread this row stands for, `None` when the row is a process.
-    ///
-    /// `PROC_PIDLISTTHREADS` hands out 64 bit ids that mean nothing on their
-    /// own: the same one turns up in unrelated processes, and `0` is common.
-    /// Rows are keyed by `pid` everywhere, so a thread gets a synthetic `pid`
-    /// and keeps the id it was listed under here, for display only.
-    pub tid: Option<u64>,
 }
+
+process_info_deref!();
 
 pub fn collect_proc(
     interval: Duration,
@@ -47,13 +50,6 @@ pub fn collect_proc(
 ) -> Vec<ProcessInfo> {
     let mut base_procs = HashMap::new();
     let mut ret = Vec::new();
-    // Every thread gets a key of its own, counted down from -1: real pids are
-    // never negative, so a thread can neither be mistaken for a process nor
-    // take the place of another thread whose id happens to truncate the same
-    // way. `0` in particular stops being reachable, which matters because the
-    // tree column reads "a ppid that is not in the table" as the root of the
-    // tree - and 0 is the ppid of launchd.
-    let mut next_thread_key: i32 = -1;
     let arg_max = get_arg_max();
     let current_uid = uzers::get_current_uid();
 
@@ -239,15 +235,17 @@ pub fn collect_proc(
                             env: Vec::new(),
                         };
 
-                        // A key of its own, because truncating the 64 bit id
-                        // to `i32` is what made threads collide with each
-                        // other, with real pids, and with the tree's root.
-                        let thread_key = next_thread_key;
-                        next_thread_key -= 1;
+                        // Negating the id is what keeps the row key unique:
+                        // a thread can then neither be mistaken for the
+                        // process it belongs to nor take the place of another
+                        // thread. `0` in particular stops being reachable,
+                        // which matters because the tree column reads "a ppid
+                        // that is not in the table" as the root of the tree -
+                        // and 0 is the ppid of launchd.
+                        let key = thread_key(tid);
 
                         threads.push(ProcessInfo {
-                            pid: thread_key,
-                            ppid: pid,
+                            base: ProcessInfoBase::new(key, pid as i64, interval),
                             curr_proc,
                             prev_proc,
                             curr_task: task,
@@ -257,9 +255,7 @@ pub fn collect_proc(
                             curr_tcps: Vec::new(),
                             curr_res: None,
                             prev_res: None,
-                            interval,
                             state: tstate,
-                            tid: Some(tid),
                         });
                     }
                 }
@@ -267,8 +263,7 @@ pub fn collect_proc(
         }
 
         ret.push(ProcessInfo {
-            pid,
-            ppid,
+            base: ProcessInfoBase::new(pid as i64, ppid as i64, interval),
             curr_proc,
             prev_proc,
             curr_task,
@@ -278,9 +273,7 @@ pub fn collect_proc(
             curr_tcps,
             curr_res,
             prev_res,
-            interval,
             state,
-            tid: None,
         });
         ret.extend(threads);
     }

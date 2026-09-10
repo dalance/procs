@@ -12,8 +12,8 @@ use uzers::Groups;
 pub struct Group {
     header: String,
     unit: String,
-    fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, String>,
+    fmt_contents: HashMap<i64, String>,
+    raw_contents: HashMap<i64, String>,
     width: usize,
     #[allow(dead_code)]
     abbr_sid: bool,
@@ -106,7 +106,7 @@ impl Column for Group {
 /// A thread row carries a thread id rather than a pid, so its lookup fails
 /// and it renders as empty - the same thing `Arch` and `WorkDir` do.
 #[cfg(target_os = "windows")]
-pub fn groups_of(pid: i32) -> Option<Vec<SID_MAX>> {
+pub fn groups_of(pid: i64) -> Option<Vec<SID_MAX>> {
     use std::mem::zeroed;
     use windows_sys::Win32::Foundation::{CloseHandle, FALSE, HANDLE};
     use windows_sys::Win32::Security::{TOKEN_GROUPS, TOKEN_QUERY, TokenGroups};

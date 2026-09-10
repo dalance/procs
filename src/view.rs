@@ -26,10 +26,10 @@ pub struct View {
     pub columns: Vec<ColumnInfo>,
     pub term_info: TermInfo,
     pub sort_info: SortInfo,
-    pub visible_pids: Vec<i32>,
-    pub auxiliary_pids: Vec<i32>,
-    pub parent_pids: HashMap<i32, i32>,
-    pub child_pids: HashMap<i32, Vec<i32>>,
+    pub visible_pids: Vec<i64>,
+    pub auxiliary_pids: Vec<i64>,
+    pub parent_pids: HashMap<i64, i64>,
+    pub child_pids: HashMap<i64, Vec<i64>>,
 }
 
 impl View {
@@ -195,7 +195,7 @@ impl View {
         }
 
         let mut parent_pids = HashMap::new();
-        let mut child_pids = HashMap::<i32, Vec<i32>>::new();
+        let mut child_pids = HashMap::<i64, Vec<i64>>::new();
         if opt.tree || !config.display.show_self_parents {
             for p in &proc {
                 parent_pids.insert(p.pid, p.ppid);
@@ -277,7 +277,7 @@ impl View {
             .column
             .sorted_pid(&self.sort_info.order);
 
-        let self_pid = std::process::id() as i32;
+        let self_pid = std::process::id() as i64;
 
         let self_parents = if !config.display.show_self_parents {
             let mut self_parents = Vec::new();
@@ -375,7 +375,7 @@ impl View {
         Ok(())
     }
 
-    fn get_parent_pids(&self, pid: i32, parent_pids: &mut Vec<i32>) {
+    fn get_parent_pids(&self, pid: i64, parent_pids: &mut Vec<i64>) {
         if let Some(x) = self.parent_pids.get(&pid)
             && !parent_pids.contains(x)
         {
@@ -384,7 +384,7 @@ impl View {
         }
     }
 
-    fn get_child_pids(&self, pid: i32, child_pids: &mut Vec<i32>) {
+    fn get_child_pids(&self, pid: i64, child_pids: &mut Vec<i64>) {
         if let Some(pids) = self.child_pids.get(&pid) {
             for x in pids {
                 if !child_pids.contains(x) {
@@ -581,7 +581,7 @@ impl View {
     fn display_content(
         &self,
         config: &Config,
-        pid: i32,
+        pid: i64,
         theme: &ConfigTheme,
         auxiliary: bool,
     ) -> Result<(), Error> {
@@ -665,7 +665,7 @@ impl View {
     }
 
     fn search<T: AsRef<str>>(
-        pid: i32,
+        pid: i64,
         keyword_numeric: &[T],
         keyword_nonnumeric: &[T],
         cols_numeric: &[&dyn Column],
@@ -713,7 +713,7 @@ impl View {
         }
     }
 
-    fn search_regex(pid: i32, cols: &[&dyn Column], regex: &SearchRegex) -> Result<bool, Error> {
+    fn search_regex(pid: i64, cols: &[&dyn Column], regex: &SearchRegex) -> Result<bool, Error> {
         for c in cols {
             if regex.is_match(&c.display_json(pid))? {
                 return Ok(true);
