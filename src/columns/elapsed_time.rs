@@ -2,7 +2,6 @@ use crate::process::ProcessInfo;
 use crate::{column_default, Column};
 #[cfg(not(target_os = "windows"))]
 use chrono::offset::TimeZone;
-#[cfg(any(target_os = "linux", target_os = "android"))]
 use chrono::DateTime;
 use chrono::{Duration, Local};
 #[cfg(any(target_os = "linux", target_os = "android"))]
@@ -62,6 +61,15 @@ fn format_duration(duration: Duration) -> String {
     }
 }
 
+fn elapsed_since(start_time: DateTime<Local>) -> (Duration, String) {
+    if start_time.timestamp() <= 0 {
+        (Duration::zero(), String::new())
+    } else {
+        let elapsed = Local::now().signed_duration_since(start_time);
+        (elapsed, format_duration(elapsed))
+    }
+}
+
 #[cfg(any(target_os = "linux", target_os = "android"))]
 impl Column for ElapsedTime {
     fn add(&mut self, proc: &ProcessInfo) {
@@ -69,8 +77,7 @@ impl Column for ElapsedTime {
         let seconds_since_boot = starttime as f32 / *TICKS_PER_SECOND as f32;
         let start_time = self.boot_time
             + Duration::try_milliseconds((seconds_since_boot * 1000.0) as i64).unwrap_or_default();
-        let raw_content = Local::now().signed_duration_since(start_time);
-        let fmt_content = format_duration(raw_content);
+        let (raw_content, fmt_content) = elapsed_since(start_time);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);
@@ -85,8 +92,7 @@ impl Column for ElapsedTime {
         let start_time = Local
             .timestamp_opt(unsafe { proc.curr_proc.kp_proc.p_un.p_starttime.tv_sec }, 0)
             .unwrap();
-        let raw_content = Local::now().signed_duration_since(start_time);
-        let fmt_content = format_duration(raw_content);
+        let (raw_content, fmt_content) = elapsed_since(start_time);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);
@@ -98,8 +104,7 @@ impl Column for ElapsedTime {
 #[cfg(target_os = "windows")]
 impl Column for ElapsedTime {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = Local::now().signed_duration_since(proc.start_time);
-        let fmt_content = format_duration(raw_content);
+        let (raw_content, fmt_content) = elapsed_since(proc.start_time);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);
@@ -114,8 +119,7 @@ impl Column for ElapsedTime {
         let start_time = Local
             .timestamp_opt(proc.curr_proc.ki_start.tv_sec as i64, 0)
             .unwrap();
-        let raw_content = Local::now().signed_duration_since(start_time);
-        let fmt_content = format_duration(raw_content);
+        let (raw_content, fmt_content) = elapsed_since(start_time);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);
