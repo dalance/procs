@@ -540,7 +540,7 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | VmTotal              | -not supported-       | Total virtual memory size                     | *[^*] | o     | *[^*]   | *[^*]   |
 | VoluntaryContextSw   | -not supported-       | Voluntary context switch count                | o     |       |         | o       |
 | Wchan                | wchan                 | Process sleeping kernel function              | o     |       |         | o       |
-| WorkDir              | -not supported-       | Current working directory                     | o     | o     | o       |         |
+| WorkDir              | -not supported-       | Current working directory                     | o     | o     | o       | o       |
 | WriteByte            | -not supported-       | Write bytes to storage                        | o     | o     | o       | o       |
 
 [^*]: Alias for VmRss on these platforms

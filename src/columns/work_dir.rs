@@ -1,10 +1,14 @@
 use crate::process::ProcessInfo;
 use crate::{column_default, Column};
+#[cfg(target_os = "freebsd")]
+use libc::{c_void, CTL_KERN, KERN_PROC, KERN_PROC_CWD};
 #[cfg(target_os = "macos")]
 use libproc::libproc::proc_pid::{PIDInfo, PidInfoFlavor, pidinfo};
 use std::cmp;
 use std::collections::HashMap;
 use std::path::PathBuf;
+#[cfg(target_os = "freebsd")]
+use std::ptr;
 
 #[cfg(target_os = "windows")]
 use windows_sys::Win32::Foundation::HANDLE;
@@ -68,6 +72,21 @@ impl Column for WorkDir {
     column_default!(String, false);
 }
 
+#[cfg(target_os = "freebsd")]
+impl Column for WorkDir {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let fmt_content = work_dir_of(proc.pid)
+            .map(|dir| dir.to_string_lossy().into_owned())
+            .unwrap_or_default();
+        let raw_content = fmt_content.clone();
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(String, false);
+}
+
 /// The directory the process is sitting in, from `proc_pidinfo` with
 /// `PROC_PIDVNODEPATHINFO`.
 ///
@@ -94,6 +113,61 @@ impl Column for WorkDir {
     }
 
     column_default!(String, false);
+}
+
+/// The current working directory of `pid`, from FreeBSD's `KERN_PROC_CWD`.
+#[cfg(target_os = "freebsd")]
+fn work_dir_of(pid: i64) -> Option<PathBuf> {
+    // KERN_PROC_CWD returns struct kinfo_file, not a plain path. The path is
+    // the final PATH_MAX-byte field in the FreeBSD kinfo_file ABI.
+    const KINFO_FILE_PATH_OFFSET: usize = 368;
+
+    if pid <= 0 {
+        return None;
+    }
+
+    let mut mib = [CTL_KERN, KERN_PROC, KERN_PROC_CWD, pid as i32];
+    let mut size = 0usize;
+    if unsafe {
+        libc::sysctl(
+            mib.as_mut_ptr(),
+            mib.len() as u32,
+            ptr::null_mut(),
+            &mut size,
+            ptr::null_mut(),
+            0,
+        )
+    } != 0
+        || size == 0
+    {
+        return None;
+    }
+
+    let mut bytes = vec![0u8; size];
+    if unsafe {
+        libc::sysctl(
+            mib.as_mut_ptr(),
+            mib.len() as u32,
+            bytes.as_mut_ptr() as *mut c_void,
+            &mut size,
+            ptr::null_mut(),
+            0,
+        )
+    } != 0
+    {
+        return None;
+    }
+    bytes.truncate(size);
+    if bytes.len() <= KINFO_FILE_PATH_OFFSET {
+        return None;
+    }
+    let path = &bytes[KINFO_FILE_PATH_OFFSET..];
+    let end = path.iter().position(|byte| *byte == 0).unwrap_or(path.len());
+    if end == 0 {
+        return None;
+    }
+
+    Some(PathBuf::from(String::from_utf8_lossy(&path[..end]).into_owned()))
 }
 
 /// The current working directory of `pid`.
