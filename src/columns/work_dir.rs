@@ -1,5 +1,7 @@
 use crate::process::ProcessInfo;
 use crate::{column_default, Column};
+#[cfg(target_os = "macos")]
+use libproc::libproc::proc_pid::{PIDInfo, PidInfoFlavor, pidinfo};
 use std::cmp;
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -64,6 +66,74 @@ impl Column for WorkDir {
     }
 
     column_default!(String, false);
+}
+
+/// The directory the process is sitting in, from `proc_pidinfo` with
+/// `PROC_PIDVNODEPATHINFO`.
+///
+/// Unlike the environment, this one is not already in hand: the collector
+/// never asks for it, so it is read here, once per row, only when the column
+/// is on screen. `PathInfo::root` is no substitute - that is where the
+/// executable was loaded from, not where the process has since moved to.
+///
+/// A thread row is left blank: a directory belongs to a process, and the row
+/// stands for a thread of one.
+#[cfg(target_os = "macos")]
+impl Column for WorkDir {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let fmt_content = if proc.tid.is_some() {
+            String::new()
+        } else {
+            work_dir_of(proc.pid)
+                .map(|dir| dir.to_string_lossy().into_owned())
+                .unwrap_or_default()
+        };
+
+        self.fmt_contents.insert(proc.pid, fmt_content.clone());
+        self.raw_contents.insert(proc.pid, fmt_content);
+    }
+
+    column_default!(String, false);
+}
+
+/// The current working directory of `pid`.
+///
+/// `KERN_PROCARGS2` carries the arguments and the environment, but not the
+/// directory a process sits in, so `proc_pidinfo` with
+/// `PROC_PIDVNODEPATHINFO` is the only source for it. The kernel answers for
+/// the processes of the user `procs` runs as and refuses the rest - the wall
+/// the rest of `libproc` hits too - so `None` here means "not ours to see"
+/// far more often than it means "no directory".
+///
+/// Note that this is not what `PathInfo::root` holds: that field is the
+/// directory the executable was loaded from, `proc_pidpath` territory, and a
+/// process that has changed directory since keeps pointing at the old one.
+#[cfg(target_os = "macos")]
+fn work_dir_of(pid: i32) -> Option<PathBuf> {
+    // 0 is the kernel task and has no vnode paths; the negative pids are the
+    // synthetic keys the thread rows carry.
+    if pid <= 0 {
+        return None;
+    }
+
+    let info = pidinfo::<VNodePathInfo>(pid, 0).ok()?;
+    // libc declares `vip_path` as `[[c_char; 32]; 32]`, not `[c_char; MAXPATHLEN]`.
+    let path = crate::util::ptr_to_cstr(info.0.pvi_cdir.vip_path.as_flattened()).ok()?;
+    Some(PathBuf::from(path.to_string_lossy().into_owned()))
+}
+
+/// libproc's `pidinfo` passes `&mut T` to `proc_pidinfo` sized by
+/// `size_of::<T>()`, so this must keep the exact layout of
+/// `proc_vnodepathinfo`.
+#[cfg(target_os = "macos")]
+#[repr(transparent)]
+struct VNodePathInfo(libc::proc_vnodepathinfo);
+
+#[cfg(target_os = "macos")]
+impl PIDInfo for VNodePathInfo {
+    fn flavor() -> PidInfoFlavor {
+        PidInfoFlavor::VNodePathInfo
+    }
 }
 
 /// Reads the current working directory of `pid` from its PEB.
@@ -178,3 +248,31 @@ fn read_work_dir(handle: HANDLE) -> Option<String> {
 /// allocation. Real working directories are capped well below this.
 #[cfg(target_os = "windows")]
 const MAX_WORK_DIR_BYTES: usize = 64 * 1024;
+
+#[cfg(all(test, target_os = "macos"))]
+mod tests {
+    use super::*;
+
+    /// The kernel and the process agree about where the process is.
+    ///
+    /// The two paths are canonicalized because the kernel reports the real
+    /// path - `/private/tmp` rather than `/tmp` - while the standard library
+    /// is free to report either.
+    #[test]
+    fn work_dir_of_self() {
+        let cwd = std::env::current_dir().unwrap().canonicalize().unwrap();
+        let dir = work_dir_of(std::process::id() as i32)
+            .unwrap()
+            .canonicalize()
+            .unwrap();
+        assert_eq!(dir, cwd);
+    }
+
+    /// Pids there is nothing to ask about: 0 is the kernel task, and the
+    /// negative keys the thread rows carry are not pids at all.
+    #[test]
+    fn work_dir_of_an_unaskable_pid() {
+        assert_eq!(work_dir_of(0), None);
+        assert_eq!(work_dir_of(-1), None);
+    }
+}

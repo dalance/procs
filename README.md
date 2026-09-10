@@ -470,7 +470,7 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | Docker               | -not supported-       | Docker container name                         | o     | o     |         |         |
 | Eip                  | eip                   | Instruction pointer                           | o     |       |         |         |
 | ElapsedTime          | -not supported-       | Elapsed time                                  | o     | o     | o       | o       |
-| Env                  | `e` output modifier   | Environment variables                         | o     |       |         | o       |
+| Env                  | `e` output modifier   | Environment variables                         | o     | o     |         | o       |
 | Esp                  | esp                   | Stack pointer                                 | o     |       |         |         |
 | FileName             | comm                  | File name                                     | o     |       | o       | o       |
 | Gid                  | egid                  | Group ID                                      | o     | o     | o       | o       |
@@ -540,7 +540,7 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | VmTotal              | -not supported-       | Total virtual memory size                     | *[^*] | o     | *[^*]   | *[^*]   |
 | VoluntaryContextSw   | -not supported-       | Voluntary context switch count                | o     |       |         | o       |
 | Wchan                | wchan                 | Process sleeping kernel function              | o     |       |         | o       |
-| WorkDir              | -not supported-       | Current working directory                     | o     |       | o       |         |
+| WorkDir              | -not supported-       | Current working directory                     | o     | o     | o       |         |
 | WriteByte            | -not supported-       | Write bytes to storage                        | o     | o     | o       | o       |
 
 [^*]: Alias for VmRss on these platforms

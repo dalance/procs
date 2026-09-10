@@ -130,6 +130,41 @@ impl Column for Env {
     column_default!(String, false);
 }
 
+/// The environment `KERN_PROCARGS2` reported with the process.
+///
+/// The collector already asks for it to build the command line, so nothing is
+/// queried here: `PathInfo::env` is the tail of the same `sysctl` buffer, the
+/// NUL separated strings that follow the arguments. The kernel hands it out
+/// for the processes of the user `procs` runs as, so the processes of other
+/// users come through empty.
+///
+/// A thread row is left blank: an environment belongs to a process, and the
+/// row stands for a thread of one.
+#[cfg(target_os = "macos")]
+impl Column for Env {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let mut fmt_content = String::new();
+        if let Some(path) = &proc.curr_path {
+            for env in &path.env {
+                // The buffer holds raw `KEY=VALUE` strings; quote the value
+                // the way the Linux and Windows columns do, so that a value
+                // holding spaces still reads as one entry.
+                match env.split_once('=') {
+                    Some((key, value)) => {
+                        fmt_content.push_str(&format!("{}=\"{}\" ", key, value.replace('"', "\\\"")))
+                    }
+                    None => fmt_content.push_str(&format!("{} ", env.replace('"', "\\\""))),
+                }
+            }
+        }
+
+        self.fmt_contents.insert(proc.pid, fmt_content.clone());
+        self.raw_contents.insert(proc.pid, fmt_content);
+    }
+
+    column_default!(String, false);
+}
+
 /// Reads the environment block of `pid` from its PEB.
 ///
 /// The PEB address comes from `NtQueryInformationProcess` with
