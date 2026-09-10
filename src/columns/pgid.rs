@@ -57,7 +57,7 @@ impl Column for Pgid {
 #[cfg(target_os = "freebsd")]
 impl Column for Pgid {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = proc.curr_proc.ki_pgid as i32;
+        let raw_content = proc.curr_proc.ki_pgid;
         let fmt_content = format!("{}", raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);

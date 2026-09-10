@@ -174,8 +174,8 @@ impl Column for Command {
         } else {
             let mut x = String::new();
             for arg in &args {
-                x.push_str(&arg);
-                x.push_str(" ");
+                x.push_str(arg);
+                x.push(' ');
             }
             x
         };
