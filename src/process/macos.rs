@@ -11,7 +11,7 @@ use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
-use std::{io, mem, ptr, thread};
+use std::{cmp, io, mem, ptr, thread};
 
 pub struct ProcessInfo {
     pub pid: i32,
@@ -24,22 +24,36 @@ pub struct ProcessInfo {
     pub curr_task: TaskInfo,
     pub prev_task: TaskInfo,
     pub curr_path: Option<PathInfo>,
-    pub curr_threads: Vec<ThreadInfo>,
     pub curr_udps: Vec<InSockInfo>,
     pub curr_tcps: Vec<TcpSockInfo>,
     pub curr_res: Option<RUsageInfoV2>,
     pub prev_res: Option<RUsageInfoV2>,
     pub interval: Duration,
+    pub state: i32,
+    /// The thread this row stands for, `None` when the row is a process.
+    ///
+    /// `PROC_PIDLISTTHREADS` hands out 64 bit ids that mean nothing on their
+    /// own: the same one turns up in unrelated processes, and `0` is common.
+    /// Rows are keyed by `pid` everywhere, so a thread gets a synthetic `pid`
+    /// and keeps the id it was listed under here, for display only.
+    pub tid: Option<u64>,
 }
 
 pub fn collect_proc(
     interval: Duration,
-    _with_thread: bool,
+    with_thread: bool,
     _procfs_path: &Option<PathBuf>,
     filter: ShowFilter,
 ) -> Vec<ProcessInfo> {
     let mut base_procs = HashMap::new();
     let mut ret = Vec::new();
+    // Every thread gets a key of its own, counted down from -1: real pids are
+    // never negative, so a thread can neither be mistaken for a process nor
+    // take the place of another thread whose id happens to truncate the same
+    // way. `0` in particular stops being reachable, which matters because the
+    // tree column reads "a ppid that is not in the table" as the root of the
+    // tree - and 0 is the ppid of launchd.
+    let mut next_thread_key: i32 = -1;
     let arg_max = get_arg_max();
     let current_uid = uzers::get_current_uid();
 
@@ -60,7 +74,28 @@ pub fn collect_proc(
             let task = pidinfo::<TaskInfo>(pid, 0).unwrap_or(unsafe { mem::zeroed() });
             let res = pidrusage::<RUsageInfoV2>(pid).ok();
             let time = Instant::now();
-            base_procs.insert(pid, (kp, task, res, time));
+
+            // The thread list is part of the first sample: the second pass
+            // pairs each current thread with the one the first pass saw.
+            let mut threads = Vec::new();
+            if with_thread {
+                let threadids = listpidinfo::<ListThreads>(pid, task.pti_threadnum as usize);
+                if let Ok(threadids) = threadids {
+                    threads.reserve(task.pti_threadnum as usize);
+                    for t in threadids {
+                        // `0` is what the kernel reports for a thread it has
+                        // no id for. It is not a thread to ask about, and it
+                        // would collide with every other one of them.
+                        if t == 0 {
+                            continue;
+                        }
+                        if let Ok(thread) = pidinfo::<ThreadInfo>(pid, t) {
+                            threads.push((t, thread));
+                        }
+                    }
+                }
+            }
+            base_procs.insert(pid, (kp, task, res, time, threads));
         }
     }
 
@@ -71,10 +106,11 @@ pub fn collect_proc(
         // about it: keeping the sample taken before the sleep is what makes
         // the deltas come out as zero instead of as a jump.
         let pid = curr_proc.kp_proc.p_pid;
-        let (prev_proc, prev_task, prev_res, prev_time) = match base_procs.remove(&pid) {
-            Some(data) => data,
-            None => continue,
-        };
+        let (prev_proc, prev_task, prev_res, prev_time, prev_threads) =
+            match base_procs.remove(&pid) {
+                Some(data) => data,
+                None => continue,
+            };
 
         let curr_task = pidinfo::<TaskInfo>(pid, 0).unwrap_or(prev_task);
 
@@ -90,16 +126,6 @@ pub fn collect_proc(
             .filter(|path| !path.cmd.is_empty())
             .or_else(|| pidpath(pid).ok().and_then(path_info_of_exe))
             .or_else(|| path_info_of_exe(command_of_comm(&curr_proc.kp_proc.p_comm)));
-
-        let threadids = listpidinfo::<ListThreads>(pid, curr_task.pti_threadnum as usize);
-        let mut curr_threads = Vec::new();
-        if let Ok(threadids) = threadids {
-            for t in threadids {
-                if let Ok(thread) = pidinfo::<ThreadInfo>(pid, t) {
-                    curr_threads.push(thread);
-                }
-            }
-        }
 
         let mut curr_tcps = Vec::new();
         let mut curr_udps = Vec::new();
@@ -135,6 +161,110 @@ pub fn collect_proc(
         let curr_time = Instant::now();
         let interval = curr_time - prev_time;
         let ppid = curr_proc.kp_eproc.e_ppid;
+        let mut state = 7;
+
+        // What a thread row falls back to when the thread itself is unnamed,
+        // which is most of them: the name of the process it belongs to.
+        let thread_owner = curr_path
+            .as_ref()
+            .filter(|path| !path.name.is_empty())
+            .map(|path| path.name.clone())
+            .unwrap_or_else(|| command_of_comm(&curr_proc.kp_proc.p_comm));
+
+        let threadids = listpidinfo::<ListThreads>(pid, curr_task.pti_threadnum as usize);
+        let mut threads = Vec::new();
+
+        if let Ok(threadids) = threadids {
+            threads.reserve(curr_task.pti_threadnum as usize);
+            for tid in threadids {
+                // See the first pass: `0` is not a thread id.
+                if tid == 0 {
+                    continue;
+                }
+                if let Ok(thread) = pidinfo::<ThreadInfo>(pid, tid) {
+                    let tstate = match thread.pth_run_state {
+                        1 => 1, // TH_STATE_RUNNING
+                        2 => 5, // TH_STATE_STOPPED
+                        3 => {
+                            if thread.pth_sleep_time > 20 {
+                                4
+                            } else {
+                                3
+                            }
+                        } // TH_STATE_WAITING
+                        4 => 2, // TH_STATE_UNINTERRUPTIBLE
+                        5 => 6, // TH_STATE_HALTED
+                        _ => 7,
+                    };
+                    state = cmp::min(tstate, state);
+
+                    if with_thread {
+                        let prev_thread = prev_threads
+                            .iter()
+                            .find(|(ptid, _)| *ptid == tid)
+                            .map(|&(_, t)| t)
+                            .unwrap_or(unsafe { mem::zeroed() });
+
+                        let mut task = unsafe { mem::zeroed::<TaskInfo>() };
+                        task.pti_total_user = thread.pth_user_time;
+                        task.pti_total_system = thread.pth_system_time;
+                        task.pti_priority = thread.pth_priority;
+                        task.pti_threadnum = 1;
+
+                        let mut prev = unsafe { mem::zeroed::<TaskInfo>() };
+                        prev.pti_total_user = prev_thread.pth_user_time;
+                        prev.pti_total_system = prev_thread.pth_system_time;
+                        prev.pti_priority = prev_thread.pth_priority;
+                        prev.pti_threadnum = 1;
+
+                        let name = String::from_utf8_lossy(
+                            &thread
+                                .pth_name
+                                .iter()
+                                .take_while(|&&c| c != 0)
+                                .map(|&c| c as u8)
+                                .collect::<Vec<u8>>(),
+                        )
+                        .into_owned();
+
+                        let path = PathInfo {
+                            name: if name.is_empty() {
+                                thread_owner.clone()
+                            } else {
+                                name
+                            },
+                            exe: PathBuf::new(),
+                            root: PathBuf::new(),
+                            cmd: Vec::new(),
+                            env: Vec::new(),
+                        };
+
+                        // A key of its own, because truncating the 64 bit id
+                        // to `i32` is what made threads collide with each
+                        // other, with real pids, and with the tree's root.
+                        let thread_key = next_thread_key;
+                        next_thread_key -= 1;
+
+                        threads.push(ProcessInfo {
+                            pid: thread_key,
+                            ppid: pid,
+                            curr_proc,
+                            prev_proc,
+                            curr_task: task,
+                            prev_task: prev,
+                            curr_path: Some(path),
+                            curr_udps: Vec::new(),
+                            curr_tcps: Vec::new(),
+                            curr_res: None,
+                            prev_res: None,
+                            interval,
+                            state: tstate,
+                            tid: Some(tid),
+                        });
+                    }
+                }
+            }
+        }
 
         ret.push(ProcessInfo {
             pid,
@@ -144,13 +274,15 @@ pub fn collect_proc(
             curr_task,
             prev_task,
             curr_path,
-            curr_threads,
             curr_udps,
             curr_tcps,
             curr_res,
             prev_res,
             interval,
+            state,
+            tid: None,
         });
+        ret.extend(threads);
     }
 
     ret
@@ -250,7 +382,6 @@ fn get_arg_max() -> size_t {
 }
 
 pub struct PathInfo {
-    #[allow(dead_code)]
     pub name: String,
     #[allow(dead_code)]
     pub exe: PathBuf,
