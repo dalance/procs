@@ -118,6 +118,11 @@ impl Column for Command {
                     .collect::<String>();
                 cmd.pop();
                 cmd
+            } else if proc.tid.is_some() {
+                // A thread has no command line of its own, so show the name
+                // the collector settled on - the thread's own when it has one,
+                // the owning process's otherwise - bracketed like its pid.
+                format!("[{}]", path.name)
             } else {
                 String::from("")
             }

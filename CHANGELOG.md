@@ -12,7 +12,7 @@
 * [Added] RecvBytes and SendBytes columns for Windows (network I/O rate; needs Windows 11 or later)
 * [Added] WorkDir column for Windows (current working directory)
 * [Added] FileName column for macOS (Process file name)
-* [Added] `--thread` support for Windows
+* [Added] `--thread` support for Windows and macOS
 * [Added] External pager support for Windows by `[pager] command` (built-in pager is used if it is not set)
 * [Added] `show_other_users` of `[display]` section to show the processes of other users (false: only the current user)
 * [Changed] Group and Gid columns for Windows read the process token only when the column is displayed

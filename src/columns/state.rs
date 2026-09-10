@@ -44,25 +44,7 @@ impl Column for State {
 #[cfg(target_os = "macos")]
 impl Column for State {
     fn add(&mut self, proc: &ProcessInfo) {
-        let mut state = 7;
-        for t in &proc.curr_threads {
-            let s = match t.pth_run_state {
-                1 => 1, // TH_STATE_RUNNING
-                2 => 5, // TH_STATE_STOPPED
-                3 => {
-                    if t.pth_sleep_time > 20 {
-                        4
-                    } else {
-                        3
-                    }
-                } // TH_STATE_WAITING
-                4 => 2, // TH_STATE_UNINTERRUPTIBLE
-                5 => 6, // TH_STATE_HALTED
-                _ => 7,
-            };
-            state = cmp::min(s, state);
-        }
-        let state = match state {
+        let state = match proc.state {
             0 => "",
             1 => "R",
             2 => "U",
