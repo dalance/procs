@@ -6,8 +6,8 @@ use std::collections::HashMap;
 pub struct Ppid {
     header: String,
     unit: String,
-    fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, i32>,
+    fmt_contents: HashMap<i64, String>,
+    raw_contents: HashMap<i64, i64>,
     width: usize,
 }
 
@@ -34,5 +34,5 @@ impl Column for Ppid {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    column_default!(i32, true);
+    column_default!(i64, true);
 }

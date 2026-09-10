@@ -19,12 +19,12 @@ pub trait Column {
         config: &Config,
     ) -> String;
     fn display_unit(&self, align: &ConfigColumnAlign) -> String;
-    fn display_content(&self, pid: i32, align: &ConfigColumnAlign) -> Option<String>;
-    fn display_json(&self, pid: i32) -> String;
-    fn find_partial(&self, pid: i32, keyword: &str, content_to_lowercase: bool) -> bool;
-    fn find_exact(&self, pid: i32, keyword: &str, content_to_lowercase: bool) -> bool;
-    fn sorted_pid(&self, order: &ConfigSortOrder) -> Vec<i32>;
-    fn apply_visible(&mut self, visible_pids: &[i32]);
+    fn display_content(&self, pid: i64, align: &ConfigColumnAlign) -> Option<String>;
+    fn display_json(&self, pid: i64) -> String;
+    fn find_partial(&self, pid: i64, keyword: &str, content_to_lowercase: bool) -> bool;
+    fn find_exact(&self, pid: i64, keyword: &str, content_to_lowercase: bool) -> bool;
+    fn sorted_pid(&self, order: &ConfigSortOrder) -> Vec<i64>;
+    fn apply_visible(&mut self, visible_pids: &[i64]);
     fn reset_width(
         &mut self,
         order: Option<ConfigSortOrder>,
@@ -32,7 +32,7 @@ pub trait Column {
         max_width: Option<usize>,
         min_width: Option<usize>,
     );
-    fn update_width(&mut self, pid: i32, max_width: Option<usize>);
+    fn update_width(&mut self, pid: i64, max_width: Option<usize>);
     fn get_width(&self) -> usize;
     fn is_numeric(&self) -> bool;
 }
@@ -77,7 +77,7 @@ macro_rules! column_default_display_content {
     () => {
         fn display_content(
             &self,
-            pid: i32,
+            pid: i64,
             align: &$crate::config::ConfigColumnAlign,
         ) -> Option<String> {
             self.fmt_contents
@@ -90,7 +90,7 @@ macro_rules! column_default_display_content {
 #[macro_export]
 macro_rules! column_default_display_json {
     () => {
-        fn display_json(&self, pid: i32) -> String {
+        fn display_json(&self, pid: i64) -> String {
             let value = if self.is_numeric() {
                 self.raw_contents
                     .get(&pid)
@@ -114,7 +114,7 @@ macro_rules! column_default_display_json {
 #[macro_export]
 macro_rules! column_default_find_partial {
     () => {
-        fn find_partial(&self, pid: i32, keyword: &str, content_to_lowercase: bool) -> bool {
+        fn find_partial(&self, pid: i64, keyword: &str, content_to_lowercase: bool) -> bool {
             if let Some(content) = self.fmt_contents.get(&pid) {
                 if content_to_lowercase {
                     content.to_ascii_lowercase().find(keyword).is_some()
@@ -131,7 +131,7 @@ macro_rules! column_default_find_partial {
 #[macro_export]
 macro_rules! column_default_find_exact {
     () => {
-        fn find_exact(&self, pid: i32, keyword: &str, content_to_lowercase: bool) -> bool {
+        fn find_exact(&self, pid: i64, keyword: &str, content_to_lowercase: bool) -> bool {
             if let Some(content) = self.fmt_contents.get(&pid) {
                 if content_to_lowercase {
                     content.to_ascii_lowercase() == keyword
@@ -148,8 +148,8 @@ macro_rules! column_default_find_exact {
 #[macro_export]
 macro_rules! column_default_sorted_pid {
     ($x:ty) => {
-        fn sorted_pid(&self, order: &$crate::config::ConfigSortOrder) -> Vec<i32> {
-            let mut contents: Vec<(&i32, &$x)> = self.raw_contents.iter().collect();
+        fn sorted_pid(&self, order: &$crate::config::ConfigSortOrder) -> Vec<i64> {
+            let mut contents: Vec<(&i64, &$x)> = self.raw_contents.iter().collect();
             contents.sort_by_key(|&(_x, y)| y);
             if matches!(*order, $crate::config::ConfigSortOrder::Descending) {
                 contents.reverse()
@@ -162,7 +162,7 @@ macro_rules! column_default_sorted_pid {
 #[macro_export]
 macro_rules! column_default_apply_visible {
     () => {
-        fn apply_visible(&mut self, _visible_pids: &[i32]) {}
+        fn apply_visible(&mut self, _visible_pids: &[i64]) {}
     };
 }
 
@@ -206,7 +206,7 @@ macro_rules! column_default_reset_width {
 #[macro_export]
 macro_rules! column_default_update_width {
     () => {
-        fn update_width(&mut self, pid: i32, max_width: Option<usize>) {
+        fn update_width(&mut self, pid: i64, max_width: Option<usize>) {
             if let Some(content) = self.fmt_contents.get(&pid) {
                 let content_len = unicode_width::UnicodeWidthStr::width(content.as_str());
                 self.width = cmp::max(content_len, self.width);
@@ -239,13 +239,25 @@ macro_rules! column_default_is_numeric {
 #[macro_export]
 macro_rules! column_default {
     ($x:ty, $y:expr) => {
+        $crate::column_default_without_sorted_pid!($y);
+        $crate::column_default_sorted_pid!($x);
+    };
+}
+
+/// Everything [`column_default`] gives a column except `sorted_pid`.
+///
+/// For a column that orders its rows itself: `Pid` sorts by the absolute
+/// value of the key, because a thread row is keyed by its negated thread id
+/// and would otherwise sort below every process.
+#[macro_export]
+macro_rules! column_default_without_sorted_pid {
+    ($y:expr) => {
         $crate::column_default_display_header!();
         $crate::column_default_display_unit!();
         $crate::column_default_display_content!();
         $crate::column_default_display_json!();
         $crate::column_default_find_partial!();
         $crate::column_default_find_exact!();
-        $crate::column_default_sorted_pid!($x);
         $crate::column_default_apply_visible!();
         $crate::column_default_reset_width!();
         $crate::column_default_update_width!();

@@ -16,8 +16,8 @@ use windows_sys::Wdk::System::SystemInformation::{
 };
 use windows_sys::Wdk::System::SystemServices::VM_COUNTERS;
 use windows_sys::Wdk::System::Threading::{
-    NtQueryInformationProcess, ProcessBasicInformation, ProcessCommandLineInformation,
-    ProcessImageInformation,
+    NtQueryInformationProcess, NtQueryInformationThread, ProcessBasicInformation,
+    ProcessCommandLineInformation, ProcessImageInformation, ThreadNameInformation,
 };
 use windows_sys::Win32::Foundation::UNICODE_STRING;
 use windows_sys::Win32::Foundation::{HANDLE, STATUS_INFO_LENGTH_MISMATCH, STATUS_SUCCESS};
@@ -686,7 +686,10 @@ fn activity(state: ThreadState) -> u8 {
 /// for it.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ThreadSnapshot {
-    pub tid: i32,
+    /// Thread id, wide enough for the whole `HANDLE`-sized value the kernel
+    /// reports. Callers turn it into a row key with
+    /// [`crate::process::thread_key`], which negates it.
+    pub tid: u64,
     /// Owning process id.
     pub pid: i32,
     pub create_time: i64,
@@ -767,7 +770,7 @@ impl<'a> ProcessEntry<'a> {
             };
 
             ret.push(ThreadSnapshot {
-                tid: thread.ClientId.UniqueThread as usize as i32,
+                tid: thread.ClientId.UniqueThread as usize as u64,
                 pid,
                 create_time: thread.CreateTime,
                 kernel_time: thread.KernelTime as u64,
@@ -1091,6 +1094,94 @@ pub fn process_command_line(handle: HANDLE) -> Option<String> {
             .trim_end_matches('\0')
             .to_owned(),
     )
+}
+
+// ---------------------------------------------------------------------------
+// ThreadNameInformation
+// ---------------------------------------------------------------------------
+
+/// `THREAD_NAME_INFORMATION` - the output of `ThreadNameInformation` (38).
+///
+/// `ThreadName` describes characters the kernel copies into the space behind
+/// this structure, which is why the buffer handed to the query is always
+/// larger than the structure itself.
+#[repr(C)]
+#[allow(non_snake_case)]
+pub struct THREAD_NAME_INFORMATION {
+    pub ThreadName: UNICODE_STRING,
+}
+
+/// Guard against a nonsensical `UNICODE_STRING::Length` turning into a huge
+/// allocation. `SetThreadDescription` caps the name far below this.
+const MAX_THREAD_NAME_BYTES: usize = 64 * 1024;
+
+/// Reads the name the thread behind `handle` carries, if any.
+///
+/// `ThreadNameInformation` is a Windows 10 addition: it reports the name a
+/// process gave the thread through `SetThreadDescription`, and nothing at all
+/// for the many threads nobody named. It needs
+/// `THREAD_QUERY_LIMITED_INFORMATION` on the handle. An older build, a thread
+/// without a name, and a thread that refuses the query all yield `None` -
+/// the caller falls back to the name of the process the thread belongs to.
+pub fn thread_name(handle: HANDLE) -> Option<String> {
+    // Room for the header plus a typical name.
+    let mut buf =
+        vec![0u64; (size_of::<THREAD_NAME_INFORMATION>() + 256).div_ceil(size_of::<u64>())];
+    let mut status = STATUS_INFO_LENGTH_MISMATCH;
+
+    for _ in 0..4 {
+        let mut ret_len: u32 = 0;
+        status = unsafe {
+            NtQueryInformationThread(
+                handle,
+                ThreadNameInformation,
+                buf.as_mut_ptr().cast::<c_void>(),
+                (buf.len() * size_of::<u64>()) as u32,
+                ptr::addr_of_mut!(ret_len),
+            )
+        };
+        if status != STATUS_INFO_LENGTH_MISMATCH {
+            break;
+        }
+        // A thread without a name answers `STATUS_SUCCESS` with a length of
+        // 0 here, so grow on our own too rather than asking for nothing.
+        let want = (ret_len as usize).max(buf.len() * size_of::<u64>() * 2);
+        if want > MAX_THREAD_NAME_BYTES {
+            return None;
+        }
+        buf.resize(want.div_ceil(size_of::<u64>()), 0);
+    }
+    if status < 0 {
+        return None;
+    }
+
+    // SAFETY: the buffer is 8-byte aligned and the query reported success.
+    let info: &THREAD_NAME_INFORMATION =
+        unsafe { &*buf.as_ptr().cast::<THREAD_NAME_INFORMATION>() };
+    if info.ThreadName.Buffer.is_null() || info.ThreadName.Length == 0 {
+        return None;
+    }
+    let bytes = info.ThreadName.Length as usize;
+    if bytes > MAX_THREAD_NAME_BYTES {
+        return None;
+    }
+
+    let start = buf.as_ptr() as usize;
+    let end = start + buf.len() * size_of::<u64>();
+    let addr = info.ThreadName.Buffer as usize;
+    let last = addr.checked_add(bytes)?;
+    if addr < start || last > end {
+        return None;
+    }
+
+    // SAFETY: the range was just verified to lie inside `buf`, which is still
+    // alive.
+    let chars = unsafe { std::slice::from_raw_parts(info.ThreadName.Buffer, bytes / 2) };
+
+    let name = String::from_utf16_lossy(chars)
+        .trim_end_matches('\0')
+        .to_owned();
+    if name.is_empty() { None } else { Some(name) }
 }
 
 /// Reads the `IMAGE_FILE_MACHINE_*` of the executable image of `handle`.

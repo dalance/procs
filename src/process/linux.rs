@@ -1,4 +1,4 @@
-use crate::process::ShowFilter;
+use crate::process::{ProcessInfoBase, ShowFilter, thread_key};
 use procfs::ProcError;
 use procfs::ProcessCGroup;
 use procfs::process::{FDInfo, Io, Process, Stat, StatFlags, Status, TasksIter};
@@ -71,15 +71,26 @@ impl ProcessTask {
 }
 
 pub struct ProcessInfo {
-    pub pid: i32,
-    pub ppid: i32,
+    /// The part of a row every platform has - the row key, the parent and the
+    /// sampling window. The `Deref` below hands it out, so a column goes on
+    /// writing `proc.pid` without reaching for `base`.
+    ///
+    /// The key is a process id when it is positive and the negated thread id
+    /// of a thread row when it is negative: a task's id lives in the same
+    /// namespace as a process id, so it can stand for a row of its own - but
+    /// only while no process is using the same number, and a recycled id is
+    /// indistinguishable from the one that held it before. Negating it says
+    /// "this row is a thread" and leaves the Pid column free to print the id
+    /// it came from.
+    pub base: ProcessInfoBase,
     pub curr_proc: ProcessTask,
     pub prev_stat: Stat,
     pub curr_io: Option<Io>,
     pub prev_io: Option<Io>,
     pub curr_status: Option<Status>,
-    pub interval: Duration,
 }
+
+process_info_deref!();
 
 pub fn collect_proc(
     interval: Duration,
@@ -123,7 +134,7 @@ pub fn collect_proc(
     thread::sleep(interval);
 
     for (pid, prev_stat, prev_io, prev_time) in base_procs {
-        let curr_proc = if let Ok(proc) = crate::util::process_new(pid, procfs_path) {
+        let curr_proc = if let Ok(proc) = crate::util::process_new(pid.into(), procfs_path) {
             proc
         } else {
             continue;
@@ -172,14 +183,12 @@ pub fn collect_proc(
         };
 
         let proc = ProcessInfo {
-            pid,
-            ppid,
+            base: ProcessInfoBase::new(pid as i64, ppid as i64, interval),
             curr_proc,
             prev_stat,
             curr_io,
             prev_io,
             curr_status,
-            interval,
         };
 
         ret.push(proc);
@@ -187,8 +196,7 @@ pub fn collect_proc(
         for (tid, (pid, curr_stat, curr_status, curr_io)) in curr_tasks {
             if let Some((_, prev_stat, _, prev_io)) = base_tasks.remove(&tid) {
                 let proc = ProcessInfo {
-                    pid: tid,
-                    ppid: pid,
+                    base: ProcessInfoBase::new(thread_key(tid as u64), pid as i64, interval),
                     curr_proc: ProcessTask::Task {
                         stat: curr_stat,
                         owner: curr_owner,
@@ -197,7 +205,6 @@ pub fn collect_proc(
                     curr_io,
                     prev_io,
                     curr_status,
-                    interval,
                 };
                 ret.push(proc);
             }

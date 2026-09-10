@@ -9,8 +9,8 @@ use std::path::PathBuf;
 pub struct SecContext {
     header: String,
     unit: String,
-    fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, String>,
+    fmt_contents: HashMap<i64, String>,
+    raw_contents: HashMap<i64, String>,
     width: usize,
     procfs: Option<PathBuf>,
 }

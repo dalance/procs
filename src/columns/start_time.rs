@@ -16,8 +16,8 @@ static TICKS_PER_SECOND: Lazy<u64> = Lazy::new(procfs::ticks_per_second);
 pub struct StartTime {
     header: String,
     unit: String,
-    fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, DateTime<Local>>,
+    fmt_contents: HashMap<i64, String>,
+    raw_contents: HashMap<i64, DateTime<Local>>,
     width: usize,
     #[cfg(any(target_os = "linux", target_os = "android"))]
     boot_time: DateTime<Local>,

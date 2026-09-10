@@ -10,8 +10,8 @@ use std::collections::HashMap;
 pub struct UdpPort {
     header: String,
     unit: String,
-    fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, String>,
+    fmt_contents: HashMap<i64, String>,
+    raw_contents: HashMap<i64, String>,
     width: usize,
     #[cfg(any(target_os = "linux", target_os = "android"))]
     udp_entry: Vec<UdpNetEntry>,
@@ -69,7 +69,7 @@ impl Column for UdpPort {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    fn find_exact(&self, pid: i32, keyword: &str, _content_to_lowercase: bool) -> bool {
+    fn find_exact(&self, pid: i64, keyword: &str, _content_to_lowercase: bool) -> bool {
         if let Some(content) = self.fmt_contents.get(&pid) {
             let content = content.replace(['[', ']'], "");
             let content = content.split(',');
@@ -117,7 +117,7 @@ impl Column for UdpPort {
         self.raw_contents.insert(proc.pid, raw_content);
     }
 
-    fn find_exact(&self, pid: i32, keyword: &str, _content_to_lowercase: bool) -> bool {
+    fn find_exact(&self, pid: i64, keyword: &str, _content_to_lowercase: bool) -> bool {
         if let Some(content) = self.fmt_contents.get(&pid) {
             let content = content.replace(['[', ']'], "");
             let content = content.split(',');
