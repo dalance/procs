@@ -53,7 +53,13 @@ pub fn collect_proc(
     let arg_max = get_arg_max();
     let current_uid = uzers::get_current_uid();
 
-    if let Some(procs) = sysctl_procs() {
+    let uid_filter = if filter.other_users {
+        None
+    } else {
+        Some(current_uid)
+    };
+
+    if let Some(procs) = sysctl_procs(uid_filter) {
         for kp in procs {
             if !filter.kthread && kp.kp_proc.p_flag & P_SYSTEM != 0 {
                 continue;
@@ -62,9 +68,6 @@ pub fn collect_proc(
             // The uid comes with the process table, so dropping a process here
             // saves the resource usage query and everything the second pass
             // does for it.
-            if !filter.other_users && kp.kp_eproc.e_ucred.cr_uid != current_uid {
-                continue;
-            }
 
             let pid = kp.kp_proc.p_pid;
             let task = pidinfo::<TaskInfo>(pid, 0).unwrap_or(unsafe { mem::zeroed() });
@@ -97,7 +100,7 @@ pub fn collect_proc(
 
     thread::sleep(interval);
 
-    for curr_proc in sysctl_procs().unwrap_or_default() {
+    for curr_proc in sysctl_procs(uid_filter).unwrap_or_default() {
         // Either the process is gone, or libproc was never willing to talk
         // about it: keeping the sample taken before the sleep is what makes
         // the deltas come out as zero instead of as a jump.
@@ -109,10 +112,6 @@ pub fn collect_proc(
             };
 
         let curr_task = pidinfo::<TaskInfo>(pid, 0).unwrap_or(prev_task);
-
-        if !filter.other_users && curr_proc.kp_eproc.e_ucred.cr_uid != current_uid {
-            continue;
-        }
 
         // The command line, from whichever source is willing to give one:
         // `KERN_PROCARGS2` gives all of it, `proc_pidpath` still gives the
@@ -289,13 +288,17 @@ pub fn collect_proc(
 /// does not export the `KERN_PROC_*` values for macOS.
 const KERN_PROC_ALL: c_int = 0;
 
+/// `KERN_PROC_UID` from `<sys/sysctl.h>`: fetch only processes whose
+/// effective UID matches the supplied value. `libc` does not export it.
+const KERN_PROC_UID: c_int = 5;
+
 /// `P_SYSTEM` from `<sys/proc.h>`: a process the kernel owns, the ones
 /// `ShowFilter::kthread` hides. It lives in the `P_*` namespace of
 /// `kinfo_proc::kp_proc::p_flag`.
 const P_SYSTEM: c_int = 0x00000200;
 
-/// Every process on the system, as `sysctl({CTL_KERN, KERN_PROC,
-/// KERN_PROC_ALL})` reports them.
+/// Every process on the system, or only the processes of a single user if
+/// `uid` is set.
 ///
 /// `libproc` answers for the processes `procs` owns only: `pidinfo`,
 /// `pidrusage` and the rest of it fail with `EPERM` for anything else, which
@@ -304,15 +307,21 @@ const P_SYSTEM: c_int = 0x00000200;
 /// hands out one `kinfo_proc` per process, whoever owns it, with the BSD half
 /// of what the columns ask for - uid, ppid, pgid, tty, niceness, start time,
 /// name - already in it.
-fn sysctl_procs() -> Option<Vec<kinfo_proc>> {
-    let mib: [c_int; 3] = [libc::CTL_KERN, libc::KERN_PROC, KERN_PROC_ALL];
+fn sysctl_procs(uid: Option<libc::uid_t>) -> Option<Vec<kinfo_proc>> {
+    let (mib, mib_len): (&[c_int], u32) = match uid {
+        Some(uid) => (
+            &[libc::CTL_KERN, libc::KERN_PROC, KERN_PROC_UID, uid as c_int],
+            4,
+        ),
+        None => (&[libc::CTL_KERN, libc::KERN_PROC, KERN_PROC_ALL], 3),
+    };
     let mut length: size_t = 0;
 
     unsafe {
         // Ask how large the table is ...
         if libc::sysctl(
             mib.as_ptr() as *mut c_int,
-            mib.len() as u32,
+            mib_len,
             ptr::null_mut(),
             &mut length,
             ptr::null_mut(),
@@ -334,7 +343,7 @@ fn sysctl_procs() -> Option<Vec<kinfo_proc>> {
 
             if libc::sysctl(
                 mib.as_ptr() as *mut c_int,
-                mib.len() as u32,
+                mib_len,
                 procs.as_mut_ptr() as *mut c_void,
                 &mut length,
                 ptr::null_mut(),

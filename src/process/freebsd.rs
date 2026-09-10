@@ -1,6 +1,8 @@
 use crate::process::{ProcessInfoBase, ShowFilter, thread_key};
 use bsd_kvm_sys::kinfo_proc;
-use libc::{CTL_KERN, KERN_PROC, KERN_PROC_INC_THREAD, KERN_PROC_PROC, P_KPROC, c_void};
+use libc::{
+    CTL_KERN, KERN_PROC, KERN_PROC_INC_THREAD, KERN_PROC_PROC, KERN_PROC_UID, P_KPROC, c_void,
+};
 use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 use std::ptr;
@@ -18,13 +20,16 @@ pub struct ProcessInfo {
 
 process_info_deref!();
 
-fn get_processes(with_thread: bool) -> Vec<kinfo_proc> {
-    let proc_selector = if with_thread {
-        KERN_PROC_PROC | KERN_PROC_INC_THREAD
+fn get_processes(with_thread: bool, uid: Option<libc::uid_t>) -> Vec<kinfo_proc> {
+    let proc_selector = if uid.is_some() {
+        KERN_PROC_UID
     } else {
         KERN_PROC_PROC
-    };
-    let mut mib = [CTL_KERN, KERN_PROC, proc_selector];
+    } | if with_thread { KERN_PROC_INC_THREAD } else { 0 };
+    let mut mib = vec![CTL_KERN, KERN_PROC, proc_selector];
+    if let Some(uid) = uid {
+        mib.push(uid as libc::c_int);
+    }
     let mut size = 0usize;
     if unsafe {
         libc::sysctl(
@@ -60,11 +65,7 @@ fn get_processes(with_thread: bool) -> Vec<kinfo_proc> {
     processes
 }
 
-fn row_key(
-    proc: &kinfo_proc,
-    with_thread: bool,
-    process_pids: &mut HashSet<i32>,
-) -> (i64, i64) {
+fn row_key(proc: &kinfo_proc, with_thread: bool, process_pids: &mut HashSet<i32>) -> (i64, i64) {
     let is_thread = with_thread && !process_pids.insert(proc.ki_pid);
     if is_thread {
         (thread_key(proc.ki_tid as u64), proc.ki_pid as i64)
@@ -84,13 +85,9 @@ pub fn collect_proc(
     let current_uid = uzers::get_current_uid();
     let mut process_pids = HashSet::new();
 
-    for proc in get_processes(with_thread) {
+    let uid = (!filter.other_users).then_some(current_uid);
+    for proc in get_processes(with_thread, uid) {
         if !filter.kthread && proc.ki_flag & (P_KPROC as i64) != 0 {
-            continue;
-        }
-        // kvm hands over every process at once, so there is no per-process
-        // work to save here - but dropping one avoids cloning it twice.
-        if !filter.other_users && proc.ki_uid != current_uid {
             continue;
         }
 
@@ -102,11 +99,8 @@ pub fn collect_proc(
     thread::sleep(interval);
     let mut process_pids = HashSet::new();
 
-    for proc in get_processes(with_thread) {
+    for proc in get_processes(with_thread, uid) {
         if !filter.kthread && proc.ki_flag & (P_KPROC as i64) != 0 {
-            continue;
-        }
-        if !filter.other_users && proc.ki_uid != current_uid {
             continue;
         }
 
