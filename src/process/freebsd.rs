@@ -1,7 +1,7 @@
-use crate::process::{ProcessInfoBase, ShowFilter};
+use crate::process::{ProcessInfoBase, ShowFilter, thread_key};
 use bsd_kvm_sys::kinfo_proc;
-use libc::{CTL_KERN, KERN_PROC, KERN_PROC_PROC, P_KPROC, c_void};
-use std::collections::HashMap;
+use libc::{CTL_KERN, KERN_PROC, KERN_PROC_INC_THREAD, KERN_PROC_PROC, P_KPROC, c_void};
+use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 use std::ptr;
 use std::thread;
@@ -18,8 +18,13 @@ pub struct ProcessInfo {
 
 process_info_deref!();
 
-fn get_processes() -> Vec<kinfo_proc> {
-    let mut mib = [CTL_KERN, KERN_PROC, KERN_PROC_PROC];
+fn get_processes(with_thread: bool) -> Vec<kinfo_proc> {
+    let proc_selector = if with_thread {
+        KERN_PROC_PROC | KERN_PROC_INC_THREAD
+    } else {
+        KERN_PROC_PROC
+    };
+    let mut mib = [CTL_KERN, KERN_PROC, proc_selector];
     let mut size = 0usize;
     if unsafe {
         libc::sysctl(
@@ -37,7 +42,7 @@ fn get_processes() -> Vec<kinfo_proc> {
     }
 
     let count = size.div_ceil(std::mem::size_of::<kinfo_proc>());
-    let mut processes = vec![unsafe { std::mem::zeroed() }; count];
+    let mut processes: Vec<kinfo_proc> = vec![unsafe { std::mem::zeroed() }; count];
     if unsafe {
         libc::sysctl(
             mib.as_mut_ptr(),
@@ -55,17 +60,31 @@ fn get_processes() -> Vec<kinfo_proc> {
     processes
 }
 
+fn row_key(
+    proc: &kinfo_proc,
+    with_thread: bool,
+    process_pids: &mut HashSet<i32>,
+) -> (i64, i64) {
+    let is_thread = with_thread && !process_pids.insert(proc.ki_pid);
+    if is_thread {
+        (thread_key(proc.ki_tid as u64), proc.ki_pid as i64)
+    } else {
+        (proc.ki_pid as i64, proc.ki_ppid as i64)
+    }
+}
+
 pub fn collect_proc(
     interval: Duration,
-    _with_thread: bool,
+    with_thread: bool,
     _procfs_path: &Option<PathBuf>,
     filter: ShowFilter,
 ) -> Vec<ProcessInfo> {
     let mut base_procs = HashMap::new();
     let mut ret = Vec::new();
     let current_uid = uzers::get_current_uid();
+    let mut process_pids = HashSet::new();
 
-    for proc in get_processes() {
+    for proc in get_processes(with_thread) {
         if !filter.kthread && proc.ki_flag & (P_KPROC as i64) != 0 {
             continue;
         }
@@ -76,12 +95,14 @@ pub fn collect_proc(
         }
 
         let time = Instant::now();
-        base_procs.insert(proc.ki_pid, (proc, time));
+        let (key, _) = row_key(&proc, with_thread, &mut process_pids);
+        base_procs.insert(key, (proc, time));
     }
 
     thread::sleep(interval);
+    let mut process_pids = HashSet::new();
 
-    for proc in get_processes() {
+    for proc in get_processes(with_thread) {
         if !filter.kthread && proc.ki_flag & (P_KPROC as i64) != 0 {
             continue;
         }
@@ -89,13 +110,13 @@ pub fn collect_proc(
             continue;
         }
 
-        let pid = proc.ki_pid;
-        if let Some((prev_proc, prev_time)) = base_procs.remove(&pid) {
+        let (key, ppid) = row_key(&proc, with_thread, &mut process_pids);
+        if let Some((prev_proc, prev_time)) = base_procs.remove(&key) {
             let curr_time = Instant::now();
             let interval = curr_time - prev_time;
 
             let proc = ProcessInfo {
-                base: ProcessInfoBase::new(pid as i64, proc.ki_ppid as i64, interval),
+                base: ProcessInfoBase::new(key, ppid, interval),
                 curr_proc: proc,
                 prev_proc,
             };
