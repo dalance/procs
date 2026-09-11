@@ -36,6 +36,11 @@ pub struct ProcessInfoBase {
     /// or for a thread of another process - while a recycled id is in use
     /// elsewhere. Negating the id cannot collide with a process id, and the
     /// Pid column turns it back into the thread id.
+    ///
+    /// A row is a process when the key is not negative - `pid >= 0` - and a
+    /// thread otherwise. The sign is read where it is needed rather than
+    /// behind a method, so the encoding has no second spelling to keep in
+    /// step.
     pub pid: i64,
     /// The key of the process this row hangs under: a parent pid for a
     /// process, and the pid of the process it belongs to for a thread.
@@ -81,8 +86,8 @@ macro_rules! process_info_deref {
 /// rows by it, and so does the filter - so a thread needs a key of its own
 /// that can be told apart from the process it belongs to and from every
 /// other thread. Process ids are never negative, so negating the thread id
-/// gives one, and it still says which thread it is: [`thread_id`] reads the
-/// id back out of it.
+/// gives one, and the key still says which thread it is: negating it back
+/// gives the id.
 pub fn thread_key(tid: u64) -> i64 {
     // An id that does not fit has nothing to be negated into; it is folded
     // onto the largest one rather than skipped, and no kernel hands one out.
@@ -100,20 +105,6 @@ pub fn row_sort_key(pid: i64) -> (u64, bool) {
     // `unsigned_abs` and not `abs`: `i64::MIN` has no positive counterpart to
     // be negated into, and no kernel hands out such an id anyway.
     (pid.unsigned_abs(), pid < 0)
-}
-
-/// The thread id a negative `pid` carries, or `None` when `pid` is a
-/// process.
-///
-/// Only a strictly negative key is a thread. Pid 0 is a process - Idle on
-/// Windows, `kernel_task` on macOS - and negating it leaves it at 0, the key
-/// of the process itself, so it has to be read back as a process rather than
-/// as the thread `0` (which no kernel hands out).
-pub fn thread_id(pid: i64) -> Option<u64> {
-    if pid >= 0 {
-        return None;
-    }
-    u64::try_from(pid.checked_neg()?).ok()
 }
 
 #[cfg(target_os = "freebsd")]
@@ -138,15 +129,19 @@ pub use self::windows::*;
 
 #[cfg(test)]
 mod tests {
-    use super::{row_sort_key, thread_id};
+    use super::{row_sort_key, thread_key};
 
-    /// Pid 0 is a process - Idle on Windows, `kernel_task` on macOS - so it
-    /// must not read back as the thread `0`. Only a negated id is a thread.
+    /// A thread row is keyed by its negated id, and negating the key back
+    /// gives the id - which is what the Pid column reports. Pid 0 is a
+    /// process - Idle on Windows, `kernel_task` on macOS - so its key is
+    /// left at 0 and read back as a process; no kernel hands out thread 0.
     #[test]
-    fn thread_id_keeps_pid_zero_a_process() {
-        assert_eq!(thread_id(0), None);
-        assert_eq!(thread_id(1), None);
-        assert_eq!(thread_id(-1), Some(1));
+    fn thread_key_negates_the_id() {
+        assert_eq!(thread_key(1), -1);
+        assert_eq!(-thread_key(1), 1);
+        assert_eq!(thread_key(0), 0);
+        assert_eq!(thread_key(u64::MAX), -i64::MAX);
+        assert!(thread_key(u64::from(u32::MAX)) < 0);
     }
 
     /// A thread row sorts by the id it stands for, next to - and just after -
