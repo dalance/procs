@@ -34,10 +34,12 @@
 
 ## Platform
 
-- Linux is supported.
-- macOS is supported.
-- Windows is supported.
-- FreeBSD is experimentally supported.
+- Linux
+- macOS
+- Windows
+- FreeBSD
+
+All tested on hosts.
 
 ## Installation
 
@@ -474,11 +476,11 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | Env                  | `e` output modifier   | Environment variables                         | o     | o     |         | o       |
 | Esp                  | esp                   | Stack pointer                                 | o     |       |         |         |
 | FileName             | comm                  | File name                                     | o     | o     | o       | o       |
-| Gid                  | egid                  | Group ID                                      | o     | o     | o       | o       |
+| Gid                  | egid                  | Effective group ID                                      | o     | o     | o       | o       |
 | GidFs                | fgid                  | File system group ID                          | o     |       |         |         |
 | GidReal              | rgid                  | Real group ID                                 | o     | o     |         | o       |
 | GidSaved             | sgid                  | Saved group ID                                | o     | o     |         | o       |
-| Group                | egroup                | Group name                                    | o     | o     | o       | o       |
+| Group                | egroup                | Effective group name                                    | o     | o     | o       | o       |
 | GroupFs              | fgroup                | File system group name                        | o     |       |         |         |
 | GroupReal            | rgroup                | Real group name                               | o     | o     |         | o       |
 | GroupSaved           | sgroup                | Saved group name                              | o     | o     |         | o       |

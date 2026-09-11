@@ -19,6 +19,9 @@
 * [Fixed] System processes no longer being dropped silently on macOS
 * [Fixed] ReadBytes / WriteBytes divided by a mis-scaled interval (seconds added to milliseconds)
 * [Fixed] Fix invalid JSON output when a column is skipped by --only or --tree
+* [Fixed] Pid recycled by the kernel no longer reported with a bogus rate
+* [Fixed] ElapsedTime and StartTime columns no longer show a bogus value when the start time is unavailable
+* [Fixed] Gid and Group columns for macOS now currectly report the effective group (matching the other platforms)
 
 ## [v0.14.12](https://github.com/dalance/procs/compare/v0.14.11...v0.14.12) - 2026-06-25
 
