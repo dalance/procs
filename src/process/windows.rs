@@ -203,7 +203,15 @@ pub fn collect_proc(
         // collected here - `Group` and `Gid` query it themselves, so that only
         // enabling one of them pays for it.
         let user = proc.user_sid.or_else(|| handles.full.and_then(get_user));
-        if !filter.other_users && user.as_ref() != current_user_sid().as_ref() {
+        // A process whose *own* owner cannot be read counts as not the current
+        // user and is dropped. Our own SID failing to resolve is a different
+        // matter: there is then nothing to compare against, and dropping every
+        // process would leave the listing empty, so the process is kept - the
+        // same way `take_snapshot` treats that case.
+        if !filter.other_users
+            && let Some(current) = current_user_sid()
+            && user.as_ref() != Some(&current)
+        {
             continue;
         }
 

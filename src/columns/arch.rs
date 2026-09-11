@@ -115,7 +115,7 @@ pub fn arch_from_pid(pid: i64) -> &'static str {
 
     // 0 is the idle process and has no image; negative pids are not real.
     if pid <= 0 {
-        return "unknown";
+        return "";
     }
 
     // SAFETY: `pid` is only handed to `OpenProcess`, and the handle it hands
