@@ -101,7 +101,18 @@ pub fn collect_proc(
     let mut base_procs = Vec::new();
     let mut base_tasks = HashMap::new();
     let mut ret = Vec::new();
-    let current_uid = uzers::get_current_uid();
+    // The *effective* uid, because that is what everything this filter compares
+    // against already is. `Process::uid()` is the owner of `/proc/<pid>`, and
+    // the kernel sets that owner from `cred->euid` in `task_dump_owner()`, so
+    // both sides of the comparison have to be the same kind of uid. Comparing
+    // against the real uid instead only looks right while the two are equal;
+    // they come apart for a setuid `procs`, where the real uid is still the
+    // caller's while the effective one is root's.
+    //
+    // This also keeps the filter agreeing with the `User` column, which shows
+    // that same `/proc/<pid>` owner, and with `ps`, whose "my euid" default
+    // selection compares each process's euid against `geteuid()`.
+    let current_uid = uzers::get_effective_uid();
 
     let all_proc = if let Some(x) = procfs_path {
         procfs::process::all_processes_with_root(x)

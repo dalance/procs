@@ -99,7 +99,18 @@ pub fn collect_proc(
 ) -> Vec<ProcessInfo> {
     let mut base_procs = HashMap::new();
     let mut ret = Vec::new();
-    let current_uid = uzers::get_current_uid();
+    // The *effective* uid, because that is the one `KERN_PROC_UID` compares:
+    // the header calls it "by effective uid" and the kernel tests
+    // `p_ucred->cr_uid`. Handing it the real uid instead asks a different
+    // question - for the processes whose effective uid happens to equal *our
+    // real* uid - and that only looks right while the two are equal. They come
+    // apart for a setuid `procs`, where the real uid is still the caller's
+    // while the effective one is root's. (`KERN_PROC_RUID` is the selector that
+    // matches the real uid.)
+    //
+    // This also keeps the filter agreeing with the User column, which shows
+    // `ki_uid`, the effective uid.
+    let current_uid = uzers::get_effective_uid();
     let mut process_pids = HashSet::new();
 
     let uid = (!filter.other_users).then_some(current_uid);
