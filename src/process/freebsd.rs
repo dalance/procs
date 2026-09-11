@@ -43,6 +43,7 @@ fn get_processes(with_thread: bool, uid: Option<libc::uid_t>) -> Vec<kinfo_proc>
     } else {
         KERN_PROC_PROC
     } | if with_thread { KERN_PROC_INC_THREAD } else { 0 };
+    // `INC_THREAD` makes the kernel emit the same process once per thread, flat.
     let mut mib = vec![CTL_KERN, KERN_PROC, proc_selector];
     if let Some(uid) = uid {
         mib.push(uid as libc::c_int);
@@ -125,6 +126,9 @@ pub fn collect_proc(
     }
 
     thread::sleep(interval);
+    // On FreeBSD, a tid never equals the pid, so `tid == pid` cannot be used to
+    // identify the main thread. Instead, the main thread is identified by the
+    // first occurrence of a process with a given pid.
     let mut process_pids = HashSet::new();
 
     for proc in get_processes(with_thread, uid) {
