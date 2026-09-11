@@ -50,7 +50,12 @@ impl Column for Gid {
 #[cfg(target_os = "macos")]
 impl Column for Gid {
     fn add(&mut self, proc: &ProcessInfo) {
-        let gid = proc.curr_proc.kp_eproc.e_pcred.p_rgid;
+        // The effective gid is the first entry of the credential's group list
+        // (`kauth_cred_getgid`). `p_rgid` is the *real* gid and belongs to
+        // `GidReal`: the two do come apart - `WindowServer` runs with
+        // egid `_windowserver` and rgid `wheel` - so reading `p_rgid` here
+        // would just make this column a copy of `GidReal`.
+        let gid = proc.curr_proc.kp_eproc.e_ucred.cr_groups[0];
         let fmt_content = format!("{}", gid);
         let raw_content = gid;
 
