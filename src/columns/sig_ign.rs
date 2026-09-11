@@ -45,7 +45,7 @@ impl Column for SigIgn {
 #[cfg(target_os = "freebsd")]
 impl Column for SigIgn {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = proc.curr_proc.ki_sigignore.__bits[0] as u64;
+        let raw_content = crate::util::sigset_words(&proc.curr_proc.ki_sigignore)[0] as u64;
         let fmt_content = format!("{raw_content:016x}");
 
         self.fmt_contents.insert(proc.pid, fmt_content);
