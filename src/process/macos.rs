@@ -43,26 +43,37 @@ pub struct ProcessInfo {
 process_info_deref!();
 
 /// Map the BSD process-table state (`extern_proc::p_stat`) onto the process
-/// state codes the `State` column prints on macOS (see `state.rs`):
+/// state codes the `State` column prints on macOS (see `state.rs`).
 ///
-/// | `p_stat` | name   | meaning                        | procs  |
-/// |----------|--------|--------------------------------|--------|
-/// | 1 SIDL   | born   | being created by fork          | 1 "R"  |
-/// | 2 SRUN   | run    | currently runnable             | 1 "R"  |
-/// | 3 SSLEEP | sleep  | sleeping on an address         | 3 "S"  |
-/// | 4 SSTOP  | stop   | stopped / suspended            | 5 "T"  |
-/// | 5 SZOMB  | zombie | awaiting collection by parent  | 8 "Z"  |
+/// Only two of the five values the field can hold are worth reading. XNU
+/// moved the process state onto the threads long ago and left `p_stat`
+/// behind: a snapshot of the whole table (604 processes, macOS 26) has every
+/// last one of them at `SRUN`, whether it is running or has been asleep
+/// since boot. The field is written again only when the process is stopped
+/// (`SSTOP`, confirmed by stopping one) or dies (`SZOMB`, confirmed with an
+/// unreaped child); `SSLEEP` and `SIDL` never showed up at all.
+///
+/// So `SRUN` says "alive", not "running". Reporting it as "R" would mark
+/// every process this fallback covers as busy - worse than the "?" it is
+/// meant to improve on - so it is left unknown:
+///
+/// | `p_stat` | name   | meaning                       | procs |
+/// |----------|--------|-------------------------------|-------|
+/// | 1 SIDL   | born   | being created by fork         | 7 "?" |
+/// | 2 SRUN   | run    | alive - held by every process | 7 "?" |
+/// | 3 SSLEEP | sleep  | never written by XNU          | 7 "?" |
+/// | 4 SSTOP  | stop   | stopped / suspended           | 5 "T" |
+/// | 5 SZOMB  | zombie | awaiting collection by parent | 8 "Z" |
 ///
 /// Used as a fallback when `PROC_PIDLISTTHREADS` is denied (EPERM) and the
-/// thread-derived state cannot be computed. Any other value falls back to the
-/// existing "unknown" mark (7 -> "?").
+/// thread-derived state cannot be computed.
 fn state_from_pstat(p_stat: libc::c_char) -> i32 {
     match p_stat as i32 {
-        1 | 2 => 1, // SIDL, SRUN -> R
-        3 => 3,     // SSLEEP     -> S
-        4 => 5,     // SSTOP      -> T
-        5 => 8,     // SZOMB      -> Z
-        _ => 7,     // unknown
+        4 => 5, // SSTOP -> T
+        5 => 8, // SZOMB -> Z
+        // SIDL, SRUN, SSLEEP and anything else say nothing about what the
+        // process is doing now.
+        _ => 7, // unknown
     }
 }
 
@@ -243,7 +254,8 @@ pub fn collect_proc(
         let mut threads = Vec::new();
 
         if task_info_ok
-            && let Ok(threadids) = listpidinfo::<ListThreads>(pid, (curr_task.pti_threadnum as usize) * 2)
+            && let Ok(threadids) =
+                listpidinfo::<ListThreads>(pid, (curr_task.pti_threadnum as usize) * 2)
         {
             threads.reserve(threadids.len());
             for tid in threadids {
@@ -318,9 +330,25 @@ pub fn collect_proc(
                         // and 0 is the ppid of launchd.
                         let key = thread_key(tid);
 
+                        // A thread row keeps the process's `kinfo_proc`,
+                        // because that is where its uid, gid, tty and comm
+                        // come from - a thread has no identity of its own
+                        // beyond its id and its name. The start time is the
+                        // one field that belongs to the process alone, and
+                        // leaving it in would date every thread by the process
+                        // it belongs to, so it is blanked here. `StartTime`
+                        // and `ElapsedTime` read a zero timestamp as nothing
+                        // to show - the same blank they print when the time is
+                        // missing altogether.
+                        let mut thread_proc = curr_proc;
+                        thread_proc.kp_proc.p_un.p_starttime = libc::timeval {
+                            tv_sec: 0,
+                            tv_usec: 0,
+                        };
+
                         threads.push(ProcessInfo {
                             base: ProcessInfoBase::new(key, pid as i64, interval),
-                            curr_proc,
+                            curr_proc: thread_proc,
                             prev_proc,
                             curr_task: task,
                             prev_task: prev,
@@ -338,9 +366,10 @@ pub fn collect_proc(
             // `PROC_PIDLISTTHREADS` is gated by *effective* uid, so it fails
             // (EPERM) for processes owned by other users - and so does
             // `pidinfo` itself, which is why `task_info_ok` is false - and we
-            // cannot derive a state from their threads. `kinfo_proc` still
-            // reports the process state in `kp_proc.p_stat`, so we surface
-            // that instead of leaving the state blank ("?").
+            // cannot derive a state from their threads. `kinfo_proc` is still
+            // there for them, but `kp_proc.p_stat` only knows whether the
+            // process was stopped or has died - see `state_from_pstat` - so
+            // most rows this covers stay at "?" rather than claiming to run.
             state = state_from_pstat(curr_proc.kp_proc.p_stat);
         }
 
