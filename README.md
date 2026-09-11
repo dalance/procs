@@ -30,7 +30,7 @@
 - Pager support
 - Watch mode (like `top`)
 - Tree view
-- Narrowing to the processes of the current user / session
+- Narrowing to the processes of the current effective user
 
 ## Platform
 
@@ -473,7 +473,7 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | ElapsedTime          | -not supported-       | Elapsed time                                  | o     | o     | o       | o       |
 | Env                  | `e` output modifier   | Environment variables                         | o     | o     |         | o       |
 | Esp                  | esp                   | Stack pointer                                 | o     |       |         |         |
-| FileName             | comm                  | File name                                     | o     |       | o       | o       |
+| FileName             | comm                  | File name                                     | o     | o     | o       | o       |
 | Gid                  | egid                  | Group ID                                      | o     | o     | o       | o       |
 | GidFs                | fgid                  | File system group ID                          | o     |       |         |         |
 | GidReal              | rgid                  | Real group ID                                 | o     | o     |         | o       |
