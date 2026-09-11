@@ -157,6 +157,11 @@ pub fn collect_proc(
             continue;
         };
 
+        if prev_stat.starttime != curr_stat.starttime {
+            // Pid recycled
+            continue;
+        }
+
         let curr_owner = if let Ok(owner) = curr_proc.uid() {
             owner
         } else {

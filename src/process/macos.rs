@@ -187,6 +187,11 @@ pub fn collect_proc(
             prev_task
         };
 
+        if prev_proc.kp_proc.p_starttime != curr_proc.kp_proc.p_starttime {
+            // Pid recycled
+            continue;
+        }
+
         // The command line, from whichever source is willing to give one:
         // `KERN_PROCARGS2` gives all of it, `proc_pidpath` still gives the
         // executable for processes it will not, and the process table always
@@ -341,7 +346,7 @@ pub fn collect_proc(
                         // to show - the same blank they print when the time is
                         // missing altogether.
                         let mut thread_proc = curr_proc;
-                        thread_proc.kp_proc.p_un.p_starttime = libc::timeval {
+                        thread_proc.kp_proc.p_starttime = libc::timeval {
                             tv_sec: 0,
                             tv_usec: 0,
                         };
@@ -687,22 +692,14 @@ pub struct kinfo_proc {
 
 #[repr(C)]
 #[derive(Copy, Clone)]
-pub struct run_sleep_queue {
-    p_forw: vm_types::user_addr_t,
-    p_back: vm_types::user_addr_t,
-}
-
-#[repr(C)]
-#[derive(Copy, Clone)]
-pub union p_un {
-    pub p_st1: run_sleep_queue,
-    pub p_starttime: libc::timeval,
-}
-
-#[repr(C)]
-#[derive(Copy, Clone)]
 pub struct extern_proc {
-    pub p_un: p_un,
+    /// The process start time.
+    ///
+    /// XNU stores it in a union with the run/sleep queue links (`p_st1`),
+    /// and the two members are the same size and alignment on every
+    /// architecture macOS runs on, so reading it as a plain `timeval` keeps
+    /// the layout identical to the kernel's `extern_proc`.
+    pub p_starttime: libc::timeval,
     pub p_vmspace: vm_types::user_addr_t,
     pub p_sigacts: vm_types::user_addr_t,
 
