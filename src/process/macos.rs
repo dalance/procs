@@ -42,6 +42,30 @@ pub struct ProcessInfo {
 
 process_info_deref!();
 
+/// Map the BSD process-table state (`extern_proc::p_stat`) onto the process
+/// state codes the `State` column prints on macOS (see `state.rs`):
+///
+/// | `p_stat` | name   | meaning                        | procs  |
+/// |----------|--------|--------------------------------|--------|
+/// | 1 SIDL   | born   | being created by fork          | 1 "R"  |
+/// | 2 SRUN   | run    | currently runnable             | 1 "R"  |
+/// | 3 SSLEEP | sleep  | sleeping on an address         | 3 "S"  |
+/// | 4 SSTOP  | stop   | stopped / suspended            | 5 "T"  |
+/// | 5 SZOMB  | zombie | awaiting collection by parent  | 8 "Z"  |
+///
+/// Used as a fallback when `PROC_PIDLISTTHREADS` is denied (EPERM) and the
+/// thread-derived state cannot be computed. Any other value falls back to the
+/// existing "unknown" mark (7 -> "?").
+fn state_from_pstat(p_stat: libc::c_char) -> i32 {
+    match p_stat as i32 {
+        1 | 2 => 1, // SIDL, SRUN -> R
+        3 => 3,     // SSLEEP     -> S
+        4 => 5,     // SSTOP      -> T
+        5 => 8,     // SZOMB      -> Z
+        _ => 7,     // unknown
+    }
+}
+
 pub fn collect_proc(
     interval: Duration,
     with_thread: bool,
@@ -70,17 +94,43 @@ pub fn collect_proc(
             // does for it.
 
             let pid = kp.kp_proc.p_pid;
-            let task = pidinfo::<TaskInfo>(pid, 0).unwrap_or(unsafe { mem::zeroed() });
-            let res = pidrusage::<RUsageInfoV2>(pid).ok();
+            // `pidinfo` is gated by *effective* uid, so it fails with `EPERM`
+            // for processes owned by other users. Everything else libproc
+            // offers - `pidrusage`, `PROC_PIDLISTFDS`, `PROC_PIDLISTTHREADS`,
+            // and the `KERN_PROCARGS2` sysctl - is gated the same way, so a
+            // `TaskInfo` that failed means the rest of the queries would too:
+            // the flag lets the second pass skip them all.
+            let (task, task_info_ok) = match pidinfo::<TaskInfo>(pid, 0) {
+                Ok(task) => (task, true),
+                Err(_) => {
+                    // EPERM or ESRCH
+                    let mut res: TaskInfo = unsafe { mem::zeroed() };
+                    res.pti_priority = kp.kp_proc.p_priority as i32; // BSD priority
+                    // p_estcpu/p_cpticks/p_pctcpu/p_uticks/p_sticks/p_iticks/p_rtime/p_swtime/p_slptime/p_usrpri
+                    // e_xsize / e_xccount / e_xswrss are all zeros.
+                    (res, false)
+                }
+            };
+            // `curr_res` stays `None` when `proc_pid_rusage` is denied (EPERM):
+            // no `kinfo_proc` field maps to `rusage_info_v*`, and a synthesized
+            // zero-filled struct would make `VmTotal` prefer `ri_phys_footprint
+            // == 0` over the real `TaskInfo.pti_resident_size`. The columns
+            // already fall back gracefully on `None`.
+            let res = if task_info_ok {
+                pidrusage::<RUsageInfoV2>(pid).ok()
+            } else {
+                None
+            };
             let time = Instant::now();
 
             // The thread list is part of the first sample: the second pass
             // pairs each current thread with the one the first pass saw.
             let mut threads = Vec::new();
-            if with_thread {
-                let threadids = listpidinfo::<ListThreads>(pid, task.pti_threadnum as usize);
+            if with_thread && task_info_ok {
+                // Over-allocate the buffer to reduce the chance of truncation.
+                let threadids = listpidinfo::<ListThreads>(pid, (task.pti_threadnum as usize) * 2);
                 if let Ok(threadids) = threadids {
-                    threads.reserve(task.pti_threadnum as usize);
+                    threads.reserve(threadids.len());
                     for t in threadids {
                         // `0` is what the kernel reports for a thread it has
                         // no id for. It is not a thread to ask about, and it
@@ -94,7 +144,7 @@ pub fn collect_proc(
                     }
                 }
             }
-            base_procs.insert(pid, (kp, task, res, time, threads));
+            base_procs.insert(pid, (kp, task, res, time, threads, task_info_ok));
         }
     }
 
@@ -105,22 +155,31 @@ pub fn collect_proc(
         // about it: keeping the sample taken before the sleep is what makes
         // the deltas come out as zero instead of as a jump.
         let pid = curr_proc.kp_proc.p_pid;
-        let (prev_proc, prev_task, prev_res, prev_time, prev_threads) =
+        let (prev_proc, prev_task, prev_res, prev_time, prev_threads, task_info_ok) =
             match base_procs.remove(&pid) {
                 Some(data) => data,
                 None => continue,
             };
 
-        let curr_task = pidinfo::<TaskInfo>(pid, 0).unwrap_or(prev_task);
+        let curr_task = if task_info_ok {
+            pidinfo::<TaskInfo>(pid, 0).unwrap_or(prev_task)
+        } else {
+            prev_task
+        };
 
         // The command line, from whichever source is willing to give one:
         // `KERN_PROCARGS2` gives all of it, `proc_pidpath` still gives the
         // executable for processes it will not, and the process table always
-        // carries a name.
-        let curr_path = get_path_info(pid, arg_max)
-            .filter(|path| !path.cmd.is_empty())
-            .or_else(|| pidpath(pid).ok().and_then(path_info_of_exe))
-            .or_else(|| path_info_of_exe(command_of_comm(&curr_proc.kp_proc.p_comm)));
+        // carries a name. A process whose `TaskInfo` was denied (EPERM)
+        // skips the `KERN_PROCARGS2` sysctl, but `proc_pidpath` is still
+        // worth a try before falling back to the process table name.
+        let curr_path = if task_info_ok {
+            get_path_info(pid, arg_max).filter(|path| !path.cmd.is_empty())
+        } else {
+            None
+        }
+        .or_else(|| pidpath(pid).ok().and_then(path_info_of_exe))
+        .or_else(|| path_info_of_exe(command_of_comm(&curr_proc.kp_proc.p_comm)));
 
         let mut curr_tcps = Vec::new();
         let mut curr_udps = Vec::new();
@@ -128,30 +187,36 @@ pub fn collect_proc(
         // The process table carries no open file count, and the default
         // `RLIMIT_NOFILE` soft limit is 256: a buffer that size covers the
         // sockets the port columns care about.
-        let fds = listpidinfo::<ListFDs>(pid, 256);
-        if let Ok(fds) = fds {
-            for fd in fds {
-                if let ProcFDType::Socket = fd.proc_fdtype.into()
-                    && let Ok(socket) = pidfdinfo::<SocketFDInfo>(pid, fd.proc_fd)
-                {
-                    match socket.psi.soi_kind.into() {
-                        SocketInfoKind::In => {
-                            if socket.psi.soi_protocol == libc::IPPROTO_UDP {
-                                let info = unsafe { socket.psi.soi_proto.pri_in };
-                                curr_udps.push(info);
+        if task_info_ok {
+            let fds = listpidinfo::<ListFDs>(pid, 256);
+            if let Ok(fds) = fds {
+                for fd in fds {
+                    if let ProcFDType::Socket = fd.proc_fdtype.into()
+                        && let Ok(socket) = pidfdinfo::<SocketFDInfo>(pid, fd.proc_fd)
+                    {
+                        match socket.psi.soi_kind.into() {
+                            SocketInfoKind::In => {
+                                if socket.psi.soi_protocol == libc::IPPROTO_UDP {
+                                    let info = unsafe { socket.psi.soi_proto.pri_in };
+                                    curr_udps.push(info);
+                                }
                             }
+                            SocketInfoKind::Tcp => {
+                                let info = unsafe { socket.psi.soi_proto.pri_tcp };
+                                curr_tcps.push(info);
+                            }
+                            _ => (),
                         }
-                        SocketInfoKind::Tcp => {
-                            let info = unsafe { socket.psi.soi_proto.pri_tcp };
-                            curr_tcps.push(info);
-                        }
-                        _ => (),
                     }
                 }
             }
         }
 
-        let curr_res = pidrusage::<RUsageInfoV2>(pid).ok();
+        let curr_res = if task_info_ok {
+            pidrusage::<RUsageInfoV2>(pid).ok()
+        } else {
+            None
+        };
 
         let curr_time = Instant::now();
         let interval = curr_time - prev_time;
@@ -166,11 +231,12 @@ pub fn collect_proc(
             .map(|path| path.name.clone())
             .unwrap_or_else(|| command_of_comm(&curr_proc.kp_proc.p_comm));
 
-        let threadids = listpidinfo::<ListThreads>(pid, curr_task.pti_threadnum as usize);
         let mut threads = Vec::new();
 
-        if let Ok(threadids) = threadids {
-            threads.reserve(curr_task.pti_threadnum as usize);
+        if task_info_ok
+            && let Ok(threadids) = listpidinfo::<ListThreads>(pid, (curr_task.pti_threadnum as usize) * 2)
+        {
+            threads.reserve(threadids.len());
             for tid in threadids {
                 // See the first pass: `0` is not a thread id.
                 if tid == 0 {
@@ -259,6 +325,14 @@ pub fn collect_proc(
                     }
                 }
             }
+        } else {
+            // `PROC_PIDLISTTHREADS` is gated by *effective* uid, so it fails
+            // (EPERM) for processes owned by other users - and so does
+            // `pidinfo` itself, which is why `task_info_ok` is false - and we
+            // cannot derive a state from their threads. `kinfo_proc` still
+            // reports the process state in `kp_proc.p_stat`, so we surface
+            // that instead of leaving the state blank ("?").
+            state = state_from_pstat(curr_proc.kp_proc.p_stat);
         }
 
         ret.push(ProcessInfo {

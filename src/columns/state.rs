@@ -52,6 +52,7 @@ impl Column for State {
             4 => "I",
             5 => "T",
             6 => "H",
+            8 => "Z",
             _ => "?",
         };
         let fmt_content = state.to_string();
