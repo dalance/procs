@@ -98,13 +98,11 @@ impl Column for State {
             state.push('W');
         }
         if info.ki_nice < libc::NZERO as i8
-            || info.ki_pri.pri_class == bsd_kvm_sys::PRI_REALTIME as u8
+            || info.ki_pri.pri_class == crate::process::PRI_REALTIME
         {
             state.push('<');
         }
-        if info.ki_nice > libc::NZERO as i8
-            || info.ki_pri.pri_class == bsd_kvm_sys::PRI_IDLE as u8
-        {
+        if info.ki_nice > libc::NZERO as i8 || info.ki_pri.pri_class == crate::process::PRI_IDLE {
             state.push('N');
         }
         if (flag & libc::P_TRACED as i64) != 0 {

@@ -116,16 +116,28 @@ impl Column for WorkDir {
 }
 
 /// The current working directory of `pid`, from FreeBSD's `KERN_PROC_CWD`.
+///
+/// `KERN_PROC_CWD` answers with one `struct kinfo_file`, the last field of
+/// which is the path. `libc::kinfo_file` carries that structure with the
+/// layout the ABI pins it to - `kf_path` at `KINFO_FILE_SIZE - PATH_MAX`,
+/// which is 368 of the 1392 bytes - so the answer is read through it instead
+/// of by offset.
+///
+/// The kernel reports the size of what it wrote in `kf_structsize`, which is
+/// checked against the size of the structure before any field is read: on a
+/// FreeBSD whose `kinfo_file` differs from the one `libc` describes - an
+/// older release, or a future one that inserts a field ahead of the path -
+/// the column comes out empty rather than reading a path out of the middle of
+/// something else.
 #[cfg(target_os = "freebsd")]
 fn work_dir_of(pid: i64) -> Option<PathBuf> {
-    // KERN_PROC_CWD returns struct kinfo_file, not a plain path. The path is
-    // the final PATH_MAX-byte field in the FreeBSD kinfo_file ABI.
-    const KINFO_FILE_PATH_OFFSET: usize = 368;
-
+    // A thread row carries its thread id negated, which is not a pid and names
+    // no process to ask about.
     if pid <= 0 {
         return None;
     }
 
+    let want = std::mem::size_of::<libc::kinfo_file>();
     let mut mib = [CTL_KERN, KERN_PROC, KERN_PROC_CWD, pid as i32];
     let mut size = 0usize;
     if unsafe {
@@ -138,17 +150,20 @@ fn work_dir_of(pid: i64) -> Option<PathBuf> {
             0,
         )
     } != 0
-        || size == 0
+        || size < want
     {
         return None;
     }
 
-    let mut bytes = vec![0u8; size];
+    // A list of `u64` rather than of bytes: `kinfo_file` holds 8-byte fields,
+    // so reading it out of a byte buffer would be a misaligned read.
+    let mut words = vec![0u64; size.div_ceil(std::mem::size_of::<u64>())];
+    let mut size = words.len() * std::mem::size_of::<u64>();
     if unsafe {
         libc::sysctl(
             mib.as_mut_ptr(),
             mib.len() as u32,
-            bytes.as_mut_ptr() as *mut c_void,
+            words.as_mut_ptr() as *mut c_void,
             &mut size,
             ptr::null_mut(),
             0,
@@ -157,17 +172,28 @@ fn work_dir_of(pid: i64) -> Option<PathBuf> {
     {
         return None;
     }
-    bytes.truncate(size);
-    if bytes.len() <= KINFO_FILE_PATH_OFFSET {
+
+    // SAFETY: the buffer is 8-byte aligned, holds at least one `kinfo_file`,
+    // and is still alive. Only `kf_structsize` is read before the layout is
+    // confirmed to be the one this build was compiled against.
+    let kf = unsafe { &*words.as_ptr().cast::<libc::kinfo_file>() };
+    if kf.kf_structsize as usize != want {
         return None;
     }
-    let path = &bytes[KINFO_FILE_PATH_OFFSET..];
-    let end = path.iter().position(|byte| *byte == 0).unwrap_or(path.len());
+
+    // SAFETY: `kf_path` is a `PATH_MAX` array the kernel filled; the slice is
+    // bounded by the array itself, so a missing NUL cannot run past it.
+    let raw = unsafe {
+        std::slice::from_raw_parts(kf.kf_path.as_ptr().cast::<u8>(), kf.kf_path.len())
+    };
+    let end = raw.iter().position(|byte| *byte == 0).unwrap_or(raw.len());
     if end == 0 {
         return None;
     }
 
-    Some(PathBuf::from(String::from_utf8_lossy(&path[..end]).into_owned()))
+    Some(PathBuf::from(
+        String::from_utf8_lossy(&raw[..end]).into_owned(),
+    ))
 }
 
 /// The current working directory of `pid`.

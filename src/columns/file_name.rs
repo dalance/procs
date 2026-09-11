@@ -34,8 +34,14 @@ impl FileName {
 }
 
 #[cfg(target_os = "freebsd")]
-pub(crate) fn get_process_path(pid: i32) -> Option<String> {
-    let mut mib = [CTL_KERN, KERN_PROC, KERN_PROC_PATHNAME, pid];
+pub(crate) fn get_process_path(pid: i64) -> Option<String> {
+    // A thread row carries its thread id negated, which is not a pid and
+    // names no process to ask about. `work_dir_of` guards the same way.
+    if pid <= 0 {
+        return None;
+    }
+
+    let mut mib = [CTL_KERN, KERN_PROC, KERN_PROC_PATHNAME, pid as i32];
     let mut size = 0usize;
     if unsafe {
         libc::sysctl(
@@ -100,7 +106,7 @@ impl Column for FileName {
 #[cfg(target_os = "freebsd")]
 impl Column for FileName {
     fn add(&mut self, proc: &ProcessInfo) {
-        let fmt_content = get_process_path(proc.pid as i32)
+        let fmt_content = get_process_path(proc.pid)
             .and_then(|path| Path::new(&path).file_name().map(|name| name.to_string_lossy().into_owned()))
             .unwrap_or_default();
         let raw_content = fmt_content.clone();

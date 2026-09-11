@@ -1,7 +1,7 @@
 use crate::process::{ProcessInfoBase, ShowFilter, thread_key};
-use bsd_kvm_sys::kinfo_proc;
 use libc::{
     CTL_KERN, KERN_PROC, KERN_PROC_INC_THREAD, KERN_PROC_PROC, KERN_PROC_UID, P_KPROC, c_void,
+    kinfo_proc,
 };
 use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
@@ -9,11 +9,28 @@ use std::ptr;
 use std::thread;
 use std::time::{Duration, Instant};
 
+/// The two `pri_class` values `State` reads, from `sys/priority.h`.
+///
+/// `libc` binds the `struct priority` they live in but not the class
+/// constants themselves, and they are the ABI - `PRI_ITHD` 1, `PRI_REALTIME`
+/// 2, `PRI_TIMESHARE` 3, `PRI_IDLE` 4 - so the numbers are written out here
+/// rather than guessed at the use site.
+pub const PRI_REALTIME: u8 = 2;
+pub const PRI_IDLE: u8 = 4;
+
 pub struct ProcessInfo {
     /// The part of a row every platform has - the row key, the parent and the
     /// sampling window. The `Deref` below hands it out, so a column goes on
     /// writing `proc.pid` without reaching for `base`.
     pub base: ProcessInfoBase,
+    /// The kernel's `struct kinfo_proc`, as `libc` binds it.
+    ///
+    /// FreeBSD pins the layout of this structure by size - `KINFO_PROC_SIZE`,
+    /// 1088 bytes on the 64-bit architectures - so the ABI is fixed even
+    /// though fields keep being carved out of the `ki_spare*` arrays. That is
+    /// what makes `libc`'s binding safe to read directly: it was checked
+    /// against the real headers on FreeBSD 15.1, where all 54 of the sizes
+    /// and field offsets this crate reads agree exactly.
     pub curr_proc: kinfo_proc,
     pub prev_proc: kinfo_proc,
 }

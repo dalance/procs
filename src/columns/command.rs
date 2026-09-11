@@ -10,6 +10,12 @@ use std::ptr;
 
 #[cfg(target_os = "freebsd")]
 pub(crate) fn get_process_args(pid: i64) -> Vec<String> {
+    // A thread row carries its thread id negated, which is not a pid and
+    // names no process to ask about. `work_dir_of` guards the same way.
+    if pid <= 0 {
+        return Vec::new();
+    }
+
     let mut mib = [CTL_KERN, KERN_PROC, KERN_PROC_ARGS, pid as i32];
     let mut size = 0usize;
     if unsafe {
