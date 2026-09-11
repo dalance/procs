@@ -28,10 +28,17 @@ impl Pid {
 
 impl Column for Pid {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = proc.pid;
-        // A thread row carries its thread id negated, and is printed
-        // bracketed the way `ps` prints a kernel thread - which is what keeps
-        // the id of a thread from reading like the id of a process.
+        // The id the row stands for, not the key that carries it: a thread row
+        // is keyed by its negated thread id, and the value behind this column -
+        // what `--json` reports and what a regex search reads - has to be the
+        // thread id itself rather than the internal negation of it.
+        //
+        // `unsigned_abs` and not `abs`: `i64::MIN` has no positive counterpart
+        // to be turned into, and no kernel hands out such an id, which is the
+        // same property `row_sort_key` leans on.
+        let raw_content = i64::try_from(proc.pid.unsigned_abs()).unwrap_or(proc.pid);
+        // Printed bracketed the way `ps` prints a kernel thread, which is what
+        // keeps the id of a thread from reading like the id of a process.
         let fmt_content = match thread_id(proc.pid) {
             Some(tid) => format!("[{tid}]"),
             None => format!("{raw_content}"),
