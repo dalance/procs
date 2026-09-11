@@ -440,8 +440,10 @@ impl View {
             usize::MIN
         };
 
-        // On Windows, the external pager ( `[pager] command` ) takes precedence
-        // over the built-in pager
+        // On Windows, `[pager] command` is what selects the external pager, so
+        // it wins over the built-in one that is otherwise always available -
+        // unless `use_builtin` is set, which is an explicit request for the
+        // built-in pager.
         #[cfg(target_os = "windows")]
         let use_builtin_pager = config.pager.use_builtin || pager_command(config).is_none();
         #[cfg(not(target_os = "windows"))]

@@ -243,7 +243,8 @@ Instead of them, built-in pager can be used by configuration `use_builtin`.
 #### Windows
 
 On Windows, the built-in pager is used by default.
-If `command` of `[pager]` section is set, it is launched as an external pager.
+If `command` of `[pager]` section is set, it is launched as an external pager
+unless `use_builtin` is `true`, which asks for the built-in pager explicitly.
 
 ```toml
 [pager]
@@ -762,5 +763,6 @@ If `column` is 0, value is sorted by the left column.
 If `mode` is `Auto`, pager is used only when output lines exceed terminal height.
 Default pager is `less -SR` on POSIX systems ( if `less` is not found, `more -f` ).
 
-On Windows, `command` is used if it is set, and the built-in pager is used otherwise.
+On Windows, `command` is used if it is set and `use_builtin` is `false`, and the built-in pager
+is used otherwise.
 Note that the `PAGER` environment variable is not referenced on any platform.

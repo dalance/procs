@@ -52,7 +52,7 @@ A process whose owner cannot be determined, such as a Windows protected process,
 
 == PAGER
 
-On Linux and macOS, `less` is the default pager. If not available, `more` is used. Built-in pager can be used by configuring `use_builtin`. On Windows, the built-in pager is always used.
+On Linux and macOS, `less` is the default pager. If not available, `more` is used. Built-in pager can be used by configuring `use_builtin`. On Windows, the built-in pager is used unless `command` of the `[pager]` section is set, in which case that command is launched as an external pager.
 
 == WATCH MODE SHORTCUTS
 
