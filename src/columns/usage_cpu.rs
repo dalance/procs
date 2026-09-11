@@ -33,7 +33,7 @@ impl Column for UsageCpu {
 
         let curr_time = curr_stat.utime + curr_stat.stime;
         let prev_time = prev_stat.utime + prev_stat.stime;
-        let usage_ms = (curr_time - prev_time) * 1000 / procfs::ticks_per_second();
+        let usage_ms = curr_time.saturating_sub(prev_time) * 1000 / procfs::ticks_per_second();
         let interval_ms = proc.interval.as_secs() * 1000 + u64::from(proc.interval.subsec_millis());
         let usage = usage_ms as f64 * 100.0 / interval_ms as f64;
 
@@ -52,7 +52,7 @@ impl Column for UsageCpu {
     fn add(&mut self, proc: &ProcessInfo) {
         let curr_time = proc.curr_task.pti_total_user + proc.curr_task.pti_total_system;
         let prev_time = proc.prev_task.pti_total_user + proc.prev_task.pti_total_system;
-        let usage_ms = (curr_time - prev_time) / 1000000u64;
+        let usage_ms = curr_time.saturating_sub(prev_time) / 1000000u64;
         let interval_ms = proc.interval.as_secs() * 1000 + u64::from(proc.interval.subsec_millis());
         let usage = usage_ms as f64 * 100.0 / interval_ms as f64;
 
@@ -72,7 +72,7 @@ impl Column for UsageCpu {
         let curr_time = proc.cpu_info.curr_sys + proc.cpu_info.curr_user;
         let prev_time = proc.cpu_info.prev_sys + proc.cpu_info.prev_user;
 
-        let usage_ms = (curr_time - prev_time) / 10000u64;
+        let usage_ms = curr_time.saturating_sub(prev_time) / 10000u64;
         let interval_ms = proc.interval.as_secs() * 1000 + u64::from(proc.interval.subsec_millis());
         let usage = usage_ms as f64 * 100.0 / interval_ms as f64;
 
@@ -97,7 +97,7 @@ impl Column for UsageCpu {
             + proc.prev_proc.ki_rusage.ru_utime.tv_usec
             + proc.prev_proc.ki_rusage.ru_stime.tv_sec * 1_000_000
             + proc.prev_proc.ki_rusage.ru_stime.tv_usec) as u64;
-        let usage_ms = (curr_time - prev_time) / 1_000u64;
+        let usage_ms = curr_time.saturating_sub(prev_time) / 1_000u64;
         let interval_ms = proc.interval.as_secs() * 1000 + u64::from(proc.interval.subsec_millis());
         let usage = usage_ms as f64 * 100.0 / interval_ms as f64;
 
