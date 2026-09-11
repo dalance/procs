@@ -124,7 +124,7 @@ impl Column for Command {
                     .collect::<String>();
                 cmd.pop();
                 cmd
-            } else if crate::process::thread_id(proc.pid).is_some() {
+            } else if proc.pid < 0 {
                 // A thread has no command line of its own, so show the name
                 // the collector settled on - the thread's own when it has one,
                 // the owning process's otherwise - bracketed like its pid.

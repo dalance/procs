@@ -29,9 +29,13 @@ impl Pgid {
 impl Column for Pgid {
     fn add(&mut self, proc: &ProcessInfo) {
         let raw_content = proc.curr_proc.stat().pgrp;
-        let fmt_content = match proc.curr_proc {
-            crate::process::ProcessTask::Process { .. } => format!("{raw_content}"),
-            _ => format!("[{raw_content}]"),
+        // A thread row is bracketed the way its pid is: the value comes from
+        // the shared `stat`, and the bracket is what keeps it from reading
+        // like the process group of a process.
+        let fmt_content = if proc.pid < 0 {
+            format!("[{raw_content}]")
+        } else {
+            format!("{raw_content}")
         };
 
         self.fmt_contents.insert(proc.pid, fmt_content);

@@ -1,5 +1,5 @@
 use crate::config::ConfigSortOrder;
-use crate::process::{ProcessInfo, row_sort_key, thread_id};
+use crate::process::{ProcessInfo, row_sort_key};
 use crate::{Column, column_default_without_sorted_pid};
 use std::cmp;
 use std::collections::HashMap;
@@ -33,15 +33,15 @@ impl Column for Pid {
         // what `--json` reports and what a regex search reads - has to be the
         // thread id itself rather than the internal negation of it.
         //
-        // `unsigned_abs` and not `abs`: `i64::MIN` has no positive counterpart
-        // to be turned into, and no kernel hands out such an id, which is the
-        // same property `row_sort_key` leans on.
-        let raw_content = i64::try_from(proc.pid.unsigned_abs()).unwrap_or(proc.pid);
+        // Negating the key cannot overflow: it is either a process id, which
+        // is not negative, or a `thread_key`, which is never `i64::MIN`.
+        let raw_content = if proc.pid >= 0 { proc.pid } else { -proc.pid };
         // Printed bracketed the way `ps` prints a kernel thread, which is what
         // keeps the id of a thread from reading like the id of a process.
-        let fmt_content = match thread_id(proc.pid) {
-            Some(tid) => format!("[{tid}]"),
-            None => format!("{raw_content}"),
+        let fmt_content = if proc.pid >= 0 {
+            format!("{raw_content}")
+        } else {
+            format!("[{raw_content}]")
         };
 
         self.fmt_contents.insert(proc.pid, fmt_content);

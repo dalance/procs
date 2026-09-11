@@ -83,9 +83,11 @@ fn get_processes(with_thread: bool, uid: Option<libc::uid_t>) -> Vec<kinfo_proc>
     processes
 }
 
+/// The first row a pid appears on is the process itself and every one after
+/// it is a thread of that process: FreeBSD reports both in the same walk, and
+/// a tid never equals its pid, so the id cannot be used to tell them apart.
 fn row_key(proc: &kinfo_proc, with_thread: bool, process_pids: &mut HashSet<i32>) -> (i64, i64) {
-    let is_thread = with_thread && !process_pids.insert(proc.ki_pid);
-    if is_thread {
+    if with_thread && !process_pids.insert(proc.ki_pid) {
         (thread_key(proc.ki_tid as u64), proc.ki_pid as i64)
     } else {
         (proc.ki_pid as i64, proc.ki_ppid as i64)

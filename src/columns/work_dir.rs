@@ -95,12 +95,12 @@ impl Column for WorkDir {
 /// is on screen. `PathInfo::root` is no substitute - that is where the
 /// executable was loaded from, not where the process has since moved to.
 ///
-/// A thread row is left blank: a directory belongs to a process, and the row
+/// A directory belongs to a process, so a thread row is left blank: the row
 /// stands for a thread of one.
 #[cfg(target_os = "macos")]
 impl Column for WorkDir {
     fn add(&mut self, proc: &ProcessInfo) {
-        let fmt_content = if crate::process::thread_id(proc.pid).is_some() {
+        let fmt_content = if proc.pid < 0 {
             String::new()
         } else {
             work_dir_of(proc.pid)
