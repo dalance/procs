@@ -134,6 +134,11 @@ pub fn collect_proc(
 
         let (key, ppid) = row_key(&proc, with_thread, &mut process_pids);
         if let Some((prev_proc, prev_time)) = base_procs.remove(&key) {
+            if prev_proc.ki_start != proc.ki_start {
+                // Pid recycled
+                continue;
+            }
+
             let curr_time = Instant::now();
             let interval = curr_time - prev_time;
 

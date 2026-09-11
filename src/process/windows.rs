@@ -183,15 +183,14 @@ pub fn collect_proc(
             continue;
         }
 
-        let prev = prev_procs
+        let Some(prev) = prev_procs
             .get(&proc.pid)
             .copied()
-            // A recycled pid would otherwise pair up with an unrelated process.
-            .filter(|p| p.create_time == proc.create_time || proc.create_time == 0);
-
-        // A process that started between the two samples pairs with itself,
-        // which reports no delta.
-        let prev = prev.unwrap_or(&proc);
+            .filter(|p| p.create_time == proc.create_time || proc.create_time == 0)
+        else {
+            // Pid recycled
+            continue;
+        };
 
         let handles = ProcHandles::open(proc.pid);
 

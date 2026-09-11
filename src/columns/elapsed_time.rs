@@ -90,7 +90,7 @@ impl Column for ElapsedTime {
 impl Column for ElapsedTime {
     fn add(&mut self, proc: &ProcessInfo) {
         let start_time = Local
-            .timestamp_opt(unsafe { proc.curr_proc.kp_proc.p_un.p_starttime.tv_sec }, 0)
+            .timestamp_opt(proc.curr_proc.kp_proc.p_starttime.tv_sec, 0)
             .unwrap();
         let (raw_content, fmt_content) = elapsed_since(start_time);
 
