@@ -151,7 +151,10 @@ impl Column for Tree {
                 root_pids.push(*p);
             }
         }
-        root_pids.sort_unstable();
+        // Ordered the way the sibling lists are - see `add` - so that a thread
+        // row whose process row `apply_visible` dropped does not sort in front
+        // of every process once it becomes a root of its own.
+        root_pids.sort_unstable_by_key(|pid| row_sort_key(*pid));
         root_pids.dedup();
 
         fn push_pid(tree: &HashMap<i64, Vec<i64>>, mut pids: Vec<i64>, pid: i64) -> Vec<i64> {
