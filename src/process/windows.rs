@@ -287,7 +287,7 @@ pub fn collect_proc(
             let (command, file_name, user, session) = {
                 let parent = &ret[owner];
                 (
-                    parent.command.clone(),
+                    None,
                     // A thread has no image of its own, so the name it is
                     // listed under is its own when it carries one - which is
                     // how the Command and FileName columns tell the threads
