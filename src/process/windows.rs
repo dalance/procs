@@ -30,9 +30,6 @@ use super::ntapi;
 use crate::config::ConfigUserFilter;
 use crate::process::thread_key;
 
-/// Re-export the PEB prefix so the WorkDir column can read
-/// `ProcessParameters`.
-pub use super::ntapi::PEB_PREFIX;
 /// Re-export the process-parameters prefix so the WorkDir column can read
 /// `CurrentDirectory`.
 pub use super::ntapi::RTL_USER_PROCESS_PARAMETERS_PREFIX;

@@ -213,10 +213,11 @@ fn env_of(pid: i64) -> Option<String> {
 #[cfg(target_os = "windows")]
 fn read_env(handle: HANDLE) -> Option<String> {
     use crate::process::{
-        process_peb_address, read_process_memory, PEB_PREFIX,
+        process_peb_address, read_process_memory,
         RTL_USER_PROCESS_PARAMETERS_PREFIX,
     };
     use std::mem::{offset_of, size_of};
+    use windows_sys::Win32::System::Threading::PEB;
 
     // The PEB address lives in the target's address space.
     let peb = process_peb_address(handle)?;
@@ -232,7 +233,7 @@ fn read_env(handle: HANDLE) -> Option<String> {
         peb_buf
             .as_ptr()
             .cast::<u8>()
-            .add(offset_of!(PEB_PREFIX, ProcessParameters))
+            .add(offset_of!(PEB, ProcessParameters))
             .cast::<usize>()
             .read()
     };

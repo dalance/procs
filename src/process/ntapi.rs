@@ -22,7 +22,7 @@ use windows_sys::Wdk::System::Threading::{
 use windows_sys::Win32::Foundation::UNICODE_STRING;
 use windows_sys::Win32::Foundation::{HANDLE, STATUS_INFO_LENGTH_MISMATCH, STATUS_SUCCESS};
 use windows_sys::Win32::Security::{PSID, SECURITY_MAX_SID_SIZE, SID};
-use windows_sys::Win32::System::Threading::{IO_COUNTERS, PROCESS_BASIC_INFORMATION};
+use windows_sys::Win32::System::Threading::{IO_COUNTERS, PEB, PROCESS_BASIC_INFORMATION};
 use windows_sys::Win32::System::WindowsProgramming::CLIENT_ID;
 
 // ---------------------------------------------------------------------------
@@ -219,29 +219,10 @@ const _: () = assert!(size_of::<SECTION_IMAGE_INFORMATION>() == 48);
 #[cfg(target_pointer_width = "32")]
 const _: () = assert!(offset_of!(SECTION_IMAGE_INFORMATION, Machine) == 32);
 
-/// The leading, version-stable part of `PEB`, up to and including
-/// `ProcessParameters`.
-///
-/// Everything after `ProcessParameters` has grown and been reordered across
-/// Windows versions, but the prefix has stayed put since XP, which is all the
-/// working-directory read needs.
-#[repr(C)]
-#[allow(non_snake_case)]
-pub struct PEB_PREFIX {
-    pub InheritedAddressSpace: u8,
-    pub ReadImageFileExecOptions: u8,
-    pub BeingDebugged: u8,
-    pub BitField: u8,
-    pub Mutant: HANDLE,
-    pub ImageBaseAddress: *mut c_void,
-    pub Ldr: *mut c_void,
-    pub ProcessParameters: *mut c_void,
-}
-
 #[cfg(target_pointer_width = "64")]
-const _: () = assert!(offset_of!(PEB_PREFIX, ProcessParameters) == 0x20);
+const _: () = assert!(offset_of!(PEB, ProcessParameters) == 0x20);
 #[cfg(target_pointer_width = "32")]
-const _: () = assert!(offset_of!(PEB_PREFIX, ProcessParameters) == 0x10);
+const _: () = assert!(offset_of!(PEB, ProcessParameters) == 0x10);
 
 /// `CURDIR` - the current-directory record of
 /// `RTL_USER_PROCESS_PARAMETERS`.

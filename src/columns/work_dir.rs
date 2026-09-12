@@ -277,8 +277,9 @@ fn work_dir_of(pid: i64) -> Option<String> {
 #[cfg(target_os = "windows")]
 fn read_work_dir(handle: HANDLE) -> Option<String> {
     use windows_sys::Win32::Foundation::UNICODE_STRING;
+    use windows_sys::Win32::System::Threading::PEB;
     use crate::process::{
-        process_peb_address, read_process_memory, PEB_PREFIX,
+        process_peb_address, read_process_memory,
         RTL_USER_PROCESS_PARAMETERS_PREFIX,
     };
     use std::mem::{offset_of, size_of};
@@ -298,7 +299,7 @@ fn read_work_dir(handle: HANDLE) -> Option<String> {
         peb_buf
             .as_ptr()
             .cast::<u8>()
-            .add(offset_of!(PEB_PREFIX, ProcessParameters))
+            .add(offset_of!(PEB, ProcessParameters))
             .cast::<usize>()
             .read()
     };
