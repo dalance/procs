@@ -16,6 +16,7 @@
 * [Added] External pager support for Windows by `[pager] command` (built-in pager is used if it is not set)
 * [Added] `show_user_only` of `[display]` section and `--user` (`-u`) option to show the processes of one user (a name, a uid, or a SID on Windows, as well as `"myself"` and `"all"`)
 * [Changed] Group and Gid columns for Windows read the process token only when the column is displayed
+* [Changed] `--procfs` is now a Linux-only option; the other platforms reject it as an unknown argument
 * [Fixed] System processes no longer being dropped silently on macOS
 * [Fixed] ReadBytes / WriteBytes divided by a mis-scaled interval (seconds added to milliseconds)
 * [Fixed] Fix invalid JSON output when a column is skipped by --only or --tree
