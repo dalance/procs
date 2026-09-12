@@ -42,13 +42,17 @@ procs - a replacement for `ps` written in Rust
 
 *Show the processes of every user*:: procs
 
-*Show only the processes of the current user*:: procs (with `show_other_users = false` in the `[display]` section)
+*Show only the processes of the current user*:: procs --user myself
 
-== SHOW OTHER USERS
+*Show only the processes of one user*:: procs --user root
 
-By default *procs* shows the processes of every user. Setting `show_other_users` to `false` in the `[display]` section of the configuration file narrows the listing down to the processes of the user *procs* runs as.
+== SHOW THE PROCESSES OF ONE USER
 
-A process whose owner cannot be determined, such as a Windows protected process, counts as not the current user and is hidden. Running with more privileges makes more owners readable.
+By default *procs* shows the processes of every user. The `--user` (or `-u`) option, or `show_user_only` in the `[display]` section of the configuration file, narrows the listing down to one user: `"all"` for every user, `"myself"` for the user *procs* runs as, or a user to keep, written as a name, as a uid in decimal, or - on Windows - as a SID.
+
+The user is looked up while *procs* starts, and a name that matches no account stops it rather than leaving an empty listing behind.
+
+A process whose owner cannot be determined, such as a Windows protected process, counts as not the wanted user and is hidden. Running with more privileges makes more owners readable.
 
 == PAGER
 

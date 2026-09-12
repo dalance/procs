@@ -101,18 +101,6 @@ pub fn collect_proc(
     let mut base_procs = Vec::new();
     let mut base_tasks = HashMap::new();
     let mut ret = Vec::new();
-    // The *effective* uid, because that is what everything this filter compares
-    // against already is. `Process::uid()` is the owner of `/proc/<pid>`, and
-    // the kernel sets that owner from `cred->euid` in `task_dump_owner()`, so
-    // both sides of the comparison have to be the same kind of uid. Comparing
-    // against the real uid instead only looks right while the two are equal;
-    // they come apart for a setuid `procs`, where the real uid is still the
-    // caller's while the effective one is root's.
-    //
-    // This also keeps the filter agreeing with the `User` column, which shows
-    // that same `/proc/<pid>` owner, and with `ps`, whose "my euid" default
-    // selection compares each process's euid against `geteuid()`.
-    let current_uid = uzers::get_effective_uid();
 
     let all_proc = if let Some(x) = procfs_path {
         procfs::process::all_processes_with_root(x)
@@ -123,12 +111,17 @@ pub fn collect_proc(
     if let Ok(all_proc) = all_proc {
         for proc in all_proc.flatten() {
             if let Ok(stat) = proc.stat() {
-                let owner = if !filter.other_users {
+                // The owner is read only when something is compared against
+                // it: with no uid to filter on, it is a `/proc/<pid>` open per
+                // process for nothing.
+                let owner = if filter.userid.is_some() {
                     proc.uid().ok()
                 } else {
                     None
                 };
-                if !filter.other_users && owner != Some(current_uid) {
+                if let Some(userid) = filter.userid
+                    && owner != Some(userid)
+                {
                     continue;
                 }
 
@@ -168,7 +161,9 @@ pub fn collect_proc(
             continue;
         };
 
-        if !filter.other_users && curr_owner != current_uid {
+        if let Some(userid) = filter.userid
+            && curr_owner != userid
+        {
             continue;
         }
 

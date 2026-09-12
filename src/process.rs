@@ -1,4 +1,22 @@
+#[cfg(not(target_os = "windows"))]
+use crate::config::ConfigUserFilter;
+#[cfg(not(target_os = "windows"))]
+use crate::util::USERS_CACHE;
+#[cfg(not(target_os = "windows"))]
+use anyhow::{Error, anyhow};
 use std::time::Duration;
+#[cfg(not(target_os = "windows"))]
+use uzers::Users;
+
+/// The user a filter keeps, as each platform names one.
+///
+/// A uid where there are uids, and on Windows - which has none - the whole
+/// SID, so that the comparison is exact rather than on the last sub-authority
+/// alone.
+#[cfg(target_os = "windows")]
+pub type UserId = ntapi::SID_MAX;
+#[cfg(not(target_os = "windows"))]
+pub type UserId = u32;
 
 /// What the listing shows, decided while the processes are collected.
 ///
@@ -10,11 +28,47 @@ use std::time::Duration;
 /// reads, on macOS the descriptor and thread walks.
 #[derive(Clone, Copy, Default)]
 pub struct ShowFilter {
-    /// Whether processes of other users are shown. When `false`, only the
-    /// processes of the user `procs` runs as are kept.
-    pub other_users: bool,
+    /// The only user whose processes are kept, or `None` to keep every user's.
+    ///
+    /// The user the configuration names is resolved to this before the filter
+    /// is built - see [`user_id_of`] - so a platform is never handed a name to
+    /// look up, and every comparison it makes is between two of the same kind
+    /// of identifier.
+    pub userid: Option<UserId>,
     /// Whether kernel threads are shown.
     pub kthread: bool,
+}
+
+/// The user a filter keeps, looked up from what the configuration names.
+///
+/// A number is a uid and is taken as it is: a uid can own processes without
+/// having an entry in the user database at all, so there is nothing to check
+/// it against. A name has to be one, because a name that resolves to nothing
+/// is a typo, and a listing filtered by a typo comes out empty rather than
+/// wrong - empty with a reason beats empty without one.
+///
+/// `myself` answers with the *effective* uid, which is what everything the
+/// filter compares against already is: the owner of `/proc/<pid>` on Linux,
+/// `ki_uid` and `e_ucred.cr_uid` on the BSDs, and the value `KERN_PROC_UID`
+/// selects by - all of them the effective one, as `ps` selects by too. The
+/// real uid instead would only look right while the two are equal; they come
+/// apart for a setuid `procs`, where the real uid is still the caller's while
+/// the effective one is root's.
+///
+/// This also keeps the filter agreeing with the `User` column, which shows
+/// that same effective owner.
+#[cfg(not(target_os = "windows"))]
+pub fn user_id_of(user: &ConfigUserFilter) -> Result<Option<UserId>, Error> {
+    Ok(match user {
+        ConfigUserFilter::All => None,
+        ConfigUserFilter::Myself => Some(uzers::get_effective_uid()),
+        ConfigUserFilter::User(user) => Some(match user.parse::<u32>() {
+            Ok(uid) => uid,
+            Err(_) => USERS_CACHE
+                .with(|x| x.borrow_mut().get_user_by_name(user).map(|u| u.uid()))
+                .ok_or_else(|| anyhow!("no such user: {user}"))?,
+        }),
+    })
 }
 
 /// What every platform's `ProcessInfo` is made of before its own fields are

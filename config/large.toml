@@ -194,7 +194,7 @@ ascending = "▲"
 descending = "▼"
 tree_symbols = ["│", "─", "┬", "├", "└"]
 abbr_sid = true
-show_other_users = true
+show_user_only = "all"
 
 [sort]
 column = 0
