@@ -1,3 +1,4 @@
+use anyhow::{Context, Error, anyhow};
 use chrono::offset::TimeZone;
 use chrono::{Local, NaiveDate};
 use std::cell::RefCell;
@@ -6,15 +7,17 @@ use std::ffi::c_void;
 use std::mem::{MaybeUninit, zeroed};
 use std::path::PathBuf;
 use std::ptr;
+use std::str::FromStr;
 use std::sync::OnceLock;
 use std::sync::atomic::{AtomicU8, Ordering};
 use std::thread;
 use std::time::{Duration, Instant};
 use windows_sys::Win32::Foundation::{CloseHandle, FALSE, HANDLE};
 use windows_sys::Win32::Security::{
-    AdjustTokenPrivileges, GetTokenInformation, LookupAccountSidW, LookupPrivilegeValueW, PSID,
-    SE_DEBUG_NAME, SE_PRIVILEGE_ENABLED, SID, TOKEN_ADJUST_PRIVILEGES, TOKEN_INFORMATION_CLASS,
-    TOKEN_PRIVILEGES, TOKEN_QUERY, TOKEN_USER, TokenUser,
+    AdjustTokenPrivileges, GetTokenInformation, LookupAccountNameW, LookupAccountSidW,
+    LookupPrivilegeValueW, PSID, SE_DEBUG_NAME, SE_PRIVILEGE_ENABLED, SECURITY_MAX_SID_SIZE, SID,
+    TOKEN_ADJUST_PRIVILEGES, TOKEN_INFORMATION_CLASS, TOKEN_PRIVILEGES, TOKEN_QUERY, TOKEN_USER,
+    TokenUser,
 };
 use windows_sys::Win32::System::Threading::{
     GetCurrentProcess, OpenProcess, OpenProcessToken, OpenThread, PROCESS_QUERY_INFORMATION,
@@ -24,6 +27,7 @@ use windows_sys::Win32::System::Threading::{
 use super::ProcessInfoBase;
 use super::ShowFilter;
 use super::ntapi;
+use crate::config::ConfigUserFilter;
 use crate::process::thread_key;
 
 /// Re-export the PEB prefix so the WorkDir column can read
@@ -202,14 +206,13 @@ pub fn collect_proc(
         // collected here - `Group` and `Gid` query it themselves, so that only
         // enabling one of them pays for it.
         let user = proc.user_sid.or_else(|| handles.full.and_then(get_user));
-        // A process whose *own* owner cannot be read counts as not the current
-        // user and is dropped. Our own SID failing to resolve is a different
-        // matter: there is then nothing to compare against, and dropping every
-        // process would leave the listing empty, so the process is kept - the
-        // same way `take_snapshot` treats that case.
-        if !filter.other_users
-            && let Some(current) = current_user_sid()
-            && user.as_ref() != Some(&current)
+        // A process whose *own* owner cannot be read counts as not the wanted
+        // user and is dropped: there is no SID to compare, and keeping it
+        // would let processes of every user through. A filter that is not set
+        // at all - our own SID not having been readable - is the one case that
+        // keeps everything, so that the listing is not left empty.
+        if let Some(userid) = filter.userid
+            && user != Some(userid)
         {
             continue;
         }
@@ -341,9 +344,6 @@ pub fn collect_proc(
 // ---------------------------------------------------------------------------
 
 /// The SID of the user `procs` runs as.
-///
-/// Filled from the snapshot when the class carries SIDs, and from this
-/// process' own token otherwise.
 static CURRENT_USER: OnceLock<Option<SID_MAX>> = OnceLock::new();
 
 /// The SID of the user `procs` runs as, or `None` when it cannot be resolved.
@@ -352,6 +352,91 @@ static CURRENT_USER: OnceLock<Option<SID_MAX>> = OnceLock::new();
 /// failure yields `None`, which then matches nothing.
 fn current_user_sid() -> Option<SID_MAX> {
     *CURRENT_USER.get_or_init(|| token_user(CURRENT_PROCESS_TOKEN))
+}
+
+/// The user a filter keeps, looked up from what the configuration names.
+///
+/// Windows has no uid, so what the filter compares is the whole SID. The two
+/// keywords never reach this function - the configuration layer turns them
+/// into `All` and `Myself` - and what is left is a user, tried as the SID it
+/// is written as and then as the name of an account. A number is looked up as
+/// a name like anything else, and so is almost never a user: there is nothing
+/// on Windows for a uid to mean.
+///
+/// A name that resolves to nothing is a typo, and a listing filtered by a typo
+/// comes out empty rather than wrong - empty with a reason beats empty without
+/// one.
+pub fn user_id_of(user: &ConfigUserFilter) -> Result<Option<SID_MAX>, Error> {
+    Ok(match user {
+        ConfigUserFilter::All => None,
+        ConfigUserFilter::Myself => Some(
+            current_user_sid().context("the SID of the user procs runs as could not be read")?,
+        ),
+        ConfigUserFilter::User(user) => {
+            let sid = SID_MAX::from_str(user)
+                .ok()
+                .or_else(|| lookup_sid(user))
+                .ok_or_else(|| anyhow!("no such user: {user}"))?;
+            Some(sid)
+        }
+    })
+}
+
+/// The SID of the account with this name, or `None` when there is no such
+/// account.
+///
+/// The name is resolved the way Windows resolves it: a bare name is looked for
+/// among the machine's own accounts and then in the domain, while
+/// `DOMAIN\name` - or `MACHINE\name` - says which of them to look in.
+fn lookup_sid(name: &str) -> Option<SID_MAX> {
+    let name = to_wide(name);
+    let mut sid_len = 0;
+    let mut domain_len = 0;
+    let mut kind = 0;
+    unsafe {
+        // The first call only measures, and is what says whether the name is
+        // one at all: with no buffers it fills in the two lengths, or leaves
+        // them at zero.
+        let _ = LookupAccountNameW(
+            ptr::null(),
+            name.as_ptr(),
+            ptr::null_mut(),
+            &mut sid_len,
+            ptr::null_mut(),
+            &mut domain_len,
+            &mut kind,
+        );
+
+        // A SID never exceeds `SECURITY_MAX_SID_SIZE`; a longer one would not
+        // fit in the `SID_MAX` the second call fills.
+        if sid_len == 0 || sid_len > SECURITY_MAX_SID_SIZE {
+            return None;
+        }
+
+        let mut sid: SID_MAX = zeroed();
+        let mut domain = vec![0u16; domain_len as usize];
+        let ret = LookupAccountNameW(
+            ptr::null(),
+            name.as_ptr(),
+            &mut sid.sid as *mut SID as PSID,
+            &mut sid_len,
+            domain.as_mut_ptr(),
+            &mut domain_len,
+            &mut kind,
+        );
+
+        (ret != 0).then_some(sid)
+    }
+}
+
+/// A string as a NUL terminated wide string, for the `*W` APIs.
+fn to_wide(s: &str) -> Vec<u16> {
+    use std::os::windows::ffi::OsStrExt;
+
+    std::ffi::OsStr::new(s)
+        .encode_wide()
+        .chain(std::iter::once(0))
+        .collect()
 }
 
 // ---------------------------------------------------------------------------
@@ -406,24 +491,10 @@ fn take_snapshot(with_thread: bool, filter: ShowFilter) -> SystemSnapshot {
     };
 
     // One entry of the buffer is `procs` itself, and it carries the SID the
-    // filter compares against. Reading it here - while the buffer is still
-    // the only thing in hand - is what lets the filter drop a process before a
-    // single handle is opened for it. The value never changes, so the second
-    // snapshot of a run reuses it.
+    // filter compares against: reading it here, while the buffer is still the
+    // only thing in hand, is what lets the filter drop a process before a
+    // single handle is opened for it.
     let carries_sid = buffer.carries_user_sid();
-    if CURRENT_USER.get().is_none() && !filter.other_users {
-        let self_pid = std::process::id() as usize;
-        for entry in buffer.iter() {
-            if entry.info().UniqueProcessId as usize == self_pid {
-                // Only a SID actually present in the entry is worth keeping:
-                // a `None` here would leave the fallback to the token unused.
-                if let Some(sid) = entry.user_sid() {
-                    let _ = CURRENT_USER.set(Some(sid));
-                }
-                break;
-            }
-        }
-    }
 
     // `ProcessNetworkIoInformation` is a Windows 11 addition: on an older
     // build no handle is opened for it at all.
@@ -439,20 +510,14 @@ fn take_snapshot(with_thread: bool, filter: ShowFilter) -> SystemSnapshot {
         // the process list, and later on the handle and the command line read
         // in `collect_proc`.
         let user = if carries_sid { entry.user_sid() } else { None };
-        if !filter.other_users {
-            match (current_user_sid(), user.as_ref()) {
-                (Some(current), Some(user)) => {
-                    if current != *user {
-                        continue;
-                    }
-                }
-                // Our own SID could not be read, so there is nothing to
-                // compare against.
-                (None, _) => {}
-                // The owner is not published yet; `collect_proc` judges the
-                // process again once its token has been read.
-                (_, None) => {}
-            }
+        // An owner that is not published yet - the class does not carry SIDs,
+        // or this entry has none - is judged again in `collect_proc`, once its
+        // token has been read.
+        if let Some(userid) = filter.userid
+            && user.is_some()
+            && user != Some(userid)
+        {
+            continue;
         }
 
         let image_name = entry.image_name();

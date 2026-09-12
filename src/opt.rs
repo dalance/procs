@@ -192,6 +192,16 @@ pub struct Opt {
     #[clap(long = "no-header")]
     pub no_header: bool,
 
+    /// Show only the processes of one user ("all", "myself", or a user)
+    #[clap(
+        short = 'u',
+        long = "user",
+        value_name = "user",
+        num_args = 0..=1,
+        default_missing_value = "myself"
+    )]
+    pub show_user_only: Option<String>,
+
     /// Path to procfs
     #[clap(long = "procfs")]
     pub procfs: Option<PathBuf>,

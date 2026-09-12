@@ -450,6 +450,62 @@ impl std::fmt::Display for SID_MAX {
     }
 }
 
+impl std::str::FromStr for SID_MAX {
+    type Err = ();
+
+    /// The SID as Windows writes it: `S-1-5-21-...-1001`.
+    ///
+    /// Only the parts that are compared are read - the revision, the
+    /// identifier authority and the sub-authorities - so a SID that went
+    /// through `Display` parses back to an equal one. Anything else is `Err`,
+    /// including a SID with more sub-authorities than a SID can hold, so that
+    /// a value which only looks like a SID is left to be read as something
+    /// else.
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let rest = s.strip_prefix("S-").ok_or(())?;
+        let mut parts = rest.split('-');
+
+        let revision: u8 = parts.next().ok_or(())?.parse().map_err(|_| ())?;
+        let authority: u64 = parts.next().ok_or(())?.parse().map_err(|_| ())?;
+        // The identifier authority is 48 bits wide.
+        if authority > 0xffff_ffff_ffff {
+            return Err(());
+        }
+
+        let mut subs = [0u32; SID_MAX_SUB_AUTHORITIES];
+        let mut count = 0;
+        for part in parts {
+            if count == SID_MAX_SUB_AUTHORITIES {
+                return Err(());
+            }
+            subs[count] = part.parse().map_err(|_| ())?;
+            count += 1;
+        }
+        if count == 0 {
+            return Err(());
+        }
+
+        // Zeroed first so that the padding is never read as part of the SID:
+        // equality and hashing go over the live bytes only.
+        let mut ret: SID_MAX = unsafe { std::mem::zeroed() };
+        ret.sid.Revision = revision;
+        ret.sid.SubAuthorityCount = count as u8;
+        ret.sid.IdentifierAuthority.Value = authority.to_be_bytes()[2..].try_into().unwrap();
+        // SAFETY: `subs` holds at most `SID_MAX_SUB_AUTHORITIES` entries, the
+        // count `SubAuthorityCount` is set from, and the sub-authorities are
+        // contiguous from `SubAuthority[0]` in the buffer, which is
+        // `SECURITY_MAX_SID_SIZE` bytes - room for 15 of them.
+        unsafe {
+            ptr::copy_nonoverlapping(
+                subs.as_ptr(),
+                ptr::addr_of_mut!(ret.sid.SubAuthority) as *mut u32,
+                count,
+            );
+        }
+        Ok(ret)
+    }
+}
+
 impl PartialEq for SID_MAX {
     fn eq(&self, other: &Self) -> bool {
         self.as_bytes() == other.as_bytes()
@@ -1804,6 +1860,46 @@ mod tests {
                 size_of::<PROCESS_NETWORK_COUNTERS>()
             );
             assert!(process_network_counters(handle).is_some());
+        }
+    }
+
+    /// The string a SID is written as parses back to the same SID, and a
+    /// string that only looks like one does not parse at all - it is then left
+    /// to be read as a user name.
+    #[test]
+    fn sid_parses_its_own_string() {
+        let text = "S-1-5-21-1111111111-2222222222-3333333333-4444";
+        let sid: SID_MAX = text.parse().expect("a SID");
+        assert_eq!(sid.format(false), text);
+        assert_eq!(sid.authority(), 5);
+        assert_eq!(
+            sid.sub_authorities(),
+            [21, 1111111111, 2222222222, 3333333333, 4444]
+        );
+
+        // The well known ones, which are the same on every Windows and are
+        // shorter than the machine SIDs.
+        let system: SID_MAX = "S-1-5-18".parse().expect("a SID");
+        assert_eq!(system.format(false), "S-1-5-18");
+        assert_eq!(system.sub_authorities(), [18]);
+
+        // An authority of exactly the 48 bits it is given.
+        let wide: SID_MAX = "S-1-281474976710655-1".parse().expect("a SID");
+        assert_eq!(wide.authority(), 281474976710655);
+        assert_eq!(wide.format(false), "S-1-281474976710655-1");
+
+        // Not SIDs: no prefix, no sub-authority, a negative one, one too many,
+        // and an authority wider than the 48 bits it is given.
+        for bad in [
+            "1-5-18",
+            "S-1",
+            "S-1-5",
+            "S-1-5--1",
+            "S-1-5-21-1-2-3-4-5-6-7-8-9-10-11-12-13-14-15-16",
+            "S-1-281474976710656-18",
+            "S-x-5-18",
+        ] {
+            assert!(bad.parse::<SID_MAX>().is_err(), "{bad} is not a SID");
         }
     }
 }

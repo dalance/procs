@@ -288,17 +288,28 @@ procs --tree
 
 If `TreeSlot` column exists in config, dependency tree is shown at the slot.
 
-### Show other users
+### Show the processes of one user
 
-By default `procs` shows the processes of every user. Setting
-`show_other_users` to `false` in the `[display]` section narrows the listing
-down to the processes of the user `procs` runs as.
+By default `procs` shows the processes of every user. `show_user_only` in the
+`[display]` section, or the `--user` (`-u`) option, narrows the listing down to
+one of them.
 
-```console
-procs
+```bash
+# Show the processes of the current user
+procs -u
+procs --user myself
+procs --user $USER
+
+# Show the processes of the root user
+procs -u root
+procs --user root
+procs --user 0
+
+# Show processes of all users (default)
+procs -u all
 ```
 
-See [the section](#show_other_users) for the details.
+See [the section](#show_user_only) for the details.
 
 ### Sort column
 
@@ -690,7 +701,7 @@ style = "223"     # 223 for both theme
 | tree_symbols          | [String; 5]           |  [│, ─, ┬, ├, └] | Symbols used by tree view                                                    |
 | abbr_sid              | true, false           | true             | Whether machine SID is abbreviated ( Windows only )                          |
 | theme                 | Auto, Dark, Light     | Auto             | Default theme                                                                |
-| show_other_users     | true, false           | true             | Whether processes of other users are shown (false: only the current user)   |
+| show_user_only        | "all", "myself", [User] | "all"          | Which user's processes are shown                                             |
 
 If `color_mode` is `Auto`, color is enabled for terminal and pager, disabled for pipe.
 
@@ -712,14 +723,29 @@ If `abbr_sid` is `true`, SID is shown like below:
 S-1-5-21-...-1001
 ```
 
-#### `show_other_users`
+#### `show_user_only`
 
-By default `procs` shows the processes of every user. Setting `show_other_users`
-to `false` narrows the listing down to the processes of the user `procs` itself
-runs as.
+By default `procs` shows the processes of every user. `show_user_only` names the
+one user whose processes are kept, and `--user` (`-u`) sets it from the command
+line:
+
+- `"all"`: every user's processes. This is the default, and what leaving the key
+  out means.
+- `"myself"`: the processes of the user `procs` runs as. A bare `--user` (or
+  `-u`) is short for this.
+- anything else: a user to keep, written as a name (`root`, `alice`), as a uid
+  in decimal (`1000`), or - on Windows - as a SID.
+
+The user is looked up while `procs` starts, and a name that matches no account
+stops it with `no such user: ...` rather than leaving an empty listing behind.
+
+On Windows there is no uid, so a number is looked up as a name like anything
+else and normally matches nothing. What the filter compares there is the whole
+SID, so an account is kept only if it is that account. The `Uid` column shows
+the SID to use - in full, which is what `abbr_sid` abbreviates.
 
 A process whose owner cannot be determined - a Windows protected process, or
-some of the kernel's own - counts as *not* the current user and is dropped.
+some of the kernel's own - counts as *not* the wanted user and is dropped.
 Running with more privileges (`sudo`, or an elevated prompt on Windows) makes
 more owners readable and therefore keeps more processes.
 

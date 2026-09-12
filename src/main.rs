@@ -313,24 +313,85 @@ mod tests {
     #[test]
     fn test_only_config_keys() {
         let config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
-        assert!(config.display.show_other_users);
+        assert_eq!(config.display.show_user_only, ConfigUserFilter::All);
 
-        let s = format!("{CONFIG_DEFAULT}\n[display]\nshow_other_users = false\n");
+        let s = format!("{CONFIG_DEFAULT}\n[display]\nshow_user_only = \"all\"\n");
         let config: Config = toml::from_str(&s).unwrap();
-        assert!(!config.display.show_other_users);
+        assert_eq!(config.display.show_user_only, ConfigUserFilter::All);
+
+        let s = format!("{CONFIG_DEFAULT}\n[display]\nshow_user_only = \"myself\"\n");
+        let config: Config = toml::from_str(&s).unwrap();
+        assert_eq!(config.display.show_user_only, ConfigUserFilter::Myself);
+
+        // A uid, written as a number and as a string, is the same user.
+        let s = format!("{CONFIG_DEFAULT}\n[display]\nshow_user_only = 1000\n");
+        let config: Config = toml::from_str(&s).unwrap();
+        assert_eq!(
+            config.display.show_user_only,
+            ConfigUserFilter::User(String::from("1000"))
+        );
+
+        let s = format!("{CONFIG_DEFAULT}\n[display]\nshow_user_only = \"1000\"\n");
+        let config: Config = toml::from_str(&s).unwrap();
+        assert_eq!(
+            config.display.show_user_only,
+            ConfigUserFilter::User(String::from("1000"))
+        );
+
+        // A name is kept as it was written - it is only looked up later.
+        let s = format!("{CONFIG_DEFAULT}\n[display]\nshow_user_only = \"someuser\"\n");
+        let config: Config = toml::from_str(&s).unwrap();
+        assert_eq!(
+            config.display.show_user_only,
+            ConfigUserFilter::User(String::from("someuser"))
+        );
     }
 
     #[test]
-    fn test_run_show_other_users() {
+    fn test_show_user_only_unknown_user() {
         let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
         config.pager.mode = ConfigPagerMode::Disable;
         config.display.theme = ConfigTheme::Dark;
-        config.display.show_other_users = false;
+        config.display.show_user_only = ConfigUserFilter::User(String::from("no-such-user-42"));
+
+        let args = ["procs"];
+        let mut opt = Opt::parse_from(args.iter());
+        let err = run_default(&mut opt, &config).unwrap_err();
+        assert!(err.to_string().contains("no such user"));
+    }
+
+    #[test]
+    fn test_run_show_user_only() {
+        let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
+        config.pager.mode = ConfigPagerMode::Disable;
+        config.display.theme = ConfigTheme::Dark;
+        config.display.show_user_only = ConfigUserFilter::Myself;
 
         let args = ["procs"];
         let mut opt = Opt::parse_from(args.iter());
         let ret = run_default(&mut opt, &config);
         assert!(ret.is_ok());
+
+        let args = ["procs", "--user"];
+        let opt = Opt::parse_from(args.iter());
+        assert_eq!(opt.show_user_only.as_deref(), Some("myself"));
+
+        let args = ["procs", "--user", "all"];
+        let opt = Opt::parse_from(args.iter());
+        assert_eq!(opt.show_user_only.as_deref(), Some("all"));
+
+        let args = ["procs", "--user", "1000"];
+        let opt = Opt::parse_from(args.iter());
+        assert_eq!(opt.show_user_only.as_deref(), Some("1000"));
+
+        // The short form, which takes its value the same way.
+        let args = ["procs", "-u"];
+        let opt = Opt::parse_from(args.iter());
+        assert_eq!(opt.show_user_only.as_deref(), Some("myself"));
+
+        let args = ["procs", "-u", "all"];
+        let opt = Opt::parse_from(args.iter());
+        assert_eq!(opt.show_user_only.as_deref(), Some("all"));
     }
 
     #[test]

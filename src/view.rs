@@ -3,7 +3,7 @@ use crate::column::Column;
 use crate::columns::*;
 use crate::config::*;
 use crate::opt::{ArgColorMode, ArgPagerMode};
-use crate::process::{ShowFilter, collect_proc};
+use crate::process::{ShowFilter, collect_proc, user_id_of};
 use crate::search_regex::SearchRegex;
 use crate::style::{apply_color, apply_style, color_to_column_style};
 use crate::term_info::TermInfo;
@@ -176,8 +176,14 @@ impl View {
             config.display.show_thread
         };
 
+        // The command line wins over the configuration file, the way it does
+        // for the other options that have both.
+        let user_only = match &opt.show_user_only {
+            Some(user) => ConfigUserFilter::user(user),
+            None => config.display.show_user_only.clone(),
+        };
         let filter = ShowFilter {
-            other_users: config.display.show_other_users,
+            userid: user_id_of(&user_only)?,
             kthread: config.display.show_kthreads,
         };
 
