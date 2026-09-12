@@ -203,7 +203,10 @@ pub struct Opt {
     pub show_user_only: Option<String>,
 
     /// Path to procfs
-    #[clap(long = "procfs")]
+    // Linux only: on the other platforms the option is not registered at all,
+    // so passing it is reported as an unknown argument.
+    #[cfg_attr(target_os = "linux", clap(long = "procfs"))]
+    #[cfg_attr(not(target_os = "linux"), clap(skip))]
     pub procfs: Option<PathBuf>,
 
     /// Show debug message
