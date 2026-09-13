@@ -6,8 +6,8 @@ use std::collections::HashMap;
 pub struct SigBlk {
     header: String,
     unit: String,
-    fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, u64>,
+    fmt_contents: HashMap<i64, String>,
+    raw_contents: HashMap<i64, u64>,
     width: usize,
 }
 
@@ -45,7 +45,7 @@ impl Column for SigBlk {
 #[cfg(target_os = "freebsd")]
 impl Column for SigBlk {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = proc.curr_proc.info.sigmask.0[0] as u64;
+        let raw_content = crate::util::sigset_words(&proc.curr_proc.ki_sigmask)[0] as u64;
         let fmt_content = format!("{raw_content:016x}");
 
         self.fmt_contents.insert(proc.pid, fmt_content);

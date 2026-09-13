@@ -8,13 +8,13 @@ use tokio::runtime::Runtime;
 pub struct Docker {
     header: String,
     unit: String,
-    fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, String>,
+    fmt_contents: HashMap<i64, String>,
+    raw_contents: HashMap<i64, String>,
     width: usize,
     #[cfg(any(target_os = "linux", target_os = "android"))]
     containers: HashMap<String, String>,
     #[cfg(target_os = "macos")]
-    containers: HashMap<i32, String>,
+    containers: HashMap<i64, String>,
     available: bool,
 }
 
@@ -57,7 +57,7 @@ impl Docker {
 impl Docker {
     pub fn new(header: Option<String>, path: &str) -> Self {
         let header = header.unwrap_or_else(|| String::from("Docker"));
-        let unit = String::from("");
+        let unit = String::new();
         let mut containers = HashMap::new();
         let mut available = true;
         if let Ok(docker) = dockworker::Docker::connect_with_unix(path) {
@@ -70,7 +70,7 @@ impl Docker {
                     let name = String::from(&c.Names[0][1..]);
                     if let Ok(processes) = rt.block_on(docker.processes(c.Id.as_str())) {
                         for p in processes {
-                            if let Ok(pid) = p.pid.parse::<i32>() {
+                            if let Ok(pid) = p.pid.parse::<i64>() {
                                 containers.insert(pid, name.clone());
                             }
                         }
@@ -164,7 +164,7 @@ impl Column for Docker {
         let fmt_content = if let Some(name) = self.containers.get(&proc.pid) {
             name.to_string()
         } else {
-            String::from("")
+            String::new()
         };
         let raw_content = fmt_content.clone();
 

@@ -6,8 +6,8 @@ use std::collections::HashMap;
 pub struct Processor {
     header: String,
     unit: String,
-    fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, i32>,
+    fmt_contents: HashMap<i64, String>,
+    raw_contents: HashMap<i64, i32>,
     width: usize,
 }
 
@@ -45,7 +45,7 @@ impl Column for Processor {
 #[cfg(target_os = "freebsd")]
 impl Column for Processor {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = proc.curr_proc.info.lastcpu;
+        let raw_content = proc.curr_proc.ki_lastcpu;
         let fmt_content = format!("{raw_content}");
 
         self.fmt_contents.insert(proc.pid, fmt_content);

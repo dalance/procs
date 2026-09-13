@@ -1,3 +1,4 @@
+use anyhow::{Context, Error, anyhow};
 use chrono::offset::TimeZone;
 use chrono::{Local, NaiveDate};
 use std::cell::RefCell;
@@ -6,25 +7,29 @@ use std::ffi::c_void;
 use std::mem::{MaybeUninit, zeroed};
 use std::path::PathBuf;
 use std::ptr;
+use std::str::FromStr;
+use std::sync::OnceLock;
 use std::sync::atomic::{AtomicU8, Ordering};
 use std::thread;
 use std::time::{Duration, Instant};
 use windows_sys::Win32::Foundation::{CloseHandle, FALSE, HANDLE};
 use windows_sys::Win32::Security::{
-    AdjustTokenPrivileges, GetTokenInformation, LookupAccountSidW, LookupPrivilegeValueW, PSID,
-    SE_DEBUG_NAME, SE_PRIVILEGE_ENABLED, SID, TOKEN_ADJUST_PRIVILEGES, TOKEN_INFORMATION_CLASS,
-    TOKEN_PRIVILEGES, TOKEN_QUERY, TOKEN_USER, TokenUser,
+    AdjustTokenPrivileges, GetTokenInformation, LookupAccountNameW, LookupAccountSidW,
+    LookupPrivilegeValueW, PSID, SE_DEBUG_NAME, SE_PRIVILEGE_ENABLED, SECURITY_MAX_SID_SIZE, SID,
+    TOKEN_ADJUST_PRIVILEGES, TOKEN_INFORMATION_CLASS, TOKEN_PRIVILEGES, TOKEN_QUERY, TOKEN_USER,
+    TokenUser,
 };
 use windows_sys::Win32::System::Threading::{
-    GetCurrentProcess, OpenProcess, OpenProcessToken, PROCESS_QUERY_INFORMATION,
-    PROCESS_QUERY_LIMITED_INFORMATION,
+    GetCurrentProcess, OpenProcess, OpenProcessToken, OpenThread, PROCESS_QUERY_INFORMATION,
+    PROCESS_QUERY_LIMITED_INFORMATION, THREAD_QUERY_LIMITED_INFORMATION,
 };
 
+use super::ProcessInfoBase;
+use super::ShowFilter;
 use super::ntapi;
+use crate::config::ConfigUserFilter;
+use crate::process::thread_key;
 
-/// Re-export the PEB prefix so the WorkDir column can read
-/// `ProcessParameters`.
-pub use super::ntapi::PEB_PREFIX;
 /// Re-export the process-parameters prefix so the WorkDir column can read
 /// `CurrentDirectory`.
 pub use super::ntapi::RTL_USER_PROCESS_PARAMETERS_PREFIX;
@@ -53,14 +58,17 @@ pub use super::ntapi::thread_state;
 pub use super::ntapi::wait_reason;
 
 pub struct ProcessInfo {
-    pub pid: i32,
+    /// The part of a row every platform has - the row key, the parent and the
+    /// sampling window. The `Deref` below hands it out, so a column goes on
+    /// writing `proc.pid` without reaching for `base`.
+    pub base: ProcessInfoBase,
     /// Command line of the process, or `None` when the process exposes none
     /// (e.g. System, Idle). Falls back to `file_name` at display time.
     pub command: Option<String>,
     /// Image (executable) name, used as the Command fallback and by the
-    /// FileName column.
+    /// FileName column. For a `--thread` row it is the thread's own name when
+    /// it has one, and the image name of the process it belongs to otherwise.
     pub file_name: String,
-    pub ppid: i32,
     pub start_time: chrono::DateTime<chrono::Local>,
     pub cpu_info: CpuInfo,
     pub memory_info: MemoryInfo,
@@ -76,8 +84,9 @@ pub struct ProcessInfo {
     /// its threads, so the State column derives the row's state from the most
     /// active one. For a `--thread` row it is that one thread's state.
     pub state: Option<ThreadState>,
-    pub interval: Duration,
 }
+
+process_info_deref!();
 
 pub struct MemoryInfo {
     pub page_fault_count: u64,
@@ -142,16 +151,16 @@ pub struct CpuInfo {
 pub fn collect_proc(
     interval: Duration,
     with_thread: bool,
-    show_kthreads: bool,
     _procfs_path: &Option<PathBuf>,
+    filter: ShowFilter,
 ) -> Vec<ProcessInfo> {
     let _ = set_privilege();
 
     let started = Instant::now();
-    let prev = take_snapshot(with_thread);
+    let prev = take_snapshot(with_thread, filter);
     thread::sleep(interval);
     let finished = Instant::now();
-    let curr = take_snapshot(with_thread);
+    let curr = take_snapshot(with_thread, filter);
 
     // Several columns divide by this, so never hand out a zero interval.
     let interval = finished
@@ -159,7 +168,7 @@ pub fn collect_proc(
         .max(Duration::from_millis(1));
 
     let prev_procs: HashMap<i32, &ProcSnapshot> = prev.procs.iter().map(|p| (p.pid, p)).collect();
-    let prev_threads: HashMap<i32, &ThreadSnapshot> =
+    let prev_threads: HashMap<u64, &ThreadSnapshot> =
         prev.threads.iter().map(|t| (t.tid, t)).collect();
 
     let SystemSnapshot { procs, threads } = curr;
@@ -171,21 +180,39 @@ pub fn collect_proc(
         // Compression, ...) unless `--thread` was given. The decision is made
         // once in `take_snapshot` from the authoritative kernel classification
         // (or the parent-pid heuristic on a basic snapshot).
-        if !show_kthreads && proc.is_kthread {
+        if !filter.kthread && proc.is_kthread {
             continue;
         }
 
-        let prev = prev_procs
+        let Some(prev) = prev_procs
             .get(&proc.pid)
             .copied()
-            // A recycled pid would otherwise pair up with an unrelated process.
-            .filter(|p| p.create_time == proc.create_time || proc.create_time == 0);
-
-        // A process that started between the two samples pairs with itself,
-        // which reports no delta.
-        let prev = prev.unwrap_or(&proc);
+            .filter(|p| p.create_time == proc.create_time || proc.create_time == 0)
+        else {
+            // Pid recycled
+            continue;
+        };
 
         let handles = ProcHandles::open(proc.pid);
+
+        // The owner comes first. With a full snapshot it is already in hand and
+        // `take_snapshot` has filtered on it, so anything that gets this far
+        // matches; with the basic snapshot the token has to be opened anyway,
+        // which is what this call does, and dropping the process here at least
+        // saves reading its command line. The group list is deliberately not
+        // collected here - `Group` and `Gid` query it themselves, so that only
+        // enabling one of them pays for it.
+        let user = proc.user_sid.or_else(|| handles.full.and_then(get_user));
+        // A process whose *own* owner cannot be read counts as not the wanted
+        // user and is dropped: there is no SID to compare, and keeping it
+        // would let processes of every user through. A filter that is not set
+        // at all - our own SID not having been readable - is the one case that
+        // keeps everything, so that the listing is not left empty.
+        if let Some(userid) = filter.userid
+            && user != Some(userid)
+        {
+            continue;
+        }
 
         let command = handles
             .any()
@@ -197,18 +224,12 @@ pub fn collect_proc(
         // have no command line (e.g. System, Idle).
         let file_name = image_fallback(&proc);
 
-        // The snapshot SID saves an `OpenProcessToken`; the token is only
-        // opened for processes the snapshot could not name. The group list is
-        // deliberately not collected here - `Group` and `Gid` query it
-        // themselves, so that only enabling one of them pays for it.
-        let user = proc.user_sid.or_else(|| handles.full.and_then(get_user));
         let priority = proc.base_priority;
 
         ret.push(ProcessInfo {
-            pid: proc.pid,
+            base: ProcessInfoBase::new(proc.pid as i64, proc.ppid as i64, interval),
             command,
             file_name,
-            ppid: proc.ppid,
             start_time: filetime_to_local(proc.create_time),
             cpu_info: CpuInfo {
                 prev_sys: prev.kernel_time,
@@ -235,12 +256,11 @@ pub fn collect_proc(
             thread: proc.thread_count,
             session: proc.session_id as i32,
             state: proc.state,
-            interval,
         });
     }
 
     if with_thread {
-        let owners: HashMap<i32, usize> = ret
+        let owners: HashMap<i64, usize> = ret
             .iter()
             .enumerate()
             .map(|(idx, p)| (p.pid, idx))
@@ -248,7 +268,7 @@ pub fn collect_proc(
 
         for thread in threads {
             // Skip threads whose owning process was filtered out above.
-            let Some(&owner) = owners.get(&thread.pid) else {
+            let Some(&owner) = owners.get(&(thread.pid as i64)) else {
                 continue;
             };
 
@@ -267,18 +287,21 @@ pub fn collect_proc(
             let (command, file_name, user, session) = {
                 let parent = &ret[owner];
                 (
-                    parent.command.clone(),
-                    parent.file_name.clone(),
+                    None,
+                    // A thread has no image of its own, so the name it is
+                    // listed under is its own when it carries one - which is
+                    // how the Command and FileName columns tell the threads
+                    // of one process apart - and its process' otherwise.
+                    thread_name(thread.tid).unwrap_or_else(|| parent.file_name.clone()),
                     parent.user,
                     parent.session,
                 )
             };
 
             ret.push(ProcessInfo {
-                pid: thread.tid,
+                base: ProcessInfoBase::new(thread_key(thread.tid), thread.pid as i64, interval),
                 command,
                 file_name,
-                ppid: thread.pid,
                 start_time: filetime_to_local(thread.create_time),
                 cpu_info: CpuInfo {
                     prev_sys,
@@ -306,12 +329,111 @@ pub fn collect_proc(
                 thread: 1,
                 session,
                 state: Some(thread.state),
-                interval,
             });
         }
     }
 
     ret
+}
+
+// ---------------------------------------------------------------------------
+// Current user
+// ---------------------------------------------------------------------------
+
+/// The SID of the user `procs` runs as.
+static CURRENT_USER: OnceLock<Option<SID_MAX>> = OnceLock::new();
+
+/// The SID of the user `procs` runs as, or `None` when it cannot be resolved.
+///
+/// Reading our own token needs no privilege, so a failure is not expected; a
+/// failure yields `None`, which then matches nothing.
+fn current_user_sid() -> Option<SID_MAX> {
+    *CURRENT_USER.get_or_init(|| token_user(CURRENT_PROCESS_TOKEN))
+}
+
+/// The user a filter keeps, looked up from what the configuration names.
+///
+/// Windows has no uid, so what the filter compares is the whole SID. The two
+/// keywords never reach this function - the configuration layer turns them
+/// into `All` and `Myself` - and what is left is a user, tried as the SID it
+/// is written as and then as the name of an account. A number is looked up as
+/// a name like anything else, and so is almost never a user: there is nothing
+/// on Windows for a uid to mean.
+///
+/// A name that resolves to nothing is a typo, and a listing filtered by a typo
+/// comes out empty rather than wrong - empty with a reason beats empty without
+/// one.
+pub fn user_id_of(user: &ConfigUserFilter) -> Result<Option<SID_MAX>, Error> {
+    Ok(match user {
+        ConfigUserFilter::All => None,
+        ConfigUserFilter::Myself => Some(
+            current_user_sid().context("the SID of the user procs runs as could not be read")?,
+        ),
+        ConfigUserFilter::User(user) => {
+            let sid = SID_MAX::from_str(user)
+                .ok()
+                .or_else(|| lookup_sid(user))
+                .ok_or_else(|| anyhow!("no such user: {user}"))?;
+            Some(sid)
+        }
+    })
+}
+
+/// The SID of the account with this name, or `None` when there is no such
+/// account.
+///
+/// The name is resolved the way Windows resolves it: a bare name is looked for
+/// among the machine's own accounts and then in the domain, while
+/// `DOMAIN\name` - or `MACHINE\name` - says which of them to look in.
+fn lookup_sid(name: &str) -> Option<SID_MAX> {
+    let name = to_wide(name);
+    let mut sid_len = 0;
+    let mut domain_len = 0;
+    let mut kind = 0;
+    unsafe {
+        // The first call only measures, and is what says whether the name is
+        // one at all: with no buffers it fills in the two lengths, or leaves
+        // them at zero.
+        let _ = LookupAccountNameW(
+            ptr::null(),
+            name.as_ptr(),
+            ptr::null_mut(),
+            &mut sid_len,
+            ptr::null_mut(),
+            &mut domain_len,
+            &mut kind,
+        );
+
+        // A SID never exceeds `SECURITY_MAX_SID_SIZE`; a longer one would not
+        // fit in the `SID_MAX` the second call fills.
+        if sid_len == 0 || sid_len > SECURITY_MAX_SID_SIZE {
+            return None;
+        }
+
+        let mut sid: SID_MAX = zeroed();
+        let mut domain = vec![0u16; domain_len as usize];
+        let ret = LookupAccountNameW(
+            ptr::null(),
+            name.as_ptr(),
+            &mut sid.sid as *mut SID as PSID,
+            &mut sid_len,
+            domain.as_mut_ptr(),
+            &mut domain_len,
+            &mut kind,
+        );
+
+        (ret != 0).then_some(sid)
+    }
+}
+
+/// A string as a NUL terminated wide string, for the `*W` APIs.
+fn to_wide(s: &str) -> Vec<u16> {
+    use std::os::windows::ffi::OsStrExt;
+
+    std::ffi::OsStr::new(s)
+        .encode_wide()
+        .chain(std::iter::once(0))
+        .collect()
 }
 
 // ---------------------------------------------------------------------------
@@ -357,13 +479,19 @@ struct SystemSnapshot {
 ///
 /// `SystemFullProcessInformation` is used when it is available, which also
 /// hands over each process' user SID.
-fn take_snapshot(with_thread: bool) -> SystemSnapshot {
+fn take_snapshot(with_thread: bool, filter: ShowFilter) -> SystemSnapshot {
     let mut procs = Vec::new();
     let mut threads = Vec::new();
 
     let Some(buffer) = ntapi::query_system_processes() else {
         return SystemSnapshot { procs, threads };
     };
+
+    // One entry of the buffer is `procs` itself, and it carries the SID the
+    // filter compares against: reading it here, while the buffer is still the
+    // only thing in hand, is what lets the filter drop a process before a
+    // single handle is opened for it.
+    let carries_sid = buffer.carries_user_sid();
 
     // `ProcessNetworkIoInformation` is a Windows 11 addition: on an older
     // build no handle is opened for it at all.
@@ -373,6 +501,22 @@ fn take_snapshot(with_thread: bool) -> SystemSnapshot {
         let info = entry.info();
         let pid = info.UniqueProcessId as usize as i32;
         let ppid = info.InheritedFromUniqueProcessId as usize as i32;
+
+        // Dropping a process here is free and saves everything the rest of the
+        // snapshot does for it: the handle for the network counters, a place in
+        // the process list, and later on the handle and the command line read
+        // in `collect_proc`.
+        let user = if carries_sid { entry.user_sid() } else { None };
+        // An owner that is not published yet - the class does not carry SIDs,
+        // or this entry has none - is judged again in `collect_proc`, once its
+        // token has been read.
+        if let Some(userid) = filter.userid
+            && user.is_some()
+            && user != Some(userid)
+        {
+            continue;
+        }
+
         let image_name = entry.image_name();
 
         // Unlike the rest of the snapshot, the network counters are read from
@@ -425,11 +569,17 @@ fn take_snapshot(with_thread: bool) -> SystemSnapshot {
             },
             base_priority: info.BasePriority,
             state: entry.state(),
-            user_sid: entry.user_sid(),
+            user_sid: user,
             is_kthread,
         });
 
-        if with_thread {
+        // Idle (pid 0) is a stand-in the kernel keeps for the idle loop, not a
+        // process with threads of its own: the records it carries have no
+        // usable thread id - most of them report none at all, and one that
+        // reports `0` would collapse onto Idle's own row, since a thread row
+        // is keyed by its negated id and `-0` is `0` again. So it is listed as
+        // one childless process.
+        if with_thread && pid != 0 {
             threads.extend(entry.threads());
         }
     }
@@ -551,10 +701,49 @@ fn open_process(pid: i32, access: u32) -> Option<HANDLE> {
 }
 
 // ---------------------------------------------------------------------------
+// Thread handles
+// ---------------------------------------------------------------------------
+
+/// The name the thread `tid` carries, if any.
+///
+/// Unlike everything else a row shows, the name is not part of the snapshot:
+/// it costs an `OpenThread` and a query of its own, so it is paid for only
+/// by the threads `--thread` actually lists. `None` when the thread cannot be
+/// opened - it may have exited since the snapshot was taken - or when it was
+/// never given a name.
+fn thread_name(tid: u64) -> Option<String> {
+    // Thread ids are 32 bit; a wider one is not one the kernel handed out.
+    let tid = u32::try_from(tid).ok()?;
+    let handle = unsafe { OpenThread(THREAD_QUERY_LIMITED_INFORMATION, FALSE, tid) };
+    if handle.is_null() {
+        return None;
+    }
+
+    let name = ntapi::thread_name(handle);
+    unsafe {
+        CloseHandle(handle);
+    }
+    name
+}
+
+// ---------------------------------------------------------------------------
 // Privilege / token
 // ---------------------------------------------------------------------------
 
+/// The primary token of the calling process.
+///
+/// `NtCurrentProcessToken()` of `winnt.h`: a pseudo-handle the kernel
+/// resolves to the caller's own token. It needs no `OpenProcessToken` and must
+/// never be closed, so nothing here calls `CloseHandle` on it.
+///
+/// It is only good for **querying** the token (`GetTokenInformation`).
+/// Adjusting privileges through it does not take effect - `set_privilege` has
+/// to open a real handle for that.
+const CURRENT_PROCESS_TOKEN: HANDLE = -4isize as *mut c_void;
+
 fn set_privilege() -> bool {
+    // The pseudo-handle cannot be used here: adjusting privileges needs a real
+    // handle opened with `TOKEN_ADJUST_PRIVILEGES`.
     let handle = unsafe { GetCurrentProcess() };
     let mut token: HANDLE = unsafe { zeroed() };
     let ret = unsafe { OpenProcessToken(handle, TOKEN_ADJUST_PRIVILEGES, &mut token) };
@@ -593,6 +782,7 @@ fn set_privilege() -> bool {
     ret != 0
 }
 
+/// The SID of the user the process `handle` runs as.
 fn get_user(handle: HANDLE) -> Option<SID_MAX> {
     let mut token: HANDLE = unsafe { zeroed() };
     let ret = unsafe { OpenProcessToken(handle, TOKEN_QUERY, &mut token) };
@@ -600,14 +790,21 @@ fn get_user(handle: HANDLE) -> Option<SID_MAX> {
         return None;
     }
 
-    let sid = token_information(token, TokenUser);
+    let sid = token_user(token);
     unsafe {
         CloseHandle(token);
     }
+    sid
+}
 
+/// The SID of the user `token` belongs to.
+///
+/// `token` may be a real handle or the `CURRENT_PROCESS_TOKEN` pseudo-handle;
+/// neither is closed here, so the caller keeps owning it.
+fn token_user(token: HANDLE) -> Option<SID_MAX> {
     // The SID pointer lives inside this buffer, so it has to stay alive for
     // as long as `psid` is used.
-    let buf = sid?;
+    let buf = token_information(token, TokenUser)?;
 
     #[allow(clippy::cast_ptr_alignment)]
     let token_user = buf.as_ptr() as *const TOKEN_USER;
@@ -740,4 +937,22 @@ fn from_wide_ptr(ptr: *const u16) -> String {
         .unwrap();
     let slice = unsafe { std::slice::from_raw_parts(ptr, len) };
     OsString::from_wide(slice).to_string_lossy().into_owned()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// The pseudo-handle has to stand for the same token that
+    /// `OpenProcessToken` hands out for the current process.
+    #[test]
+    fn current_process_token_matches_open_process_token() {
+        let via_pseudo = token_user(CURRENT_PROCESS_TOKEN);
+        // SAFETY: `GetCurrentProcess` returns a pseudo-handle that must not be
+        // closed, and `get_user` closes only the token it opens itself.
+        let via_open = unsafe { get_user(GetCurrentProcess()) };
+
+        assert!(via_pseudo.is_some());
+        assert!(via_pseudo == via_open);
+    }
 }

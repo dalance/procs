@@ -8,8 +8,8 @@ use uzers::Groups;
 pub struct GroupSaved {
     header: String,
     unit: String,
-    fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, String>,
+    fmt_contents: HashMap<i64, String>,
+    raw_contents: HashMap<i64, String>,
     width: usize,
 }
 
@@ -52,7 +52,7 @@ impl Column for GroupSaved {
 #[cfg(target_os = "macos")]
 impl Column for GroupSaved {
     fn add(&mut self, proc: &ProcessInfo) {
-        let gid = proc.curr_task.pbsd.pbi_svgid;
+        let gid = proc.curr_proc.kp_eproc.e_pcred.p_svgid;
         let fmt_content =
             if let Some(group) = USERS_CACHE.with(|x| x.borrow_mut().get_group_by_gid(gid)) {
                 format!("{}", group.name().to_string_lossy())
@@ -71,7 +71,7 @@ impl Column for GroupSaved {
 #[cfg(target_os = "freebsd")]
 impl Column for GroupSaved {
     fn add(&mut self, proc: &ProcessInfo) {
-        let gid = proc.curr_proc.info.svgid;
+        let gid = proc.curr_proc.ki_svgid;
         let fmt_content =
             if let Some(group) = USERS_CACHE.with(|x| x.borrow_mut().get_group_by_gid(gid)) {
                 format!("{}", group.name().to_string_lossy())
