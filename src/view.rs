@@ -194,16 +194,20 @@ impl View {
             filter,
         );
 
-        for c in columns.iter_mut() {
-            for p in &proc {
-                c.column.add(p);
-            }
-        }
-
         let mut parent_pids = HashMap::new();
         let mut child_pids = HashMap::<i64, Vec<i64>>::new();
-        if opt.tree || !config.display.show_self_parents {
-            for p in &proc {
+
+        // Every process is consumed before the next one is collected, so the
+        // per-process resources a platform holds - one `/proc/<pid>` directory
+        // handle per process on Linux - are released as we go instead of
+        // piling up until the whole listing has been read. With a low
+        // `RLIMIT_NOFILE` the old order ran out of descriptors partway and
+        // dropped the rest of the processes without a word.
+        for p in proc {
+            for c in columns.iter_mut() {
+                c.column.add(&p);
+            }
+            if opt.tree || !config.display.show_self_parents {
                 parent_pids.insert(p.pid, p.ppid);
                 if let Some(x) = child_pids.get_mut(&p.ppid) {
                     x.push(p.pid);

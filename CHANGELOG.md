@@ -23,6 +23,7 @@
 * [Fixed] Pid recycled by the kernel no longer reported with a bogus rate
 * [Fixed] ElapsedTime and StartTime columns no longer show a bogus value when the start time is unavailable
 * [Fixed] Gid and Group columns for macOS now currectly report the effective group (matching the other platforms)
+* [Fixed] Avoid silently omitting Linux processes when the open file limit is low
 
 ## [v0.14.12](https://github.com/dalance/procs/compare/v0.14.11...v0.14.12) - 2026-06-25
 
