@@ -182,16 +182,15 @@ impl View {
             config.display.show_kthreads,
             &opt.procfs,
         );
-        for c in columns.iter_mut() {
-            for p in &proc {
-                c.column.add(p);
-            }
-        }
-
         let mut parent_pids = HashMap::new();
         let mut child_pids = HashMap::<i32, Vec<i32>>::new();
-        if opt.tree || !config.display.show_self_parents {
-            for p in &proc {
+        // Consume each process before collecting the next so Linux /proc handles
+        // are released instead of accumulating until every process is collected.
+        for p in proc {
+            for c in columns.iter_mut() {
+                c.column.add(&p);
+            }
+            if opt.tree || !config.display.show_self_parents {
                 parent_pids.insert(p.pid, p.ppid);
                 if let Some(x) = child_pids.get_mut(&p.ppid) {
                     x.push(p.pid);
