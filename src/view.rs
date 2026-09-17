@@ -3,7 +3,7 @@ use crate::column::Column;
 use crate::columns::*;
 use crate::config::*;
 use crate::opt::{ArgColorMode, ArgPagerMode};
-use crate::process::collect_proc;
+use crate::process::{ShowFilter, collect_proc, user_id_of};
 use crate::search_regex::SearchRegex;
 use crate::style::{apply_color, apply_style, color_to_column_style};
 use crate::term_info::TermInfo;
@@ -26,10 +26,10 @@ pub struct View {
     pub columns: Vec<ColumnInfo>,
     pub term_info: TermInfo,
     pub sort_info: SortInfo,
-    pub visible_pids: Vec<i32>,
-    pub auxiliary_pids: Vec<i32>,
-    pub parent_pids: HashMap<i32, i32>,
-    pub child_pids: HashMap<i32, Vec<i32>>,
+    pub visible_pids: Vec<i64>,
+    pub auxiliary_pids: Vec<i64>,
+    pub parent_pids: HashMap<i64, i64>,
+    pub child_pids: HashMap<i64, Vec<i64>>,
 }
 
 impl View {
@@ -176,22 +176,38 @@ impl View {
             config.display.show_thread
         };
 
+        // The command line wins over the configuration file, the way it does
+        // for the other options that have both.
+        let user_only = match &opt.show_user_only {
+            Some(user) => ConfigUserFilter::user(user),
+            None => config.display.show_user_only.clone(),
+        };
+        let filter = ShowFilter {
+            userid: user_id_of(&user_only)?,
+            kthread: config.display.show_kthreads,
+        };
+
         let proc = collect_proc(
             Duration::from_millis(opt.interval),
             show_thread,
-            config.display.show_kthreads,
             &opt.procfs,
+            filter,
         );
-        for c in columns.iter_mut() {
-            for p in &proc {
-                c.column.add(p);
-            }
-        }
 
         let mut parent_pids = HashMap::new();
-        let mut child_pids = HashMap::<i32, Vec<i32>>::new();
-        if opt.tree || !config.display.show_self_parents {
-            for p in &proc {
+        let mut child_pids = HashMap::<i64, Vec<i64>>::new();
+
+        // Every process is consumed before the next one is collected, so the
+        // per-process resources a platform holds - one `/proc/<pid>` directory
+        // handle per process on Linux - are released as we go instead of
+        // piling up until the whole listing has been read. With a low
+        // `RLIMIT_NOFILE` the old order ran out of descriptors partway and
+        // dropped the rest of the processes without a word.
+        for p in proc {
+            for c in columns.iter_mut() {
+                c.column.add(&p);
+            }
+            if opt.tree || !config.display.show_self_parents {
                 parent_pids.insert(p.pid, p.ppid);
                 if let Some(x) = child_pids.get_mut(&p.ppid) {
                     x.push(p.pid);
@@ -271,7 +287,7 @@ impl View {
             .column
             .sorted_pid(&self.sort_info.order);
 
-        let self_pid = std::process::id() as i32;
+        let self_pid = std::process::id() as i64;
 
         let self_parents = if !config.display.show_self_parents {
             let mut self_parents = Vec::new();
@@ -369,7 +385,7 @@ impl View {
         Ok(())
     }
 
-    fn get_parent_pids(&self, pid: i32, parent_pids: &mut Vec<i32>) {
+    fn get_parent_pids(&self, pid: i64, parent_pids: &mut Vec<i64>) {
         if let Some(x) = self.parent_pids.get(&pid)
             && !parent_pids.contains(x)
         {
@@ -378,7 +394,7 @@ impl View {
         }
     }
 
-    fn get_child_pids(&self, pid: i32, child_pids: &mut Vec<i32>) {
+    fn get_child_pids(&self, pid: i64, child_pids: &mut Vec<i64>) {
         if let Some(pids) = self.child_pids.get(&pid) {
             for x in pids {
                 if !child_pids.contains(x) {
@@ -434,11 +450,14 @@ impl View {
             usize::MIN
         };
 
-        let use_builtin_pager = if cfg!(target_os = "windows") {
-            true
-        } else {
-            config.pager.use_builtin
-        };
+        // On Windows, `[pager] command` is what selects the external pager, so
+        // it wins over the built-in one that is otherwise always available -
+        // unless `use_builtin` is set, which is an explicit request for the
+        // built-in pager.
+        #[cfg(target_os = "windows")]
+        let use_builtin_pager = config.pager.use_builtin || pager_command(config).is_none();
+        #[cfg(not(target_os = "windows"))]
+        let use_builtin_pager = config.pager.use_builtin;
 
         let use_pager = match (opt.watch_mode, opt.pager.as_ref(), &config.pager.mode) {
             (true, _, _) => false,
@@ -456,8 +475,7 @@ impl View {
             (false, None, ConfigPagerMode::Disable) => false,
         };
 
-        // Minus doesn't support horizontal scroll yet
-        // https://github.com/arijit79/minus/issues/59
+        // Minus support of horizontal scroll seems broken with ANSI escape code
         let cut_to_pager = if use_builtin_pager {
             true
         } else {
@@ -493,7 +511,7 @@ impl View {
             if use_builtin_pager {
                 self.term_info.use_pager = true;
             } else {
-                View::pager(config);
+                self.pager(config)?;
             }
         }
 
@@ -516,6 +534,8 @@ impl View {
 
         if self.term_info.use_pager {
             minus::page_all(self.term_info.pager.replace(None).unwrap())?;
+        } else {
+            self.term_info.finish_external_pager()?;
         }
 
         Ok(())
@@ -573,7 +593,7 @@ impl View {
     fn display_content(
         &self,
         config: &Config,
-        pid: i32,
+        pid: i64,
         theme: &ConfigTheme,
         auxiliary: bool,
     ) -> Result<(), Error> {
@@ -657,7 +677,7 @@ impl View {
     }
 
     fn search<T: AsRef<str>>(
-        pid: i32,
+        pid: i64,
         keyword_numeric: &[T],
         keyword_nonnumeric: &[T],
         cols_numeric: &[&dyn Column],
@@ -705,7 +725,7 @@ impl View {
         }
     }
 
-    fn search_regex(pid: i32, cols: &[&dyn Column], regex: &SearchRegex) -> Result<bool, Error> {
+    fn search_regex(pid: i64, cols: &[&dyn Column], regex: &SearchRegex) -> Result<bool, Error> {
         for c in cols {
             if regex.is_match(&c.display_json(pid))? {
                 return Ok(true);
@@ -715,7 +735,7 @@ impl View {
     }
 
     #[cfg(not(any(target_os = "windows", any(target_os = "linux", target_os = "android"))))]
-    fn pager(config: &Config) {
+    fn pager(&mut self, config: &Config) -> Result<(), Error> {
         if let Some(ref pager) = config.pager.command {
             Pager::with_pager(pager).setup();
         } else if which::which("less").is_ok() {
@@ -723,10 +743,11 @@ impl View {
         } else {
             Pager::with_pager("more -f").setup();
         }
+        Ok(())
     }
 
     #[cfg(any(target_os = "linux", target_os = "android"))]
-    fn pager(config: &Config) {
+    fn pager(&mut self, config: &Config) -> Result<(), Error> {
         if let Some(ref pager) = config.pager.command {
             Pager::with_pager(pager)
                 // workaround for default less charset is "ascii" on some environments (ex. Ubuntu)
@@ -739,10 +760,45 @@ impl View {
         } else {
             Pager::with_pager("more -f").setup();
         }
+        Ok(())
     }
 
+    /// Spawns the pager given by `[pager] command` and feeds the output to its stdin.
+    /// If it is not set, or the command cannot be parsed or spawned,
+    /// the built-in pager is used.
     #[cfg(target_os = "windows")]
-    fn pager(_config: &Config) {}
+    fn pager(&mut self, config: &Config) -> Result<(), Error> {
+        let Some(command) = pager_command(config) else {
+            // `[pager] command` is not set: the built-in pager is the normal choice
+            self.term_info.use_pager = true;
+            return Ok(());
+        };
+
+        let Some((program, args)) = split_pager_command(command) else {
+            let _ = console::Term::stderr().write_line(&format!(
+                "warning: failed to parse pager command \"{command}\". falling back to the built-in pager"
+            ));
+            self.term_info.use_pager = true;
+            return Ok(());
+        };
+
+        match std::process::Command::new(&program)
+            .args(&args)
+            .stdin(std::process::Stdio::piped())
+            .spawn()
+        {
+            Ok(child) => {
+                self.term_info.external_pager.replace(Some(child));
+            }
+            Err(x) => {
+                let _ = console::Term::stderr().write_line(&format!(
+                    "warning: failed to launch pager \"{program}\" ({x}). falling back to the built-in pager"
+                ));
+                self.term_info.use_pager = true;
+            }
+        }
+        Ok(())
+    }
 
     pub fn inc_sort_column(&mut self) -> usize {
         let current = self.sort_info.idx;
@@ -782,9 +838,79 @@ fn json_object(fields: &[String]) -> String {
     format!("{{{}}}", fields.join(", "))
 }
 
+/// Returns the pager command given by `command` of `[pager]` section.
+/// An empty value is treated as unset.
+#[cfg(target_os = "windows")]
+fn pager_command(config: &Config) -> Option<&str> {
+    config
+        .pager
+        .command
+        .as_deref()
+        .map(str::trim)
+        .filter(|x| !x.is_empty())
+}
+
+/// Splits a command line into the program and its arguments.
+/// A part surrounded by `"` or `'` is kept as a single argument
+/// so that a path containing spaces (ex. `"C:\Program Files\Git\usr\bin\less.exe" -SR`) works.
+/// Returns `None` if the command is empty or a quote is not closed,
+/// so that the caller can fall back to the built-in pager.
+#[cfg(target_os = "windows")]
+fn split_pager_command(command: &str) -> Option<(String, Vec<String>)> {
+    let mut args = Vec::new();
+    let mut arg = String::new();
+    let mut started = false;
+    let mut quote = None;
+
+    for c in command.chars() {
+        match quote {
+            Some(q) => {
+                if c == q {
+                    quote = None;
+                } else {
+                    arg.push(c);
+                }
+            }
+            None => match c {
+                q @ ('"' | '\'') => {
+                    started = true;
+                    quote = Some(q);
+                }
+                c if c.is_whitespace() => {
+                    if started {
+                        args.push(std::mem::take(&mut arg));
+                        started = false;
+                    }
+                }
+                _ => {
+                    arg.push(c);
+                    started = true;
+                }
+            },
+        }
+    }
+    if quote.is_some() {
+        return None;
+    }
+    if started {
+        args.push(arg);
+    }
+
+    let mut args = args.into_iter();
+    let program = args.next()?;
+    if program.is_empty() {
+        return None;
+    }
+    Some((program, args.collect()))
+}
+
 #[cfg(test)]
 mod tests {
     use super::json_object;
+    #[cfg(target_os = "windows")]
+    use super::{pager_command, split_pager_command};
+    #[cfg(target_os = "windows")]
+    use crate::{CONFIG_DEFAULT, Config};
 
     #[test]
     fn json_object_skips_columns_without_json() {
@@ -799,5 +925,67 @@ mod tests {
             json_object(&[r#""PID": 1"#.into(), r#""CPU": 0"#.into()]),
             r#"{"PID": 1, "CPU": 0}"#
         );
+    }
+
+    #[cfg(target_os = "windows")]
+    #[test]
+    fn split_pager_command_parses_program_and_args() {
+        assert_eq!(split_pager_command(""), None);
+        assert_eq!(split_pager_command("   "), None);
+        assert_eq!(split_pager_command("less"), Some(("less".into(), vec![])));
+        assert_eq!(
+            split_pager_command("less -SR"),
+            Some(("less".into(), vec!["-SR".into()]))
+        );
+        assert_eq!(
+            split_pager_command("  less   -S   -R  "),
+            Some(("less".into(), vec!["-S".into(), "-R".into()]))
+        );
+        assert_eq!(
+            split_pager_command(r#""C:\Program Files\Git\usr\bin\less.exe" -SR"#),
+            Some((
+                r"C:\Program Files\Git\usr\bin\less.exe".into(),
+                vec!["-SR".into()]
+            ))
+        );
+        // single quotes work as well
+        assert_eq!(
+            split_pager_command(r"'C:\Program Files\Git\usr\bin\less.exe' -S -R"),
+            Some((
+                r"C:\Program Files\Git\usr\bin\less.exe".into(),
+                vec!["-S".into(), "-R".into()]
+            ))
+        );
+        // a quoted argument keeps the whitespaces in it
+        assert_eq!(
+            split_pager_command(r#"less "-S -R""#),
+            Some(("less".into(), vec!["-S -R".into()]))
+        );
+        // unbalanced quote is rejected instead of building a broken command line
+        assert_eq!(
+            split_pager_command(r#""C:\Program Files\Git\usr\bin\less.exe -SR"#),
+            None
+        );
+        assert_eq!(split_pager_command(r"less '-SR"), None);
+    }
+
+    #[cfg(target_os = "windows")]
+    #[test]
+    fn pager_command_uses_config_command() {
+        let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
+        assert_eq!(pager_command(&config), None);
+
+        config.pager.command = Some("less -SR".into());
+        assert_eq!(pager_command(&config), Some("less -SR"));
+
+        config.pager.command = Some("  less -SR  ".into());
+        assert_eq!(pager_command(&config), Some("less -SR"));
+
+        // an empty `command` is treated as unset
+        config.pager.command = Some("   ".into());
+        assert_eq!(pager_command(&config), None);
+
+        config.pager.command = Some(String::new());
+        assert_eq!(pager_command(&config), None);
     }
 }

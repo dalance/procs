@@ -7,8 +7,8 @@ use std::collections::HashMap;
 pub struct ContextSw {
     header: String,
     unit: String,
-    fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, u64>,
+    fmt_contents: HashMap<i64, String>,
+    raw_contents: HashMap<i64, u64>,
     width: usize,
 }
 
@@ -53,7 +53,7 @@ impl Column for ContextSw {
 #[cfg(target_os = "macos")]
 impl Column for ContextSw {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = proc.curr_task.ptinfo.pti_csw as u64;
+        let raw_content = proc.curr_task.pti_csw as u64;
         let fmt_content = bytify(raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
@@ -67,7 +67,7 @@ impl Column for ContextSw {
 impl Column for ContextSw {
     fn add(&mut self, proc: &ProcessInfo) {
         let raw_content =
-            (proc.curr_proc.info.rusage.nvcsw + proc.curr_proc.info.rusage.nivcsw) as u64;
+            (proc.curr_proc.ki_rusage.ru_nvcsw + proc.curr_proc.ki_rusage.ru_nivcsw) as u64;
         let fmt_content = bytify(raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);

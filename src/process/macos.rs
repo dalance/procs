@@ -1,85 +1,208 @@
-use libc::{c_int, c_void, size_t};
-use libproc::libproc::bsd_info::BSDInfo;
+use crate::process::{ProcessInfoBase, ShowFilter, thread_key};
+use libc::{c_char, c_int, c_void, size_t};
 use libproc::libproc::file_info::{ListFDs, ProcFDType, pidfdinfo};
 use libproc::libproc::net_info::{InSockInfo, SocketFDInfo, SocketInfoKind, TcpSockInfo};
 use libproc::libproc::pid_rusage::{RUsageInfoV2, pidrusage};
-use libproc::libproc::proc_pid::{ListThreads, listpidinfo, pidinfo};
-use libproc::libproc::task_info::{TaskAllInfo, TaskInfo};
+use libproc::libproc::proc_pid::{ListThreads, listpidinfo, pidinfo, pidpath};
+use libproc::libproc::task_info::TaskInfo;
 use libproc::libproc::thread_info::ThreadInfo;
-use libproc::processes::{ProcFilter, pids_by_type};
 use mach2::{boolean, vm_types};
+use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
-use std::thread;
 use std::time::{Duration, Instant};
+use std::{cmp, io, mem, ptr, thread};
 
 pub struct ProcessInfo {
-    pub pid: i32,
-    pub ppid: i32,
-    pub curr_task: TaskAllInfo,
-    pub prev_task: TaskAllInfo,
+    /// The part of a row every platform has - the row key, the parent and the
+    /// sampling window. The `Deref` below hands it out, so a column goes on
+    /// writing `proc.pid` without reaching for `base`.
+    ///
+    /// Threads and processes share the key because every column keys its
+    /// contents by it. `PROC_PIDLISTTHREADS` hands out 64 bit ids that mean
+    /// nothing on their own and would land on real pids (or on each other) if
+    /// they were used as keys directly, so a thread row negates its id: real
+    /// pids are never negative, and the negation of a thread id is unique to
+    /// that thread. The Pid column turns it back into the id.
+    pub base: ProcessInfoBase,
+    pub curr_proc: kinfo_proc,
+    // Kept for the same reason freebsd keeps one: the two-sample shape of
+    // `collect_proc` is shared, even if no column reads the previous one.
+    #[allow(dead_code)]
+    pub prev_proc: kinfo_proc,
+    pub curr_task: TaskInfo,
+    pub prev_task: TaskInfo,
     pub curr_path: Option<PathInfo>,
-    pub curr_threads: Vec<ThreadInfo>,
     pub curr_udps: Vec<InSockInfo>,
     pub curr_tcps: Vec<TcpSockInfo>,
     pub curr_res: Option<RUsageInfoV2>,
     pub prev_res: Option<RUsageInfoV2>,
-    pub interval: Duration,
+    pub state: i32,
+}
+
+process_info_deref!();
+
+/// Map the BSD process-table state (`extern_proc::p_stat`) onto the process
+/// state codes the `State` column prints on macOS (see `state.rs`).
+///
+/// Only two of the five values the field can hold are worth reading. XNU
+/// moved the process state onto the threads long ago and left `p_stat`
+/// behind: a snapshot of the whole table (604 processes, macOS 26) has every
+/// last one of them at `SRUN`, whether it is running or has been asleep
+/// since boot. The field is written again only when the process is stopped
+/// (`SSTOP`, confirmed by stopping one) or dies (`SZOMB`, confirmed with an
+/// unreaped child); `SSLEEP` and `SIDL` never showed up at all.
+///
+/// So `SRUN` says "alive", not "running". Reporting it as "R" would mark
+/// every process this fallback covers as busy - worse than the "?" it is
+/// meant to improve on - so it is left unknown:
+///
+/// | `p_stat` | name   | meaning                       | procs |
+/// |----------|--------|-------------------------------|-------|
+/// | 1 SIDL   | born   | being created by fork         | 7 "?" |
+/// | 2 SRUN   | run    | alive - held by every process | 7 "?" |
+/// | 3 SSLEEP | sleep  | never written by XNU          | 7 "?" |
+/// | 4 SSTOP  | stop   | stopped / suspended           | 5 "T" |
+/// | 5 SZOMB  | zombie | awaiting collection by parent | 8 "Z" |
+///
+/// Used as a fallback when `PROC_PIDLISTTHREADS` is denied (EPERM) and the
+/// thread-derived state cannot be computed.
+fn state_from_pstat(p_stat: libc::c_char) -> i32 {
+    match p_stat as i32 {
+        4 => 5, // SSTOP -> T
+        5 => 8, // SZOMB -> Z
+        // SIDL, SRUN, SSLEEP and anything else say nothing about what the
+        // process is doing now.
+        _ => 7, // unknown
+    }
 }
 
 pub fn collect_proc(
     interval: Duration,
-    _with_thread: bool,
-    show_kthreads: bool,
+    with_thread: bool,
     _procfs_path: &Option<PathBuf>,
+    filter: ShowFilter,
 ) -> Vec<ProcessInfo> {
-    let mut base_procs = Vec::new();
+    let mut base_procs = HashMap::new();
     let mut ret = Vec::new();
     let arg_max = get_arg_max();
 
-    if let Ok(procs) = pids_by_type(ProcFilter::All) {
-        for p in procs {
-            if let Ok(task) = pidinfo::<TaskAllInfo>(p as i32, 0) {
-                if !show_kthreads && task.pbsd.pbi_flags & 1 /* PROC_FLAG_SYSTEM */ != 0 {
-                    continue;
-                }
-
-                let res = pidrusage::<RUsageInfoV2>(p as i32).ok();
-                let time = Instant::now();
-                base_procs.push((p as i32, task, res, time));
+    if let Some(procs) = sysctl_procs(filter.userid) {
+        for kp in procs {
+            if !filter.kthread && kp.kp_proc.p_flag & P_SYSTEM != 0 {
+                continue;
             }
+
+            // The uid comes with the process table, so dropping a process here
+            // saves the resource usage query and everything the second pass
+            // does for it.
+
+            let pid = kp.kp_proc.p_pid;
+            // `pidinfo` is gated by *effective* uid, so it fails with `EPERM`
+            // for processes owned by other users. Everything else libproc
+            // offers - `pidrusage`, `PROC_PIDLISTFDS`, `PROC_PIDLISTTHREADS`,
+            // and the `KERN_PROCARGS2` sysctl - is gated the same way, so a
+            // `TaskInfo` that failed means the rest of the queries would too:
+            // the flag lets the second pass skip them all.
+            let (task, task_info_ok) = match pidinfo::<TaskInfo>(pid, 0) {
+                Ok(task) => (task, true),
+                Err(_) => {
+                    // EPERM or ESRCH
+                    let mut res: TaskInfo = unsafe { mem::zeroed() };
+                    res.pti_priority = kp.kp_proc.p_priority as i32; // BSD priority
+                    // p_estcpu/p_cpticks/p_pctcpu/p_uticks/p_sticks/p_iticks/p_rtime/p_swtime/p_slptime/p_usrpri
+                    // e_xsize / e_xccount / e_xswrss are all zeros.
+                    (res, false)
+                }
+            };
+            // `curr_res` stays `None` when `proc_pid_rusage` is denied (EPERM):
+            // no `kinfo_proc` field maps to `rusage_info_v*`, and a synthesized
+            // zero-filled struct would make `VmTotal` prefer `ri_phys_footprint
+            // == 0` over the real `TaskInfo.pti_resident_size`. The columns
+            // already fall back gracefully on `None`.
+            let res = if task_info_ok {
+                pidrusage::<RUsageInfoV2>(pid).ok()
+            } else {
+                None
+            };
+            let time = Instant::now();
+
+            // The thread list is part of the first sample: the second pass
+            // pairs each current thread with the one the first pass saw.
+            let mut threads = Vec::new();
+            if with_thread && task_info_ok {
+                // Over-allocate the buffer to reduce the chance of truncation.
+                let threadids = listpidinfo::<ListThreads>(pid, (task.pti_threadnum as usize) * 2);
+                if let Ok(threadids) = threadids {
+                    threads.reserve(threadids.len());
+                    for t in threadids {
+                        // `0` is what the kernel reports for a thread it has
+                        // no id for. It is not a thread to ask about, and it
+                        // would collide with every other one of them.
+                        if t == 0 {
+                            continue;
+                        }
+                        if let Ok(thread) = pidinfo::<ThreadInfo>(pid, t) {
+                            threads.push((t, thread));
+                        }
+                    }
+                }
+            }
+            base_procs.insert(pid, (kp, task, res, time, threads, task_info_ok));
         }
     }
 
     thread::sleep(interval);
 
-    for (pid, prev_task, prev_res, prev_time) in base_procs {
-        let curr_task = if let Ok(task) = pidinfo::<TaskAllInfo>(pid, 0) {
-            task
+    for curr_proc in sysctl_procs(filter.userid).unwrap_or_default() {
+        // Either the process is gone, or libproc was never willing to talk
+        // about it: keeping the sample taken before the sleep is what makes
+        // the deltas come out as zero instead of as a jump.
+        let pid = curr_proc.kp_proc.p_pid;
+        let (prev_proc, prev_task, prev_res, prev_time, prev_threads, task_info_ok) =
+            match base_procs.remove(&pid) {
+                Some(data) => data,
+                None => continue,
+            };
+
+        let curr_task = if task_info_ok {
+            pidinfo::<TaskInfo>(pid, 0).unwrap_or(prev_task)
         } else {
-            clone_task_all_info(&prev_task)
+            prev_task
         };
 
-        let curr_path = get_path_info(pid, arg_max);
-
-        let threadids = listpidinfo::<ListThreads>(pid, curr_task.ptinfo.pti_threadnum as usize);
-        let mut curr_threads = Vec::new();
-        if let Ok(threadids) = threadids {
-            for t in threadids {
-                if let Ok(thread) = pidinfo::<ThreadInfo>(pid, t) {
-                    curr_threads.push(thread);
-                }
-            }
+        if prev_proc.kp_proc.p_starttime != curr_proc.kp_proc.p_starttime {
+            // Pid recycled
+            continue;
         }
+
+        // The command line, from whichever source is willing to give one:
+        // `KERN_PROCARGS2` gives all of it, `proc_pidpath` still gives the
+        // executable for processes it will not, and the process table always
+        // carries a name. A process whose `TaskInfo` was denied (EPERM)
+        // skips the `KERN_PROCARGS2` sysctl, but `proc_pidpath` is still
+        // worth a try before falling back to the process table name.
+        let curr_path = if task_info_ok {
+            get_path_info(pid, arg_max).filter(|path| !path.cmd.is_empty())
+        } else {
+            None
+        }
+        .or_else(|| pidpath(pid).ok().and_then(path_info_of_exe))
+        .or_else(|| path_info_of_exe(command_of_comm(&curr_proc.kp_proc.p_comm)));
 
         let mut curr_tcps = Vec::new();
         let mut curr_udps = Vec::new();
 
-        let fds = listpidinfo::<ListFDs>(pid, curr_task.pbsd.pbi_nfiles as usize);
-        if let Ok(fds) = fds {
-            for fd in fds {
-                if let ProcFDType::Socket = fd.proc_fdtype.into() {
-                    if let Ok(socket) = pidfdinfo::<SocketFDInfo>(pid, fd.proc_fd) {
+        // The process table carries no open file count, and the default
+        // `RLIMIT_NOFILE` soft limit is 256: a buffer that size covers the
+        // sockets the port columns care about.
+        if task_info_ok {
+            let fds = listpidinfo::<ListFDs>(pid, 256);
+            if let Ok(fds) = fds {
+                for fd in fds {
+                    if let ProcFDType::Socket = fd.proc_fdtype.into()
+                        && let Ok(socket) = pidfdinfo::<SocketFDInfo>(pid, fd.proc_fd)
+                    {
                         match socket.psi.soi_kind.into() {
                             SocketInfoKind::In => {
                                 if socket.psi.soi_protocol == libc::IPPROTO_UDP {
@@ -98,30 +221,249 @@ pub fn collect_proc(
             }
         }
 
-        let curr_res = pidrusage::<RUsageInfoV2>(pid).ok();
+        let curr_res = if task_info_ok {
+            pidrusage::<RUsageInfoV2>(pid).ok()
+        } else {
+            None
+        };
 
         let curr_time = Instant::now();
         let interval = curr_time - prev_time;
-        let ppid = curr_task.pbsd.pbi_ppid as i32;
+        let ppid = curr_proc.kp_eproc.e_ppid;
+        let mut state = 7;
 
-        let proc = ProcessInfo {
-            pid,
-            ppid,
+        // What a thread row falls back to when the thread itself is unnamed,
+        // which is most of them: the name of the process it belongs to.
+        let thread_owner = curr_path
+            .as_ref()
+            .filter(|path| !path.name.is_empty())
+            .map(|path| path.name.clone())
+            .unwrap_or_else(|| command_of_comm(&curr_proc.kp_proc.p_comm));
+
+        let mut threads = Vec::new();
+
+        if task_info_ok
+            && let Ok(threadids) =
+                listpidinfo::<ListThreads>(pid, (curr_task.pti_threadnum as usize) * 2)
+        {
+            threads.reserve(threadids.len());
+            for tid in threadids {
+                // See the first pass: `0` is not a thread id.
+                if tid == 0 {
+                    continue;
+                }
+                if let Ok(thread) = pidinfo::<ThreadInfo>(pid, tid) {
+                    let tstate = match thread.pth_run_state {
+                        1 => 1, // TH_STATE_RUNNING
+                        2 => 5, // TH_STATE_STOPPED
+                        3 => {
+                            if thread.pth_sleep_time > 20 {
+                                4
+                            } else {
+                                3
+                            }
+                        } // TH_STATE_WAITING
+                        4 => 2, // TH_STATE_UNINTERRUPTIBLE
+                        5 => 6, // TH_STATE_HALTED
+                        _ => 7,
+                    };
+                    state = cmp::min(tstate, state);
+
+                    if with_thread {
+                        let prev_thread = prev_threads
+                            .iter()
+                            .find(|(ptid, _)| *ptid == tid)
+                            .map(|&(_, t)| t)
+                            .unwrap_or(unsafe { mem::zeroed() });
+
+                        let mut task = unsafe { mem::zeroed::<TaskInfo>() };
+                        task.pti_total_user = thread.pth_user_time;
+                        task.pti_total_system = thread.pth_system_time;
+                        task.pti_priority = thread.pth_priority;
+                        task.pti_threadnum = 1;
+
+                        let mut prev = unsafe { mem::zeroed::<TaskInfo>() };
+                        prev.pti_total_user = prev_thread.pth_user_time;
+                        prev.pti_total_system = prev_thread.pth_system_time;
+                        prev.pti_priority = prev_thread.pth_priority;
+                        prev.pti_threadnum = 1;
+
+                        let name = String::from_utf8_lossy(
+                            &thread
+                                .pth_name
+                                .iter()
+                                .take_while(|&&c| c != 0)
+                                .map(|&c| c as u8)
+                                .collect::<Vec<u8>>(),
+                        )
+                        .into_owned();
+
+                        let path = PathInfo {
+                            name: if name.is_empty() {
+                                thread_owner.clone()
+                            } else {
+                                name
+                            },
+                            exe: PathBuf::new(),
+                            root: PathBuf::new(),
+                            cmd: Vec::new(),
+                            env: Vec::new(),
+                        };
+
+                        // Negating the id is what keeps the row key unique:
+                        // a thread can then neither be mistaken for the
+                        // process it belongs to nor take the place of another
+                        // thread. `0` in particular stops being reachable,
+                        // which matters because the tree column reads "a ppid
+                        // that is not in the table" as the root of the tree -
+                        // and 0 is the ppid of launchd.
+                        let key = thread_key(tid);
+
+                        // A thread row keeps the process's `kinfo_proc`,
+                        // because that is where its uid, gid, tty and comm
+                        // come from - a thread has no identity of its own
+                        // beyond its id and its name. The start time is the
+                        // one field that belongs to the process alone, and
+                        // leaving it in would date every thread by the process
+                        // it belongs to, so it is blanked here. `StartTime`
+                        // and `ElapsedTime` read a zero timestamp as nothing
+                        // to show - the same blank they print when the time is
+                        // missing altogether.
+                        let mut thread_proc = curr_proc;
+                        thread_proc.kp_proc.p_starttime = libc::timeval {
+                            tv_sec: 0,
+                            tv_usec: 0,
+                        };
+
+                        threads.push(ProcessInfo {
+                            base: ProcessInfoBase::new(key, pid as i64, interval),
+                            curr_proc: thread_proc,
+                            prev_proc,
+                            curr_task: task,
+                            prev_task: prev,
+                            curr_path: Some(path),
+                            curr_udps: Vec::new(),
+                            curr_tcps: Vec::new(),
+                            curr_res: None,
+                            prev_res: None,
+                            state: tstate,
+                        });
+                    }
+                }
+            }
+        } else {
+            // `PROC_PIDLISTTHREADS` is gated by *effective* uid, so it fails
+            // (EPERM) for processes owned by other users - and so does
+            // `pidinfo` itself, which is why `task_info_ok` is false - and we
+            // cannot derive a state from their threads. `kinfo_proc` is still
+            // there for them, but `kp_proc.p_stat` only knows whether the
+            // process was stopped or has died - see `state_from_pstat` - so
+            // most rows this covers stay at "?" rather than claiming to run.
+            state = state_from_pstat(curr_proc.kp_proc.p_stat);
+        }
+
+        ret.push(ProcessInfo {
+            base: ProcessInfoBase::new(pid as i64, ppid as i64, interval),
+            curr_proc,
+            prev_proc,
             curr_task,
             prev_task,
             curr_path,
-            curr_threads,
             curr_udps,
             curr_tcps,
             curr_res,
             prev_res,
-            interval,
-        };
-
-        ret.push(proc);
+            state,
+        });
+        ret.extend(threads);
     }
 
     ret
+}
+
+// ---------------------------------------------------------------------------
+// The process table
+// ---------------------------------------------------------------------------
+
+/// `KERN_PROC_ALL` from `<sys/sysctl.h>`: the whole process table. `libc`
+/// does not export the `KERN_PROC_*` values for macOS.
+const KERN_PROC_ALL: c_int = 0;
+
+/// `KERN_PROC_UID` from `<sys/sysctl.h>`: fetch only processes whose
+/// effective UID matches the supplied value. `libc` does not export it.
+const KERN_PROC_UID: c_int = 5;
+
+/// `P_SYSTEM` from `<sys/proc.h>`: a process the kernel owns, the ones
+/// `ShowFilter::kthread` hides. It lives in the `P_*` namespace of
+/// `kinfo_proc::kp_proc::p_flag`.
+const P_SYSTEM: c_int = 0x00000200;
+
+/// Every process on the system, or only the processes of a single user if
+/// `uid` is set.
+///
+/// `libproc` answers for the processes `procs` owns only: `pidinfo`,
+/// `pidrusage` and the rest of it fail with `EPERM` for anything else, which
+/// is why a listing built on them alone is a listing of the current user's
+/// processes, whatever the `ShowFilter` says. `sysctl` has no such rule and
+/// hands out one `kinfo_proc` per process, whoever owns it, with the BSD half
+/// of what the columns ask for - uid, ppid, pgid, tty, niceness, start time,
+/// name - already in it.
+fn sysctl_procs(uid: Option<libc::uid_t>) -> Option<Vec<kinfo_proc>> {
+    let (mib, mib_len): (&[c_int], u32) = match uid {
+        Some(uid) => (
+            &[libc::CTL_KERN, libc::KERN_PROC, KERN_PROC_UID, uid as c_int],
+            4,
+        ),
+        None => (&[libc::CTL_KERN, libc::KERN_PROC, KERN_PROC_ALL], 3),
+    };
+    let mut length: size_t = 0;
+
+    unsafe {
+        // Ask how large the table is ...
+        if libc::sysctl(
+            mib.as_ptr() as *mut c_int,
+            mib_len,
+            ptr::null_mut(),
+            &mut length,
+            ptr::null_mut(),
+            0,
+        ) != 0
+        {
+            return None;
+        }
+
+        // ... and then ask for more than that: the table keeps growing while
+        // we are reading it, and a buffer that ends up too small gets an
+        // ENOMEM and no data at all.
+        length += length / 8 + mem::size_of::<kinfo_proc>();
+
+        for _ in 0..8 {
+            let count = length / mem::size_of::<kinfo_proc>();
+            let mut procs: Vec<kinfo_proc> = Vec::new();
+            procs.resize_with(count, || mem::zeroed());
+
+            if libc::sysctl(
+                mib.as_ptr() as *mut c_int,
+                mib_len,
+                procs.as_mut_ptr() as *mut c_void,
+                &mut length,
+                ptr::null_mut(),
+                0,
+            ) == 0
+            {
+                procs.truncate(length / mem::size_of::<kinfo_proc>());
+                return Some(procs);
+            }
+
+            if io::Error::last_os_error().raw_os_error() != Some(libc::ENOMEM) {
+                return None;
+            }
+
+            length += length / 8 + mem::size_of::<kinfo_proc>();
+        }
+    }
+
+    None
 }
 
 fn get_arg_max() -> size_t {
@@ -143,27 +485,31 @@ fn get_arg_max() -> size_t {
 }
 
 pub struct PathInfo {
-    #[allow(dead_code)]
     pub name: String,
     #[allow(dead_code)]
     pub exe: PathBuf,
+    /// The directory the executable was loaded from
     #[allow(dead_code)]
     pub root: PathBuf,
     pub cmd: Vec<String>,
-    #[allow(dead_code)]
+    /// The environment, as `KERN_PROCARGS2` reported it: raw `KEY=VALUE`
+    /// strings, the ones that follow the arguments in the same buffer.
     pub env: Vec<String>,
 }
 
-unsafe fn get_unchecked_str(cp: *mut u8, start: *mut u8) -> String {
+/// The bytes between `start` and `cp` as a string.
+///
+/// `KERN_PROCARGS2` promises nothing about encoding, and an argument or an
+/// environment variable can hold any bytes at all, so invalid UTF-8 is
+/// replaced instead of being assumed away.
+unsafe fn get_str(cp: *mut u8, start: *mut u8) -> String {
     let len = cp as usize - start as usize;
-    let part = Vec::from_raw_parts(start, len, len);
-    let tmp = String::from_utf8_unchecked(part.clone());
-    ::std::mem::forget(part);
-    tmp
+    let part = unsafe { std::slice::from_raw_parts(start, len) };
+    String::from_utf8_lossy(part).into_owned()
 }
 
 fn get_path_info(pid: i32, mut size: size_t) -> Option<PathInfo> {
-    let mut proc_args = Vec::with_capacity(size as usize);
+    let mut proc_args = Vec::with_capacity(size);
     let ptr: *mut u8 = proc_args.as_mut_slice().as_mut_ptr();
 
     let mut mib: [c_int; 3] = [libc::CTL_KERN, libc::KERN_PROCARGS2, pid as c_int];
@@ -190,7 +536,7 @@ fn get_path_info(pid: i32, mut size: size_t) -> Option<PathInfo> {
                 while cp < ptr.add(size) && *cp != 0 {
                     cp = cp.offset(1);
                 }
-                let exe = Path::new(get_unchecked_str(cp, start).as_str()).to_path_buf();
+                let exe = Path::new(get_str(cp, start).as_str()).to_path_buf();
                 let name = exe
                     .file_name()
                     .unwrap_or_else(|| OsStr::new(""))
@@ -199,11 +545,11 @@ fn get_path_info(pid: i32, mut size: size_t) -> Option<PathInfo> {
                     .to_owned();
                 let mut need_root = true;
                 let mut root = Default::default();
-                if exe.is_absolute() {
-                    if let Some(parent) = exe.parent() {
-                        root = parent.to_path_buf();
-                        need_root = false;
-                    }
+                if exe.is_absolute()
+                    && let Some(parent) = exe.parent()
+                {
+                    root = parent.to_path_buf();
+                    need_root = false;
                 }
                 while cp < ptr.add(size) && *cp == 0 {
                     cp = cp.offset(1);
@@ -214,7 +560,7 @@ fn get_path_info(pid: i32, mut size: size_t) -> Option<PathInfo> {
                 while c < n_args && cp < ptr.add(size) {
                     if *cp == 0 {
                         c += 1;
-                        cmd.push(get_unchecked_str(cp, start));
+                        cmd.push(get_str(cp, start));
                         start = cp.offset(1);
                     }
                     cp = cp.offset(1);
@@ -226,7 +572,7 @@ fn get_path_info(pid: i32, mut size: size_t) -> Option<PathInfo> {
                         if cp == start {
                             break;
                         }
-                        env.push(get_unchecked_str(cp, start));
+                        env.push(get_str(cp, start));
                         start = cp.offset(1);
                     }
                     cp = cp.offset(1);
@@ -256,52 +602,41 @@ fn get_path_info(pid: i32, mut size: size_t) -> Option<PathInfo> {
     }
 }
 
-fn clone_task_all_info(src: &TaskAllInfo) -> TaskAllInfo {
-    let pbsd = BSDInfo {
-        pbi_flags: src.pbsd.pbi_flags,
-        pbi_status: src.pbsd.pbi_status,
-        pbi_xstatus: src.pbsd.pbi_xstatus,
-        pbi_pid: src.pbsd.pbi_pid,
-        pbi_ppid: src.pbsd.pbi_ppid,
-        pbi_uid: src.pbsd.pbi_uid,
-        pbi_gid: src.pbsd.pbi_gid,
-        pbi_ruid: src.pbsd.pbi_ruid,
-        pbi_rgid: src.pbsd.pbi_rgid,
-        pbi_svuid: src.pbsd.pbi_svuid,
-        pbi_svgid: src.pbsd.pbi_svgid,
-        rfu_1: src.pbsd.rfu_1,
-        pbi_comm: src.pbsd.pbi_comm,
-        pbi_name: src.pbsd.pbi_name,
-        pbi_nfiles: src.pbsd.pbi_nfiles,
-        pbi_pgid: src.pbsd.pbi_pgid,
-        pbi_pjobc: src.pbsd.pbi_pjobc,
-        e_tdev: src.pbsd.e_tdev,
-        e_tpgid: src.pbsd.e_tpgid,
-        pbi_nice: src.pbsd.pbi_nice,
-        pbi_start_tvsec: src.pbsd.pbi_start_tvsec,
-        pbi_start_tvusec: src.pbsd.pbi_start_tvusec,
-    };
-    let ptinfo = TaskInfo {
-        pti_virtual_size: src.ptinfo.pti_virtual_size,
-        pti_resident_size: src.ptinfo.pti_resident_size,
-        pti_total_user: src.ptinfo.pti_total_user,
-        pti_total_system: src.ptinfo.pti_total_system,
-        pti_threads_user: src.ptinfo.pti_threads_user,
-        pti_threads_system: src.ptinfo.pti_threads_system,
-        pti_policy: src.ptinfo.pti_policy,
-        pti_faults: src.ptinfo.pti_faults,
-        pti_pageins: src.ptinfo.pti_pageins,
-        pti_cow_faults: src.ptinfo.pti_cow_faults,
-        pti_messages_sent: src.ptinfo.pti_messages_sent,
-        pti_messages_received: src.ptinfo.pti_messages_received,
-        pti_syscalls_mach: src.ptinfo.pti_syscalls_mach,
-        pti_syscalls_unix: src.ptinfo.pti_syscalls_unix,
-        pti_csw: src.ptinfo.pti_csw,
-        pti_threadnum: src.ptinfo.pti_threadnum,
-        pti_numrunning: src.ptinfo.pti_numrunning,
-        pti_priority: src.ptinfo.pti_priority,
-    };
-    TaskAllInfo { pbsd, ptinfo }
+/// A `PathInfo` for a process whose command line nobody will tell us: `exe`
+/// is both the executable and the whole command line.
+fn path_info_of_exe(exe: String) -> Option<PathInfo> {
+    if exe.is_empty() {
+        return None;
+    }
+
+    let path = PathBuf::from(&exe);
+    let name = path
+        .file_name()
+        .unwrap_or_else(|| OsStr::new(""))
+        .to_str()
+        .unwrap_or("")
+        .to_owned();
+    let root = path.parent().unwrap_or_else(|| Path::new("")).to_path_buf();
+
+    Some(PathInfo {
+        exe: path,
+        name,
+        root,
+        cmd: vec![exe],
+        env: Vec::new(),
+    })
+}
+
+/// The name carried by `comm`, a `p_comm` the kernel NUL pads and truncates
+/// to `MAXCOMLEN` characters.
+fn command_of_comm(comm: &[c_char]) -> String {
+    let bytes = comm
+        .iter()
+        .take_while(|&&c| c != 0)
+        .map(|&c| c as u8)
+        .collect::<Vec<u8>>();
+
+    String::from_utf8_lossy(&bytes).into_owned()
 }
 
 // https://github.com/rust-psutil/rust-psutil/blob/main/src/process/os/macos/kinfo.rs
@@ -341,22 +676,14 @@ pub struct kinfo_proc {
 
 #[repr(C)]
 #[derive(Copy, Clone)]
-pub struct run_sleep_queue {
-    p_forw: vm_types::user_addr_t,
-    p_back: vm_types::user_addr_t,
-}
-
-#[repr(C)]
-#[derive(Copy, Clone)]
-pub union p_un {
-    pub p_st1: run_sleep_queue,
-    pub p_starttime: libc::timeval,
-}
-
-#[repr(C)]
-#[derive(Copy, Clone)]
 pub struct extern_proc {
-    pub p_un: p_un,
+    /// The process start time.
+    ///
+    /// XNU stores it in a union with the run/sleep queue links (`p_st1`),
+    /// and the two members are the same size and alignment on every
+    /// architecture macOS runs on, so reading it as a plain `timeval` keeps
+    /// the layout identical to the kernel's `extern_proc`.
+    pub p_starttime: libc::timeval,
     pub p_vmspace: vm_types::user_addr_t,
     pub p_sigacts: vm_types::user_addr_t,
 
@@ -430,4 +757,19 @@ pub struct kinfo_proc_eproc {
     pub e_flag: i32,
     pub e_login: [libc::c_char; 12],
     pub e_spare: [i32; 4],
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// `KERN_PROCARGS2` hands the environment back along with the arguments,
+    /// which is what the Env column reads.
+    #[test]
+    fn path_info_carries_the_environment() {
+        let info = get_path_info(std::process::id() as i32, get_arg_max()).unwrap();
+        assert!(!info.cmd.is_empty());
+        assert!(!info.env.is_empty());
+        assert!(info.env.iter().all(|entry| !entry.is_empty()));
+    }
 }

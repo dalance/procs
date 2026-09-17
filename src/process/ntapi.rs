@@ -16,13 +16,13 @@ use windows_sys::Wdk::System::SystemInformation::{
 };
 use windows_sys::Wdk::System::SystemServices::VM_COUNTERS;
 use windows_sys::Wdk::System::Threading::{
-    NtQueryInformationProcess, ProcessBasicInformation, ProcessCommandLineInformation,
-    ProcessImageInformation,
+    NtQueryInformationProcess, NtQueryInformationThread, ProcessBasicInformation,
+    ProcessCommandLineInformation, ProcessImageInformation, ThreadNameInformation,
 };
 use windows_sys::Win32::Foundation::UNICODE_STRING;
 use windows_sys::Win32::Foundation::{HANDLE, STATUS_INFO_LENGTH_MISMATCH, STATUS_SUCCESS};
 use windows_sys::Win32::Security::{PSID, SECURITY_MAX_SID_SIZE, SID};
-use windows_sys::Win32::System::Threading::{IO_COUNTERS, PROCESS_BASIC_INFORMATION};
+use windows_sys::Win32::System::Threading::{IO_COUNTERS, PEB, PROCESS_BASIC_INFORMATION};
 use windows_sys::Win32::System::WindowsProgramming::CLIENT_ID;
 
 // ---------------------------------------------------------------------------
@@ -219,29 +219,10 @@ const _: () = assert!(size_of::<SECTION_IMAGE_INFORMATION>() == 48);
 #[cfg(target_pointer_width = "32")]
 const _: () = assert!(offset_of!(SECTION_IMAGE_INFORMATION, Machine) == 32);
 
-/// The leading, version-stable part of `PEB`, up to and including
-/// `ProcessParameters`.
-///
-/// Everything after `ProcessParameters` has grown and been reordered across
-/// Windows versions, but the prefix has stayed put since XP, which is all the
-/// working-directory read needs.
-#[repr(C)]
-#[allow(non_snake_case)]
-pub struct PEB_PREFIX {
-    pub InheritedAddressSpace: u8,
-    pub ReadImageFileExecOptions: u8,
-    pub BeingDebugged: u8,
-    pub BitField: u8,
-    pub Mutant: HANDLE,
-    pub ImageBaseAddress: *mut c_void,
-    pub Ldr: *mut c_void,
-    pub ProcessParameters: *mut c_void,
-}
-
 #[cfg(target_pointer_width = "64")]
-const _: () = assert!(offset_of!(PEB_PREFIX, ProcessParameters) == 0x20);
+const _: () = assert!(offset_of!(PEB, ProcessParameters) == 0x20);
 #[cfg(target_pointer_width = "32")]
-const _: () = assert!(offset_of!(PEB_PREFIX, ProcessParameters) == 0x10);
+const _: () = assert!(offset_of!(PEB, ProcessParameters) == 0x10);
 
 /// `CURDIR` - the current-directory record of
 /// `RTL_USER_PROCESS_PARAMETERS`.
@@ -450,6 +431,62 @@ impl std::fmt::Display for SID_MAX {
     }
 }
 
+impl std::str::FromStr for SID_MAX {
+    type Err = ();
+
+    /// The SID as Windows writes it: `S-1-5-21-...-1001`.
+    ///
+    /// Only the parts that are compared are read - the revision, the
+    /// identifier authority and the sub-authorities - so a SID that went
+    /// through `Display` parses back to an equal one. Anything else is `Err`,
+    /// including a SID with more sub-authorities than a SID can hold, so that
+    /// a value which only looks like a SID is left to be read as something
+    /// else.
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let rest = s.strip_prefix("S-").ok_or(())?;
+        let mut parts = rest.split('-');
+
+        let revision: u8 = parts.next().ok_or(())?.parse().map_err(|_| ())?;
+        let authority: u64 = parts.next().ok_or(())?.parse().map_err(|_| ())?;
+        // The identifier authority is 48 bits wide.
+        if authority > 0xffff_ffff_ffff {
+            return Err(());
+        }
+
+        let mut subs = [0u32; SID_MAX_SUB_AUTHORITIES];
+        let mut count = 0;
+        for part in parts {
+            if count == SID_MAX_SUB_AUTHORITIES {
+                return Err(());
+            }
+            subs[count] = part.parse().map_err(|_| ())?;
+            count += 1;
+        }
+        if count == 0 {
+            return Err(());
+        }
+
+        // Zeroed first so that the padding is never read as part of the SID:
+        // equality and hashing go over the live bytes only.
+        let mut ret: SID_MAX = unsafe { std::mem::zeroed() };
+        ret.sid.Revision = revision;
+        ret.sid.SubAuthorityCount = count as u8;
+        ret.sid.IdentifierAuthority.Value = authority.to_be_bytes()[2..].try_into().unwrap();
+        // SAFETY: `subs` holds at most `SID_MAX_SUB_AUTHORITIES` entries, the
+        // count `SubAuthorityCount` is set from, and the sub-authorities are
+        // contiguous from `SubAuthority[0]` in the buffer, which is
+        // `SECURITY_MAX_SID_SIZE` bytes - room for 15 of them.
+        unsafe {
+            ptr::copy_nonoverlapping(
+                subs.as_ptr(),
+                ptr::addr_of_mut!(ret.sid.SubAuthority) as *mut u32,
+                count,
+            );
+        }
+        Ok(ret)
+    }
+}
+
 impl PartialEq for SID_MAX {
     fn eq(&self, other: &Self) -> bool {
         self.as_bytes() == other.as_bytes()
@@ -535,6 +572,15 @@ pub struct SystemProcessSnapshot {
 impl SystemProcessSnapshot {
     pub fn iter(&self) -> ProcessIter<'_> {
         ProcessIter::new(self)
+    }
+
+    /// Whether the entries of this snapshot carry a user SID.
+    ///
+    /// Only class 148 does. When it does, the user filter can drop a process
+    /// without opening a handle for it; with the basic class the SID is only
+    /// available from the process token, so the filter has to wait for that.
+    pub fn carries_user_sid(&self) -> bool {
+        self.kind.has_extension()
     }
 }
 
@@ -677,7 +723,10 @@ fn activity(state: ThreadState) -> u8 {
 /// for it.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ThreadSnapshot {
-    pub tid: i32,
+    /// Thread id, wide enough for the whole `HANDLE`-sized value the kernel
+    /// reports. Callers turn it into a row key with
+    /// [`crate::process::thread_key`], which negates it.
+    pub tid: u64,
     /// Owning process id.
     pub pid: i32,
     pub create_time: i64,
@@ -758,7 +807,7 @@ impl<'a> ProcessEntry<'a> {
             };
 
             ret.push(ThreadSnapshot {
-                tid: thread.ClientId.UniqueThread as usize as i32,
+                tid: thread.ClientId.UniqueThread as usize as u64,
                 pid,
                 create_time: thread.CreateTime,
                 kernel_time: thread.KernelTime as u64,
@@ -1082,6 +1131,94 @@ pub fn process_command_line(handle: HANDLE) -> Option<String> {
             .trim_end_matches('\0')
             .to_owned(),
     )
+}
+
+// ---------------------------------------------------------------------------
+// ThreadNameInformation
+// ---------------------------------------------------------------------------
+
+/// `THREAD_NAME_INFORMATION` - the output of `ThreadNameInformation` (38).
+///
+/// `ThreadName` describes characters the kernel copies into the space behind
+/// this structure, which is why the buffer handed to the query is always
+/// larger than the structure itself.
+#[repr(C)]
+#[allow(non_snake_case)]
+pub struct THREAD_NAME_INFORMATION {
+    pub ThreadName: UNICODE_STRING,
+}
+
+/// Guard against a nonsensical `UNICODE_STRING::Length` turning into a huge
+/// allocation. `SetThreadDescription` caps the name far below this.
+const MAX_THREAD_NAME_BYTES: usize = 64 * 1024;
+
+/// Reads the name the thread behind `handle` carries, if any.
+///
+/// `ThreadNameInformation` is a Windows 10 addition: it reports the name a
+/// process gave the thread through `SetThreadDescription`, and nothing at all
+/// for the many threads nobody named. It needs
+/// `THREAD_QUERY_LIMITED_INFORMATION` on the handle. An older build, a thread
+/// without a name, and a thread that refuses the query all yield `None` -
+/// the caller falls back to the name of the process the thread belongs to.
+pub fn thread_name(handle: HANDLE) -> Option<String> {
+    // Room for the header plus a typical name.
+    let mut buf =
+        vec![0u64; (size_of::<THREAD_NAME_INFORMATION>() + 256).div_ceil(size_of::<u64>())];
+    let mut status = STATUS_INFO_LENGTH_MISMATCH;
+
+    for _ in 0..4 {
+        let mut ret_len: u32 = 0;
+        status = unsafe {
+            NtQueryInformationThread(
+                handle,
+                ThreadNameInformation,
+                buf.as_mut_ptr().cast::<c_void>(),
+                (buf.len() * size_of::<u64>()) as u32,
+                ptr::addr_of_mut!(ret_len),
+            )
+        };
+        if status != STATUS_INFO_LENGTH_MISMATCH {
+            break;
+        }
+        // A thread without a name answers `STATUS_SUCCESS` with a length of
+        // 0 here, so grow on our own too rather than asking for nothing.
+        let want = (ret_len as usize).max(buf.len() * size_of::<u64>() * 2);
+        if want > MAX_THREAD_NAME_BYTES {
+            return None;
+        }
+        buf.resize(want.div_ceil(size_of::<u64>()), 0);
+    }
+    if status < 0 {
+        return None;
+    }
+
+    // SAFETY: the buffer is 8-byte aligned and the query reported success.
+    let info: &THREAD_NAME_INFORMATION =
+        unsafe { &*buf.as_ptr().cast::<THREAD_NAME_INFORMATION>() };
+    if info.ThreadName.Buffer.is_null() || info.ThreadName.Length == 0 {
+        return None;
+    }
+    let bytes = info.ThreadName.Length as usize;
+    if bytes > MAX_THREAD_NAME_BYTES {
+        return None;
+    }
+
+    let start = buf.as_ptr() as usize;
+    let end = start + buf.len() * size_of::<u64>();
+    let addr = info.ThreadName.Buffer as usize;
+    let last = addr.checked_add(bytes)?;
+    if addr < start || last > end {
+        return None;
+    }
+
+    // SAFETY: the range was just verified to lie inside `buf`, which is still
+    // alive.
+    let chars = unsafe { std::slice::from_raw_parts(info.ThreadName.Buffer, bytes / 2) };
+
+    let name = String::from_utf16_lossy(chars)
+        .trim_end_matches('\0')
+        .to_owned();
+    if name.is_empty() { None } else { Some(name) }
 }
 
 /// Reads the `IMAGE_FILE_MACHINE_*` of the executable image of `handle`.
@@ -1704,6 +1841,46 @@ mod tests {
                 size_of::<PROCESS_NETWORK_COUNTERS>()
             );
             assert!(process_network_counters(handle).is_some());
+        }
+    }
+
+    /// The string a SID is written as parses back to the same SID, and a
+    /// string that only looks like one does not parse at all - it is then left
+    /// to be read as a user name.
+    #[test]
+    fn sid_parses_its_own_string() {
+        let text = "S-1-5-21-1111111111-2222222222-3333333333-4444";
+        let sid: SID_MAX = text.parse().expect("a SID");
+        assert_eq!(sid.format(false), text);
+        assert_eq!(sid.authority(), 5);
+        assert_eq!(
+            sid.sub_authorities(),
+            [21, 1111111111, 2222222222, 3333333333, 4444]
+        );
+
+        // The well known ones, which are the same on every Windows and are
+        // shorter than the machine SIDs.
+        let system: SID_MAX = "S-1-5-18".parse().expect("a SID");
+        assert_eq!(system.format(false), "S-1-5-18");
+        assert_eq!(system.sub_authorities(), [18]);
+
+        // An authority of exactly the 48 bits it is given.
+        let wide: SID_MAX = "S-1-281474976710655-1".parse().expect("a SID");
+        assert_eq!(wide.authority(), 281474976710655);
+        assert_eq!(wide.format(false), "S-1-281474976710655-1");
+
+        // Not SIDs: no prefix, no sub-authority, a negative one, one too many,
+        // and an authority wider than the 48 bits it is given.
+        for bad in [
+            "1-5-18",
+            "S-1",
+            "S-1-5",
+            "S-1-5--1",
+            "S-1-5-21-1-2-3-4-5-6-7-8-9-10-11-12-13-14-15-16",
+            "S-1-281474976710656-18",
+            "S-x-5-18",
+        ] {
+            assert!(bad.parse::<SID_MAX>().is_err(), "{bad} is not a SID");
         }
     }
 }

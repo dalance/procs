@@ -16,8 +16,8 @@ static TICKS_PER_SECOND: Lazy<u64> = Lazy::new(procfs::ticks_per_second);
 pub struct StartTime {
     header: String,
     unit: String,
-    fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, DateTime<Local>>,
+    fmt_contents: HashMap<i64, String>,
+    raw_contents: HashMap<i64, DateTime<Local>>,
     width: usize,
     #[cfg(any(target_os = "linux", target_os = "android"))]
     boot_time: DateTime<Local>,
@@ -39,6 +39,14 @@ impl StartTime {
     }
 }
 
+fn format_start_time(start_time: DateTime<Local>) -> String {
+    if start_time.timestamp() <= 0 {
+        String::new()
+    } else {
+        format!("{}", start_time.format("%Y/%m/%d %H:%M"))
+    }
+}
+
 #[cfg(any(target_os = "linux", target_os = "android"))]
 impl Column for StartTime {
     fn add(&mut self, proc: &ProcessInfo) {
@@ -46,7 +54,7 @@ impl Column for StartTime {
         let seconds_since_boot = starttime as f32 / *TICKS_PER_SECOND as f32;
         let raw_content = self.boot_time
             + Duration::try_milliseconds((seconds_since_boot * 1000.0) as i64).unwrap_or_default();
-        let fmt_content = format!("{}", raw_content.format("%Y/%m/%d %H:%M"));
+        let fmt_content = format_start_time(raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);
@@ -59,10 +67,10 @@ impl Column for StartTime {
 impl Column for StartTime {
     fn add(&mut self, proc: &ProcessInfo) {
         let start_time = Local
-            .timestamp_opt(proc.curr_task.pbsd.pbi_start_tvsec as i64, 0)
+            .timestamp_opt(proc.curr_proc.kp_proc.p_starttime.tv_sec, 0)
             .unwrap();
         let raw_content = start_time;
-        let fmt_content = format!("{}", start_time.format("%Y/%m/%d %H:%M"));
+        let fmt_content = format_start_time(raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);
@@ -75,7 +83,7 @@ impl Column for StartTime {
 impl Column for StartTime {
     fn add(&mut self, proc: &ProcessInfo) {
         let raw_content = proc.start_time;
-        let fmt_content = format!("{}", proc.start_time.format("%Y/%m/%d %H:%M"));
+        let fmt_content = format_start_time(raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);
@@ -88,10 +96,10 @@ impl Column for StartTime {
 impl Column for StartTime {
     fn add(&mut self, proc: &ProcessInfo) {
         let start_time = Local
-            .timestamp_opt(proc.curr_proc.info.start.sec as i64, 0)
+            .timestamp_opt(proc.curr_proc.ki_start.tv_sec, 0)
             .unwrap();
         let raw_content = start_time;
-        let fmt_content = format!("{}", start_time.format("%Y/%m/%d %H:%M"));
+        let fmt_content = format_start_time(raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
         self.raw_contents.insert(proc.pid, raw_content);

@@ -1,13 +1,21 @@
 use crate::process::ProcessInfo;
 use crate::{column_default, Column};
+#[cfg(target_os = "freebsd")]
+use libc::{CTL_KERN, KERN_PROC, KERN_PROC_PATHNAME, c_void};
 use std::cmp;
 use std::collections::HashMap;
+#[cfg(target_os = "freebsd")]
+use std::ffi::CStr;
+#[cfg(target_os = "freebsd")]
+use std::ptr;
+#[cfg(target_os = "freebsd")]
+use std::path::Path;
 
 pub struct FileName {
     header: String,
     unit: String,
-    fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, String>,
+    fmt_contents: HashMap<i64, String>,
+    raw_contents: HashMap<i64, String>,
     width: usize,
 }
 
@@ -23,6 +31,50 @@ impl FileName {
             unit,
         }
     }
+}
+
+#[cfg(target_os = "freebsd")]
+pub(crate) fn get_process_path(pid: i64) -> Option<String> {
+    // A thread row carries its thread id negated, which is not a pid and
+    // names no process to ask about. `work_dir_of` guards the same way.
+    if pid <= 0 {
+        return None;
+    }
+
+    let mut mib = [CTL_KERN, KERN_PROC, KERN_PROC_PATHNAME, pid as i32];
+    let mut size = 0usize;
+    if unsafe {
+        libc::sysctl(
+            mib.as_mut_ptr(),
+            mib.len() as u32,
+            ptr::null_mut(),
+            &mut size,
+            ptr::null_mut(),
+            0,
+        )
+    } != 0
+        || size == 0
+    {
+        return None;
+    }
+
+    let mut bytes = vec![0u8; size];
+    if unsafe {
+        libc::sysctl(
+            mib.as_mut_ptr(),
+            mib.len() as u32,
+            bytes.as_mut_ptr() as *mut c_void,
+            &mut size,
+            ptr::null_mut(),
+            0,
+        )
+    } != 0
+    {
+        return None;
+    }
+    CStr::from_bytes_until_nul(&bytes[..size])
+        .ok()
+        .map(|path| path.to_string_lossy().into_owned())
 }
 
 #[cfg(any(target_os = "linux", target_os = "android"))]
@@ -54,13 +106,26 @@ impl Column for FileName {
 #[cfg(target_os = "freebsd")]
 impl Column for FileName {
     fn add(&mut self, proc: &ProcessInfo) {
-        let comm = crate::util::ptr_to_cstr(proc.curr_proc.info.comm.as_ref());
-        let comm = if let Ok(comm) = comm {
-            comm.to_string_lossy().into_owned()
+        let fmt_content = get_process_path(proc.pid)
+            .and_then(|path| Path::new(&path).file_name().map(|name| name.to_string_lossy().into_owned()))
+            .unwrap_or_default();
+        let raw_content = fmt_content.clone();
+
+        self.fmt_contents.insert(proc.pid, fmt_content);
+        self.raw_contents.insert(proc.pid, raw_content);
+    }
+
+    column_default!(String, false);
+}
+
+#[cfg(target_os = "macos")]
+impl Column for FileName {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let fmt_content = if let Some(path) = &proc.curr_path {
+            path.name.clone()
         } else {
-            String::from("")
+            String::new()
         };
-        let fmt_content = comm;
         let raw_content = fmt_content.clone();
 
         self.fmt_contents.insert(proc.pid, fmt_content);

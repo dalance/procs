@@ -6,8 +6,8 @@ use std::collections::HashMap;
 pub struct UidReal {
     header: String,
     unit: String,
-    fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, u32>,
+    fmt_contents: HashMap<i64, String>,
+    raw_contents: HashMap<i64, u32>,
     width: usize,
 }
 
@@ -45,7 +45,7 @@ impl Column for UidReal {
 #[cfg(target_os = "macos")]
 impl Column for UidReal {
     fn add(&mut self, proc: &ProcessInfo) {
-        let uid = proc.curr_task.pbsd.pbi_ruid;
+        let uid = proc.curr_proc.kp_eproc.e_pcred.p_ruid;
         let fmt_content = format!("{}", uid);
         let raw_content = uid;
 
@@ -59,7 +59,7 @@ impl Column for UidReal {
 #[cfg(target_os = "freebsd")]
 impl Column for UidReal {
     fn add(&mut self, proc: &ProcessInfo) {
-        let uid = proc.curr_proc.info.ruid;
+        let uid = proc.curr_proc.ki_ruid;
         let fmt_content = format!("{}", uid);
         let raw_content = uid;
 

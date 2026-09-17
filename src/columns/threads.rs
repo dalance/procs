@@ -6,8 +6,8 @@ use std::collections::HashMap;
 pub struct Threads {
     header: String,
     unit: String,
-    fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, i64>,
+    fmt_contents: HashMap<i64, String>,
+    raw_contents: HashMap<i64, i64>,
     width: usize,
 }
 
@@ -41,7 +41,7 @@ impl Column for Threads {
 #[cfg(target_os = "macos")]
 impl Column for Threads {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = proc.curr_task.ptinfo.pti_threadnum as i64;
+        let raw_content = proc.curr_task.pti_threadnum as i64;
         let fmt_content = format!("{}", raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
@@ -67,7 +67,7 @@ impl Column for Threads {
 #[cfg(target_os = "freebsd")]
 impl Column for Threads {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = proc.curr_proc.info.numthreads as i64;
+        let raw_content = proc.curr_proc.ki_numthreads as i64;
         let fmt_content = format!("{}", raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);

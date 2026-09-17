@@ -1,8 +1,12 @@
 use crate::process::ProcessInfo;
 use crate::{Column, column_default};
+#[cfg(target_os = "freebsd")]
+use libc::{CTL_KERN, KERN_PROC, KERN_PROC_ENV, c_void};
 use std::cmp;
 use std::collections::HashMap;
 use std::path::PathBuf;
+#[cfg(target_os = "freebsd")]
+use std::ptr;
 
 #[cfg(target_os = "windows")]
 use windows_sys::Win32::Foundation::HANDLE;
@@ -10,8 +14,8 @@ use windows_sys::Win32::Foundation::HANDLE;
 pub struct Env {
     header: String,
     unit: String,
-    fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, String>,
+    fmt_contents: HashMap<i64, String>,
+    raw_contents: HashMap<i64, String>,
     width: usize,
     #[allow(dead_code)]
     procfs: Option<PathBuf>,
@@ -30,6 +34,53 @@ impl Env {
             procfs,
         }
     }
+}
+
+#[cfg(target_os = "freebsd")]
+pub(crate) fn get_process_env(pid: i64) -> Vec<String> {
+    // A thread row carries its thread id negated, which is not a pid and
+    // names no process to ask about. `work_dir_of` guards the same way.
+    if pid <= 0 {
+        return Vec::new();
+    }
+
+    let mut mib = [CTL_KERN, KERN_PROC, KERN_PROC_ENV, pid as i32];
+    let mut size = 0usize;
+    if unsafe {
+        libc::sysctl(
+            mib.as_mut_ptr(),
+            mib.len() as u32,
+            ptr::null_mut(),
+            &mut size,
+            ptr::null_mut(),
+            0,
+        )
+    } != 0
+        || size == 0
+    {
+        return Vec::new();
+    }
+
+    let mut bytes = vec![0u8; size];
+    if unsafe {
+        libc::sysctl(
+            mib.as_mut_ptr(),
+            mib.len() as u32,
+            bytes.as_mut_ptr() as *mut c_void,
+            &mut size,
+            ptr::null_mut(),
+            0,
+        )
+    } != 0
+    {
+        return Vec::new();
+    }
+    bytes.truncate(size);
+    bytes
+        .split(|byte| *byte == 0)
+        .filter(|env| !env.is_empty())
+        .map(|env| String::from_utf8_lossy(env).into_owned())
+        .collect()
 }
 
 #[cfg(any(target_os = "linux", target_os = "android"))]
@@ -60,8 +111,8 @@ impl Column for Env {
 impl Column for Env {
     fn add(&mut self, proc: &ProcessInfo) {
         let mut fmt_content = String::new();
-        for env in &proc.curr_proc.env {
-            fmt_content.push_str(&format!("{} ", env.replace('\"', "\\\"")));
+        for env in get_process_env(proc.pid) {
+            fmt_content.push_str(&format!("{} ", env.replace('"', "\\\"")));
         }
         let raw_content = fmt_content.clone();
 
@@ -85,6 +136,41 @@ impl Column for Env {
     column_default!(String, false);
 }
 
+/// The environment `KERN_PROCARGS2` reported with the process.
+///
+/// The collector already asks for it to build the command line, so nothing is
+/// queried here: `PathInfo::env` is the tail of the same `sysctl` buffer, the
+/// NUL separated strings that follow the arguments. The kernel hands it out
+/// for the processes of the user `procs` runs as, so the processes of other
+/// users come through empty.
+///
+/// A thread row is left blank: an environment belongs to a process, and the
+/// row stands for a thread of one.
+#[cfg(target_os = "macos")]
+impl Column for Env {
+    fn add(&mut self, proc: &ProcessInfo) {
+        let mut fmt_content = String::new();
+        if let Some(path) = &proc.curr_path {
+            for env in &path.env {
+                // The buffer holds raw `KEY=VALUE` strings; quote the value
+                // the way the Linux and Windows columns do, so that a value
+                // holding spaces still reads as one entry.
+                match env.split_once('=') {
+                    Some((key, value)) => {
+                        fmt_content.push_str(&format!("{}=\"{}\" ", key, value.replace('"', "\\\"")))
+                    }
+                    None => fmt_content.push_str(&format!("{} ", env.replace('"', "\\\""))),
+                }
+            }
+        }
+
+        self.fmt_contents.insert(proc.pid, fmt_content.clone());
+        self.raw_contents.insert(proc.pid, fmt_content);
+    }
+
+    column_default!(String, false);
+}
+
 /// Reads the environment block of `pid` from its PEB.
 ///
 /// The PEB address comes from `NtQueryInformationProcess` with
@@ -93,7 +179,7 @@ impl Column for Env {
 /// `PROCESS_QUERY_LIMITED_INFORMATION | PROCESS_VM_READ`, so protected
 /// processes (e.g. PPL) yield `None`.
 #[cfg(target_os = "windows")]
-fn env_of(pid: i32) -> Option<String> {
+fn env_of(pid: i64) -> Option<String> {
     use windows_sys::Win32::Foundation::{CloseHandle, FALSE, HANDLE};
     use windows_sys::Win32::System::Threading::{
         OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_VM_READ,
@@ -127,10 +213,11 @@ fn env_of(pid: i32) -> Option<String> {
 #[cfg(target_os = "windows")]
 fn read_env(handle: HANDLE) -> Option<String> {
     use crate::process::{
-        process_peb_address, read_process_memory, PEB_PREFIX,
+        process_peb_address, read_process_memory,
         RTL_USER_PROCESS_PARAMETERS_PREFIX,
     };
     use std::mem::{offset_of, size_of};
+    use windows_sys::Win32::System::Threading::PEB;
 
     // The PEB address lives in the target's address space.
     let peb = process_peb_address(handle)?;
@@ -146,7 +233,7 @@ fn read_env(handle: HANDLE) -> Option<String> {
         peb_buf
             .as_ptr()
             .cast::<u8>()
-            .add(offset_of!(PEB_PREFIX, ProcessParameters))
+            .add(offset_of!(PEB, ProcessParameters))
             .cast::<usize>()
             .read()
     };

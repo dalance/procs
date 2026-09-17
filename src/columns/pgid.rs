@@ -6,8 +6,8 @@ use std::collections::HashMap;
 pub struct Pgid {
     header: String,
     unit: String,
-    fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, i32>,
+    fmt_contents: HashMap<i64, String>,
+    raw_contents: HashMap<i64, i32>,
     width: usize,
 }
 
@@ -29,9 +29,13 @@ impl Pgid {
 impl Column for Pgid {
     fn add(&mut self, proc: &ProcessInfo) {
         let raw_content = proc.curr_proc.stat().pgrp;
-        let fmt_content = match proc.curr_proc {
-            crate::process::ProcessTask::Process { .. } => format!("{raw_content}"),
-            _ => format!("[{raw_content}]"),
+        // A thread row is bracketed the way its pid is: the value comes from
+        // the shared `stat`, and the bracket is what keeps it from reading
+        // like the process group of a process.
+        let fmt_content = if proc.pid < 0 {
+            format!("[{raw_content}]")
+        } else {
+            format!("{raw_content}")
         };
 
         self.fmt_contents.insert(proc.pid, fmt_content);
@@ -44,7 +48,7 @@ impl Column for Pgid {
 #[cfg(target_os = "macos")]
 impl Column for Pgid {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = proc.curr_task.pbsd.pbi_pgid as i32;
+        let raw_content = proc.curr_proc.kp_eproc.e_pgid;
         let fmt_content = format!("{}", raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
@@ -57,7 +61,7 @@ impl Column for Pgid {
 #[cfg(target_os = "freebsd")]
 impl Column for Pgid {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = proc.curr_proc.info.pgid as i32;
+        let raw_content = proc.curr_proc.ki_pgid;
         let fmt_content = format!("{}", raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
