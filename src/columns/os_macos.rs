@@ -44,6 +44,7 @@ pub mod user_saved;
 pub mod vm_rss;
 pub mod vm_size;
 pub mod vm_total;
+pub mod work_dir;
 pub mod write_bytes;
 
 pub use self::arch::Arch;
@@ -92,6 +93,7 @@ pub use self::user_saved::UserSaved;
 pub use self::vm_rss::VmRss;
 pub use self::vm_size::VmSize;
 pub use self::vm_total::VmTotal;
+pub use self::work_dir::WorkDir;
 pub use self::write_bytes::WriteBytes;
 
 use crate::column::Column;
@@ -152,6 +154,7 @@ pub enum ConfigColumnKind {
     VmRss,
     VmSize,
     VmTotal,
+    WorkDir,
     WriteBytes,
 }
 
@@ -166,7 +169,7 @@ pub fn gen_column(
     separator: &str,
     abbr_sid: bool,
     tree_symbols: &[String; 5],
-    _procfs: Option<PathBuf>,
+    procfs: Option<PathBuf>,
 ) -> Box<dyn Column> {
     match kind {
         ConfigColumnKind::Arch => Box::new(Arch::new(header)),
@@ -218,6 +221,7 @@ pub fn gen_column(
         ConfigColumnKind::VmRss => Box::new(VmRss::new(header)),
         ConfigColumnKind::VmSize => Box::new(VmSize::new(header)),
         ConfigColumnKind::VmTotal => Box::new(VmTotal::new(header)),
+        ConfigColumnKind::WorkDir => Box::new(WorkDir::new(header, procfs)),
         ConfigColumnKind::WriteBytes => Box::new(WriteBytes::new(header)),
     }
 }
@@ -322,6 +326,10 @@ pub static KIND_LIST: Lazy<BTreeMap<ConfigColumnKind, (&'static str, &'static st
             (
                 ConfigColumnKind::VmTotal,
                 ("VmTotal", "Total footprint size"),
+            ),
+            (
+                ConfigColumnKind::WorkDir,
+                ("WorkDir", "Current working directory"),
             ),
             (
                 ConfigColumnKind::WriteBytes,
@@ -660,6 +668,9 @@ style = "ByUnit"
 [[columns]]
 kind = "VmSize"
 style = "ByUnit"
+[[columns]]
+kind = "WorkDir"
+style = "White"
 [[columns]]
 kind = "WriteBytes"
 style = "White"
