@@ -25,7 +25,7 @@ use once_cell::sync::Lazy;
 use std::cmp;
 use std::collections::HashMap;
 use std::fs;
-use std::io::{Read, stdout};
+use std::io::{IsTerminal, Read, stdout};
 use std::path::PathBuf;
 use std::time::Instant;
 use unicode_width::UnicodeWidthStr;
@@ -205,6 +205,19 @@ fn run_list() {
 }
 
 fn run_watch(opt: &mut Opt, config: &Config, interval: u64) -> Result<(), Error> {
+    // Watch mode is an interactive TUI like `top`; without a terminal it would
+    // emit ANSI frames into a pipe/file forever and the keyboard listener
+    // would spin on a dead stdin.
+    if !stdout().is_terminal() {
+        return Err(Error::msg(
+            "--watch requires a terminal, but stdout is not a TTY",
+        ));
+    }
+    if !std::io::stdin().is_terminal() {
+        return Err(Error::msg(
+            "--watch requires a terminal, but stdin is not a TTY",
+        ));
+    }
     Watcher::start(opt, config, interval)
 }
 
