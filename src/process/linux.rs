@@ -85,10 +85,9 @@ pub fn collect_proc(
     with_thread: bool,
     show_kthreads: bool,
     procfs_path: &Option<PathBuf>,
-) -> Vec<ProcessInfo> {
+) -> impl Iterator<Item = ProcessInfo> + '_ {
     let mut base_procs = Vec::new();
     let mut base_tasks = HashMap::new();
-    let mut ret = Vec::new();
 
     let all_proc = if let Some(x) = procfs_path {
         procfs::process::all_processes_with_root(x)
@@ -111,85 +110,73 @@ pub fn collect_proc(
 
     thread::sleep(interval);
 
-    for (pid, prev_stat, prev_io, prev_time) in base_procs {
-        let curr_proc = if let Ok(proc) = crate::util::process_new(pid, procfs_path) {
-            proc
-        } else {
-            continue;
-        };
+    base_procs
+        .into_iter()
+        .filter_map(move |(pid, prev_stat, prev_io, prev_time)| {
+            let curr_proc = crate::util::process_new(pid, procfs_path).ok()?;
+            let curr_stat = curr_proc.stat().ok()?;
+            let curr_owner = curr_proc.uid().ok()?;
 
-        let curr_stat = if let Ok(stat) = curr_proc.stat() {
-            stat
-        } else {
-            continue;
-        };
+            let curr_io = curr_proc.io().ok();
+            let curr_status = curr_proc.status().ok();
+            let curr_time = Instant::now();
+            let interval = curr_time - prev_time;
+            let ppid = curr_stat.ppid;
 
-        let curr_owner = if let Ok(owner) = curr_proc.uid() {
-            owner
-        } else {
-            continue;
-        };
-
-        let curr_io = curr_proc.io().ok();
-        let curr_status = curr_proc.status().ok();
-        let curr_time = Instant::now();
-        let interval = curr_time - prev_time;
-        let ppid = curr_stat.ppid;
-
-        if !show_kthreads
-            && curr_stat
-                .flags()
-                .unwrap_or(StatFlags::empty())
-                .contains(StatFlags::PF_KTHREAD)
-        {
-            continue;
-        }
-
-        let mut curr_tasks = HashMap::new();
-        if with_thread && let Ok(iter) = curr_proc.tasks() {
-            collect_task(iter, &mut curr_tasks);
-        }
-
-        let curr_proc = ProcessTask::Process {
-            stat: curr_stat,
-            owner: curr_owner,
-            proc: curr_proc,
-        };
-
-        let proc = ProcessInfo {
-            pid,
-            ppid,
-            curr_proc,
-            prev_stat,
-            curr_io,
-            prev_io,
-            curr_status,
-            interval,
-        };
-
-        ret.push(proc);
-
-        for (tid, (pid, curr_stat, curr_status, curr_io)) in curr_tasks {
-            if let Some((_, prev_stat, _, prev_io)) = base_tasks.remove(&tid) {
-                let proc = ProcessInfo {
-                    pid: tid,
-                    ppid: pid,
-                    curr_proc: ProcessTask::Task {
-                        stat: curr_stat,
-                        owner: curr_owner,
-                    },
-                    prev_stat,
-                    curr_io,
-                    prev_io,
-                    curr_status,
-                    interval,
-                };
-                ret.push(proc);
+            if !show_kthreads
+                && curr_stat
+                    .flags()
+                    .unwrap_or(StatFlags::empty())
+                    .contains(StatFlags::PF_KTHREAD)
+            {
+                return None;
             }
-        }
-    }
 
-    ret
+            let mut curr_tasks = HashMap::new();
+            if with_thread && let Ok(iter) = curr_proc.tasks() {
+                collect_task(iter, &mut curr_tasks);
+            }
+
+            let curr_proc = ProcessTask::Process {
+                stat: curr_stat,
+                owner: curr_owner,
+                proc: curr_proc,
+            };
+
+            let proc = ProcessInfo {
+                pid,
+                ppid,
+                curr_proc,
+                prev_stat,
+                curr_io,
+                prev_io,
+                curr_status,
+                interval,
+            };
+
+            let mut tasks = Vec::new();
+
+            for (tid, (pid, curr_stat, curr_status, curr_io)) in curr_tasks {
+                if let Some((_, prev_stat, _, prev_io)) = base_tasks.remove(&tid) {
+                    let proc = ProcessInfo {
+                        pid: tid,
+                        ppid: pid,
+                        curr_proc: ProcessTask::Task {
+                            stat: curr_stat,
+                            owner: curr_owner,
+                        },
+                        prev_stat,
+                        curr_io,
+                        prev_io,
+                        curr_status,
+                        interval,
+                    };
+                    tasks.push(proc);
+                }
+            }
+            Some(std::iter::once(proc).chain(tasks))
+        })
+        .flatten()
 }
 
 #[allow(clippy::type_complexity)]
