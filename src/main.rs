@@ -27,6 +27,7 @@ use std::collections::HashMap;
 use std::fs;
 use std::io::{Read, stdout};
 use std::path::PathBuf;
+use std::process::ExitCode;
 use std::time::Instant;
 use unicode_width::UnicodeWidthStr;
 
@@ -119,7 +120,7 @@ fn check_old_config(s: &str, config: Result<Config, toml::de::Error>) -> Result<
 // Main
 // ---------------------------------------------------------------------------------------------------------------------
 
-fn main() {
+fn main() -> ExitCode {
     let err = Term::stderr();
 
     if let Err(x) = run() {
@@ -134,7 +135,9 @@ fn main() {
             let _ = err.write_line(&format!("  {} {}", console::style("caused by:").red(), x));
         }
 
-        std::process::exit(1);
+        ExitCode::from(1)
+    } else {
+        ExitCode::SUCCESS
     }
 }
 
