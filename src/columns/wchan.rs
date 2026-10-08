@@ -6,8 +6,8 @@ use std::collections::HashMap;
 pub struct Wchan {
     header: String,
     unit: String,
-    fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, String>,
+    fmt_contents: HashMap<i64, String>,
+    raw_contents: HashMap<i64, String>,
     width: usize,
 }
 
@@ -45,10 +45,10 @@ impl Column for Wchan {
 #[cfg(target_os = "freebsd")]
 impl Column for Wchan {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = if let Ok(wmesg) = crate::util::ptr_to_cstr(&proc.curr_proc.info.wmesg) {
+        let raw_content = if let Ok(wmesg) = crate::util::ptr_to_cstr(&proc.curr_proc.ki_wmesg) {
             wmesg.to_string_lossy().into_owned()
         } else {
-            String::from("")
+            String::new()
         };
         let fmt_content = raw_content.clone();
 

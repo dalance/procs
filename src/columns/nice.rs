@@ -6,8 +6,8 @@ use std::collections::HashMap;
 pub struct Nice {
     header: String,
     unit: String,
-    fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, i64>,
+    fmt_contents: HashMap<i64, String>,
+    raw_contents: HashMap<i64, i64>,
     width: usize,
 }
 
@@ -41,7 +41,7 @@ impl Column for Nice {
 #[cfg(target_os = "macos")]
 impl Column for Nice {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = proc.curr_task.pbsd.pbi_nice as i64;
+        let raw_content = proc.curr_proc.kp_proc.p_nice as i64;
         let fmt_content = format!("{}", raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
@@ -54,7 +54,7 @@ impl Column for Nice {
 #[cfg(target_os = "freebsd")]
 impl Column for Nice {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = proc.curr_proc.info.nice as i64;
+        let raw_content = proc.curr_proc.ki_nice as i64;
         let fmt_content = format!("{raw_content}");
 
         self.fmt_contents.insert(proc.pid, fmt_content);

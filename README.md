@@ -30,15 +30,16 @@
 - Pager support
 - Watch mode (like `top`)
 - Tree view
+- Narrowing to the processes of the current effective user
 
 ## Platform
 
-- Linux is supported.
-- macOS is experimentally supported.
-    - macOS version is checked only in the GitHub Actions environment.
-    - The issues caused by real-machine are welcome.
-- Windows is supported.
-- FreeBSD is experimentally supported.
+- Linux
+- macOS
+- Windows
+- FreeBSD
+
+All tested on hosts.
 
 ## Installation
 
@@ -243,7 +244,24 @@ Instead of them, built-in pager can be used by configuration `use_builtin`.
 
 #### Windows
 
-On Windows, built-in pager is always used.
+On Windows, the built-in pager is used by default.
+If `command` of `[pager]` section is set, it is launched as an external pager
+unless `use_builtin` is `true`, which asks for the built-in pager explicitly.
+
+```toml
+[pager]
+command = "less -SR"
+```
+
+The command is split by whitespaces, and a part surrounded by `"` or `'` is kept as a single
+argument, so a path containing spaces should be quoted like
+`"C:\Program Files\Git\usr\bin\less.exe" -SR`.
+Quotes must be balanced.
+
+The command is launched directly without a shell, so shell metacharacters like a pipe or a
+redirection are not available. Use `cmd /c "..."` if they are required.
+
+If the command cannot be parsed or launched, procs falls back to the built-in pager.
 
 ### Watch mode
 
@@ -269,6 +287,29 @@ procs --tree
 ![procs_tree](https://user-images.githubusercontent.com/4331004/55446692-9ff07900-55fb-11e9-8b66-a8432df0a8e1.png)
 
 If `TreeSlot` column exists in config, dependency tree is shown at the slot.
+
+### Show the processes of one user
+
+By default `procs` shows the processes of every user. `show_user_only` in the
+`[display]` section, or the `--user` (`-u`) option, narrows the listing down to
+one of them.
+
+```bash
+# Show the processes of the current user
+procs -u
+procs --user myself
+procs --user $USER
+
+# Show the processes of the root user
+procs -u root
+procs --user root
+procs --user 0
+
+# Show processes of all users (default)
+procs -u all
+```
+
+See [the section](#show_user_only) for the details.
 
 ### Sort column
 
@@ -443,14 +484,14 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | Docker               | -not supported-       | Docker container name                         | o     | o     |         |         |
 | Eip                  | eip                   | Instruction pointer                           | o     |       |         |         |
 | ElapsedTime          | -not supported-       | Elapsed time                                  | o     | o     | o       | o       |
-| Env                  | `e` output modifier   | Environment variables                         | o     |       |         | o       |
+| Env                  | `e` output modifier   | Environment variables                         | o     | o     |         | o       |
 | Esp                  | esp                   | Stack pointer                                 | o     |       |         |         |
-| FileName             | comm                  | File name                                     | o     |       | o       | o       |
-| Gid                  | egid                  | Group ID                                      | o     | o     | o       | o       |
+| FileName             | comm                  | File name                                     | o     | o     | o       | o       |
+| Gid                  | egid                  | Effective group ID                                      | o     | o     | o       | o       |
 | GidFs                | fgid                  | File system group ID                          | o     |       |         |         |
 | GidReal              | rgid                  | Real group ID                                 | o     | o     |         | o       |
 | GidSaved             | sgid                  | Saved group ID                                | o     | o     |         | o       |
-| Group                | egroup                | Group name                                    | o     | o     | o       | o       |
+| Group                | egroup                | Effective group name                                    | o     | o     | o       | o       |
 | GroupFs              | fgroup                | File system group name                        | o     |       |         |         |
 | GroupReal            | rgroup                | Real group name                               | o     | o     |         | o       |
 | GroupSaved           | sgroup                | Saved group name                              | o     | o     |         | o       |
@@ -513,7 +554,7 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | VmTotal              | -not supported-       | Total virtual memory size                     | *[^*] | o     | *[^*]   | *[^*]   |
 | VoluntaryContextSw   | -not supported-       | Voluntary context switch count                | o     |       |         | o       |
 | Wchan                | wchan                 | Process sleeping kernel function              | o     |       |         | o       |
-| WorkDir              | -not supported-       | Current working directory                     | o     |       | o       |         |
+| WorkDir              | -not supported-       | Current working directory                     | o     | o     | o       | o       |
 | WriteByte            | -not supported-       | Write bytes to storage                        | o     | o     | o       | o       |
 
 [^*]: Alias for VmRss on these platforms
@@ -651,7 +692,7 @@ style = "223"     # 223 for both theme
 | show_footer           | true, false           | false            | Whether footer row is shown                                                  |
 | show_kthreads         | true, false           | true             | Whether processes which belong to kthread are shown ( Linux only )           |
 | cut_to_terminal       | true, false           | true             | Whether output lines are truncated for output into terminal                  |
-| cut_to_pager          | true, false           | false            | Whether output lines are truncated for output into pager                     |
+| cut_to_pager          | true, false           | false            | Whether output lines are truncated for output into pager (true for built-in pager) |
 | cut_to_pipe           | true, false           | false            | Whether output lines are truncated for output into pipe                      |
 | color_mode            | Auto, Always, Disable | Auto             | The default behavior of output coloring without `--color` commandline option |
 | separator             | [String]              | │                | String used as Separator                                                     |
@@ -660,6 +701,7 @@ style = "223"     # 223 for both theme
 | tree_symbols          | [String; 5]           |  [│, ─, ┬, ├, └] | Symbols used by tree view                                                    |
 | abbr_sid              | true, false           | true             | Whether machine SID is abbreviated ( Windows only )                          |
 | theme                 | Auto, Dark, Light     | Auto             | Default theme                                                                |
+| show_user_only        | "all", "myself", [User] | "all"          | Which user's processes are shown                                             |
 
 If `color_mode` is `Auto`, color is enabled for terminal and pager, disabled for pipe.
 
@@ -680,6 +722,40 @@ If `abbr_sid` is `true`, SID is shown like below:
 ```text
 S-1-5-21-...-1001
 ```
+
+#### `show_user_only`
+
+By default `procs` shows the processes of every user. `show_user_only` names the
+one user whose processes are kept, and `--user` (`-u`) sets it from the command
+line:
+
+- `"all"`: every user's processes. This is the default, and what leaving the key
+  out means.
+- `"myself"`: the processes of the user `procs` runs as. A bare `--user` (or
+  `-u`) is short for this.
+- anything else: a user to keep, written as a name (`root`, `alice`), as a uid
+  in decimal (`1000`), or - on Windows - as a SID.
+
+The user is looked up while `procs` starts, and a name that matches no account
+stops it with `no such user: ...` rather than leaving an empty listing behind.
+
+On Windows there is no uid, so a number is looked up as a name like anything
+else and normally matches nothing. What the filter compares there is the whole
+SID, so an account is kept only if it is that account. The `Uid` column shows
+the SID to use - in full, which is what `abbr_sid` abbreviates.
+
+A process whose owner cannot be determined - a Windows protected process, or
+some of the kernel's own - counts as *not* the wanted user and is dropped.
+Running with more privileges (`sudo`, or an elevated prompt on Windows) makes
+more owners readable and therefore keeps more processes.
+
+The filter is applied while the processes are collected, not afterwards, so
+everything a platform would otherwise do per process - opening a handle and
+reading a command line on Windows, the `/proc/<pid>` reads on Linux - is skipped
+for the processes that are dropped.
+
+With `--tree`, the parents of a process that was dropped are not added back: the
+process simply starts a tree of its own.
 
 
 ### `[sort]` section
@@ -713,4 +789,8 @@ If `column` is 0, value is sorted by the left column.
 | command      | [Command]             | less -SR | Pager command                                                            |
 
 If `mode` is `Auto`, pager is used only when output lines exceed terminal height.
-Default pager is `less -SR` ( if `less` is not found, `more -f` ).
+Default pager is `less -SR` on POSIX systems ( if `less` is not found, `more -f` ).
+
+On Windows, `command` is used if it is set and `use_builtin` is `false`, and the built-in pager
+is used otherwise.
+Note that the `PAGER` environment variable is not referenced on any platform.

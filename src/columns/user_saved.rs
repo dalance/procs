@@ -8,8 +8,8 @@ use uzers::Users;
 pub struct UserSaved {
     header: String,
     unit: String,
-    fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, String>,
+    fmt_contents: HashMap<i64, String>,
+    raw_contents: HashMap<i64, String>,
     width: usize,
 }
 
@@ -52,7 +52,7 @@ impl Column for UserSaved {
 #[cfg(target_os = "macos")]
 impl Column for UserSaved {
     fn add(&mut self, proc: &ProcessInfo) {
-        let uid = proc.curr_task.pbsd.pbi_svuid;
+        let uid = proc.curr_proc.kp_eproc.e_pcred.p_svuid;
         let fmt_content =
             if let Some(user) = USERS_CACHE.with(|x| x.borrow_mut().get_user_by_uid(uid)) {
                 format!("{}", user.name().to_string_lossy())
@@ -71,7 +71,7 @@ impl Column for UserSaved {
 #[cfg(target_os = "freebsd")]
 impl Column for UserSaved {
     fn add(&mut self, proc: &ProcessInfo) {
-        let uid = proc.curr_proc.info.svuid;
+        let uid = proc.curr_proc.ki_svuid;
         let fmt_content =
             if let Some(user) = USERS_CACHE.with(|x| x.borrow_mut().get_user_by_uid(uid)) {
                 format!("{}", user.name().to_string_lossy())

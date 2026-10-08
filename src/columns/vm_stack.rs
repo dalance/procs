@@ -7,8 +7,8 @@ use std::collections::HashMap;
 pub struct VmStack {
     header: String,
     unit: String,
-    fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, u64>,
+    fmt_contents: HashMap<i64, String>,
+    raw_contents: HashMap<i64, u64>,
     width: usize,
 }
 
@@ -50,7 +50,7 @@ impl Column for VmStack {
 #[cfg(target_os = "freebsd")]
 impl Column for VmStack {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = (proc.curr_proc.info.ssize as u64).saturating_mul(4096);
+        let raw_content = (proc.curr_proc.ki_ssize as u64).saturating_mul(4096);
         let fmt_content = bytify(raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);

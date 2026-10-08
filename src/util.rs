@@ -32,7 +32,7 @@ pub enum KeywordClass {
 
 pub fn find_partial<T: AsRef<str>>(
     columns: &[&dyn Column],
-    pid: i32,
+    pid: i64,
     keyword: &[T],
     logic: &ConfigSearchLogic,
     case: &ConfigSearchCase,
@@ -78,7 +78,7 @@ pub fn find_partial<T: AsRef<str>>(
 
 pub fn find_exact<T: AsRef<str>>(
     columns: &[&dyn Column],
-    pid: i32,
+    pid: i64,
     keyword: &[T],
     logic: &ConfigSearchLogic,
     case: &ConfigSearchCase,
@@ -288,14 +288,16 @@ pub unsafe fn get_sys_value(
 ) -> bool {
     mib[0] = high as i32;
     mib[1] = low as i32;
-    libc::sysctl(
-        mib.as_mut_ptr(),
-        2,
-        value,
-        &mut len as *mut usize,
-        ::std::ptr::null_mut(),
-        0,
-    ) == 0
+    unsafe {
+        libc::sysctl(
+            mib.as_mut_ptr(),
+            2,
+            value,
+            &mut len as *mut usize,
+            ::std::ptr::null_mut(),
+            0,
+        ) == 0
+    }
 }
 
 pub fn bytify(x: u64) -> String {
@@ -359,9 +361,7 @@ thread_local! {
     pub static USERS_CACHE: std::cell::RefCell<UsersCache> = UsersCache::new().into();
 }
 
-#[cfg(target_os = "freebsd")]
-// std::ffi::FromBytesUntilNulError is missing until Rust 1.73.0
-// https://github.com/rust-lang/rust/pull/113701
+#[cfg(any(target_os = "freebsd", target_os = "macos"))]
 pub fn ptr_to_cstr(
     x: &[std::os::raw::c_char],
 ) -> Result<&std::ffi::CStr, core::ffi::FromBytesUntilNulError> {
@@ -371,16 +371,30 @@ pub fn ptr_to_cstr(
     std::ffi::CStr::from_bytes_until_nul(x)
 }
 
+/// The four words of a FreeBSD `sigset_t`, which the signal columns print as
+/// a mask.
+///
+/// `libc` keeps the words private, so the first one cannot be named - but
+/// `sigset_t` is `#[repr(C)]` around that one `[u32; 4]` field and nothing
+/// else, so the words *are* the structure and can be read straight out of it.
+#[cfg(target_os = "freebsd")]
+pub fn sigset_words(set: &libc::sigset_t) -> [u32; 4] {
+    // SAFETY: `libc::sigset_t` is `#[repr(C)]` with a single `[u32; 4]`
+    // field, so it has that array's size (16) and alignment (4); this reads
+    // the structure's own bytes.
+    unsafe { *std::ptr::from_ref(set).cast::<[u32; 4]>() }
+}
+
 #[cfg(any(target_os = "linux", target_os = "android"))]
 pub fn process_new(
-    pid: i32,
+    pid: i64,
     procfs: &Option<std::path::PathBuf>,
 ) -> procfs::ProcResult<procfs::process::Process> {
     if let Some(x) = procfs {
         let path = x.join(pid.to_string());
         procfs::process::Process::new_with_root(path)
     } else {
-        procfs::process::Process::new(pid)
+        procfs::process::Process::new(pid as i32)
     }
 }
 
@@ -428,5 +442,31 @@ mod tests {
 
         // Normal command lines are untouched
         assert_eq!(sanitize_control_chars("/bin/sleep 60"), "/bin/sleep 60");
+    }
+
+    /// `sigset_words` has to read a `sigset_t` exactly the way libc's own
+    /// accessors do - that is the whole claim behind the pointer cast. Signals
+    /// are laid out lowest-numbered first, so 1..=32 land in the first word
+    /// (`_SIG_WORD(n) == (n - 1) / 32`).
+    ///
+    /// FreeBSD-only, and the CI runs the suite on a FreeBSD VM.
+    #[cfg(target_os = "freebsd")]
+    #[test]
+    fn sigset_words_agrees_with_sigismember() {
+        let mut set: libc::sigset_t = unsafe { std::mem::zeroed() };
+        assert_eq!(unsafe { libc::sigemptyset(&mut set) }, 0);
+        assert_eq!(sigset_words(&set), [0; 4], "an empty set has no bits");
+
+        for signo in 1..=32 {
+            assert_eq!(unsafe { libc::sigaddset(&mut set, signo) }, 0);
+        }
+
+        let words = sigset_words(&set);
+        assert_eq!(words[0], u32::MAX, "signals 1..=32 fill the first word");
+        assert_eq!(words[1..], [0, 0, 0], "and nothing spills past it");
+        for signo in 1..=32 {
+            assert_eq!(unsafe { libc::sigismember(&set, signo) }, 1);
+        }
+        assert_eq!(unsafe { libc::sigismember(&set, 33) }, 0);
     }
 }
