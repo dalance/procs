@@ -4,6 +4,8 @@ use std::cmp;
 use std::collections::HashMap;
 use std::path::PathBuf;
 
+#[cfg(target_os = "macos")]
+use libproc::libproc::proc_pid::{PIDInfo, PidInfoFlavor, pidinfo};
 #[cfg(target_os = "windows")]
 use windows_sys::Win32::Foundation::HANDLE;
 
@@ -13,7 +15,6 @@ pub struct WorkDir {
     fmt_contents: HashMap<i32, String>,
     raw_contents: HashMap<i32, String>,
     width: usize,
-    #[allow(dead_code)]
     procfs: Option<PathBuf>,
 }
 
@@ -32,18 +33,9 @@ impl WorkDir {
     }
 }
 
-#[cfg(any(target_os = "linux", target_os = "android"))]
 impl Column for WorkDir {
     fn add(&mut self, proc: &ProcessInfo) {
-        let fmt_content = if let Ok(proc) = crate::util::process_new(proc.pid, &self.procfs) {
-            if let Ok(path) = proc.cwd() {
-                path.to_string_lossy().to_string()
-            } else {
-                String::from("")
-            }
-        } else {
-            String::from("")
-        };
+        let fmt_content = work_dir_of(proc.pid, &self.procfs).unwrap_or_default();
         let raw_content = fmt_content.clone();
 
         self.fmt_contents.insert(proc.pid, fmt_content);
@@ -53,17 +45,33 @@ impl Column for WorkDir {
     column_default!(String, false);
 }
 
-#[cfg(target_os = "windows")]
-impl Column for WorkDir {
-    fn add(&mut self, proc: &ProcessInfo) {
-        let fmt_content = work_dir_of(proc.pid).unwrap_or_default();
-        let raw_content = fmt_content.clone();
+#[cfg(any(target_os = "linux", target_os = "android"))]
+fn work_dir_of(pid: i32, procfs: &Option<PathBuf>) -> Option<String> {
+    let proc = crate::util::process_new(pid, procfs).ok()?;
+    Some(proc.cwd().ok()?.to_string_lossy().into_owned())
+}
 
-        self.fmt_contents.insert(proc.pid, fmt_content);
-        self.raw_contents.insert(proc.pid, raw_content);
+/// libproc's `pidinfo` passes `&mut T` to `proc_pidinfo` sized by
+/// `size_of::<T>()`, so this must keep the exact layout of
+/// `proc_vnodepathinfo`.
+#[cfg(target_os = "macos")]
+#[repr(transparent)]
+struct VnodePathInfo(libc::proc_vnodepathinfo);
+
+#[cfg(target_os = "macos")]
+impl PIDInfo for VnodePathInfo {
+    fn flavor() -> PidInfoFlavor {
+        PidInfoFlavor::VNodePathInfo
     }
+}
 
-    column_default!(String, false);
+/// Processes owned by other users yield `None` unless running as root.
+#[cfg(target_os = "macos")]
+fn work_dir_of(pid: i32, _procfs: &Option<PathBuf>) -> Option<String> {
+    let info = pidinfo::<VnodePathInfo>(pid, 0).ok()?;
+    // libc declares `vip_path` as `[[c_char; 32]; 32]`, not `[c_char; MAXPATHLEN]`.
+    let path = crate::util::ptr_to_cstr(info.0.pvi_cdir.vip_path.as_flattened()).ok()?;
+    Some(path.to_string_lossy().into_owned())
 }
 
 /// Reads the current working directory of `pid` from its PEB.
@@ -74,7 +82,7 @@ impl Column for WorkDir {
 /// `PROCESS_QUERY_LIMITED_INFORMATION | PROCESS_VM_READ`, so protected
 /// processes (e.g. PPL) yield `None`.
 #[cfg(target_os = "windows")]
-fn work_dir_of(pid: i32) -> Option<String> {
+fn work_dir_of(pid: i32, _procfs: &Option<PathBuf>) -> Option<String> {
     use windows_sys::Win32::Foundation::{CloseHandle, FALSE, HANDLE};
     use windows_sys::Win32::System::Threading::{
         OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_VM_READ,
