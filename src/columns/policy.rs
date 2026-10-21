@@ -6,8 +6,8 @@ use std::collections::HashMap;
 pub struct Policy {
     header: String,
     unit: String,
-    fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, String>,
+    fmt_contents: HashMap<i64, String>,
+    raw_contents: HashMap<i64, String>,
     width: usize,
 }
 
@@ -55,7 +55,7 @@ impl Column for Policy {
             Some(libc::SCHED_BATCH) => String::from("B"),
             Some(libc::SCHED_IDLE) => String::from("IDL"),
             Some(libc::SCHED_DEADLINE) => String::from("D"),
-            _ => String::from(""),
+            _ => String::new(),
         };
         let raw_content = fmt_content.clone();
 
@@ -69,11 +69,11 @@ impl Column for Policy {
 #[cfg(target_os = "macos")]
 impl Column for Policy {
     fn add(&mut self, proc: &ProcessInfo) {
-        let fmt_content = match proc.curr_task.ptinfo.pti_policy {
+        let fmt_content = match proc.curr_task.pti_policy {
             1 => String::from("TS"),
             2 => String::from("RR"),
             4 => String::from("FF"),
-            _ => String::from(""),
+            _ => String::new(),
         };
         let raw_content = fmt_content.clone();
 

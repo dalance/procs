@@ -1,3 +1,4 @@
+use crate::process::{ProcessInfoBase, ShowFilter, thread_key};
 use procfs::ProcError;
 use procfs::ProcessCGroup;
 use procfs::process::{FDInfo, Io, Process, Stat, StatFlags, Status, TasksIter};
@@ -70,25 +71,43 @@ impl ProcessTask {
 }
 
 pub struct ProcessInfo {
-    pub pid: i32,
-    pub ppid: i32,
+    /// The part of a row every platform has - the row key, the parent and the
+    /// sampling window. The `Deref` below hands it out, so a column goes on
+    /// writing `proc.pid` without reaching for `base`.
+    ///
+    /// The key is a process id when it is positive and the negated thread id
+    /// of a thread row when it is negative: a task's id lives in the same
+    /// namespace as a process id, so it can stand for a row of its own - but
+    /// only while no process is using the same number, and a recycled id is
+    /// indistinguishable from the one that held it before. Negating it says
+    /// "this row is a thread" and leaves the Pid column free to print the id
+    /// it came from.
+    pub base: ProcessInfoBase,
     pub curr_proc: ProcessTask,
     pub prev_stat: Stat,
     pub curr_io: Option<Io>,
     pub prev_io: Option<Io>,
     pub curr_status: Option<Status>,
-    pub interval: Duration,
 }
 
+process_info_deref!();
+
+/// Hands the processes out one at a time instead of collecting them first.
+///
+/// A `ProcessInfo` owns an open `/proc/<pid>` directory, so returning the whole
+/// listing as a `Vec` means holding one descriptor per process at once. The
+/// caller consumes each entry before the next one is read (see `View::new`),
+/// which keeps the peak at a single descriptor no matter how many processes
+/// there are - otherwise a low `RLIMIT_NOFILE` makes the second pass fail
+/// halfway and the processes it could not open disappear without a word.
 pub fn collect_proc(
     interval: Duration,
     with_thread: bool,
-    show_kthreads: bool,
     procfs_path: &Option<PathBuf>,
-) -> Vec<ProcessInfo> {
+    filter: ShowFilter,
+) -> impl Iterator<Item = ProcessInfo> + '_ {
     let mut base_procs = Vec::new();
     let mut base_tasks = HashMap::new();
-    let mut ret = Vec::new();
 
     let all_proc = if let Some(x) = procfs_path {
         procfs::process::all_processes_with_root(x)
@@ -99,6 +118,20 @@ pub fn collect_proc(
     if let Ok(all_proc) = all_proc {
         for proc in all_proc.flatten() {
             if let Ok(stat) = proc.stat() {
+                // The owner is read only when something is compared against
+                // it: with no uid to filter on, it is a `/proc/<pid>` open per
+                // process for nothing.
+                let owner = if filter.userid.is_some() {
+                    proc.uid().ok()
+                } else {
+                    None
+                };
+                if let Some(userid) = filter.userid
+                    && owner != Some(userid)
+                {
+                    continue;
+                }
+
                 let io = proc.io().ok();
                 let time = Instant::now();
                 if with_thread && let Ok(iter) = proc.tasks() {
@@ -111,85 +144,82 @@ pub fn collect_proc(
 
     thread::sleep(interval);
 
-    for (pid, prev_stat, prev_io, prev_time) in base_procs {
-        let curr_proc = if let Ok(proc) = crate::util::process_new(pid, procfs_path) {
-            proc
-        } else {
-            continue;
-        };
+    base_procs
+        .into_iter()
+        .filter_map(move |(pid, prev_stat, prev_io, prev_time)| {
+            let curr_proc = crate::util::process_new(pid.into(), procfs_path).ok()?;
+            let curr_stat = curr_proc.stat().ok()?;
 
-        let curr_stat = if let Ok(stat) = curr_proc.stat() {
-            stat
-        } else {
-            continue;
-        };
-
-        let curr_owner = if let Ok(owner) = curr_proc.uid() {
-            owner
-        } else {
-            continue;
-        };
-
-        let curr_io = curr_proc.io().ok();
-        let curr_status = curr_proc.status().ok();
-        let curr_time = Instant::now();
-        let interval = curr_time - prev_time;
-        let ppid = curr_stat.ppid;
-
-        if !show_kthreads
-            && curr_stat
-                .flags()
-                .unwrap_or(StatFlags::empty())
-                .contains(StatFlags::PF_KTHREAD)
-        {
-            continue;
-        }
-
-        let mut curr_tasks = HashMap::new();
-        if with_thread && let Ok(iter) = curr_proc.tasks() {
-            collect_task(iter, &mut curr_tasks);
-        }
-
-        let curr_proc = ProcessTask::Process {
-            stat: curr_stat,
-            owner: curr_owner,
-            proc: curr_proc,
-        };
-
-        let proc = ProcessInfo {
-            pid,
-            ppid,
-            curr_proc,
-            prev_stat,
-            curr_io,
-            prev_io,
-            curr_status,
-            interval,
-        };
-
-        ret.push(proc);
-
-        for (tid, (pid, curr_stat, curr_status, curr_io)) in curr_tasks {
-            if let Some((_, prev_stat, _, prev_io)) = base_tasks.remove(&tid) {
-                let proc = ProcessInfo {
-                    pid: tid,
-                    ppid: pid,
-                    curr_proc: ProcessTask::Task {
-                        stat: curr_stat,
-                        owner: curr_owner,
-                    },
-                    prev_stat,
-                    curr_io,
-                    prev_io,
-                    curr_status,
-                    interval,
-                };
-                ret.push(proc);
+            if prev_stat.starttime != curr_stat.starttime {
+                // Pid recycled
+                return None;
             }
-        }
-    }
 
-    ret
+            let curr_owner = curr_proc.uid().ok()?;
+
+            if let Some(userid) = filter.userid
+                && curr_owner != userid
+            {
+                return None;
+            }
+
+            let curr_io = curr_proc.io().ok();
+            let curr_status = curr_proc.status().ok();
+            let curr_time = Instant::now();
+            let interval = curr_time - prev_time;
+            let ppid = curr_stat.ppid;
+
+            if !filter.kthread
+                && curr_stat
+                    .flags()
+                    .unwrap_or(StatFlags::empty())
+                    .contains(StatFlags::PF_KTHREAD)
+            {
+                return None;
+            }
+
+            let mut curr_tasks = HashMap::new();
+            if with_thread && let Ok(iter) = curr_proc.tasks() {
+                collect_task(iter, &mut curr_tasks);
+            }
+
+            let curr_proc = ProcessTask::Process {
+                stat: curr_stat,
+                owner: curr_owner,
+                proc: curr_proc,
+            };
+
+            let proc = ProcessInfo {
+                base: ProcessInfoBase::new(pid as i64, ppid as i64, interval),
+                curr_proc,
+                prev_stat,
+                curr_io,
+                prev_io,
+                curr_status,
+            };
+
+            let mut tasks = Vec::new();
+
+            for (tid, (pid, curr_stat, curr_status, curr_io)) in curr_tasks {
+                if let Some((_, prev_stat, _, prev_io)) = base_tasks.remove(&tid) {
+                    let proc = ProcessInfo {
+                        base: ProcessInfoBase::new(thread_key(tid as u64), pid as i64, interval),
+                        curr_proc: ProcessTask::Task {
+                            stat: curr_stat,
+                            owner: curr_owner,
+                        },
+                        prev_stat,
+                        curr_io,
+                        prev_io,
+                        curr_status,
+                    };
+                    tasks.push(proc);
+                }
+            }
+
+            Some(std::iter::once(proc).chain(tasks))
+        })
+        .flatten()
 }
 
 #[allow(clippy::type_complexity)]

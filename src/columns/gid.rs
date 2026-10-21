@@ -8,8 +8,8 @@ use std::collections::HashMap;
 pub struct Gid {
     header: String,
     unit: String,
-    fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, u32>,
+    fmt_contents: HashMap<i64, String>,
+    raw_contents: HashMap<i64, u32>,
     width: usize,
     #[allow(dead_code)]
     abbr_sid: bool,
@@ -50,7 +50,12 @@ impl Column for Gid {
 #[cfg(target_os = "macos")]
 impl Column for Gid {
     fn add(&mut self, proc: &ProcessInfo) {
-        let gid = proc.curr_task.pbsd.pbi_gid;
+        // The effective gid is the first entry of the credential's group list
+        // (`kauth_cred_getgid`). `p_rgid` is the *real* gid and belongs to
+        // `GidReal`: the two do come apart - `WindowServer` runs with
+        // egid `_windowserver` and rgid `wheel` - so reading `p_rgid` here
+        // would just make this column a copy of `GidReal`.
+        let gid = proc.curr_proc.kp_eproc.e_ucred.cr_groups[0];
         let fmt_content = format!("{}", gid);
         let raw_content = gid;
 
@@ -86,7 +91,7 @@ impl Column for Gid {
 #[cfg(target_os = "freebsd")]
 impl Column for Gid {
     fn add(&mut self, proc: &ProcessInfo) {
-        let gid = proc.curr_proc.info.svgid;
+        let gid = proc.curr_proc.ki_svgid;
         let fmt_content = format!("{}", gid);
         let raw_content = gid;
 

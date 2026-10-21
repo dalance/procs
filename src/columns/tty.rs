@@ -6,8 +6,8 @@ use std::collections::HashMap;
 pub struct Tty {
     header: String,
     unit: String,
-    fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, String>,
+    fmt_contents: HashMap<i64, String>,
+    raw_contents: HashMap<i64, String>,
     width: usize,
 }
 
@@ -46,13 +46,13 @@ impl Column for Tty {
 #[cfg(target_os = "macos")]
 impl Column for Tty {
     fn add(&mut self, proc: &ProcessInfo) {
-        let dev = proc.curr_task.pbsd.e_tdev;
+        let dev = proc.curr_proc.kp_eproc.e_tdev;
         let major = (dev >> 24) & 0xff;
         let minor = dev & 0xffffff;
         let fmt_content = if major == 16 {
             format!("s{:03}", minor)
         } else {
-            String::from("")
+            String::new()
         };
         let raw_content = fmt_content.clone();
 
@@ -66,7 +66,7 @@ impl Column for Tty {
 #[cfg(target_os = "freebsd")]
 impl Column for Tty {
     fn add(&mut self, proc: &ProcessInfo) {
-        let dev = proc.curr_proc.info.tdev;
+        let dev = proc.curr_proc.ki_tdev;
 
         let mut buf = [0u8; 256];
 
@@ -89,7 +89,7 @@ impl Column for Tty {
         let fmt_content = if let Ok(devname) = std::ffi::CStr::from_bytes_until_nul(&buf) {
             devname.to_string_lossy().into_owned()
         } else {
-            String::from("")
+            String::new()
         };
         let raw_content = fmt_content.clone();
 
