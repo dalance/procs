@@ -106,7 +106,8 @@ macro_rules! column_default_display_json {
                 let value = value.replace("\"", "\\\"");
                 format!("\"{}\"", value)
             };
-            format!("\"{}\": {}", self.header, value)
+            let header = serde_json::to_string(&self.header).unwrap();
+            format!("{}: {}", header, value)
         }
     };
 }
