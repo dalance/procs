@@ -9,8 +9,8 @@ use crate::process::{thread_state, wait_reason, ThreadState};
 pub struct State {
     header: String,
     unit: String,
-    fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, String>,
+    fmt_contents: HashMap<i64, String>,
+    raw_contents: HashMap<i64, String>,
     width: usize,
 }
 
@@ -44,25 +44,7 @@ impl Column for State {
 #[cfg(target_os = "macos")]
 impl Column for State {
     fn add(&mut self, proc: &ProcessInfo) {
-        let mut state = 7;
-        for t in &proc.curr_threads {
-            let s = match t.pth_run_state {
-                1 => 1, // TH_STATE_RUNNING
-                2 => 5, // TH_STATE_STOPPED
-                3 => {
-                    if t.pth_sleep_time > 20 {
-                        4
-                    } else {
-                        3
-                    }
-                } // TH_STATE_WAITING
-                4 => 2, // TH_STATE_UNINTERRUPTIBLE
-                5 => 6, // TH_STATE_HALTED
-                _ => 7,
-            };
-            state = cmp::min(s, state);
-        }
-        let state = match state {
+        let state = match proc.state {
             0 => "",
             1 => "R",
             2 => "U",
@@ -70,6 +52,7 @@ impl Column for State {
             4 => "I",
             5 => "T",
             6 => "H",
+            8 => "Z",
             _ => "?",
         };
         let fmt_content = state.to_string();
@@ -85,17 +68,17 @@ impl Column for State {
 #[cfg(target_os = "freebsd")]
 impl Column for State {
     fn add(&mut self, proc: &ProcessInfo) {
-        let info = &proc.curr_proc.info;
-        let flag = info.flag;
-        let tdflags = info.tdflags;
-        let cr_flags = info.cr_flags;
-        let kiflag = info.kiflag;
+        let info = &proc.curr_proc;
+        let flag = info.ki_flag;
+        let tdflags = info.ki_tdflags;
+        let cr_flags = info.ki_cr_flags;
+        let kiflag = info.ki_kiflag;
 
-        let mut state = match info.stat {
+        let mut state = match info.ki_stat {
             libc::SSTOP => "T",
             libc::SSLEEP => {
                 if (tdflags & libc::TDF_SINTR as i64) != 0 {
-                    if info.slptime >= 20 {
+                    if info.ki_slptime >= 20 {
                         "I"
                     } else {
                         "S"
@@ -112,37 +95,41 @@ impl Column for State {
         }
         .to_string();
         if (flag & libc::P_INMEM as i64) == 0 {
-            state.push_str("W");
+            state.push('W');
         }
-        if info.nice < libc::NZERO as i8 || info.pri.class == bsd_kvm_sys::PRI_REALTIME as u8 {
-            state.push_str("<");
+        if info.ki_nice < libc::NZERO as i8
+            || info.ki_pri.pri_class == crate::process::PRI_REALTIME
+        {
+            state.push('<');
         }
-        if info.nice > libc::NZERO as i8 || info.pri.class == bsd_kvm_sys::PRI_IDLE as u8 {
-            state.push_str("N");
+        if info.ki_nice > libc::NZERO as i8 || info.ki_pri.pri_class == crate::process::PRI_IDLE {
+            state.push('N');
         }
         if (flag & libc::P_TRACED as i64) != 0 {
-            state.push_str("X");
+            state.push('X');
         }
-        if (flag & libc::P_WEXIT as i64) != 0 && info.stat != libc::SZOMB as std::os::raw::c_char {
-            state.push_str("E");
+        if (flag & libc::P_WEXIT as i64) != 0
+            && info.ki_stat != libc::SZOMB as std::os::raw::c_char
+        {
+            state.push('E');
         }
         if (flag & libc::P_PPWAIT as i64) != 0 {
-            state.push_str("V");
+            state.push('V');
         }
-        if (flag & libc::P_SYSTEM as i64) != 0 || info.lock > 0 {
-            state.push_str("L");
+        if (flag & libc::P_SYSTEM as i64) != 0 || info.ki_lock > 0 {
+            state.push('L');
         }
         if (cr_flags & libc::KI_CRF_CAPABILITY_MODE as u32) != 0 {
-            state.push_str("C");
+            state.push('C');
         }
         if (kiflag & libc::KI_SLEADER as i64) != 0 {
-            state.push_str("s");
+            state.push('s');
         }
-        if (flag & libc::P_CONTROLT as i64) != 0 && info.pgid == info.tpgid {
-            state.push_str("+");
+        if (flag & libc::P_CONTROLT as i64) != 0 && info.ki_pgid == info.ki_tpgid {
+            state.push('+');
         }
         if (flag & libc::P_JAILED as i64) != 0 {
-            state.push_str("J");
+            state.push('J');
         }
         let fmt_content = state;
         let raw_content = fmt_content.clone();

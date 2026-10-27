@@ -6,8 +6,8 @@ use std::collections::HashMap;
 pub struct Uid {
     header: String,
     unit: String,
-    fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, u32>,
+    fmt_contents: HashMap<i64, String>,
+    raw_contents: HashMap<i64, u32>,
     width: usize,
     #[allow(dead_code)]
     abbr_sid: bool,
@@ -48,7 +48,7 @@ impl Column for Uid {
 #[cfg(target_os = "macos")]
 impl Column for Uid {
     fn add(&mut self, proc: &ProcessInfo) {
-        let uid = proc.curr_task.pbsd.pbi_uid;
+        let uid = proc.curr_proc.kp_eproc.e_ucred.cr_uid;
         let fmt_content = format!("{}", uid);
         let raw_content = uid;
 
@@ -82,7 +82,7 @@ impl Column for Uid {
 #[cfg(target_os = "freebsd")]
 impl Column for Uid {
     fn add(&mut self, proc: &ProcessInfo) {
-        let uid = proc.curr_proc.info.uid;
+        let uid = proc.curr_proc.ki_uid;
         let fmt_content = format!("{}", uid);
         let raw_content = uid;
 

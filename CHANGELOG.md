@@ -4,18 +4,26 @@
 
 * [Added] Arch column for Windows (process image architecture)
 * [Added] Real Command column for Windows (command line arguments). This column was printing pure file name, which is now moved to FileName column.
-* [Added] Priority column for Windows (user-mode priority class)
 * [Added] RtPriority column for Windows (kernel base priority)
 * [Added] Threads column for Windows (thread count)
 * [Added] Session column for Windows (session ID)
 * [Added] State column for Windows (scheduler state derived from thread states)
-* [Added] Env column for Windows (environment variables)
+* [Added] Env column for Windows and macOS (environment variables)
 * [Added] RecvBytes and SendBytes columns for Windows (network I/O rate; needs Windows 11 or later)
-* [Added] WorkDir column for Windows (current working directory)
-* [Added] `--thread` support for Windows
+* [Added] WorkDir column for Windows, macOS and FreeBSD (current working directory)
+* [Added] FileName column for macOS (Process file name)
+* [Added] `--thread` support for Windows, macOS and FreeBSD
+* [Added] External pager support for Windows by `[pager] command` (built-in pager is used if it is not set)
+* [Added] `show_user_only` of `[display]` section and `--user` (`-u`) option to show the processes of one user (a name, a uid, or a SID on Windows, as well as `"myself"` and `"all"`)
 * [Changed] Group and Gid columns for Windows read the process token only when the column is displayed
+* [Changed] `--procfs` is now a Linux-only option; the other platforms reject it as an unknown argument
+* [Fixed] System processes no longer being dropped silently on macOS
 * [Fixed] ReadBytes / WriteBytes divided by a mis-scaled interval (seconds added to milliseconds)
 * [Fixed] Fix invalid JSON output when a column is skipped by --only or --tree
+* [Fixed] Pid recycled by the kernel no longer reported with a bogus rate
+* [Fixed] ElapsedTime and StartTime columns no longer show a bogus value when the start time is unavailable
+* [Fixed] Gid and Group columns for macOS now currectly report the effective group (matching the other platforms)
+* [Fixed] Avoid silently omitting Linux processes when the open file limit is low
 
 ## [v0.14.12](https://github.com/dalance/procs/compare/v0.14.11...v0.14.12) - 2026-06-25
 
