@@ -16,6 +16,7 @@
 * [Changed] Group and Gid columns for Windows read the process token only when the column is displayed
 * [Fixed] ReadBytes / WriteBytes divided by a mis-scaled interval (seconds added to milliseconds)
 * [Fixed] Fix invalid JSON output when a column is skipped by --only or --tree
+* [Fixed] Avoid silently omitting Linux processes when the open file limit is low
 
 ## [v0.14.12](https://github.com/dalance/procs/compare/v0.14.11...v0.14.12) - 2026-06-25
 
