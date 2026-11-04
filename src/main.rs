@@ -204,7 +204,15 @@ fn run_list() {
     }
 }
 
+fn check_watch_tty(is_tty: bool) -> Result<(), Error> {
+    if !is_tty {
+        anyhow::bail!("--watch requires a terminal, but stdout is not a TTY");
+    }
+    Ok(())
+}
+
 fn run_watch(opt: &mut Opt, config: &Config, interval: u64) -> Result<(), Error> {
+    check_watch_tty(Term::stdout().is_term())?;
     Watcher::start(opt, config, interval)
 }
 
@@ -308,6 +316,12 @@ mod tests {
         let mut opt = Opt::parse_from(args.iter());
         let ret = run_default(&mut opt, &config);
         assert!(ret.is_ok());
+    }
+
+    #[test]
+    fn test_watch_requires_tty() {
+        assert!(check_watch_tty(false).is_err());
+        assert!(check_watch_tty(true).is_ok());
     }
 
     #[test]
