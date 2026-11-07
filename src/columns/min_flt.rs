@@ -6,8 +6,8 @@ use std::collections::HashMap;
 pub struct MinFlt {
     header: String,
     unit: String,
-    fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, u64>,
+    fmt_contents: HashMap<i64, String>,
+    raw_contents: HashMap<i64, u64>,
     width: usize,
 }
 
@@ -41,8 +41,7 @@ impl Column for MinFlt {
 #[cfg(target_os = "macos")]
 impl Column for MinFlt {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content =
-            (proc.curr_task.ptinfo.pti_faults - proc.curr_task.ptinfo.pti_pageins) as u64;
+        let raw_content = (proc.curr_task.pti_faults - proc.curr_task.pti_pageins) as u64;
         let fmt_content = format!("{}", raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
@@ -55,7 +54,7 @@ impl Column for MinFlt {
 #[cfg(target_os = "freebsd")]
 impl Column for MinFlt {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = proc.curr_proc.info.rusage.minflt as u64;
+        let raw_content = proc.curr_proc.ki_rusage.ru_minflt as u64;
         let fmt_content = format!("{raw_content}");
 
         self.fmt_contents.insert(proc.pid, fmt_content);

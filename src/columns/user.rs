@@ -10,8 +10,8 @@ use uzers::Users;
 pub struct User {
     header: String,
     unit: String,
-    fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, String>,
+    fmt_contents: HashMap<i64, String>,
+    raw_contents: HashMap<i64, String>,
     width: usize,
     #[allow(dead_code)]
     abbr_sid: bool,
@@ -53,7 +53,7 @@ impl Column for User {
 #[cfg(target_os = "macos")]
 impl Column for User {
     fn add(&mut self, proc: &ProcessInfo) {
-        let uid = proc.curr_task.pbsd.pbi_uid;
+        let uid = proc.curr_proc.kp_eproc.e_ucred.cr_uid;
         let fmt_content =
             if let Some(user) = USERS_CACHE.with(|x| x.borrow_mut().get_user_by_uid(uid)) {
                 format!("{}", user.name().to_string_lossy())
@@ -90,7 +90,7 @@ impl Column for User {
 #[cfg(target_os = "freebsd")]
 impl Column for User {
     fn add(&mut self, proc: &ProcessInfo) {
-        let uid = proc.curr_proc.info.uid;
+        let uid = proc.curr_proc.ki_uid;
         let fmt_content =
             if let Some(user) = USERS_CACHE.with(|x| x.borrow_mut().get_user_by_uid(uid)) {
                 format!("{}", user.name().to_string_lossy())

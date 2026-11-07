@@ -10,8 +10,8 @@ use windows_sys::Win32::System::SystemInformation::{GlobalMemoryStatusEx, MEMORY
 pub struct UsageMem {
     header: String,
     unit: String,
-    fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, u32>,
+    fmt_contents: HashMap<i64, String>,
+    raw_contents: HashMap<i64, u32>,
     width: usize,
     mem_total: u64,
 }
@@ -112,7 +112,7 @@ impl Column for UsageMem {
 #[cfg(target_os = "macos")]
 impl Column for UsageMem {
     fn add(&mut self, proc: &ProcessInfo) {
-        let usage = proc.curr_task.ptinfo.pti_resident_size as f64 * 100.0 / self.mem_total as f64;
+        let usage = proc.curr_task.pti_resident_size as f64 * 100.0 / self.mem_total as f64;
         let fmt_content = format!("{:.1}", usage);
         let raw_content = (usage * 1000.0) as u32;
 
@@ -140,7 +140,7 @@ impl Column for UsageMem {
 #[cfg(target_os = "freebsd")]
 impl Column for UsageMem {
     fn add(&mut self, proc: &ProcessInfo) {
-        let usage = proc.curr_proc.info.rssize as f64 * 100.0 / self.mem_total as f64;
+        let usage = proc.curr_proc.ki_rssize as f64 * 100.0 / self.mem_total as f64;
         let fmt_content = format!("{:.1}", usage);
         let raw_content = (usage * 1000.0) as u32;
 
