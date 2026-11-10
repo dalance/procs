@@ -6,8 +6,8 @@ use std::collections::HashMap;
 pub struct GidSaved {
     header: String,
     unit: String,
-    fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, u32>,
+    fmt_contents: HashMap<i64, String>,
+    raw_contents: HashMap<i64, u32>,
     width: usize,
 }
 
@@ -45,7 +45,7 @@ impl Column for GidSaved {
 #[cfg(target_os = "macos")]
 impl Column for GidSaved {
     fn add(&mut self, proc: &ProcessInfo) {
-        let gid = proc.curr_task.pbsd.pbi_svgid;
+        let gid = proc.curr_proc.kp_eproc.e_pcred.p_svgid;
         let fmt_content = format!("{}", gid);
         let raw_content = gid;
 
@@ -59,7 +59,7 @@ impl Column for GidSaved {
 #[cfg(target_os = "freebsd")]
 impl Column for GidSaved {
     fn add(&mut self, proc: &ProcessInfo) {
-        let gid = proc.curr_proc.info.svgid;
+        let gid = proc.curr_proc.ki_svgid;
         let fmt_content = format!("{}", gid);
         let raw_content = gid;
 

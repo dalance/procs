@@ -7,7 +7,7 @@ BIN_NAME = procs
 
 export LONG_VERSION
 
-.PHONY: all test clean release_lnx release_win release_win_arm64 release_mac
+.PHONY: all test clean release_lnx release_win release_win_arm64 release_mac release_mac_x86_64 release_mac_aarch64
 
 all: test
 
@@ -38,10 +38,14 @@ release_win_arm64:
 	mv -v target/aarch64-pc-windows-msvc/release/${BIN_NAME}.exe ./
 	7z a ${BIN_NAME}-v${VERSION}-aarch64-windows.zip ${BIN_NAME}.exe
 
-release_mac:
+release_mac: release_mac_x86_64 release_mac_aarch64
+
+release_mac_x86_64:
 	cargo build --locked --release --target=x86_64-apple-darwin
-	cargo build --locked --release --target=aarch64-apple-darwin
 	zip -j ${BIN_NAME}-v${VERSION}-x86_64-mac.zip target/x86_64-apple-darwin/release/${BIN_NAME}
+
+release_mac_aarch64:
+	cargo build --locked --release --target=aarch64-apple-darwin
 	zip -j ${BIN_NAME}-v${VERSION}-aarch64-mac.zip target/aarch64-apple-darwin/release/${BIN_NAME}
 
 release_rpm:

@@ -1,6 +1,7 @@
 use crate::column::Column;
 use crate::columns::ConfigColumnKind;
 use serde_derive::{Deserialize, Serialize};
+use std::fmt;
 use std::str::FromStr;
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -519,6 +520,98 @@ pub enum ConfigSearchCase {
     Sensitive,
 }
 
+/// Which users' processes are listed.
+///
+/// The value names a user: `"all"` for every one of them, `"myself"` for the
+/// user `procs` runs as, or a user to keep - a name, a uid in decimal, or, on
+/// Windows, a SID such as `S-1-5-21-...-1001`. TOML has no `null` to write, so
+/// the value that stands for "every user" is `"all"` or the key left out; the
+/// deserializer accepts `null` as well, for formats that have it.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub enum ConfigUserFilter {
+    /// Every user's processes.
+    #[default]
+    All,
+    /// Only the processes of the user `procs` itself runs as.
+    Myself,
+    /// Only the processes of the user this names.
+    ///
+    /// Which user that is - and whether there is one at all - is decided when
+    /// the filter is built, because only the platform knows how to look a user
+    /// up: a name through the user database, a number as a uid where there are
+    /// uids, a SID where there are SIDs.
+    User(String),
+}
+
+impl ConfigUserFilter {
+    /// The value as it is written in the configuration file and on the command
+    /// line: the two keywords, or a user to look up later.
+    pub fn user(s: &str) -> Self {
+        match s.to_ascii_lowercase().as_str() {
+            "all" => ConfigUserFilter::All,
+            "myself" => ConfigUserFilter::Myself,
+            _ => ConfigUserFilter::User(String::from(s)),
+        }
+    }
+}
+
+impl serde::Serialize for ConfigUserFilter {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        match self {
+            ConfigUserFilter::All => serializer.serialize_str("all"),
+            ConfigUserFilter::Myself => serializer.serialize_str("myself"),
+            ConfigUserFilter::User(user) => serializer.serialize_str(user),
+        }
+    }
+}
+
+impl<'de> serde::Deserialize<'de> for ConfigUserFilter {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        struct UserFilterVisitor;
+
+        impl<'de> serde::de::Visitor<'de> for UserFilterVisitor {
+            type Value = ConfigUserFilter;
+
+            fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+                f.write_str("\"all\", \"myself\", a user, or null")
+            }
+
+            /// `null`, which TOML cannot write but another format can.
+            fn visit_unit<E>(self) -> Result<Self::Value, E> {
+                Ok(ConfigUserFilter::All)
+            }
+
+            fn visit_none<E>(self) -> Result<Self::Value, E> {
+                Ok(ConfigUserFilter::All)
+            }
+
+            /// A uid written as a number rather than as a string. It is kept
+            /// as the user it numbers, and the platform decides whether that
+            /// means a uid, or - on Windows, which has no uid - a user name
+            /// that most likely does not exist.
+            fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E> {
+                Ok(ConfigUserFilter::User(v.to_string()))
+            }
+
+            fn visit_i64<E>(self, v: i64) -> Result<Self::Value, E> {
+                Ok(ConfigUserFilter::User(v.to_string()))
+            }
+
+            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> {
+                Ok(ConfigUserFilter::user(v))
+            }
+        }
+
+        deserializer.deserialize_any(UserFilterVisitor)
+    }
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ConfigDisplay {
     #[serde(default = "default_false")]
@@ -559,6 +652,8 @@ pub struct ConfigDisplay {
     pub theme: ConfigTheme,
     #[serde(default = "default_true")]
     pub show_kthreads: bool,
+    #[serde(default)]
+    pub show_user_only: ConfigUserFilter,
 }
 
 impl Default for ConfigDisplay {
@@ -589,6 +684,7 @@ impl Default for ConfigDisplay {
             abbr_sid: true,
             theme: ConfigTheme::Auto,
             show_kthreads: true,
+            show_user_only: ConfigUserFilter::All,
         }
     }
 }

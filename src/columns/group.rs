@@ -12,8 +12,8 @@ use uzers::Groups;
 pub struct Group {
     header: String,
     unit: String,
-    fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, String>,
+    fmt_contents: HashMap<i64, String>,
+    raw_contents: HashMap<i64, String>,
     width: usize,
     #[allow(dead_code)]
     abbr_sid: bool,
@@ -59,7 +59,12 @@ impl Column for Group {
 #[cfg(target_os = "macos")]
 impl Column for Group {
     fn add(&mut self, proc: &ProcessInfo) {
-        let gid = proc.curr_task.pbsd.pbi_gid;
+        // The effective gid is the first entry of the credential's group list
+        // (`kauth_cred_getgid`). `p_rgid` is the *real* gid and belongs to
+        // `GroupReal`: the two do come apart - `WindowServer` runs with
+        // egid `_windowserver` and rgid `wheel` - so reading `p_rgid` here
+        // would just make this column a copy of `GroupReal`.
+        let gid = proc.curr_proc.kp_eproc.e_ucred.cr_groups[0];
         let fmt_content =
             if let Some(group) = USERS_CACHE.with(|x| x.borrow_mut().get_group_by_gid(gid)) {
                 format!("{}", group.name().to_string_lossy())
@@ -106,7 +111,7 @@ impl Column for Group {
 /// A thread row carries a thread id rather than a pid, so its lookup fails
 /// and it renders as empty - the same thing `Arch` and `WorkDir` do.
 #[cfg(target_os = "windows")]
-pub fn groups_of(pid: i32) -> Option<Vec<SID_MAX>> {
+pub fn groups_of(pid: i64) -> Option<Vec<SID_MAX>> {
     use std::mem::zeroed;
     use windows_sys::Win32::Foundation::{CloseHandle, FALSE, HANDLE};
     use windows_sys::Win32::Security::{TOKEN_GROUPS, TOKEN_QUERY, TokenGroups};
@@ -183,7 +188,7 @@ pub fn primary_group(groups: &[SID_MAX]) -> Option<&SID_MAX> {
 #[cfg(target_os = "freebsd")]
 impl Column for Group {
     fn add(&mut self, proc: &ProcessInfo) {
-        let gid = proc.curr_proc.info.svgid;
+        let gid = proc.curr_proc.ki_svgid;
         let fmt_content =
             if let Some(group) = USERS_CACHE.with(|x| x.borrow_mut().get_group_by_gid(gid)) {
                 format!("{}", group.name().to_string_lossy())

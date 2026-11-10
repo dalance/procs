@@ -7,8 +7,8 @@ use std::collections::HashMap;
 pub struct VmSize {
     header: String,
     unit: String,
-    fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, u64>,
+    fmt_contents: HashMap<i64, String>,
+    raw_contents: HashMap<i64, u64>,
     width: usize,
 }
 
@@ -42,7 +42,7 @@ impl Column for VmSize {
 #[cfg(target_os = "macos")]
 impl Column for VmSize {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = proc.curr_task.ptinfo.pti_virtual_size;
+        let raw_content = proc.curr_task.pti_virtual_size;
         let fmt_content = bytify(raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);
@@ -68,7 +68,9 @@ impl Column for VmSize {
 #[cfg(target_os = "freebsd")]
 impl Column for VmSize {
     fn add(&mut self, proc: &ProcessInfo) {
-        let raw_content = proc.curr_proc.info.size as u64;
+        // `ki_size` is a `vm_size_t`, which is a `usize` in `libc`'s binding
+        // and only 32 bits wide on the 32-bit architectures.
+        let raw_content = proc.curr_proc.ki_size as u64;
         let fmt_content = bytify(raw_content);
 
         self.fmt_contents.insert(proc.pid, fmt_content);

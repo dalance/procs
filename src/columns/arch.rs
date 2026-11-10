@@ -15,8 +15,8 @@ const CPU_TYPE_ARM64: i32 = 16777228;
 pub struct Arch {
     header: String,
     unit: String,
-    fmt_contents: HashMap<i32, String>,
-    raw_contents: HashMap<i32, String>,
+    fmt_contents: HashMap<i64, String>,
+    raw_contents: HashMap<i64, String>,
     width: usize,
 }
 
@@ -37,7 +37,15 @@ impl Arch {
 impl Column for Arch {
     fn add(&mut self, proc: &ProcessInfo) {
         let pid = proc.pid;
-        let arch = arch_from_pid(pid);
+        // An image belongs to a process, so a thread row is left blank: its
+        // key is a negated thread id the OS does not know - on macOS that id
+        // is 64 bit wide, so handing it to `sysctl` would truncate it and
+        // could name a different process.
+        let arch = if proc.pid < 0 {
+            ""
+        } else {
+            arch_from_pid(pid)
+        };
 
         let fmt_content = arch.to_string();
         let raw_content = fmt_content.clone();
@@ -101,13 +109,13 @@ mod machine {
 /// WOW64 processes report their own architecture, not the host's: a 32-bit
 /// process on an x86_64 machine yields `x86`.
 #[cfg(target_os = "windows")]
-pub fn arch_from_pid(pid: i32) -> &'static str {
+pub fn arch_from_pid(pid: i64) -> &'static str {
     use windows_sys::Win32::Foundation::{CloseHandle, FALSE, HANDLE};
     use windows_sys::Win32::System::Threading::{OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION};
 
     // 0 is the idle process and has no image; negative pids are not real.
     if pid <= 0 {
-        return "unknown";
+        return "";
     }
 
     // SAFETY: `pid` is only handed to `OpenProcess`, and the handle it hands
@@ -160,7 +168,7 @@ fn arch_from_machine(machine: u16) -> &'static str {
 // ---------------------------------------------------------------------------
 
 #[cfg(target_os = "macos")]
-pub fn arch_from_pid(pid: i32) -> &'static str {
+pub fn arch_from_pid(pid: i64) -> &'static str {
     use {
         libc::{sysctl, sysctlnametomib, cpu_type_t, size_t, CTL_KERN, KERN_PROC, KERN_PROC_PID},
         std::{mem, ffi::CString},
@@ -177,7 +185,7 @@ pub fn arch_from_pid(pid: i32) -> &'static str {
         return "unknown";
     }
 
-    mib[length as usize] = pid;
+    mib[length as usize] = pid as libc::c_int;
     length += 1;
 
     if unsafe { sysctl(mib.as_mut_ptr(), length as u32, &mut cpu_type as *mut _ as *mut _, &mut size, core::ptr::null_mut(), 0) } != 0 {
@@ -193,7 +201,7 @@ pub fn arch_from_pid(pid: i32) -> &'static str {
         mib[0] = CTL_KERN;
         mib[1] = KERN_PROC;
         mib[2] = KERN_PROC_PID;
-        mib[3] = pid;
+        mib[3] = pid as libc::c_int;
 
         length = 4;
         size = mem::size_of::<kinfo_proc>();
