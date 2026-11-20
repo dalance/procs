@@ -352,7 +352,7 @@ numeric_search = true
 nonnumeric_search = false
 
 [[columns]]
-kind = "Username"
+kind = "User"
 style = "BrightGreen|Green"
 numeric_search = false
 nonnumeric_search = true
@@ -514,7 +514,7 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | VoluntaryContextSw   | -not supported-       | Voluntary context switch count                | o     |       |         | o       |
 | Wchan                | wchan                 | Process sleeping kernel function              | o     |       |         | o       |
 | WorkDir              | -not supported-       | Current working directory                     | o     |       | o       |         |
-| WriteByte            | -not supported-       | Write bytes to storage                        | o     | o     | o       | o       |
+| WriteBytes           | -not supported-       | Write bytes to storage                        | o     | o     | o       | o       |
 
 [^*]: Alias for VmRss on these platforms
 
@@ -536,7 +536,7 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 - Magenta
 - Cyan
 - White
-- Color256
+- 0–255 (as a string, e.g. `"223"`)
 - ByPercentage
 - ByState
 - ByUnit
@@ -597,7 +597,7 @@ The available list of color is below.
 - Magenta
 - Cyan
 - White
-- Color256
+- 0–255 (as a string, e.g. `"223"`)
 
 Colors can be configured by theme through `|`.
 
@@ -609,7 +609,7 @@ style = "BrightWhite"       # BrightWhite for both theme
 The first color is for dark theme, and the second is for light theme.
 If only a color is specified, the color is applied to both theme.
 
-`Color256` can be specified by 0-255 value like below:
+256-color palette entries are specified by a 0–255 value, not the literal `Color256`, like below:
 
 ```toml
 style = "223|112" # 223 for dark theme and 112 for light theme
