@@ -25,6 +25,23 @@ impl Pid {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn json_escapes_custom_header() {
+        for header in ["PID", "Process \"ID\"", "Path\\ID", "Process\nID", "Process\tID"] {
+            let mut column = Pid::new(Some(header.into()));
+            column.raw_contents.insert(201, 201);
+            column.fmt_contents.insert(201, "201".into());
+            let json = format!("{{{}}}", column.display_json(201));
+            let row: serde_json::Value = serde_json::from_str(&json).unwrap();
+            assert_eq!(row[header], 201);
+        }
+    }
+}
+
 #[cfg(any(target_os = "linux", target_os = "android"))]
 impl Column for Pid {
     fn add(&mut self, proc: &ProcessInfo) {
