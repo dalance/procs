@@ -419,8 +419,9 @@ impl View {
 
         let use_terminal = console::user_attended();
 
-        // +3 means header/unit line and next prompt
-        let pager_threshold_height = self.visible_pids.len() + 3;
+        // +3 means header/unit line and next prompt (+2 without the unit line)
+        let pager_threshold_height =
+            self.visible_pids.len() + if config.display.show_unit { 3 } else { 2 };
 
         // "self.columns.len() - 1" means spacing between columns
         let pager_threshold_width = if config.pager.detect_width {
@@ -501,7 +502,9 @@ impl View {
             // Ignore display_* error
             //   `Broken pipe` may occur at pager mode. It can be ignored safely.
             let _ = self.display_header(config, theme);
-            let _ = self.display_unit(config, theme);
+            if config.display.show_unit {
+                let _ = self.display_unit(config, theme);
+            }
         }
 
         for pid in &self.visible_pids {
@@ -510,7 +513,9 @@ impl View {
         }
 
         if !opt.no_header && config.display.show_footer {
-            let _ = self.display_unit(config, theme);
+            if config.display.show_unit {
+                let _ = self.display_unit(config, theme);
+            }
             let _ = self.display_header(config, theme);
         }
 
