@@ -460,7 +460,7 @@ The first `[[columns]]` is shown at left side, and the last is shown at right si
 | MultiSlot            | -not supported-       | Slot for `--insert` option                    | o     | o     | o       | o       |
 | Nice                 | ni                    | Nice value                                    | o     | o     |         | o       |
 | Pgid                 | pgid                  | Process group ID                              | o     | o     |         | o       |
-| Pid                  | pid                   | Process ID ( or Thread ID sorrunded by `[]` ) | o     | o     | o       | o       |
+| Pid                  | pid                   | Process ID ( or Thread ID surrounded by `[]` ) | o     | o     | o       | o       |
 | Policy               | policy                | Scheduling policy                             | o     | o     |         |         |
 | Ppid                 | ppid                  | Parent process ID                             | o     | o     | o       | o       |
 | Priority             | pri                   | Priority                                      | o     | o     | o       | o       |
