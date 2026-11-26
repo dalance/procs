@@ -255,6 +255,22 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_readme_config() {
+        let readme = include_str!("../README.md");
+        let example = readme
+            .split("### Configuration example")
+            .nth(1)
+            .unwrap()
+            .split("```toml")
+            .nth(1)
+            .unwrap()
+            .split("```")
+            .next()
+            .unwrap();
+        toml::from_str::<Config>(example).unwrap();
+    }
+
+    #[test]
     fn test_run() {
         let mut config: Config = toml::from_str(CONFIG_DEFAULT).unwrap();
         config.pager.mode = ConfigPagerMode::Disable;
